@@ -1,0 +1,14 @@
+✔ represented WITHOUT ROWID primary and secondary covering cases match pinned rows in every encoding (147.380424ms)
+✔ WITHOUT ROWID unconstrained scan uses BLOBKEY storage safely (13.646483ms)
+✔ partial-index residual needing a non-index table column materializes the base row (34.542517ms)
+✔ WITHOUT ROWID non-covering secondary performs primary BLOBKEY lookup in every encoding (29.932997ms)
+✔ WITHOUT ROWID secondary primary-key remapping handles declared, reordered, suffix-free, and collation-duplicate fields (38.185974ms)
+✔ WITHOUT ROWID NOT INDEXED retains primary storage across NULL-order sorter and rebind (32.758339ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 653.454458

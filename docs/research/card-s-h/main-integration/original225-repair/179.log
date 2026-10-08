@@ -1,0 +1,17 @@
+✔ prepare owner: SELECT sum(missing) FROM (SELECT x FROM t2 UNION ALL SELECT NULL) d LIMIT 0 (105.164029ms)
+✔ prepare owner: SELECT sum(d.missing) FROM (SELECT x FROM t2 UNION ALL SELECT NULL) d LIMIT 0 (3028.902466ms)
+✔ prepare owner: SELECT d.x FROM (SELECT x FROM t2 LIMIT 2) d CROSS JOIN t1 t ORDER BY t.a (45.946008ms)
+✔ prepare owner: SELECT d.x FROM (SELECT x FROM t2 LIMIT 2) d CROSS JOIN t1 t ORDER BY t.a LIMIT 0 (17.203591ms)
+✔ source0 parent destination  (28.489678ms)
+✔ source0 parent destination  LIMIT 0 (3014.410746ms)
+✔ source0 parent destination  LIMIT 3 OFFSET 2 (16.062521ms)
+✔ source0 parent destination  LIMIT -1 OFFSET 6 (12.528123ms)
+✔ source0 unsorted limit offset uses output destination (12.151414ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6780.094402

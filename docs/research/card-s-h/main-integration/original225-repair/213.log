@@ -1,0 +1,11 @@
+✔ partition drain publishes every row for one bounded following layer (146.402043ms)
+✔ four incompatible/coerced window layers preserve payload and nonzero publication (46.393924ms)
+✔ declared collation is inherited and explicit collation overrides it (24.522331ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 859.314987

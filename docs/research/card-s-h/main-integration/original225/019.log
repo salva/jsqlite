@@ -1,0 +1,14 @@
+✔ public utf8 independent and correlated scalar aggregates keep destinations isolated (96.990057ms)
+✔ public utf16le independent and correlated scalar aggregates keep destinations isolated (26.001868ms)
+✔ public utf16be independent and correlated scalar aggregates keep destinations isolated (17.492587ms)
+✔ public utf8 aggregate correlated EXISTS honors inner equality join, reset, limits, and cleanup (33.529917ms)
+✔ public utf16le aggregate correlated EXISTS honors inner equality join, reset, limits, and cleanup (27.087173ms)
+✔ public utf16be aggregate correlated EXISTS honors inner equality join, reset, limits, and cleanup (24.185359ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 569.722719

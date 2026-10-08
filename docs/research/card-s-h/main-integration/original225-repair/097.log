@@ -1,0 +1,18 @@
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/e_expr.test:e_expr-2.1","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"readRow","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/e_expr.test:e_expr-2.2","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"readRow","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/e_expr.test:e_expr-2.3","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"readRow","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/e_expr.test:e_expr-2.4","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"readRow","outcome":"pass"},{"op":"step","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/select1.test:select1-1.4","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"metadata","outcome":"pass"},{"op":"stepAll","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/select1.test:select1-1.6","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"metadata","outcome":"pass"},{"op":"stepAll","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/select1.test:select1-1.8.1","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"metadata","outcome":"pass"},{"op":"stepAll","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"schema":"jsqlite-first-select-ts-result/1","caseId":"test/select1.test:select1-3.3","credit":1,"operations":[{"op":"openFixture","outcome":"pass"},{"op":"prepare","outcome":"pass"},{"op":"metadata","outcome":"pass"},{"op":"stepAll","outcome":"pass"},{"op":"finalize","outcome":"pass"}]}
+{"summary":{"declared":8,"attempted":8,"passed":8,"failed":0,"unattempted":0,"credit":8}}
+✔ test/conformance/run-first-select-ts.mjs (3660.246486ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3673.138512

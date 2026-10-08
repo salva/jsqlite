@@ -1,0 +1,11 @@
+✔ stat1 encoded BLOB/NUL named primary ownership UTF-8 (244.994984ms)
+✔ stat1 encoded BLOB/NUL named primary ownership UTF-16le (50.880939ms)
+✔ stat1 encoded BLOB/NUL named primary ownership UTF-16be (28.438665ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1479.863205

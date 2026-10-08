@@ -1,0 +1,20 @@
+✔ C1-original pinned typed public (266.529066ms)
+✔ C1-control pinned typed public (143.562946ms)
+✔ C2-values pinned typed public (36.514663ms)
+✔ C2-paired pinned typed public (29.409219ms)
+✔ C3-original pinned typed public (176.941147ms)
+✔ C3-derived-IN pinned typed public (106.554276ms)
+✔ C3-derived-OR pinned typed public (117.643776ms)
+✔ C4-real pinned typed public (28.828231ms)
+✔ C4-cast pinned typed public (24.077745ms)
+✔ C4-printf pinned typed public (25.920995ms)
+✔ C5-original pinned typed public (43.652169ms)
+✔ C6-original pinned typed public (188.989082ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1567.228142

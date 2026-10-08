@@ -1,0 +1,12 @@
+✔ ordinary physical SELECT entry forwards enclosing construction state (1.760978ms)
+✔ ordinary physical producer consumes destination and allocation owner without local publication (0.841773ms)
+✔ ordinary physical shared entry preserves native rows types names and lifecycle (142.747253ms)
+✔ rowid metadata uses physical IPK identity without changing lookup or lifecycle (19.579593ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 749.872643

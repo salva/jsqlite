@@ -1,0 +1,226 @@
+{
+  "README.md": {
+    "historical": "0497052e4dcda43e34e8460bd9f08e901889802b5b679faf9f05ba72e051c558",
+    "current": "3dd2e02f5e5235da4320cb7e201ff363258dabb04b67ec23c1baac84bb5eec8d"
+  },
+  "docs/CONFORMANCE.md": {
+    "historical": "3a889f15c81f002f642938a5baa7fe3577aa2cd352451cfa4d8d24904ae1f85d",
+    "current": "8780ebb59e6d088a9d1550bddee21f12d9ac82a5f7bb176a99cdb1874bafa5ba"
+  },
+  "docs/PLAN.md": {
+    "historical": "19d404e2f97e2b1b49bee8f7f428f69a70c252e4f04b7fd0e8db2c207288c2de",
+    "current": "5a582d8fa3c0e00ea8ef6d35084e827f92e8044df42052663274329dcaa10b47"
+  },
+  "docs/SQLITE_SOURCE_MAP.md": {
+    "historical": "14f1aeac6716ca33be36b097e38cbeee073bf3825e70b9a7e4d0f15841c882a9",
+    "current": "a3ccc3740dad7e810dd49e2c1eafeb0da156510b9291de1434fc8f9b2fb029e6"
+  },
+  "docs/TRANSLATION.md": {
+    "historical": "375d1620a9f053ee0f521dc1e4aaf15899c2d6008062224ab1af6c64c0584cc5",
+    "current": "2bf1f8dd05e2dfd014621ec778e41db45d1245eb843d52552e34085cfac9c1ed"
+  },
+  "docs/api.md": {
+    "historical": "860b896892bee1a6fac934dd7be12fb4207d7b59ed6225d4a279999ad649a984",
+    "current": "38cd07f012413e70a5b9a62e18cdaad6db14023f68e481d55b15fee429ee83d2"
+  },
+  "src/index.ts": {
+    "historical": "c90d9983112c6a497ae81a58f6fd1d31027af9b1161879ac29651e80bc568bf6",
+    "current": "5f9830d8174568fd21f223f60fd52633a9d5f81c7a46f503b762627f69f76f16"
+  },
+  "docs/architecture/multi-source-select.md": {
+    "historical": "6c844cfa4eda05fccee4135bed684572b5f43376077692e0530f94cf3ff7b276",
+    "current": "b798152c33edf365e901dab6b69d6973a92591448d6b0ed295105eebf29096f9"
+  },
+  "docs/reviews/translation-fidelity-2026-09-14.md": {
+    "historical": "d4e1b4207b5c5942dda0a9728cf240d02e217edf3b3d92f66262ad81f8aafa3e",
+    "current": "45630abf5220a5160984db525f96e7388345bb4b6e3135afa0b27e849dc6363e"
+  },
+  "examples/browser/README.md": {
+    "historical": "7633865838c512b9b25c4850bcd4c39a66112f5062970dfcb0652aa2db338443",
+    "current": "53d3c61fbf51f2a5da809a02cfc9c52f98b79527004cfc8a8bdd2665d803737a"
+  },
+  "src/internal/btree.ts": {
+    "historical": "fc8810fb501f1d1cfb18e8efe48073261ee66ea3750ad3a8639968ff29dbb9c7",
+    "current": "83f2d513638588914ac9180a5d89fe6d092b6bde086581a970874ed1b1464e51"
+  },
+  "src/internal/comparison.ts": {
+    "historical": "3f9a96a7ea0726aeaa66db62979603a63db630c0278f7a7131151ec14f82d625",
+    "current": "59cee10a2df1c9c887e0e22f9cbeb1d476a2c869161529abea630f9438f0716b"
+  },
+  "src/internal/json.ts": {
+    "historical": "14c7a4b02d37425a9ddb834f7e06345154acd752485c88997f035a854a2d7b64",
+    "current": "467f183c86d5fda72f33df845e6db6bd04ba17a5e7503a9037054edbe5d1a183"
+  },
+  "src/internal/mem.ts": {
+    "historical": "4669629f9c60768d5995262681187705981d1ccd5efa51a0717503aebb0eba32",
+    "current": "017b422b91b9d0f3983e5d13627fe71edb9e4df859674c8565634da3f4b8dbf1"
+  },
+  "src/internal/parse.ts": {
+    "historical": "bac77c1ecf4e1c8ea63416c754bd92025ae49350b56b6487946c989c6598bc1a",
+    "current": "e7979e1c860ba30fd370237798adc80d31d339fd86efb0a66a3324c8d1151d3e"
+  },
+  "src/internal/resolve.ts": {
+    "historical": "dad49784ed99dbb157699b50d5876519492107ac27292e06fd2c4953448a4036",
+    "current": "0f080b133094ecd0fb3735367dc1092c5b9bfbb4ad45ac929cf6497dcae6bfe6"
+  },
+  "src/internal/schema.ts": {
+    "historical": "e4e987f81cca886e5716532b490c2cc08005c4a38b4b8b47cb3304b583b5d07e",
+    "current": "67f5bc80b3f0e33404f3d5c3cb3881d0b88ccd53bf7fd53179b8db70c27053f2"
+  },
+  "src/internal/select-compiler.ts": {
+    "historical": "37f502a500708def787769ea93d71f88f888e9c2c6cfe26d7bf17505f46fb96e",
+    "current": "28ec27c05ac53f145569c373c58cbb668f5f7e12161e57688471bb88f85492a0"
+  },
+  "src/internal/select-program.ts": {
+    "historical": "a919c273c8206dcec80533d8685b5da4be776d1e3c7522b3198e13367f3bfbbc",
+    "current": "d15e72d5e26c09b33f5716555ab6a3342ba221e1df489d1babd955adf2b87b55"
+  },
+  "src/internal/storage.ts": {
+    "historical": "01941231a58f3c9aa52fd6ff81587544484408c1de85df4dbe3ff4274af2e068",
+    "current": "08326d10cc4f8d8bee579c438570af450315c691455f6d4adc0e746eecba2428"
+  },
+  "src/internal/vdbe.ts": {
+    "historical": "41b9a97a647022036edaf81758c7b8a4928f0d158645fa50e404412c3c4487af",
+    "current": "a02ec978b07da769662ef0b74ddd2d278446ddc6c58e8e7e96d266e2240326d5"
+  },
+  "src/internal/where-plan.ts": {
+    "historical": "4c2cca2c8ecb1c21069f7c45f13d25885cea0684c86fe92d1c59508598d47ea5",
+    "current": "45b3963c12f89f33bcb280a27013e0bd8bbb6ed10e357612f0ea5a1d7a790bee"
+  },
+  "test/browser/run.mjs": {
+    "historical": "515dddd46d5dcb82c7f5f72263bc2bdabe37898b0b325b4e8217033798f00e2b",
+    "current": "f6e4f674d48fd2076b36932bd33e16b21b891fa0ad10eb2f03203b58e1c59d33"
+  },
+  "test/conformance/aggregate-group-lifecycle.test.mjs": {
+    "historical": "5b4bd4f4d9c8dee86c01a0cb8f230aa5f1d6719ff1afd48517771e18d22d50fb",
+    "current": "34f32af9cdcc1ebbc60c1a0f36b29369d3f92bd9dabaa26d6fa75d397af6f826"
+  },
+  "test/conformance/compound-union-all.test.mjs": {
+    "historical": "d5068e53bcf45b82912740ad5082c01a1ca1973a8cf881c62fc2a0c45194cb87",
+    "current": "83a7d30922447ff4e4611cbab54dd07a5bc7dd8afa760a2ebe15d3ec636531ad"
+  },
+  "test/conformance/json-scalar-full.test.mjs": {
+    "historical": "2de05d9997f684bc7867eadba19182adc75fcf73ad20f36a24b5778696cd0b76",
+    "current": "4f5b3c41fae3f9f65dc9ddd980cf6d638d0b5a3ce03d4b112e25a0bb4827fafc"
+  },
+  "test/conformance/multisource-left.test.mjs": {
+    "historical": "a519e5025aa6b6982b2f1d326cb4c180e36919bb9f886b983cdc76e5d8ef1971",
+    "current": "0bf6316cc4123a96cc6b0626de78feacd24505742b6653a7169e9077e6639275"
+  },
+  "test/conformance/multisource-right-full.test.mjs": {
+    "historical": "c9f12f214155805b0213bd8c8f53dbdb910bc842ab2832e4e659ca1475ad2f0e",
+    "current": "aeaa191a79c602ad7f0bdf55a6e354816f14483ee61bfaf2b91d7d8f45923e4e"
+  },
+  "test/conformance/relational-private-lifecycle.test.mjs": {
+    "historical": "cbbc848afaf9b67c3f7b9b1e8c1a53474dcf1b104389ff60fd29baba491e030a",
+    "current": "a933c37e6b6bc7285663d50a90ed894621f933b1b0e899697f61f4edf34efcca"
+  },
+  "test/conformance/row-width-output-adjust.test.mjs": {
+    "historical": "e34e839186c7fbebda742d1747f26d9ee680530c504d08904aa4d5594e0cc181",
+    "current": "178638b5a02e758d84ed238042b72191941cba20bdc2f026fd5a28e97eb1e6ce"
+  },
+  "test/conformance/run-advanced-index-ts.test.mjs": {
+    "historical": "1e46831772d9cb4da3920b8dd195a37376b4ef55e42228402201fdbb04d4f045",
+    "current": "7af7642a5edec31cd1f71d01af70b691cb7f14982bff7c4f10830323c08d818e"
+  },
+  "test/conformance/run-index-planner-ts.mjs": {
+    "historical": "f430912a490558cb31afee3d748b1883b4397e3dcd0b2acf55f2f095cacc8817",
+    "current": "025634e06f47e15a36a7e9fd3822ee33dffbf0f7ef9ae30bc724b626a8597b81"
+  },
+  "test/conformance/select-aggregate-source-owner.test.mjs": {
+    "historical": "d5bd152a136c43c8621445a160e891fd399193020084390f81b72f9f9f124823",
+    "current": "2b809550d25eeebbba59240d1e64d1a8782346aabd59aef5b653fad483bd3448"
+  },
+  "test/conformance/select-correlated-scalar-destination.test.mjs": {
+    "historical": "4bf945e1fe011f03cce59a77e25cbcb952c22d0f93baff59b693268f7ca07b20",
+    "current": "b64b3997cdb778c776ef48894d37952bedf91f6398f0ee0210c07e79860c0890"
+  },
+  "test/conformance/select-derived-table-compound-owner.test.mjs": {
+    "historical": "a40c9f616a13380f54da0aff9395302f91dc0f9206be136bc0cd1de52f8ad612",
+    "current": "75b0287fc454c1d96e90ca34469301416ccaf26e346e9b62001fcb1c2ca81b24"
+  },
+  "test/conformance/select-derived-window-parent.test.mjs": {
+    "historical": "4d712aa0ffb879cd94c7087d199d34cf6a696bb3cd16f7e31a607a907829cb19",
+    "current": "2a29f2002b9690533946108c2895803b491446b76204e6d7b827ac46f054c62a"
+  },
+  "test/conformance/select-outer-join-aggregate-input.test.mjs": {
+    "historical": "9c21af7a76655bef560aed1a2d08d0fcf43a9b831c3821f0627e62e5bc839a29",
+    "current": "fc71456fd2f9bb438dc883ff68534518392ca9382dfb925818005c59234a9ff6"
+  },
+  "test/conformance/select-scalar-child.test.mjs": {
+    "historical": "1957d9eeed708718424b2b67490d61028acb9fd035c9f7931e069ee1d5bea084",
+    "current": "8c48848b0d1fd6c4b9f2b0ca180002e8469a547bfd0354dab04291ada0d16cad"
+  },
+  "test/conformance/select-vdbe-owner-boundary.test.mjs": {
+    "historical": "3f6e699b683cd63a3d15fc2d91e31ba276fede701fc64bbe5005e653a87d1aae",
+    "current": "b62669f682f067bb14a2f4dd4347aab97743b60de17e4a8febf7784a1656a84f"
+  },
+  "test/conformance/stat-record-boundary.test.mjs": {
+    "historical": "7dea989fb14e8824bb77e2a85f413993c02a20c079f5705cac2d87f46991bfbe",
+    "current": "90dfa86990e74ac1ae4a40259d5c368c81d4f6d05a4901f077cc941dc55e1a07"
+  },
+  "test/conformance/stat4-enabled-boundary.test.mjs": {
+    "historical": "fae306f6ac8f2def6d6968ed27cb244a6819911e40ca824f004d47f4943c13c0",
+    "current": "b2d1e091630ff2f513de9306bea3bcde3596d7a5eaaa2f8927165d2b9724052d"
+  },
+  "test/conformance/subquery-view-foundation.test.mjs": {
+    "historical": "143b90ffcbdd830605afa765e11e0ce67978449522ee76649e6307386966e44f",
+    "current": "153b23d050bb21444e2f9d72f84c95734c49b130a72e86916898ec68aa4b7929"
+  },
+  "test/conformance/where-plan-analysis.test.mjs": {
+    "historical": "cadcb0dbbce6f204db3b8837c57232a0e4565d0b47e7971bc82636b787afa015",
+    "current": "546ba7096f6fe1a05f9c493ae354f3481cfc01ce4913b0bf76c0c9039aee5998"
+  },
+  "test/conformance/where-plan-foundation.test.mjs": {
+    "historical": "106521eae066c56375b8df2845cce1e442e928c399b387c815c1c78e42075ad6",
+    "current": "6411481514f16cd2d6f4320dcc62b95a18b5428678829a9bd9f0329697909501"
+  },
+  "test/conformance/where-plan-ordered-red.test.mjs": {
+    "historical": "8f878a182f057726827c98eeded1b335b472956e5cdfb3260923716e071f341d",
+    "current": "a241129cc1cd218f932904f79a0cf217c2b7215ca7772deacc672122a1a373f9"
+  },
+  "test/conformance/window-endpoint-seek-control-public.test.mjs": {
+    "historical": "9961a68b0f9a87b81027dbebdfbe4bcafe78cb69cc93b108617d35626b3fb391",
+    "current": "a357d1fcbca0de08466eb812b822856e8c0e9baba2ae29cab21fd2d218ec370b"
+  },
+  "test/conformance/window-first-nth-endpoint-owner.test.mjs": {
+    "historical": "7aefb4e4c706ef68b55877c2f3211f8164db62d7c2198fd457d9f8e3c6c7a89b",
+    "current": "18146e0f3b729182edac5d15ff0ef1abfd17550cddf46454c0283df61e89dbc1"
+  },
+  "test/conformance/window-linked-source-owner.test.mjs": {
+    "historical": "484bf88b97a1254323594f98a31276934855739875803dae87a76c3d392b6c2a",
+    "current": "b7ac44e1c6a43ed48bafeca5a57eca3edc2294478bc8546ad486e83239f07b35"
+  },
+  "test/conformance/window-rewrite.test.mjs": {
+    "historical": "b068687fa1363c4fcfaf88b5de43489a88d017d317455c6e793d76643a465424",
+    "current": "9ac87b7893a43f03ccd84c3213c86a1386d0a88609b6b01e1c2a4a1ac3a9e4ee"
+  },
+  "test/demo/browser.test.mjs": {
+    "historical": "7180aac54cd8ff26a3411c9bdba70d490e6a595444eee3091ca1048264dbccc8",
+    "current": "c1a22941ca5991c14bad1182f55db45303520bdea880d54ef97cf65d3f97900e"
+  },
+  "test/parser/resolver.test.mjs": {
+    "historical": "403270744852ce368cdfdc9822ab1290e8e266b92cbc47da15816cff1a5de6bc",
+    "current": "98603b3ce4cbccedb14ceb250b74b9229d8dacec7bff8be11dd8d9e169b53749"
+  },
+  "test/parser/tokenizer-parser.test.mjs": {
+    "historical": "06a76b37fc20a5aa274c7aee2ba1afbff3c5c9c69e355d5763dde27b2a34a171",
+    "current": "5026ff7629a9fd20b06d735f6e2e10ed2e1d84e2c7ec9aff2026b26460b01532"
+  },
+  "test/select/first-select.test.mjs": {
+    "historical": "dccdae30b33982db84194d13bfc64f9b9e1f9750e9f80281edee0a8e3e3eadf2",
+    "current": "4ee2e733b3d684bfc47ec527920e2977aad03bc800ff6f44c76402655d31cbc8"
+  },
+  "test/value/private-state.test.mjs": {
+    "historical": "24e6fd92093af1b087d9476f135fe5620bb2fa019e483081351ea0a6c6ecf9ec",
+    "current": "6955452bf5b579d664485b408597a3c202ee99e4bf0ef22152687b3aca688bfa"
+  },
+  "test/conformance/cases/stage3-index-planner.json": {
+    "historical": "bfc6726b6d9759855298ee2f35806a6b17ab41e808c8712e258790772a927adc",
+    "current": "e533c4e17413a0930f8425e64e2a8b9a3d4b636637e8dda62c92316d5c81d37e"
+  },
+  "test/conformance/cases/stage3-index-planner.spec.json": {
+    "historical": "f8f8435ca39f839cca6388b82f7b86bd3c51c4ce341df43bf9b4db6558006980",
+    "current": "829342fd0da5ca760d866c5d6c99dd9bdf8320f7f16d319982fdb64f01664097"
+  }
+}

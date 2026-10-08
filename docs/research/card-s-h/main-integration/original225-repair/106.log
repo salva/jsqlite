@@ -1,0 +1,10 @@
+{"publicFetchFixtures":3,"historicalAbsentRegistrations":38,"currentDispatchableRegistrations":50,"generatedUnsupportedObservations":0,"fixtureColumnObservations":6,"fixtureColumnOutcomes":["typed-success"],"outcome":"historical-baseline-superseded"}
+✔ test/conformance/run-ordinary-scalars-unsupported-ts.mjs (754.854356ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 770.515703

@@ -1,0 +1,17 @@
+✔ implicit declaration order and merge width authority inline-desc/UTF-8 (133.32965ms)
+✔ implicit declaration order and merge width authority inline-desc/UTF-16le (25.996582ms)
+✔ implicit declaration order and merge width authority inline-desc/UTF-16be (17.835836ms)
+✔ implicit declaration order and merge width authority table-desc/UTF-8 (24.190144ms)
+✔ implicit declaration order and merge width authority table-desc/UTF-16le (16.522185ms)
+✔ implicit declaration order and merge width authority table-desc/UTF-16be (13.327767ms)
+✔ implicit declaration order and merge width authority merge/UTF-8 (14.5704ms)
+✔ implicit declaration order and merge width authority merge/UTF-16le (16.63018ms)
+✔ implicit declaration order and merge width authority merge/UTF-16be (13.766264ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 857.54224

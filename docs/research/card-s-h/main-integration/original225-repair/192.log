@@ -1,0 +1,15 @@
+✔ window transient producer preparation: SELECT d.a,count(*) FILTER (WHERE d.a>1) OVER (ORDER BY d.a) AS n FROM (SELECT a FROM t1 UNION ALL SELECT 9) d ORDER BY 1 LIMIT 3 (159.655849ms)
+✔ window transient producer preparation: WITH q AS (SELECT a FROM t1) SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a) AS n FROM q ORDER BY 1 (25.597457ms)
+✔ window transient producer preparation: SELECT t.a,count(*) FILTER (WHERE u.a>1) OVER (ORDER BY t.a) AS n FROM t1 t JOIN t1 u ON u.a=t.a ORDER BY 1 (26.42014ms)
+✔ window transient producer preparation: SELECT d.a,sum(d.a) FILTER (WHERE d.a>1) OVER (ORDER BY d.a) AS n FROM (SELECT a FROM t1 WHERE a>1 LIMIT 2) d ORDER BY 1 LIMIT 1 OFFSET 1 (14.98444ms)
+✔ window transient producer preparation: SELECT d.a,count(*) FILTER (WHERE d.a>1) OVER (ORDER BY d.a) AS n FROM (SELECT a FROM t1 WHERE 0 UNION ALL SELECT 9) d ORDER BY 1 (15.196314ms)
+✔ window transient producer preparation: SELECT d.a,sum(d.a) FILTER (WHERE NULL) OVER (ORDER BY d.a) AS n FROM (SELECT a FROM t1 WHERE 0 UNION ALL SELECT 9 WHERE 0) d ORDER BY 1 (14.035223ms)
+✔ window transient producer preparation: WITH q AS (SELECT a FROM t1 LIMIT 2) SELECT a,count(*) FILTER (WHERE a>1) OVER (ORDER BY a) AS n FROM q ORDER BY 1 (12.235141ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 776.77782

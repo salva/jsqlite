@@ -1,0 +1,12 @@
+✔ B2 aggregate consumes a zero-source derived producer (91.523289ms)
+✔ A1 independent aggregate scalar subqueries own disjoint registers and cursors (67.779746ms)
+✔ C5 SELECT-list aggregate subquery retains qualified outer ownership (88.912941ms)
+✔ B4 aggregate consumer reruns the correlated inner-join EXISTS and restores admission (1418.502991ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2039.397317

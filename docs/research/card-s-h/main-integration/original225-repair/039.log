@@ -1,0 +1,9 @@
+✔ LIKE in represented WHERE survives window rewrite and matches pinned SQLite (256.711594ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1259.210765

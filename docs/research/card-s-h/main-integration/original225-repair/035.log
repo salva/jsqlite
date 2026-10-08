@@ -1,0 +1,16 @@
+✔ public INNER subset matches pinned 3.53.4 multisource capture (241.339911ms)
+✔ public INNER prepare errors match pinned 3.53.4 multisource capture (28.594813ms)
+✔ public INNER reset and rebind match pinned 3.53.4 multisource capture (30.905674ms)
+✔ public UTF-16 INNER cases match pinned 3.53.4 multisource capture (25.317955ms)
+✔ public translated upstream upstream-comma-on matches pinned 3.53.4 capture (19.218715ms)
+✔ public translated upstream upstream-inner-using-star matches pinned 3.53.4 capture (18.011091ms)
+✔ public translated upstream upstream-natural-left-collation matches pinned 3.53.4 capture (10.871283ms)
+✔ public joined compound arm matches pinned 3.53.4 multisource capture (38.106078ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1514.346818

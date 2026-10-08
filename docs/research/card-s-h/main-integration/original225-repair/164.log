@@ -1,0 +1,14 @@
+✔ SELECT DISTINCT admits typed direct expressions (82.534834ms)
+✔ SELECT DISTINCT removes duplicate complete records before ORDER BY (23.059374ms)
+✔ SELECT DISTINCT preserves typed equality, collations, metadata, WHERE, and LIMIT (23.671594ms)
+✔ SELECT DISTINCT preserves prepare errors and statement ownership (10.306634ms)
+✔ bounded DISTINCT compounds and FROM subqueries execute without poisoning later statements (3016.751426ms)
+✔ DISTINCT duplicate jump skips a non-result multi-term ORDER key and SorterInsert (9.929459ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3534.500859

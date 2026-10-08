@@ -1,0 +1,14 @@
+✔ all four JSON aggregates return canonical empty containers (77.455903ms)
+✔ typed inputs, JSON subtype, duplicate labels and grouped order match pinned behavior (59.891845ms)
+✔ ordinary BLOBs reject while JSONB subtype values embed structurally (24.432406ms)
+✔ represented sliding windows preserve value snapshots and inverse order (58.477806ms)
+✔ JSON aggregate limits, reset/finalize and admission cleanup are shared (24.112562ms)
+✔ JSON aggregate execution observes bounded work and releases statement admission (7.201203ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 694.891545

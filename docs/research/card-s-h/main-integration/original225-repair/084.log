@@ -1,0 +1,11 @@
+✔ aggregate/GROUP public gate compares 34/34 admitted aggregate executions exactly (597.024268ms)
+✔ aggregate/GROUP public prepare diagnostics match pinned native captures (3065.35997ms)
+✔ aggregate ownership uses expression structure, not aggregate-looking token spellings (36.457034ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4162.312044

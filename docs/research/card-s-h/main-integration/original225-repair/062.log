@@ -1,0 +1,14 @@
+✔ LEFT IN null-continuation native reset utf8/before (886.104613ms)
+✔ LEFT IN null-continuation native reset utf8/after (646.800588ms)
+✔ LEFT IN null-continuation native reset utf16le/before (540.457043ms)
+✔ LEFT IN null-continuation native reset utf16le/after (505.96098ms)
+✔ LEFT IN null-continuation native reset utf16be/before (487.572644ms)
+✔ LEFT IN null-continuation native reset utf16be/after (489.350256ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4048.494272

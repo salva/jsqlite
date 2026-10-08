@@ -1,0 +1,13 @@
+✔ derived compound destination: WITH d AS (SELECT x FROM t2 LIMIT 2) SELECT d.x,t.a FROM d CROSS JOIN t1 t ORDER BY t.a (106.466747ms)
+✔ derived compound destination: WITH d AS (SELECT x FROM t2 LIMIT 0) SELECT d.x,t.a FROM d CROSS JOIN t1 t ORDER BY t.a (3021.048464ms)
+✔ derived compound destination: WITH d AS (SELECT x FROM t2 LIMIT 1 OFFSET 2) SELECT d.x,t.a FROM d CROSS JOIN t1 t ORDER BY t.a (11.50479ms)
+✔ first-source retained child owns materialization destination without completed ops copy (3.256541ms)
+✔ first-source CTE missing producer identifier stays lexical even LIMIT0 (11.375312ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3607.847218

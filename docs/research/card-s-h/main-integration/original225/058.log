@@ -1,0 +1,11 @@
+✔ stat1 raw invalid callback name does not alias é UTF-8 (78.696924ms)
+✔ stat1 raw invalid callback name does not alias é UTF-16le (16.980686ms)
+✔ stat1 raw invalid callback name does not alias é UTF-16be (9.367244ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 458.256475

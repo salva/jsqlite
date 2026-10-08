@@ -1,0 +1,11 @@
+✔ quoted declared width and complete origin metadata UTF-8 (209.663193ms)
+✔ quoted declared width and complete origin metadata UTF-16le (43.978442ms)
+✔ quoted declared width and complete origin metadata UTF-16be (27.473484ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1415.039469

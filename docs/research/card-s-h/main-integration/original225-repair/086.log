@@ -1,0 +1,24 @@
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-6-null-is-mixed","owner":"expression-caller","outcome":"match","actual":{"rows":[[{"type":"integer","value":"0"},{"type":"integer","value":"1"},{"type":"integer","value":"0"},{"type":"integer","value":"1"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-6-right-explicit-nocase","owner":"expression-caller","outcome":"match","actual":{"rows":[[{"type":"integer","value":"1"},{"type":"integer","value":"0"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-6-column-affinity","owner":"expression-caller; depends on card-f Mem comparison affinity","outcome":"match","actual":{"rows":[[{"type":"integer","value":"1"},{"type":"integer","value":"1"},{"type":"integer","value":"0"},{"type":"text","utf8Hex":"696e7465676572"},{"type":"text","utf8Hex":"74657874"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-6-case-prefix-truth","owner":"CASE boolean caller; depends on card-f numeric conversion","outcome":"match","actual":{"rows":[[{"type":"text","utf8Hex":"796573"},{"type":"text","utf8Hex":"6e6f"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-substr-zero","owner":"scalar substr","outcome":"match","actual":{"rows":[[{"type":"text","utf8Hex":"6162"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-substr-negative","owner":"scalar substr","outcome":"match","actual":{"rows":[[{"type":"text","utf8Hex":"66"},{"type":"text","utf8Hex":"6263"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-substr-blob","owner":"scalar substr/Mem result class","outcome":"match","actual":{"rows":[[{"type":"blob","hex":"62"},{"type":"text","utf8Hex":"626c6f62"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-abs-text-prefix","owner":"scalar abs; depends on card-f numericType","outcome":"match","actual":{"rows":[[{"type":"real","ieee754be":"4000000000000000"},{"type":"text","utf8Hex":"7265616c"},{"type":"real","ieee754be":"4028000000000000"},{"type":"text","utf8Hex":"7265616c"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-length-integral-real","owner":"scalar length/octet_length and Mem stringify","outcome":"match","actual":{"rows":[[{"type":"integer","value":"3"},{"type":"integer","value":"3"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-octet-utf8","owner":"scalar octet_length encoding","outcome":"match","actual":{"rows":[[{"type":"integer","value":"3"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-octet-utf16le","owner":"scalar octet_length encoding","outcome":"match","actual":{"rows":[[{"type":"integer","value":"6"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-7-octet-utf16be","owner":"scalar octet_length encoding","outcome":"match","actual":{"rows":[[{"type":"integer","value":"6"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-8-oversized-literal","owner":"card-f literal lowering; caller evidence only","outcome":"match","actual":{"rows":[[{"type":"real","ieee754be":"43e0000000000000"},{"type":"text","utf8Hex":"7265616c"},{"type":"real","ieee754be":"c3e0000000000000"},{"type":"text","utf8Hex":"7265616c"}]]},"credit":0}
+{"schema":"jsqlite-audit-expression-callers-ts/1","caseId":"audit-8-numeric-neighbor","owner":"card-f numericType/CAST; caller evidence only","outcome":"match","actual":{"rows":[[{"type":"text","utf8Hex":"7265616c"},{"type":"real","ieee754be":"4059000000000000"},{"type":"integer","value":"1"},{"type":"integer","value":"123"}]]},"credit":0}
+{"summary":{"declared":14,"match":14,"mismatch":0,"credit":0}}
+✔ test/conformance/run-audit-expression-callers-ts.mjs (3764.04864ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3778.121123

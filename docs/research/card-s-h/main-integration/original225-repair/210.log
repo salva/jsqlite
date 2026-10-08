@@ -1,0 +1,15 @@
+✔ ordered insertion replaces dominated scan and drops duplicate IPK equality candidate (4.577224ms)
+✔ no-sort solver saves biased unsorted accumulator separately from total cost (0.684708ms)
+✔ equal cost vector non-indexed paths retain insertion order, not kind sorting (0.293784ms)
+✔ insertion isolates sort owners and incomparable prerequisites; replaces and deletes tails in place (1.614899ms)
+✔ setup invariant checked before dominance; budget consumed even by dropped templates (0.962824ms)
+✔ solver cost vector prefers smaller rows before unsorted cost; indexed size breaks exact ties (0.483748ms)
+✔ bounded slots keep prerequisite-delayed feasible winner at widths 1 and 5 (0.427942ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 284.675238

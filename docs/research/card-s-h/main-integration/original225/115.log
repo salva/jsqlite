@@ -1,0 +1,43 @@
+✔ derived compound destination: SELECT d.a,sum(CAST(d.a AS REAL)) FILTER (WHERE d.a<5) FROM (SELECT a FROM t1 UNION ALL SELECT a FROM t1) d GROUP BY d.a ORDER BY d.a (92.93761ms)
+✔ derived compound destination: SELECT d.a AS k,min(d.a),sum(d.a ORDER BY d.a DESC) AS s FROM (SELECT a FROM t1 UNION ALL SELECT a FROM t1 WHERE NULL) d WHERE d.a>1 GROUP BY 1 HAVING s>3 ORDER BY s DESC (29.403166ms)
+✔ derived compound destination: SELECT a,sum(a) FROM t1 GROUP BY 1 ORDER BY a (12.503883ms)
+✔ derived compound destination: SELECT CAST(a AS REAL) AS k,sum(a) AS s FROM t1 GROUP BY 1 HAVING s>1 ORDER BY k DESC (11.946117ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t WHERE t.a>1 GROUP BY t.a HAVING s>2 ORDER BY k (18.586723ms)
+✔ derived compound destination: SELECT CAST(t.a AS REAL) AS k,sum(CAST(t.a AS REAL)) AS s FROM t1 t WHERE CASE WHEN t.a>0 THEN 1 ELSE abs(-9223372036854775808) END GROUP BY t.a ORDER BY k (11.568785ms)
+✔ derived compound destination: SELECT t.a AS a,count(DISTINCT t.a) AS n,sum(t.a) FILTER (WHERE t.a<5) AS s FROM t1 t WHERE t.a>0 GROUP BY t.a ORDER BY a (12.907073ms)
+✔ derived compound destination: SELECT min(t.a-t.a) AS m,t.a AS a FROM t1 t WHERE t.a>1 GROUP BY t.a-t.a ORDER BY m (10.034086ms)
+✔ derived compound destination: SELECT sum(t.a) AS s FROM t1 t WHERE NULL GROUP BY t.a (10.360717ms)
+✔ derived compound destination: SELECT t.a AS k,sum(u.a) AS s,count(DISTINCT u.a) AS n FROM t1 t LEFT JOIN t1 u ON t.a=u.a AND u.a<5 GROUP BY t.a ORDER BY k (17.081175ms)
+✔ derived compound destination: SELECT sum(CAST(u.a AS REAL)) FILTER (WHERE u.a<5) AS s,count(DISTINCT u.a) AS n,min(t.a-t.a) AS m,t.a AS a FROM t1 t JOIN t1 u ON t.a=u.a AND CASE WHEN t.a>0 THEN 1 ELSE abs(-9223372036854775808) END (18.756654ms)
+✔ derived compound destination: SELECT min(t.a-t.a) AS m,(t.a BETWEEN 1 AND 3) AS b,(t.a IN (1,3)) AS i,sum(CASE WHEN t.a>0 THEN CAST(t.a AS REAL) ELSE abs(-9223372036854775808) END) AS s FROM t1 t GROUP BY t.a-t.a (13.65227ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t GROUP BY t.a HAVING EXISTS(SELECT 1 FROM t1 u WHERE u.a=t.a AND u.a<5) ORDER BY k (12.961746ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t WHERE EXISTS(SELECT 1 FROM t1 u WHERE u.a=t.a AND u.a<5) GROUP BY t.a ORDER BY k (10.274619ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t GROUP BY t.a HAVING EXISTS(SELECT 1 FROM t1 t WHERE t.a=1) ORDER BY k (10.895811ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t GROUP BY t.a HAVING EXISTS(SELECT 1 FROM t1 u WHERE u.a=t.a) ORDER BY k (14.365494ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT u.a FROM t1 u ORDER BY abs(u.a-t.a),u.a LIMIT 1) AS near FROM t1 t GROUP BY t.a ORDER BY k (15.861488ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t WHERE t.a=(SELECT u.a FROM t1 u ORDER BY abs(u.a-t.a),u.a LIMIT 1) GROUP BY t.a ORDER BY k (13.808216ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT u.a FROM t1 u WHERE u.a<t.a ORDER BY u.a DESC LIMIT 1) AS prev FROM t1 t GROUP BY t.a ORDER BY k (10.979276ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT t.a FROM t1 t ORDER BY t.a DESC LIMIT 1) AS last FROM t1 t GROUP BY t.a ORDER BY k (9.926108ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT sum(u.a+t.a) FROM t1 u) AS total FROM t1 t GROUP BY t.a ORDER BY k (10.014109ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t WHERE (SELECT sum(u.a+t.a) FROM t1 u)>25 GROUP BY t.a ORDER BY k (12.160626ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT sum(CAST(u.a+t.a AS REAL)) FROM t1 u) AS total FROM t1 t GROUP BY t.a ORDER BY k (11.06021ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT sum(t.a) FROM t1 t) AS total FROM t1 t GROUP BY t.a ORDER BY k (10.187103ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,(SELECT sum(CASE WHEN u.a<t.a THEN u.a END) FROM t1 u) AS prev FROM t1 t GROUP BY t.a ORDER BY k (9.481203ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,1 IN (SELECT t.a FROM t1 u) AS hit FROM t1 t GROUP BY t.a ORDER BY k (11.818244ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s FROM t1 t WHERE 1 IN (SELECT t.a FROM t1 u) GROUP BY t.a ORDER BY k (7.351927ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,1 IN (SELECT t.a FROM t1 t) AS hit FROM t1 t GROUP BY t.a ORDER BY k (12.0105ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,NULL IN (SELECT t.a FROM t1 u LIMIT 0) AS hit FROM t1 t GROUP BY t.a ORDER BY k (7.87453ms)
+✔ derived compound destination: SELECT t.a AS k,sum(t.a) AS s,1 NOT IN (SELECT u.a FROM t1 v) AS hit FROM t1 t LEFT JOIN t1 u ON u.a=t.a AND u.a<5 GROUP BY t.a ORDER BY k (11.738622ms)
+✔ ordinary aggregate WHERE consumes linked source carrier (3.571017ms)
+✔ ordinary first error missing LIMIT0 (7.496861ms)
+✔ ordinary first error sum(sum(t.a)) LIMIT0 (6.083252ms)
+✔ aggregate ON source-row consumer is linked to lexical owner (3.530015ms)
+✔ grouped compound stream retains parent metadata and shared private rejection (14.950047ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 900.907467

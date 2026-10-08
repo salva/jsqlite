@@ -1,0 +1,19 @@
+✔ materialized/repeated CTE producer emits into parent builder destination (4.571935ms)
+✔ multiple recursive CTE producers share parent builder and destination (4.172824ms)
+✔ table-backed compound arms consume the enclosing builder and destination (4.39741ms)
+✔ unordered UNION ALL arm consumer emits into its enclosing destination (3.419487ms)
+✔ unordered compound arms retain first-arm metadata, row order and atomic prepare errors (405.581459ms)
+✔ ordered compound arm caller does not relocate completed child Programs (3.334528ms)
+✔ pinned ordered compound public control: output, limit, CTE, VALUES and ORDER error (3035.829956ms)
+✔ pinned table-backed compound types, metadata, set/ordered limit and prepare errors (43.011845ms)
+✔ materialized/repeated CTE public rows, types, metadata, reset and prepare errors (52.381144ms)
+✔ filtered materialized CTE producer retains parent destination ownership (4.708368ms)
+✔ filtered materialized CTE reuse: public types, names, reset and errors (24.888838ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3674.350724

@@ -1,0 +1,11 @@
+✔ LIMIT zero short-circuits OFFSET; lifecycle/coercion/composition storage-p4096 (3106.989511ms)
+✔ LIMIT zero short-circuits OFFSET; lifecycle/coercion/composition storage-p4096-utf16le (3032.195636ms)
+✔ LIMIT zero short-circuits OFFSET; lifecycle/coercion/composition storage-p4096-utf16be (3033.233905ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9528.652796

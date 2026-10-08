@@ -1,0 +1,11 @@
+✔ SeekRowid NUMERIC copy utf8 (145.335721ms)
+✔ SeekRowid NUMERIC copy utf16le (41.130498ms)
+✔ SeekRowid NUMERIC copy utf16be (27.886985ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 803.082056

@@ -1,0 +1,11 @@
+✔ retained window endpoints terminate: SELECT d.a,first_value(d.a) OVER (ORDER BY d.a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM (SELECT a FROM t1 WHERE a>1 LIMIT 2) d ORDER BY 1 LIMIT 1 OFFSET 1 (124.459175ms)
+✔ retained window endpoints terminate: WITH q AS (SELECT a FROM t1 LIMIT 3) SELECT a,nth_value(a,2) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM q ORDER BY 1 LIMIT 2 OFFSET 1 (18.003556ms)
+✔ retained window endpoints terminate: SELECT d.a,nth_value(d.a,2) OVER (ORDER BY d.a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM (SELECT a FROM t1 WHERE a<5 UNION ALL SELECT a FROM t1 WHERE a>5 LIMIT 3) d ORDER BY 1 (24.697873ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 613.956445

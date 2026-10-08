@@ -1,0 +1,10 @@
+{"schema":"jsqlite-expression-bounded-ts/1","outcome":"pass","checks":["exact-work-22-23-and-reset-reuse","abort-checkpoint-and-reuse","deadline-checkpoint-and-finalize","replace-preflight-and-reuse","column-output-limit","column-replace-all-encodings-and-connection-reuse"]}
+✔ test/conformance/run-expression-bounded-ts.mjs (668.837133ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 680.71092

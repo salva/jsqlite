@@ -1,0 +1,11 @@
+✔ implicit declaration order and merge width authority UTF-8 (115.170173ms)
+✔ implicit declaration order and merge width authority UTF-16le (24.884397ms)
+✔ implicit declaration order and merge width authority UTF-16be (15.04941ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 715.701542

@@ -1,0 +1,27 @@
+✔ source full-scan residual a=0 (2.987976ms)
+✔ source full-scan residual a=1 (0.534905ms)
+✔ source full-scan residual a=-1 (0.540805ms)
+✔ source full-scan residual a=2 (0.513942ms)
+✔ source full-scan residual a=?1 (0.491185ms)
+✔ source full-scan residual a>2 (0.521614ms)
+✔ residual prerequisite and virtual branches skip unavailable terms (1.217916ms)
+✔ multiple residuals subtract each then clamp against strongest equality (1.215922ms)
+✔ EP_IntValue residual a=(1) (0.556347ms)
+✔ EP_IntValue residual a=+(-1) (0.554388ms)
+✔ EP_IntValue residual a=-(-1) (1.395408ms)
+✔ EP_IntValue residual a=0x0001 (0.48484ms)
+✔ EP_IntValue residual a=0xffffffffffffffff (0.289192ms)
+✔ EP_IntValue residual a=2147483648 (0.269966ms)
+✔ EP_IntValue residual a=1+0 (0.291786ms)
+✔ EP_IntValue residual a=1.0 (0.350427ms)
+✔ foreign-only and no-self residual terms skipped (0.332819ms)
+✔ admitted IPK equality and its virtual parent are not residual decrements (1.133699ms)
+✔ residual single-row output may become negative, without changing IPK work (0.585205ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 232.453538

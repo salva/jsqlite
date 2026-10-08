@@ -1,0 +1,12 @@
+✔ pinned 3.53.4 RIGHT/FULL matrix including barriers and downstream joins (432.907066ms)
+✔ RIGHT/FULL reset and failures clean match and unmatched-pass state (41.279427ms)
+✔ RIGHT match tracking shares private-state budget (21.487121ms)
+✔ RIGHT/FULL preserve encoding, diagnostics, and cancellation after match tracking (65.401149ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1560.07653

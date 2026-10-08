@@ -1,0 +1,26 @@
+✖ all encoding index-planner assertions receive row and private-counter credit (167.256234ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 622.355649
+
+✖ failing tests:
+
+test at test/conformance/run-index-planner-ts.mjs:15:1
+✖ all encoding index-planner assertions receive row and private-counter credit (167.256234ms)
+  AssertionError [ERR_ASSERTION]: utf8/left-join-on-provenance/0/sorterRows: 0 < 1
+      at TestContext.<anonymous> (file:///work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/checkout/test/conformance/run-index-planner-ts.mjs:20:855)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1332:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

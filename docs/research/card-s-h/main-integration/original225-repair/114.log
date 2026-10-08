@@ -1,0 +1,15 @@
+✔ derived compound destination: SELECT sum(d.x) AS s,count(d.x) AS n FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT 8 WHERE 0) d (83.456823ms)
+✔ derived compound destination: SELECT sum(d.x ORDER BY d.x) AS s,count(d.x) AS n FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT 8) d (19.863787ms)
+✔ derived compound destination: SELECT sum(d.x) AS s,count(d.x) AS n FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT NULL) d (3013.437722ms)
+✔ derived compound destination: SELECT sum(d.x) AS s,avg(d.x) AS a FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT 1 UNION ALL SELECT 2.0) d (13.151681ms)
+✔ compound aggregate consumes semantic phase carrier instead of name-based forRow (3.55559ms)
+✔ aggregate lexical first error missing (11.040354ms)
+✔ aggregate lexical first error d.missing (9.987395ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3543.360202

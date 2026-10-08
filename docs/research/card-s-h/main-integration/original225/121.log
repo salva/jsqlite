@@ -1,0 +1,9 @@
+✔ materialized compound CTE pair composes into parent join destination (69.738883ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 442.126173

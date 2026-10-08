@@ -1,0 +1,12 @@
+✔ derived compound destination: SELECT t.a AS a,(SELECT count(*) FROM t2 s WHERE s.x=t.a COLLATE BINARY) AS n FROM t1 t JOIN t1 u ON u.a=t.a ORDER BY 1 (121.08841ms)
+✔ joined correlated consumer uses reusable resolved-expression carrier (4.621456ms)
+✔ linked resolver first error missing (19.682953ms)
+✔ linked resolver first error a (14.845899ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 658.680261

@@ -1,0 +1,14 @@
+✔ selected-root failure leaves public connection usable utf8/before (254.884487ms)
+✔ selected-root failure leaves public connection usable utf8/after (97.397964ms)
+✔ selected-root failure leaves public connection usable utf16le/before (60.09967ms)
+✔ selected-root failure leaves public connection usable utf16le/after (64.858824ms)
+✔ selected-root failure leaves public connection usable utf16be/before (59.25918ms)
+✔ selected-root failure leaves public connection usable utf16be/after (59.019288ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1181.821381

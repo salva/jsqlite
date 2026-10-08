@@ -1,0 +1,14 @@
+✔ selected-t_a physically invalid stat1 record header (132.119308ms)
+✔ offpath-t_ab physically invalid stat1 record header (42.694537ms)
+✔ selected-t_a physically invalid stat1 record header (34.474741ms)
+✔ offpath-t_ab physically invalid stat1 record header (34.764556ms)
+✔ selected-t_a physically invalid stat1 record header (25.96251ms)
+✔ offpath-t_ab physically invalid stat1 record header (18.499592ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 887.653297

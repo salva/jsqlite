@@ -1,0 +1,14 @@
+✔ native reverse-order proof utf8/INDEXED BY m_abc (184.873964ms)
+✔ native reverse-order proof utf8/NOT INDEXED (34.135928ms)
+✔ native reverse-order proof utf16le/INDEXED BY m_abc (30.217926ms)
+✔ native reverse-order proof utf16le/NOT INDEXED (21.128219ms)
+✔ native reverse-order proof utf16be/INDEXED BY m_abc (26.248087ms)
+✔ native reverse-order proof utf16be/NOT INDEXED (26.039644ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 942.490962

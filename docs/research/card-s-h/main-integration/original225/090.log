@@ -1,0 +1,10 @@
+{"outcome":"pass","seams":4}
+✔ test/conformance/run-date-time-seams-ts.mjs (3727.950404ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3740.64804

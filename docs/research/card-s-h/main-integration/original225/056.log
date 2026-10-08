@@ -1,0 +1,17 @@
+✔ native no-order insertion tie utf8/tie-small-a (90.058632ms)
+✔ native no-order insertion tie utf8/tie-small-b (23.226841ms)
+✔ native no-order insertion tie utf8/tie-equal (16.549377ms)
+✔ native no-order insertion tie utf16le/tie-small-a (15.168515ms)
+✔ native no-order insertion tie utf16le/tie-small-b (14.216498ms)
+✔ native no-order insertion tie utf16le/tie-equal (12.804732ms)
+✔ native no-order insertion tie utf16be/tie-small-a (11.408387ms)
+✔ native no-order insertion tie utf16be/tie-small-b (11.501864ms)
+✔ native no-order insertion tie utf16be/tie-equal (12.757751ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 540.902554

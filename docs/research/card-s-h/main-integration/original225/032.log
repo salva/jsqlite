@@ -1,0 +1,25 @@
+✔ JSON table resolved-column metadata matches pinned short-name rules in utf8 (70.182523ms)
+✔ JSON table resolved-column metadata matches pinned short-name rules in utf16le (24.025306ms)
+✔ JSON table resolved-column metadata matches pinned short-name rules in utf16be (13.825325ms)
+✔ json_each exposes the upstream table-valued rowset through public Fetch SQL (7.35309ms)
+✔ json_tree exposes the upstream scalar-root fullkey through public Fetch SQL (4.88728ms)
+✔ json_tree accepts the upstream root argument through public Fetch SQL (4.948249ms)
+✔ json table cursor evaluates parameters, visible expressions and WHERE at runtime (7.077486ms)
+✔ jsonb_tree exposes hidden inputs and binary container values (7.882855ms)
+✔ json table cursor composes with LIMIT and OFFSET (5.03121ms)
+✔ json table cursor composes with ORDER BY expressions (7.924405ms)
+✔ JSON table sources correlate left-to-right in ordinary composition (4.861638ms)
+✔ JSON table scan feeds ordinary aggregate consumers (5.52161ms)
+✔ JSON table scan feeds grouped aggregate consumers (7.464083ms)
+✔ physical rows correlate into JSON table arguments (11.790989ms)
+✔ grouped JSON table aggregates apply HAVING after finalization (5.70719ms)
+✔ JSON table cursor preserves nonminimal JSONB offsets and LIMIT is incremental (14.307278ms)
+✔ JSON table cursor budgets retained state and preserves first control error (3.764904ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 550.985721

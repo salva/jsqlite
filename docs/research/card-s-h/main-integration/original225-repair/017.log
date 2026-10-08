@@ -1,0 +1,17 @@
+✔ derived multirow VALUES yields each row register range (67.194837ms)
+✔ ordered derived multicolumn VALUES preserves each row payload (17.1771ms)
+✔ table-derived producer rejects unfaithful child scan shapes atomically (33.542219ms)
+✔ public utf8 derived VALUES preserves parameters, storage classes, OFFSET/LIMIT, and reset (11.035235ms)
+✔ public utf16le derived VALUES preserves parameters, storage classes, OFFSET/LIMIT, and reset (9.452763ms)
+✔ public utf16be derived VALUES preserves parameters, storage classes, OFFSET/LIMIT, and reset (10.684333ms)
+✔ public utf8 derived VALUES cancellation and budget cleanup restore admission (9.695814ms)
+✔ public utf16le derived VALUES cancellation and budget cleanup restore admission (8.317313ms)
+✔ public utf16be derived VALUES cancellation and budget cleanup restore admission (9.978407ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 530.323399

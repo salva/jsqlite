@@ -1,0 +1,17 @@
+✔ derived compound destination: SELECT sum(CAST(t.a AS REAL) ORDER BY t.a DESC) AS s,avg(t.a) AS a FROM t1 t (98.633951ms)
+✔ derived compound destination: SELECT min(t.a-t.a) AS m,t.a AS a FROM t1 t (3023.652344ms)
+✔ derived compound destination: SELECT t.a AS a,count(*) AS n FROM t1 t GROUP BY t.a ORDER BY t.a (17.753061ms)
+✔ derived compound destination: SELECT sum(t.a) FILTER (WHERE t.a<5) AS s,count(DISTINCT t.a) AS n FROM t1 t (10.252717ms)
+✔ derived compound destination: SELECT min(t.a) AS m,t.a AS a FROM t1 t (3009.214449ms)
+✔ derived compound destination: SELECT sum(t.a) AS s,count(*) AS n FROM t1 t WHERE NULL (3010.613327ms)
+✔ ordinary aggregate lower consumes resolved phase owner (5.698284ms)
+✔ ordinary first error missing LIMIT0 (3008.177632ms)
+✔ ordinary first error sum(sum(t.a)) LIMIT0 (3007.808898ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15667.31984

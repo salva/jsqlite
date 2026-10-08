@@ -1,0 +1,14 @@
+✔ JSON parent-consuming table branches use enclosing builder and parameter owner (1.345527ms)
+✔ JSON parent-consuming row drains consume caller destination (0.312276ms)
+✔ retained window parent edge forwards enclosing builder and parameters (0.191161ms)
+✔ retained window parent edge consumes destination and defers terminal publication (0.254463ms)
+✔ JSON shared publication preserves ops identity and synchronizes register frontier (0.420587ms)
+✔ retained window flattened caller forwards owner and leaves labels late (0.267055ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 92.684876

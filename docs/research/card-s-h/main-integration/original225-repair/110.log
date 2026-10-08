@@ -1,0 +1,19 @@
+✔ derived compound destination: SELECT sum(t.a) AS a FROM t1 t HAVING a>10 ORDER BY a (112.166944ms)
+✔ derived compound destination: SELECT sum(t.a) AS s FROM t1 t HAVING s>10 ORDER BY s (23.640911ms)
+✔ derived compound destination: SELECT t.a AS a,count(*) AS n FROM t1 t GROUP BY t.a HAVING n>0 ORDER BY n+t.a DESC (26.042408ms)
+✔ derived compound destination: SELECT min(t.a-t.a) AS m,t.a AS a FROM t1 t HAVING m=0 ORDER BY m+a (14.821068ms)
+✔ derived compound destination: SELECT sum(CAST(t.a AS REAL) ORDER BY t.a DESC) AS s FROM t1 t HAVING s>10 ORDER BY s+1 (21.896862ms)
+✔ derived compound destination: SELECT sum(t.a) FILTER (WHERE t.a<5) AS s,count(DISTINCT t.a) AS n FROM t1 t HAVING s=4 AND n=4 ORDER BY s+n (19.688539ms)
+✔ derived compound destination: SELECT sum(t.a) AS s,count(*) AS n FROM t1 t WHERE NULL HAVING s IS NULL AND n=0 ORDER BY n (3019.693311ms)
+✔ derived compound destination: SELECT sum(t.a) AS s FROM t1 t HAVING CASE WHEN s=16 THEN 1 ELSE abs(-9223372036854775808) END ORDER BY s (3029.485137ms)
+✔ aggregate alias edge retires independent spelling lowering (4.592765ms)
+✔ ordinary first error missing LIMIT0 (3015.640775ms)
+✔ ordinary first error sum(sum(t.a)) LIMIT0 (3032.722582ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12883.179403

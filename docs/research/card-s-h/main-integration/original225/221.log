@@ -1,0 +1,37 @@
+✔ upstream tokenize-1.1 (2.12581ms)
+✔ upstream tokenize-1.2 (0.282144ms)
+✔ upstream tokenize-1.3 (0.219036ms)
+✔ upstream tokenize-1.4 (0.203593ms)
+✔ upstream tokenize-1.5 (0.170249ms)
+✔ upstream tokenize-1.6 (0.138234ms)
+✔ upstream tokenize-1.7 (0.169213ms)
+✔ upstream tokenize-1.8 (0.163475ms)
+✔ upstream tokenize-1.9 (0.202511ms)
+✔ upstream tokenize-1.10 (0.251278ms)
+✔ upstream tokenize-1.11 (0.206262ms)
+✔ upstream tokenize-1.12 (0.15552ms)
+✔ upstream tokenize-2.1 distinction (1.139884ms)
+✔ upstream tokenize-2.2 distinction (2.156716ms)
+✔ src/tokenize.c numeric, BOM, and operator branches (1.259622ms)
+✔ parse.y fallback and SELECT ownership regressions (2.031867ms)
+✔ tokenize.c contextual WINDOW/OVER/FILTER classification (2.448226ms)
+✔ quoted/comments/parameters/blob/keyword/non-ASCII byte spans (0.185819ms)
+✔ empty, UTF-8 tail, structures, syntax-vs-semantic seam (4.698689ms)
+✔ generated CREATE TABLE reductions emit rich column semantics (1.90423ms)
+✔ generated WITH reductions own ordered immutable CTE semantics (1.910572ms)
+✔ generated parser must not be bypassed by recognized shift terminals (0.430793ms)
+✔ generated parser enforces configured work, stack, and full parse.y expression budgets (0.988254ms)
+✔ arm-local ORDER recovery cannot publish a partial compound graph (0.678503ms)
+✔ generated SELECT reductions own immutable child semantics (1.027178ms)
+✔ parse.y SrcList actions preserve ordered immutable source and RHS join ownership (2.777239ms)
+✔ generated CREATE TABLE reductions retain CHECK and foreign-key semantics (2.367056ms)
+✔ productionAction scopes DDL token extraction to DDL productions (0.912722ms)
+✔ long function lists retain generated reductions and ordered UTF-8 token spans (183.699637ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 381.861732

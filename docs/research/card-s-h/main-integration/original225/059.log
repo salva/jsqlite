@@ -1,0 +1,11 @@
+✔ inline DESC versus table DESC IPK ownership UTF-8 (88.398182ms)
+✔ inline DESC versus table DESC IPK ownership UTF-16le (21.851674ms)
+✔ inline DESC versus table DESC IPK ownership UTF-16be (12.438649ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 486.166038

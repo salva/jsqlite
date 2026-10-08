@@ -1,0 +1,11 @@
+✔ WR distinct collation noncovering width authority UTF-8 (128.438616ms)
+✔ WR distinct collation noncovering width authority UTF-16le (30.375024ms)
+✔ WR distinct collation noncovering width authority UTF-16be (28.560771ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 729.229461

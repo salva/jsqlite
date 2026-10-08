@@ -1,0 +1,11 @@
+✔ utf8: native STAT4-enabled ANALYZE samples with stat1-only admission (222.128173ms)
+✔ utf16le: native STAT4-enabled ANALYZE samples with stat1-only admission (67.126404ms)
+✔ utf16be: native STAT4-enabled ANALYZE samples with stat1-only admission (60.715431ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 906.861555

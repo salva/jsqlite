@@ -1,0 +1,15 @@
+✔ pinned 3.53.4 LEFT contract preserves match, NullRow, WHERE, metadata, and empty-right behavior (223.754042ms)
+✔ LEFT emits duplicate matches and one unmatched row for false/NULL ON, while WHERE may reject it (56.556891ms)
+✔ LEFT USING/NATURAL keep left merged owner, qualified columns, wildcard order, aliases, and types (35.247275ms)
+✔ LEFT honors affinity/collation and composes with three-source LEFT/INNER/CROSS association (56.686617ms)
+✔ LEFT ORDER/DISTINCT/LIMIT and all database encodings retain NullRow semantics (54.475735ms)
+✔ LEFT reset/rebind restarts across matched and NullRow transitions without duplicates (31.425965ms)
+✔ LEFT cancellation/deadline/work/row/private failures around match and NullRow release execution state (51.634473ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1290.638363

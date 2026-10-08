@@ -1,0 +1,20 @@
+✔ linked scalar child destination: SELECT t.a,(SELECT DISTINCT u.a FROM t1 u WHERE u.a<t.a ORDER BY u.a DESC LIMIT 0.5) FROM t1 t ORDER BY t.a (130.6382ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT max(u.a) FROM t1 u WHERE u.a<t.a GROUP BY u.a%3 ORDER BY max(u.a) DESC) FROM t1 t ORDER BY t.a (42.778978ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a UNION ALL SELECT t.a ORDER BY 1 DESC LIMIT 0.5) FROM t1 t ORDER BY t.a (17.335274ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT u.a FROM t1 u,t1 v WHERE u.a=v.a AND u.a<t.a ORDER BY u.a DESC LIMIT 1) FROM t1 t ORDER BY t.a (20.025331ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT DISTINCT u.a FROM t1 u WHERE u.a<t.a ORDER BY u.a DESC LIMIT 1 OFFSET 99) FROM t1 t ORDER BY t.a (14.455979ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT max(u.a) FROM t1 u WHERE u.a<t.a GROUP BY u.a%3 ORDER BY max(u.a) DESC LIMIT 0) FROM t1 t ORDER BY t.a (10.46838ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a UNION ALL SELECT t.a LIMIT 1 OFFSET 1) FROM t1 t ORDER BY t.a (14.588013ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a UNION ALL SELECT t.a LIMIT 0) FROM t1 t ORDER BY t.a (11.07071ms)
+✔ linked scalar child destination: SELECT t.a,(SELECT u.a FROM t1 u WHERE u.a<t.a UNION ALL SELECT t.a ORDER BY 1 DESC LIMIT 1 OFFSET 1) FROM t1 t ORDER BY t.a (15.702031ms)
+✔ owned scalar rowid bounds utf8 (28.86038ms)
+✔ owned scalar rowid bounds utf16le (22.412111ms)
+✔ owned scalar rowid bounds utf16be (23.623894ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 845.856617

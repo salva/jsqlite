@@ -1,0 +1,10 @@
+{"schema":"jsqlite-function-cleanup-ts/1","credit":1,"outcome":"pass","checks":["replacement-cleanup-order","first-error-identity","cleanup-error","aux-replacement-cleanup","aux-first-error-identity"]}
+✔ test/conformance/run-expression-function-cleanup-ts.mjs (449.55976ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 465.931362

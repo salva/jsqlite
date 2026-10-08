@@ -1,0 +1,11 @@
+✔ non-EXCLUDE endpoint seek owner: first_value(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) (39.245121ms)
+✔ non-EXCLUDE endpoint seek owner: nth_value(a,2) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) (4.393981ms)
+✔ EXCLUDE CURRENT retains aggregate frame-scan ownership (3.971528ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 560.477807

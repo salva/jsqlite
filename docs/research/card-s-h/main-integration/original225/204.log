@@ -1,0 +1,11 @@
+✔ pinned three-IN selected/scan and LEFT utf8 (186.174237ms)
+✔ pinned three-IN selected/scan and LEFT utf16le (67.254628ms)
+✔ pinned three-IN selected/scan and LEFT utf16be (55.845459ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 706.287201

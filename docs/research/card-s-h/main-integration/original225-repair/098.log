@@ -1,0 +1,10 @@
+Public ordinary WHERE: 69/69 completed cases with exact rows/private bounds
+✔ all encoding index-planner assertions receive row and private-counter credit (431.221561ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1028.082951

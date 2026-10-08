@@ -1,0 +1,9 @@
+✔ scalar derived aggregate uses resolved outer identity, including rowid (130.768211ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 601.093568

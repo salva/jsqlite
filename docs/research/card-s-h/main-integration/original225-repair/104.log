@@ -1,0 +1,54 @@
+case-trim/UTF-8
+case-instr-classes/UTF-8
+case-unicode/UTF-8
+case-quote/UTF-8
+case-unhex-concat/UTF-8
+case-random-storage/UTF-8
+case-identity-state/UTF-8
+case-substring-alias/UTF-8
+case-sign/UTF-8
+case-inline/UTF-8
+case-minmax-collation/UTF-8
+case-bound-params/UTF-8
+case-composed/UTF-8
+case-subtype/UTF-8
+case-unistr/UTF-8
+case-unistr-quote/UTF-8
+case-sqlite-log/UTF-8
+case-variadic-zero/UTF-8
+case-variadic-minima/UTF-8
+case-arity-concat-zero-error/UTF-8
+case-arity-concat-ws-one-error/UTF-8
+case-arity-coalesce-one-error/UTF-8
+case-compile-options/UTF-8
+case-fixture-columns-text/UTF-8
+case-fixture-columns-storage/UTF-8
+case-implemented-owner-discriminator/UTF-8
+case-trim/UTF-16le
+case-instr-classes/UTF-16le
+case-unicode/UTF-16le
+case-quote/UTF-16le
+case-bound-params/UTF-16le
+case-composed/UTF-16le
+case-unistr/UTF-16le
+case-fixture-columns-text/UTF-16le
+case-fixture-columns-storage/UTF-16le
+case-trim/UTF-16be
+case-instr-classes/UTF-16be
+case-unicode/UTF-16be
+case-quote/UTF-16be
+case-bound-params/UTF-16be
+case-composed/UTF-16be
+case-unistr/UTF-16be
+case-fixture-columns-text/UTF-16be
+case-fixture-columns-storage/UTF-16be
+{"outcome":"pass","observations":44,"cases":26}
+✔ test/conformance/run-ordinary-scalars-owned-ts.mjs (996.468167ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1011.512327

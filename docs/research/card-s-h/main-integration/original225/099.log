@@ -1,0 +1,10 @@
+{"outcome":"pass","cases":22,"encodings":3,"observations":66,"tsCredit":22}
+✔ test/conformance/run-math-cases-ts.mjs (6653.159125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6664.045517

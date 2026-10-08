@@ -1,0 +1,14 @@
+✔ utf8/before stat-choice preserves pinned selected access and sorting (133.175132ms)
+✔ utf8/after stat-choice preserves pinned selected access and sorting (34.061105ms)
+✔ utf16le/before stat-choice preserves pinned selected access and sorting (38.949398ms)
+✔ utf16le/after stat-choice preserves pinned selected access and sorting (21.288103ms)
+✔ utf16be/before stat-choice preserves pinned selected access and sorting (38.426401ms)
+✔ utf16be/after stat-choice preserves pinned selected access and sorting (26.25821ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 662.670152

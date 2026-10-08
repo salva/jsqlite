@@ -1,0 +1,11 @@
+✔ declared hex overflow and pointer controls UTF-8 (195.864549ms)
+✔ declared hex overflow and pointer controls UTF-16le (50.765682ms)
+✔ declared hex overflow and pointer controls UTF-16be (33.562891ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1293.593761

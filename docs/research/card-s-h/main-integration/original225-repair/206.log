@@ -1,0 +1,11 @@
+Native/public comparison: 117 prepared cases; 0 failed executions/errors
+[]
+✔ ordinary operands and same-source RHS agree with pinned native through public execution (3367.140939ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3996.018457

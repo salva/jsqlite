@@ -1,0 +1,35 @@
+✔ index clearPosition invalidates physical movement and borrowed payload (16.731441ms)
+✔ multi-level table cursor supports complete movement and boundary seeks (22.337344ms)
+✔ interior and leaf index entries traverse in order in both directions and seek (90.962536ms)
+▶ sparse multi-level table seek crosses a child boundary without materializing the tree
+  ✔ fallback path still enforces depth and corruption (1.018758ms)
+✔ sparse multi-level table seek crosses a child boundary without materializing the tree (4.141055ms)
+▶ table and index seek descend only through the selected pages
+  ✔ table minimum ignores a malformed rightmost subtree (0.714354ms)
+  ✔ non-leftmost table seek ignores a malformed unrelated subtree (0.51031ms)
+  ✔ table seek rejects a selected-path cycle (0.507322ms)
+  ✔ index minimum ignores a malformed rightmost subtree (0.797577ms)
+  ✔ index exact and inexact LE retain predecessor placement (0.880717ms)
+  ✔ index seek comparison work is path-local and boundary placement is stable (0.887067ms)
+  ✔ non-leftmost index seek ignores a malformed unrelated subtree (0.428557ms)
+  ✔ index movement after seek remains page-local (0.409435ms)
+  ✔ a malformed selected index child still reports corruption (0.333784ms)
+  ✔ index seek depth is charged on the selected path (0.345462ms)
+  ✔ index seek rejects a selected-path cycle (0.543667ms)
+  ✔ a malformed selected table child still reports corruption (0.526099ms)
+✔ table and index seek descend only through the selected pages (11.88973ms)
+✔ real overflow payload is reconstructed and movement invalidates only borrowed views (11.498866ms)
+✔ overflow cycle is corruption (2.179536ms)
+✔ all storage page sizes and database encodings retain table/index boundaries (26.294214ms)
+✔ tree depth and malformed cell pointers fail distinctly (1.591991ms)
+✔ shared storage validation has public/internal parity and pristine encoding-zero support (50.136452ms)
+✔ closing the shared owner invalidates cursors, operations, and page/record borrows (3.596845ms)
+✔ public Fetch connection is the b-tree owner and close invalidates its consumer (6.618437ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 781.556802

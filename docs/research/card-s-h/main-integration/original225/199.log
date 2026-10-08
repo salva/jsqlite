@@ -1,0 +1,29 @@
+✔ utf8/table-only: native typed access and public stat boundary (138.86584ms)
+✔ utf8/unknown-table: native typed access and public stat boundary (50.075538ms)
+✔ utf8/unknown-index: native typed access and public stat boundary (35.07064ms)
+✔ utf8/unused-index-extension: native typed access and public stat boundary (31.925525ms)
+✔ utf8/malformed-number: native typed access and public stat boundary (52.278363ms)
+✔ utf8/blob-extension: native typed access and public stat boundary (34.223867ms)
+✔ utf8/stat4-sample: native typed access and public stat boundary (32.988924ms)
+✔ utf16le/table-only: native typed access and public stat boundary (29.054199ms)
+✔ utf16le/unknown-table: native typed access and public stat boundary (29.374538ms)
+✔ utf16le/unknown-index: native typed access and public stat boundary (37.499238ms)
+✔ utf16le/unused-index-extension: native typed access and public stat boundary (34.542713ms)
+✔ utf16le/malformed-number: native typed access and public stat boundary (48.426313ms)
+✔ utf16le/blob-extension: native typed access and public stat boundary (31.147129ms)
+✔ utf16le/stat4-sample: native typed access and public stat boundary (35.477999ms)
+✔ utf16be/table-only: native typed access and public stat boundary (27.521817ms)
+✔ utf16be/unknown-table: native typed access and public stat boundary (27.647725ms)
+✔ utf16be/unknown-index: native typed access and public stat boundary (28.27213ms)
+✔ utf16be/unused-index-extension: native typed access and public stat boundary (26.898079ms)
+✔ utf16be/malformed-number: native typed access and public stat boundary (40.501654ms)
+✔ utf16be/blob-extension: native typed access and public stat boundary (26.889907ms)
+✔ utf16be/stat4-sample: native typed access and public stat boundary (30.598059ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1235.385583

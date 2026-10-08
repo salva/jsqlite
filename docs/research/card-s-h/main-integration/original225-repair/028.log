@@ -1,0 +1,10 @@
+✔ JSON foundation matches pinned 3.53.4 canonical, JSON5, subtype, NULL and JSONB cases (78.230451ms)
+✔ JSON malformed, depth, work and output failures are typed and lifecycle-safe (93.411155ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 559.834861

@@ -1,0 +1,13 @@
+✔ ordinary flatten admitted table parent edge forwards construction owner (1.107103ms)
+✔ materialized derived admitted table parent edge forwards construction owner (0.231751ms)
+✔ immutable view admitted table parent edge forwards construction owner (0.160192ms)
+✔ zero-source scalar admitted table parent edge forwards construction owner (0.212675ms)
+✔ multiple source admitted table parent edge forwards construction owner (0.938142ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70.14912

@@ -1,0 +1,31 @@
+✔ unordered scalar UNION ALL preserves arm order/multiplicity and leftmost name (52.812538ms)
+✔ compound LIMIT/OFFSET is global and coerced at first step (19.214171ms)
+✔ width mismatch rejects before any arm can execute (5.998877ms)
+✔ unordered UNION uses typed ephemeral equality and right representative (12.81107ms)
+✔ scalar INTERSECT/EXCEPT and mixed operators apply left-to-right set transitions (8.991782ms)
+✔ set-route LIMIT/OFFSET applies after duplicate/set transitions (6.200828ms)
+✔ single-column set ORDER resolves aliases, ordinals, and generated structural result identity (9.796984ms)
+✔ ordered UNION ALL uses stable typed sorter and compound-wide LIMIT (7.146706ms)
+✔ ordered UNION ALL compares every ORDER term across multi-column arms (5.34034ms)
+✔ ordered compound reset after a yielded row restarts all producers (7.009921ms)
+✔ table compound set-to-UNION-ALL handoff preserves the collapsed prefix then suffix multiplicity (11.738588ms)
+✔ table compound ORDER ownership is generated structure, not token text (7.003016ms)
+✔ structured VALUES arms participate without fabricated UNION parsing (6.393215ms)
+✔ compound private state enforces row and byte bounds and restores admission (13.725452ms)
+✔ compound active suspension preserves PC, exclusive admission, cancellation, cleanup, reset and finalize (27.987534ms)
+✔ compound deadline and exact work bound keep first error and cleanup (4.907946ms)
+✔ ordered mixed table compound uses one typed global merge with LIMIT (6.589782ms)
+✔ table INTERSECT preserves the left representative across INTEGER/REAL equality (1193.752582ms)
+✔ public output limits are independent from finite private compound limits (22.548009ms)
+✔ public result bytes do not cap private compound sorter staging (456.710726ms)
+✔ Program owns immutable finite private-state defaults (9.925748ms)
+✔ compound zero LIMIT bypasses OFFSET coercion and producers (8.019934ms)
+✔ maxPrivateBytes is aggregate across simultaneous compound cursors and releases on reset (5.06423ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2268.820061

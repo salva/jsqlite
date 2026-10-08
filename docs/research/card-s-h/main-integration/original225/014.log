@@ -1,0 +1,11 @@
+✔ B3 utf8 executes grouped limited CTE join (849.373004ms)
+✔ B3 utf16le executes grouped limited CTE join (789.087815ms)
+✔ B3 utf16be executes grouped limited CTE join (832.712893ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2914.073305

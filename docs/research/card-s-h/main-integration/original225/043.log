@@ -1,0 +1,26 @@
+✔ ORDER BY resolves direct result aliases and ordinals before table names (79.698646ms)
+✔ public LIMIT zero bypasses multi-key sorter admission under a small work budget (3017.487913ms)
+✔ public positive LIMIT bounds sorter candidates instead of generic row capacity (13.397756ms)
+✔ public positive LIMIT plus OFFSET retains exactly the required candidate window (19.133604ms)
+✔ unordered OFFSET continues the scan after filtering and DISTINCT (3017.602657ms)
+✔ unordered OFFSET and LIMIT targets name final Next and Halt labels (8.649761ms)
+✔ public multi-key sorter enforces entry and byte bounds atomically (25.768858ms)
+✔ public DISTINCT enforces ephemeral entry/key/byte bounds and rolls back failed insertion (3028.618516ms)
+✔ public relational work budgets stop at exact real sorter and ephemeral boundaries (36.024612ms)
+✔ relational failure cleanup preserves first error and reset reuses the statement (12.067696ms)
+✔ connection admission remains exclusive while relational Found is suspended (7.169583ms)
+✔ public multi-key sorter cancellation preserves admission, cleanup, reset, and finalize (11.721667ms)
+✔ public multi-key sorter deadline preserves cleanup and later admission (6.894073ms)
+✔ DISTINCT membership work yields so a live abort can be observed (9.319416ms)
+✔ public DISTINCT deadline closes ephemeral state and restores admission (3012.507095ms)
+✔ relational private cursors close when ordinary execution reaches done (3027.822617ms)
+✔ multi-cursor cleanup retains operation error, closes all cursors, and restores admission (16.306683ms)
+✔ cleanup-only reset/finalize errors are first, exhaustive, and finalize remains final (39.354267ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15721.500232

@@ -1,0 +1,143 @@
+{"source": "/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/checkout/reference/sqlite/sqlite-src-3530400", "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"}
+Configuring SQLite version 3.53.4
+Host System...x86_64-unknown-linux7.0.0-34-generic
+Build System...x86_64-unknown-linux7.0.0-34-generic
+Source dir = /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source
+Build dir  = /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/build
+C compiler... cc -O2 -g -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MATH_FUNCTIONS 
+C++ compiler... c++ -O2 -g -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MATH_FUNCTIONS 
+Build C compiler...cc
+Checking for stdlib.h...ok
+Checking for sys/types.h...ok
+Checking if -D_FILE_OFFSET_BITS=64 is needed...no
+SQLITE_DEBUG build? no
+Looking for install ... /usr/bin/install
+Checking for int8_t...ok
+Checking for int16_t...ok
+Checking for int32_t...ok
+Checking for int64_t...ok
+Checking for intptr_t...ok
+Checking for uint8_t...ok
+Checking for uint16_t...ok
+Checking for uint32_t...ok
+Checking for uint64_t...ok
+Checking for uintptr_t...ok
+Checking for gmtime_r...ok
+Checking for isnan...ok
+Checking for localtime_r...ok
+Checking for localtime_s...not found
+Checking for usleep...ok
+Checking for utime...ok
+Checking for pread...ok
+Checking for pread64...ok
+Checking for pwrite...ok
+Checking for pwrite64...ok
+Checking libs for fdatasync...none needed
+Checking libs for nanosleep...none needed
+Checking for sys/types.h...(cached) ok
+Checking for sys/stat.h...ok
+Checking for dlfcn.h...ok
+Checking for unistd.h...ok
+Checking for stdlib.h...ok
+Checking for malloc.h...ok
+Checking for memory.h...ok
+Checking for string.h...ok
+Checking for strings.h...ok
+Checking for inttypes.h...ok
+Checking for zlib.h...ok
+Checking libs for deflate...-lz
+Use amalgamation for builds? yes
+Use gcov? no
+test-runner flags: no
+Use #line macros in the amalgamation: no
+Checking whether the C compiler accepts -fsanitize=address...yes
+Checking whether the C compiler accepts -fsanitize=bounds-strict...yes
+Checking for a suitable tcl... 
+Checking for tclsh9.1...no
+Checking for tclsh9.0...no
+Checking for tclsh8.6.../usr/bin/tclsh8.6
+/usr/bin/tclsh8.6 recommends the tclConfig.sh from /usr/lib/x86_64-linux-gnu
+Using tclConfig.sh: /usr/lib/x86_64-linux-gnu/tclConfig.sh
+Using tclsh: /usr/bin/tclsh8.6
+Checking for TCL to use for code generation... 
+Checking for dirent.h...ok
+Checking for sys/time.h...ok
+Checking for realpath...ok
+TCL for code generation: jimsh
+Out-of tree build: not checking for EMSDK.
+Statically link tclsqlite3? no
+Statically link CLI shell? no
+Checking whether the C compiler accepts -rpath /usr/local/lib...no
+Checking whether the C compiler accepts -Wl,-rpath,/usr/local/lib...yes
+Support threadsafe operation? Checking for libs...
+Checking libs for pthread_create...none needed
+Checking libs for pthread_mutexattr_init...none needed
+Checking libs for dlopen...none needed
+Loadable extension support enabled. 
+Checking libs for ceil...-lm
+Enabling math SQL functions
+ICU support is disabled.
+Checking for line-editing capability...
+Line-editing support for the sqlite3 shell: none
+Build shared library? no
+Build static library? yes
+Feature flags...
+  - fts3
+  - fts4
+  - fts5
+  - geopoly
+  - rtree
+  - session
+  - update-limit
+  - memsys5
+  - memsys3
+  - scanstatus
+  - column-metadata
+  - dbpage
+  - dbstat
+  - carray
+  + json
+Library feature flags: -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MATH_FUNCTIONS -DSQLITE_ENABLE_PERCENTILE -DSQLITE_HAVE_ZLIB=1 -DSQLITE_THREADSAFE=1
+Shell options: -DSQLITE_DQS=0 -DSQLITE_ENABLE_BYTECODE_VTAB -DSQLITE_ENABLE_DBPAGE_VTAB -DSQLITE_ENABLE_DBSTAT_VTAB -DSQLITE_ENABLE_EXPLAIN_COMMENTS -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_OFFSET_SQL_FUNC -DSQLITE_ENABLE_PERCENTILE -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_STMTVTAB -DSQLITE_ENABLE_UNKNOWN_SQL_FUNCTION -DSQLITE_HAVE_ZLIB=1 -DSQLITE_STRICT_SUBTYPE=1
+Created Makefile from /work/jsqlite2/reference/sqlite/sqlite-src-3530400/Makefile.in
+Created sqlite3.pc from /work/jsqlite2/reference/sqlite/sqlite-src-3530400/sqlite3.pc.in
+Created sqlite_cfg.h
+touch .main.mk.checks
+cc -g -o jimsh -O1 -DHAVE_REALPATH /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/autosetup/jimsh0.c
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkctimec.tcl
+Overwriting ctime.c...
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkpragmatab.tcl
+Overwriting pragma.h with new pragma table...
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkcombo.tcl /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/qrf/qrf.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/qrf/qrf.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/tclsqlite.c -o tclsqlite-ex.c
+cc -g -o mkkeywordhash -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MATH_FUNCTIONS -DSQLITE_ENABLE_PERCENTILE -DSQLITE_HAVE_ZLIB=1 -DSQLITE_THREADSAFE=1   /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkkeywordhash.c
+./mkkeywordhash > keywordhash.h
+cc -g -o lemon /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/lemon.c
+cp /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/lempar.c .
+cp /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/parse.y .
+./lemon -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MATH_FUNCTIONS -DSQLITE_ENABLE_PERCENTILE -DSQLITE_HAVE_ZLIB=1 -DSQLITE_THREADSAFE=1   -S parse.y
+cat parse.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbe.c | ./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkopcodeh.tcl >opcodes.h
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkopcodec.tcl opcodes.h >opcodes.c
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mkshellc.tcl shell.c
+cc -g -o mksourceid /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mksourceid.c
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mksqlite3h.tcl /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source -o sqlite3.h
+cp /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts5/fts5parse.y .
+rm -f fts5parse.h
+./lemon  -S fts5parse.y
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts5/tool/mkfts5c.tcl
+cp /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts5/fts5.h .
+rm -rf tsrc
+mkdir tsrc
+cp -f /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/alter.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/analyze.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/attach.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/auth.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/backup.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/bitvec.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/btmutex.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/btree.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/btree.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/btreeInt.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/build.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/callback.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/carray.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/complete.c ctime.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/date.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/dbpage.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/dbstat.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/delete.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/expr.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/fault.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/fkey.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/func.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/global.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/hash.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/hash.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/hwtime.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/insert.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/json.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/legacy.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/loadext.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/main.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/malloc.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mem0.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mem1.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mem2.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mem3.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mem5.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/memdb.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/memjournal.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/msvc.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mutex.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mutex.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mutex_noop.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mutex_unix.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/mutex_w32.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/notify.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os_common.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os_setup.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os_kv.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os_unix.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os_win.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/os_win.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/pager.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/pager.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/parse.y /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/pcache.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/pcache.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/pcache1.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/pragma.c pragma.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/prepare.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/printf.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/random.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/resolve.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/rowset.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/select.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/status.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/shell.c.in /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/sqlite.h.in /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/sqlite3ext.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/sqliteInt.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/sqliteLimit.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/table.c tclsqlite-ex.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/threads.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/tokenize.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/treeview.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/trigger.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/utf.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/update.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/upsert.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/util.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vacuum.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbe.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbe.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbeapi.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbeaux.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbeblob.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbemem.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbesort.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbetrace.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbevtab.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vdbeInt.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vtab.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/vxworks.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/wal.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/wal.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/walker.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/where.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/wherecode.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/whereexpr.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/whereInt.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src/window.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3Int.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_aux.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_expr.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_hash.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_hash.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_icu.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_porter.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_snippet.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_tokenizer.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_tokenizer.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_tokenizer1.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_tokenize_vtab.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_unicode.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_unicode2.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3/fts3_write.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/icu/sqliteicu.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/icu/icu.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/rtree/rtree.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/rtree/rtree.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/rtree/geopoly.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/session/sqlite3session.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/session/sqlite3session.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/rbu/sqlite3rbu.h /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/rbu/sqlite3rbu.c /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/misc/stmt.c keywordhash.h opcodes.c opcodes.h parse.c parse.h sqlite_cfg.h shell.c sqlite3.h tsrc
+rm -f tsrc/sqlite.h.in tsrc/parse.y
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/vdbe-compress.tcl  <tsrc/vdbe.c >vdbe.new
+mv -f vdbe.new tsrc/vdbe.c
+cp fts5.c fts5.h tsrc
+touch .target_source
+cc -g -o src-verify /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/src-verify.c
+./jimsh /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/tool/mksqlite3c.tcl --linemacros=0 
+cp tsrc/sqlite3ext.h .
+cp /work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/session/sqlite3session.h .
+make: 'sqlite3.h' is up to date.
+cc -DNDEBUG -fPIC -O2 -g  -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_MATH_FUNCTIONS -DSQLITE_ENABLE_PERCENTILE -DSQLITE_HAVE_ZLIB=1 -DSQLITE_THREADSAFE=1    -D_HAVE_SQLITE_CONFIG_H -DBUILD_sqlite -I. -I/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/src -I/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/rtree -I/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/icu -I/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/fts3 -I/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/session -I/work/jsqlite2/.saivage/work/cards/card-s-h-d/original225/resources/oracle-build/source/ext/misc -c sqlite3.c
+ar cr libsqlite3.a sqlite3.o
+{"version":"3.53.4","versionNumber":3530400,"sourceId":"2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc","compileOptions":["ENABLE_COLUMN_METADATA","ENABLE_MATH_FUNCTIONS"],"probes":{"json":true,"math":true,"prepare16":true,"utf8":true,"utf16le":true,"utf16be":true,"floatingPoint":true,"columnMetadata":true,"autoreset":true}}

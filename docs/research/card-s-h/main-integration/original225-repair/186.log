@@ -1,0 +1,14 @@
+✔ derived compound destination: SELECT t.a AS a,(SELECT CASE WHEN s.x BETWEEN 1 AND 3 THEN s.x+10 ELSE NULL END FROM t2 s WHERE s.x=t.a COLLATE BINARY) AS v FROM t1 t ORDER BY 1 (138.777333ms)
+✔ derived compound destination: SELECT t.a AS a,(SELECT s.x FROM t2 s WHERE s.x=t.a COLLATE BINARY) AS v FROM t1 t ORDER BY 1 (29.070337ms)
+✔ derived compound destination: SELECT t.a AS a,(SELECT NULL FROM t2 s WHERE s.x=t.a) AS v FROM t1 t ORDER BY 1 (27.717022ms)
+✔ scalar subquery consumer retires duplicate binding into carrier (6.434541ms)
+✔ linked resolver first error missing (15.878256ms)
+✔ linked resolver first error a (17.079955ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 809.745044

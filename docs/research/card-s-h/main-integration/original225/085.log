@@ -1,0 +1,10 @@
+✔ aggregate-window public contract executes corrected 44-case denominator (918.078059ms)
+ℹ denominator: 44 declared; 43 executable attempted; 43 executable passed; 25 source-credit passed; 1 source-only excluded (validated separately)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1398.732208

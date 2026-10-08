@@ -1,0 +1,38 @@
+✔ table compound derived producer emits into enclosing coroutine destination (5.573264ms)
+✔ ordered scalar compound derived producer owns wide rows and multiple keys (5.096097ms)
+✔ ordered and streaming compound VALUES arms emit every row in parent (4.707603ms)
+✔ set and mixed VALUES arms finish intersection after the complete right arm (4.236914ms)
+✔ set derived producer compares and yields complete multi-column keys (4.307568ms)
+✔ represented ordered sets sort prefix and ALL tail before shared limits (4.214908ms)
+✔ grouped derived aggregate delegates complete ORDER list to aggregate owner (4.151269ms)
+✔ zero-source compound DISTINCT admission stays local to single-row SELECT arms (3.771585ms)
+✔ aggregate ALL HAVING preserves semantic arm identity and destination ownership (4.361193ms)
+✔ physical compound DISTINCT filters each arm before destination and limits (3.641192ms)
+✔ physical compound scan rejects unrepresented GROUP/HAVING before emission (3.80504ms)
+✔ grouped ALL owns per-arm GROUP carrier and common exhaustion (5.616671ms)
+✔ mixed grouped ALL ordinary arm uses parent producer and common break (5.315807ms)
+✔ grouped compound descriptor production resolves rightmost arm carriers (4.194905ms)
+✔ physical compound derived names and origins have separate semantic owners (4.395433ms)
+✔ specialized joined ordered ALL emits first scan into parent sorter destination (3.487835ms)
+✔ live ordered ALL composer emits every VALUES row to its destination (4.155867ms)
+✔ ordered compound producers retain arm GROUP/HAVING and dispatch groups to aggregate owner (4.590055ms)
+✔ ordered compound collation is first available resolved arm collation with ORDER override (2.852033ms)
+✔ ordered compound implicit collation consumes resolver-linked source primitive (3.314926ms)
+✔ comparison default does not mask right implicit collation or inherit through every child (5.560409ms)
+✔ scalar NEEDCOLL producer and constant consumer share first available argument contract (6.500367ms)
+✔ ordered ALL admits per-arm DISTINCT without compound-wide rejection (3.598322ms)
+✔ direct and ordinary physical DISTINCT share resolved expression KeyInfo terms (3.899616ms)
+✔ unordered retained sets recursively compose source merge coroutine graph (4.395966ms)
+✔ ordered physical DISTINCT arms compose shared merge and retain arm DISTINCT carrier (3.660427ms)
+✔ general transient table uses columnType producer and shared affinity normalization (3.514683ms)
+✔ retained derived metadata consumes resolver producer relationship, no independent recursion (3.483679ms)
+✔ residual compound metadata uses current producer EList without parent projection width (4.483833ms)
+✔ coalesce lowers target-before-next argument as expr.c INLINEFUNC_coalesce (3.4137ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.680791

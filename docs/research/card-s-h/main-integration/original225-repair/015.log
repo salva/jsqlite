@@ -1,0 +1,17 @@
+✔ public utf8 executes ordinary one-use CTE sources (83.853222ms)
+✔ public utf16le executes ordinary one-use CTE sources (22.331411ms)
+✔ public utf16be executes ordinary one-use CTE sources (16.327229ms)
+✔ public utf8 plans multiple, repeated, and MATERIALIZED CTE sources (14.217204ms)
+✔ public utf16le plans multiple, repeated, and MATERIALIZED CTE sources (11.453587ms)
+✔ public utf16be plans multiple, repeated, and MATERIALIZED CTE sources (10.734357ms)
+✔ public utf8 composes ordinary CTEs with supported relational routes (29.023802ms)
+✔ public utf16le composes ordinary CTEs with supported relational routes (11.242558ms)
+✔ public utf16be composes ordinary CTEs with supported relational routes (10.317515ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 547.033368

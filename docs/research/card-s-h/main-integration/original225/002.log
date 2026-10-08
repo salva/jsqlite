@@ -1,0 +1,18 @@
+✔ grouped result DISTINCT uses typed ephemeral equality before ORDER (81.79787ms)
+✔ grouped result DISTINCT preserves collation and all database encodings (3042.249011ms)
+✔ grouped DISTINCT reset after yield and completion rebuilds private cursors (49.667821ms)
+✔ grouped DISTINCT enforces shared private entry/key/byte limits and restores admission (3023.816909ms)
+✔ group sorter suspension observes cancellation, preserves first error, resets and finalizes (11.694832ms)
+✔ group sorter deadline/work failures retain first error and clean up (8.358312ms)
+✔ grouped DISTINCT insertion failure remains authoritative over cleanup failure (12.069179ms)
+✔ min/max retained text and blob share the private byte budget and release it (29.703032ms)
+✔ aggregate-local DISTINCT and ordered queues release budget after failure (3009.181581ms)
+✔ aggregate predicate scalar ORDER/LIMIT is stable across encodings, reset, and empty NULL (3069.725774ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12706.527053

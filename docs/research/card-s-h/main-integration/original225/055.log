@@ -1,0 +1,14 @@
+✔ failed analysis is never published selected-t_a (68.467013ms)
+✔ failed analysis is never published offpath-t_ab (27.75286ms)
+✔ failed analysis is never published selected-t_a (24.11328ms)
+✔ failed analysis is never published offpath-t_ab (20.141918ms)
+✔ failed analysis is never published selected-t_a (20.278811ms)
+✔ failed analysis is never published offpath-t_ab (17.861435ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 500.452318

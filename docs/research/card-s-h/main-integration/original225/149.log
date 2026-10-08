@@ -1,0 +1,14 @@
+✔ derived compound destination: SELECT t.a AS a,(SELECT count(d.x) FROM (SELECT 1 AS x UNION ALL SELECT NULL) d WHERE d.x=t.a COLLATE BINARY) AS n FROM t1 t ORDER BY 1 LIMIT 0 (104.500085ms)
+✔ derived compound destination: SELECT t.a AS a,(SELECT count(d.x) FROM (SELECT 1 AS x UNION ALL SELECT 1 UNION ALL SELECT NULL) d WHERE d.x=t.a COLLATE BINARY) AS n FROM t1 t ORDER BY 1 (3029.814373ms)
+✔ derived compound destination: SELECT t.a AS a,(SELECT sum(d.x) FROM (SELECT NULL AS x UNION ALL SELECT NULL) d WHERE d.x=t.a COLLATE BINARY) AS n FROM t1 t ORDER BY 1 (3013.011898ms)
+✔ derived scalar aggregate owns resolved register phase rather than local walker (5.470555ms)
+✔ linked resolver first error missing (13.817779ms)
+✔ linked resolver first error a (13.740385ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6637.368495

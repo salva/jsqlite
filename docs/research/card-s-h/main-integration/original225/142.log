@@ -1,0 +1,11 @@
+✔ admitted joined ordered ALL derived producer preserves public boundary (192.16351ms)
+✔ joined ordered ALL derived branch emits parent destination rather than completed child splice (4.352153ms)
+✔ unordered mixed physical/scalar ALL derived owner consumes enclosing destination (3.830171ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 694.571199

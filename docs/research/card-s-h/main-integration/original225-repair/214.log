@@ -1,0 +1,27 @@
+✔ derived compound destination: SELECT t.a AS a,count(*) FILTER (WHERE t.a IN (1,3)) OVER (ORDER BY t.a) AS n FROM t1 t WHERE t.a>99 ORDER BY 1 LIMIT 1 (166.396393ms)
+✔ derived compound destination: SELECT t.a AS a,count(*) FILTER (WHERE t.a BETWEEN 1 AND 3 COLLATE BINARY) OVER (ORDER BY t.a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) AS n FROM t1 t ORDER BY 1 (37.870134ms)
+✔ derived compound destination: SELECT t.a AS a,sum(t.a) FILTER (WHERE NULL) OVER (ORDER BY t.a) AS n FROM t1 t ORDER BY 1 (23.810816ms)
+✔ derived compound destination: SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE GROUP) AS n FROM t1 ORDER BY a (20.375141ms)
+✔ derived compound destination: SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE TIES) AS n FROM t1 ORDER BY a (31.171501ms)
+✔ derived compound destination: SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS) AS n FROM t1 ORDER BY a (24.46024ms)
+✔ derived compound destination: SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS n FROM t1 ORDER BY a (23.114643ms)
+✔ derived compound destination: SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING) AS n FROM t1 ORDER BY a (19.729633ms)
+✔ derived compound destination: SELECT a,sum(a) FILTER (WHERE a>1) OVER (ORDER BY a ROWS BETWEEN CURRENT ROW AND CURRENT ROW) AS n FROM t1 ORDER BY a (16.717261ms)
+✔ derived compound destination: SELECT x.a AS a FROM t1 x JOIN t1 y ON x.a=y.a ORDER BY x.a DESC LIMIT 2 OFFSET 1 (3017.289385ms)
+✔ derived compound destination: SELECT x.a AS a FROM t1 x JOIN t1 y ON x.a=y.a WHERE x.a>99 ORDER BY x.a (3012.206921ms)
+✔ derived compound destination: SELECT (SELECT x.a FROM t1 x JOIN t1 y ON x.a=y.a ORDER BY x.a DESC LIMIT 1 OFFSET 1) AS a (3016.807915ms)
+✔ derived compound destination: SELECT x.a AS a FROM t1 x JOIN t1 y ON x.a=y.a LIMIT 2 OFFSET 1 (3008.072709ms)
+✔ derived compound destination: SELECT DISTINCT a AS a FROM t1 ORDER BY a DESC LIMIT 2 OFFSET 1 (15.654962ms)
+✔ derived compound destination: SELECT a AS a FROM t1 WHERE a>99 ORDER BY a LIMIT 1 (3011.470663ms)
+✔ derived compound destination: SELECT a AS a FROM t1 WHERE a>1 LIMIT 2 OFFSET 1 (3016.655051ms)
+✔ window FILTER consumes linked rewrite carrier rather than local lookup (4.877621ms)
+✔ linked resolver first error missing (14.254374ms)
+✔ linked resolver first error a (3011.663152ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22086.081843

@@ -1,0 +1,11 @@
+✔ row-width cost branches utf8 (253.340305ms)
+✔ row-width cost branches utf16le (138.042892ms)
+✔ row-width cost branches utf16be (118.927159ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 927.770368

@@ -1,0 +1,11 @@
+✔ merged WR primary retains first UNIQUE direction UTF-8 (127.993574ms)
+✔ merged WR primary retains first UNIQUE direction UTF-16le (24.381159ms)
+✔ merged WR primary retains first UNIQUE direction UTF-16be (20.02887ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 784.206475

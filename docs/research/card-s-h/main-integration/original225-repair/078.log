@@ -1,0 +1,11 @@
+✔ WR duplicate column/collation width authority UTF-8 (138.657362ms)
+✔ WR duplicate column/collation width authority UTF-16le (29.016068ms)
+✔ WR duplicate column/collation width authority UTF-16be (19.216303ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 800.567886

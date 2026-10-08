@@ -1,0 +1,14 @@
+✔ utf8/before competing candidates public lifecycle and LEFT provenance (284.82563ms)
+✔ utf8/after competing candidates public lifecycle and LEFT provenance (82.723622ms)
+✔ utf16le/before competing candidates public lifecycle and LEFT provenance (153.816093ms)
+✔ utf16le/after competing candidates public lifecycle and LEFT provenance (79.03147ms)
+✔ utf16be/before competing candidates public lifecycle and LEFT provenance (159.422688ms)
+✔ utf16be/after competing candidates public lifecycle and LEFT provenance (63.516855ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1185.065562

@@ -1,0 +1,13 @@
+✔ scalar set KeyInfo takes the first explicit result collation left-to-right (103.592731ms)
+✔ compound ORDER inherits result collation and explicit COLLATE overrides it (17.514964ms)
+✔ collation equality preserves operator-specific representative and storage class (7.112303ms)
+✔ scalar and structured VALUES set prefixes hand off to trailing UNION ALL (25.336713ms)
+✔ alternative compound ORDER collations sort after set production (30.182122ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 541.842074

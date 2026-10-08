@@ -1,0 +1,11 @@
+✔ UTF-8: unavailable collation retains real structural width (97.860777ms)
+✔ UTF-16le: unavailable collation retains real structural width (21.293717ms)
+✔ UTF-16be: unavailable collation retains real structural width (13.808888ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 777.306181

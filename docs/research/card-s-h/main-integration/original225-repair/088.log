@@ -1,0 +1,32 @@
+{"id":"union-all-cardinality-order","outcome":"pass"}
+{"id":"union-distinct-cardinality","outcome":"pass"}
+{"id":"intersect-cardinality","outcome":"pass"}
+{"id":"except-cardinality","outcome":"pass"}
+{"id":"multirow-values","outcome":"pass"}
+{"id":"multirow-values-order-limit","outcome":"pass"}
+{"id":"leftmost-names-origin","outcome":"pass"}
+{"id":"compound-declared-collation","outcome":"pass"}
+{"id":"null-equality","outcome":"pass"}
+{"id":"integer-real-equality","outcome":"pass"}
+{"id":"integer-text-distinct","outcome":"pass"}
+{"id":"text-blob-distinct","outcome":"pass"}
+{"id":"order-output-expression","outcome":"pass"}
+{"id":"order-missing-alias-error","outcome":"pass"}
+{"id":"order-nonoutput-expression-error","outcome":"pass"}
+{"id":"limit-offset-scope","outcome":"pass"}
+{"id":"limit-integral-real","outcome":"pass"}
+{"id":"limit-type-error","outcome":"pass"}
+{"id":"arm-order-syntax-error","outcome":"pass"}
+{"id":"column-count-error","outcome":"pass"}
+{"id":"values-column-count-error","outcome":"pass"}
+{"id":"values-syntax-error","outcome":"pass"}
+{"summary":{"declared":22,"attempted":22,"passed":22,"failed":0,"credited":22}}
+✔ test/conformance/run-compound-values-ts.mjs (542.27906ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 551.677813

@@ -1,0 +1,11 @@
+✔ transient estimates published once utf8 (205.788016ms)
+✔ transient estimates published once utf16le (75.903745ms)
+✔ transient estimates published once utf16be (62.800304ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1043.281095

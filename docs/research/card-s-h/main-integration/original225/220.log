@@ -1,0 +1,38 @@
+✔ linked NameContext preserves shadowing, ambiguity, correlation depth, and unique cursors (16.577294ms)
+✔ selectExpander preserves ordered duplicate names, wildcard visibility, and direct metadata (1.353153ms)
+✔ compound ORDER identity uses generated reductions without token reconstruction (0.66385ms)
+✔ lookupName applies aliases, qualification, ambiguity, no-such-column, and rowid shadowing (162.421359ms)
+✔ NATURAL and USING synthesize merged visibility and validate both sides (5.318777ms)
+✔ INTEGER PRIMARY KEY resolves to rowid storage while retaining declared metadata (0.514717ms)
+✔ transient SrcItem descriptor hides implicit rowid but preserves explicit rowid columns (0.972091ms)
+✔ expr.c resolved affinity follows column CAST COLLATE but not unary plus (1.651297ms)
+✔ nested compound transient SrcItem has no visible implicit rowid (5.484501ms)
+✔ scalar SELECT affinity uses linked resolved producer, not sibling or IN/EXISTS (1.913312ms)
+✔ expr.c datatype mask differs from affinity and unions CASE output branches (1.892252ms)
+✔ compound affinity conflict includes arms after the first affinity owner (1.145853ms)
+✔ compound numeric CAST exposes FLEXNUM without collapsing REAL (0.565305ms)
+✔ compound FLEXNUM CAST identity peels parser parentheses but not COLLATE (0.889258ms)
+✔ function datatype is unknown, independent of function name and scalar result type (0.885551ms)
+✔ TK_VECTOR affinity and datatype follow first resolved field without admitting row-value output (0.451849ms)
+✔ nested scalar compound descriptor shares cross-arm affinity scan (1.889161ms)
+✔ nested compound descriptor preserves first direct column collation (1.803632ms)
+✔ nested descriptor explicit collation follows expression flags, not scalar SELECT contents (1.328771ms)
+✔ vector collation uses first field even if later field has explicit COLLATE (0.650372ms)
+✔ compound collation uses first non-null resolved arm, including BINARY columns (0.776944ms)
+✔ nested compound transient declared type follows affinity conflict and standard names (1.347794ms)
+✔ columnType scalar SELECT uses linked child, CAST and arithmetic have no column type (0.93883ms)
+✔ scalar SELECT result metadata inherits linked column provenance, not CAST or unary plus (0.828314ms)
+✔ derived scalar column provenance follows first producer expression, not transient alias (1.344199ms)
+✔ columnType metadata has one linked scalar owner for type and provenance (1.564626ms)
+✔ columnType treats resolved FULL USING coalesce as function, not first column use (0.949006ms)
+✔ FULL USING deferred function retains first affinity/collation but generic datatype (0.946963ms)
+✔ deferred coalesce semantic binding survives caller peeling parentheses (0.563377ms)
+✔ lookupName records deferred FULL USING ownership outside result EList (0.408189ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 396.078158

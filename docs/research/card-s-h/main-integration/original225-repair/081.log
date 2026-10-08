@@ -1,0 +1,11 @@
+✔ joined WR physical storage native UTF-8/undefined (126.679852ms)
+✔ joined WR physical storage native UTF-16le/undefined (31.112363ms)
+✔ joined WR physical storage native UTF-16be/undefined (25.421182ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 801.563728

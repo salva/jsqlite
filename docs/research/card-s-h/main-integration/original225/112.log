@@ -1,0 +1,17 @@
+✔ aggregate lexical ownership: composite empty scalar (126.531408ms)
+✔ aggregate lexical ownership: composite CASE REAL short circuit (30.763205ms)
+✔ aggregate lexical ownership: all-outer scalar expression ungrouped (3021.527679ms)
+✔ aggregate lexical ownership: all-outer scalar expression grouped (13.563582ms)
+✔ aggregate lexical ownership: all-outer ungrouped (3013.295034ms)
+✔ aggregate lexical ownership: all-outer grouped (14.755305ms)
+✔ aggregate lexical ownership: empty scalar source (15.806284ms)
+✔ aggregate lexical ownership: REAL argument (9.963781ms)
+✔ aggregate lexical ownership: local-owning grouped control (15.077618ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6791.763394

@@ -1,0 +1,19 @@
+✔ compileJoinedUnionAll live parent edge accepts enclosing construction owner (1.982201ms)
+✔ compileSingleCompoundDerived live parent edge accepts enclosing construction owner (0.515472ms)
+✔ compileRepeatedImmutableView live parent edge accepts enclosing construction owner (0.478292ms)
+✔ compileCteDerivedSources live parent edge accepts enclosing construction owner (0.443198ms)
+✔ compileCteDerivedSourcesFallback live parent edge accepts enclosing construction owner (0.416502ms)
+✔ compileJoinedUnionAll consumes parent allocation and destination and defers publication (0.652689ms)
+✔ compileSingleCompoundDerived consumes parent allocation and destination and defers publication (0.491678ms)
+✔ compileRepeatedImmutableView consumes parent allocation and destination and defers publication (0.444238ms)
+✔ compileCteDerivedSources consumes parent allocation and destination and defers publication (0.601068ms)
+✔ compileCteDerivedSourcesFallback consumes parent allocation and destination and defers publication (0.565957ms)
+✔ live specialized table callers pass enclosing owner before publication (1.464599ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.525089

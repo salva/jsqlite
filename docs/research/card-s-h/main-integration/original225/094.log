@@ -1,0 +1,22 @@
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"literal-storage-classes","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"arithmetic-and-null","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"arithmetic-overflow-error","credit":0,"outcome":"pass","attempted":{"phase":"step"},"expectedError":{"phase":"step","resultCode":1,"primaryCode":1,"message":"integer overflow"},"error":{"name":"JSQLiteError","kind":"sqlite","code":1,"extendedCode":1,"message":"integer overflow"},"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"unary-and-comparisons","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"boolean-three-valued","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"boolean-short-circuit","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"where-expression","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"minmax-collseq-ties","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"embedded-nul","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"resolver-errors","credit":0,"outcome":"pass","attempted":{"phase":"prepare"},"expectedError":{"phase":"prepare","resultCode":1,"primaryCode":1,"message":"no such function: no_such_function"},"error":{"name":"JSQLiteError","kind":"sqlite","code":1,"extendedCode":1,"message":"no such function: no_such_function"},"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"variadic-arity-errors","credit":0,"outcome":"pass","attempted":{"phase":"prepare"},"expectedError":{"phase":"prepare","resultCode":1,"primaryCode":1,"message":"wrong number of arguments to function min()"},"error":{"name":"JSQLiteError","kind":"sqlite","code":1,"extendedCode":1,"message":"wrong number of arguments to function min()"},"mismatch":null}
+{"schema":"jsqlite-expression-functions-ts-result/1","caseId":"output-metadata","credit":0,"outcome":"pass","attempted":{"phase":"stepAll"},"expectedError":null,"error":null,"mismatch":null}
+{"summary":{"declared":12,"attempted":12,"passed":12,"failed":0,"unattempted":0,"credit":0,"classification":"no-credit-companion"}}
+✔ test/conformance/run-expression-function-companions-ts.mjs (727.247119ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 740.504311

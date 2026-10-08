@@ -1,0 +1,13 @@
+✔ derived compound destination: SELECT sum(d.x ORDER BY d.x) AS s,count(d.x) AS n FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT 8) d (101.409983ms)
+✔ derived compound destination: SELECT count(d.x) AS n FROM (SELECT x FROM t2 WHERE x>1 UNION ALL SELECT 8) d (21.534682ms)
+✔ derived compound destination: SELECT sum(d.x) AS n FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT 8) d (14.920043ms)
+✔ derived compound destination: SELECT count(d.x) AS n FROM (SELECT x FROM t2 WHERE 0 UNION ALL SELECT 8 WHERE 0) d (3014.082729ms)
+✔ compound derived aggregate consumer retains enclosing allocation ownership (3.553936ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3502.346545

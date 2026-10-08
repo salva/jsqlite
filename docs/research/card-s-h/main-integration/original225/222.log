@@ -1,0 +1,13 @@
+✔ generated window semantics retain the EXCLUDE mode in the owned graph (7.897601ms)
+✔ window chain copies earlier definitions and links compatible functions (6.802694ms)
+✔ window update coerces built-ins and preserves distinct nesting groups (2.001177ms)
+✔ window chain and update retain source diagnostics (6.056713ms)
+✔ frame allocation canonicalizes explicit zero offsets to CURRENT ROW (0.717307ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 201.236114

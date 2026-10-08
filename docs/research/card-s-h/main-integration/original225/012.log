@@ -1,0 +1,11 @@
+✔ compound producer shapes outside the bounded implementation reject atomically (63.436346ms)
+✔ implemented VALUES production identity remains structured and executable (3020.884932ms)
+✔ supported recursive WITH executes while expression-owned nested WITH rejects atomically (3016.873494ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6467.617946

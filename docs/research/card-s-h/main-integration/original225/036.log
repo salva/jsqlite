@@ -1,0 +1,35 @@
+✔ public two- and three-source INNER loops preserve source scan order and predicate placement (81.187841ms)
+✔ public multi-row INNER loop resets partial execution and rebinds without stale cursor state (14.267386ms)
+✔ public multi-row INNER loop releases execution ownership after cancel, deadline, and work failures (12.120144ms)
+✔ public INNER sorter releases private state after budget failure (16.320046ms)
+✔ public multi-row USING and NATURAL joins merge star columns and filter at the join boundary (9.326744ms)
+✔ public INNER execution preserves direct metadata and storage classes in every database encoding (34.635417ms)
+✔ public compound SELECT executes join-bearing arms in either arm position (13.576546ms)
+✔ public INNER predicates preserve NULL and storage-class comparison distinctions (16.289399ms)
+✔ public INNER ON comparison inherits BINARY, NOCASE, and RTRIM column collations (20.818947ms)
+✔ public INNER ON honors explicit COLLATE and left-operand declared-collation precedence (18.42061ms)
+✔ public three-source USING chains distinguish merged star from qualified stars (6.076241ms)
+✔ public three-source NATURAL chains derive every common-column boundary and star shape (5.855403ms)
+✔ public INNER loop enforces row budget after partial progress and releases execution state (6.551589ms)
+✔ public INNER loop cancellation after an emitted row releases execution state (5.478326ms)
+✔ public INNER loop deadline after an emitted row releases execution state (5.242914ms)
+✔ public INNER sorter releases private state after key and aggregate-byte budget failures (18.075995ms)
+✔ public INNER DISTINCT releases ephemeral state after every private budget failure (25.223592ms)
+✔ public INNER computed projection enforces result-size limit and resets cleanly (5.575949ms)
+✔ public heterogeneous three-source INNER chain preserves source metadata and order (11.075977ms)
+✔ public INNER computed projection observes cancellation inside one long step and cleans up (21.141829ms)
+✔ public INNER computed projection observes deadline inside one long step and cleans up (16.896538ms)
+✔ public INNER sorter observes cancellation while scanning and filling private state (7.519144ms)
+✔ public INNER sorter observes deadline while scanning and filling private state (6.417734ms)
+✔ public unordered INNER product streams with zero private-state budgets (8.560383ms)
+✔ public unordered INNER LIMIT stops before the remaining Cartesian product (5.268163ms)
+✔ public heterogeneous USING and NATURAL use left collation and suppress the right column (6.331847ms)
+✔ public three-source heterogeneous USING and NATURAL retain the first merged owner (5.920416ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 800.052959

@@ -1,0 +1,13 @@
+✔ derived compound destination: SELECT t.a,d.x FROM t1 t CROSS JOIN (SELECT x FROM t2 LIMIT 2) d ORDER BY 1,2 (82.836242ms)
+✔ derived compound destination: SELECT t.a,d.x FROM t1 t JOIN (SELECT x FROM t2 LIMIT 2) d ORDER BY 1,2 (17.823966ms)
+✔ derived compound destination: SELECT t.a,d.x FROM t1 t CROSS JOIN (SELECT x FROM t2 LIMIT 0) d ORDER BY 1,2 (11.262357ms)
+✔ derived compound destination: SELECT t.a,d.x FROM t1 t CROSS JOIN (SELECT x FROM t2 LIMIT 1 OFFSET 2) d ORDER BY 1,2 (11.484145ms)
+✔ two-source retained child uses owning destination rather than copied completed ops (3.583506ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 485.651033

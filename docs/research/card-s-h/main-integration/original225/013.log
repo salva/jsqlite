@@ -1,0 +1,39 @@
+✔ public utf8 executes WITH inside represented derived sources (78.366158ms)
+✔ public utf16le executes WITH inside represented derived sources (17.601883ms)
+✔ public utf16be executes WITH inside represented derived sources (11.423707ms)
+✔ public utf8 executes persisted WITH view without caller scope capture (43.05765ms)
+✔ public utf16le executes persisted WITH view without caller scope capture (40.506128ms)
+✔ public utf16be executes persisted WITH view without caller scope capture (40.371364ms)
+✔ public utf8 keeps nested-WITH residual distinct while executing bounded recursive ownership (13.408397ms)
+✔ public utf16le keeps nested-WITH residual distinct while executing bounded recursive ownership (7.266935ms)
+✔ public utf16be keeps nested-WITH residual distinct while executing bounded recursive ownership (7.80358ms)
+✔ public recursive UNION retains all-history duplicate suppression (9.828451ms)
+✔ public recursive ORDER BY uses a priority queue (8.552164ms)
+✔ public recursive LIMIT and OFFSET control output and termination (7.150132ms)
+✔ public recursive validation reports pinned aggregate diagnostic at prepare (6.581115ms)
+✔ public recursive validation reports pinned window diagnostic at prepare (5.300925ms)
+✔ public recursive validation reports pinned width diagnostic at prepare (4.908612ms)
+✔ public recursive validation reports pinned multiple-reference diagnostic (7.022407ms)
+✔ public recursive validation reports pinned circular diagnostic at prepare (6.982367ms)
+✔ public recursive validation distinguishes nested second reference (6.644696ms)
+✔ public recursive CTE composes with supported outer join consumer (8.180729ms)
+✔ public multiple recursive declarations compose through a supported cross join (9.518253ms)
+✔ public utf8 multiple recursive declarations preserve explicit output collation and NULL ordering (9.732009ms)
+✔ public utf16le multiple recursive declarations preserve explicit output collation and NULL ordering (6.789718ms)
+✔ public utf16be multiple recursive declarations preserve explicit output collation and NULL ordering (6.627036ms)
+✔ recursive queue is iterative and reset/rebind/finalize clean lifecycle state (788.051863ms)
+✔ recursive queue cleans state after work-limit, cancellation, and deadline errors (12.363637ms)
+✔ recursive queue, history, and output obey row and shared private-state limits (37.948898ms)
+✔ recursive execution observes cancellation delivered while VM work is yielded (785.151012ms)
+✔ public utf8 recursive matrix preserves typed rows metadata and queue controls (8.746761ms)
+✔ public utf16le recursive matrix preserves typed rows metadata and queue controls (7.080957ms)
+✔ public utf16be recursive matrix preserves typed rows metadata and queue controls (7.669536ms)
+✔ multiple recursive producer bindings share parent indices and reset independently (7.914661ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2357.728685

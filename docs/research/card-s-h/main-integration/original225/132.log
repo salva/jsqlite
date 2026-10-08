@@ -1,0 +1,10 @@
+✔ derived compound destination: SELECT d.x,e.y FROM (SELECT 1 AS x UNION ALL SELECT 2) d JOIN (SELECT 10 AS y UNION ALL SELECT 20) e ON d.x=2 ORDER BY 1,2 (77.038487ms)
+✔ derived compound destination: SELECT d.x FROM (SELECT 2 AS x UNION ALL SELECT 1 ORDER BY 1 LIMIT 1) d ORDER BY 1 (3027.849319ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3575.056084

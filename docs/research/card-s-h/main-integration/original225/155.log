@@ -1,0 +1,10 @@
+✔ table-backed derived coroutine rows/type/names/limits/reset/error/lifecycle (273.837944ms)
+✔ ordered compound CAST and unary plus retain column collation but other operators do not (62.283585ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 739.654769

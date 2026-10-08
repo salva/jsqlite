@@ -1,0 +1,12 @@
+✔ implicit declaration order and merge width authority UTF-8 (224.628835ms)
+✔ implicit declaration order and merge width authority UTF-16le (52.994941ms)
+✔ implicit declaration order and merge width authority UTF-16be (40.058981ms)
+✔ implicit conflict grammar preserves ordered default and explicit actions (2.897551ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1466.942154

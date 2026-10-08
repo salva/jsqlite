@@ -1,0 +1,10 @@
+✔ declared UTF16 surrogate-consumes-next UTF-16le (59.214794ms)
+✔ declared UTF16 surrogate-consumes-next UTF-16be (11.460366ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 385.458153

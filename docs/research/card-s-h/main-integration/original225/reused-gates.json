@@ -1,0 +1,28 @@
+{
+  "browser-current": {
+    "sha256": "86f968a45d8482bf372a9e9b39b197e8d24d35be8d97951648272814180495e9",
+    "browser": {
+      "name": "chromium",
+      "version": "148.0.7778.96",
+      "playwright": "1.60.0"
+    },
+    "results": 40,
+    "allpass": true
+  },
+  "browser-gap": {
+    "sha256": "52e6221771b6d26f5a598a514bba36c203e03fa96d4e607e0d11c6f26f0fe748",
+    "browser": {
+      "name": "chromium",
+      "version": "148.0.7778.96",
+      "playwright": "1.60.0"
+    },
+    "results": 2,
+    "allpass": true
+  },
+  "runtimeDiffBytes": 0,
+  "profileSha256": {
+    "stat4.so": "5cda5b0a16f3817a762c2f154fb533375aebc3b6724d6344ea716980383ded68",
+    "nostat4.so": "5348c05b229510be800c64db94c5c7277ef262524c6c53c171b380d858e91ab3"
+  },
+  "browserBoundary": "current40/gap2 runtime identical, not fresh GUI recapture or sample-specific browser credit"
+}

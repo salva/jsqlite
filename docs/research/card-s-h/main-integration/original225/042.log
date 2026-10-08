@@ -1,0 +1,17 @@
+✔ public utf8 aggregates a recursive CTE consumer (67.28687ms)
+✔ public utf16le aggregates a recursive CTE consumer (17.063383ms)
+✔ public utf16be aggregates a recursive CTE consumer (13.863533ms)
+✔ public utf8 source-owned recursive and zero-source aggregate destinations (24.764301ms)
+✔ public utf16le source-owned recursive and zero-source aggregate destinations (17.469556ms)
+✔ public utf16be source-owned recursive and zero-source aggregate destinations (12.206106ms)
+✔ public utf8 recursive outer destination limits bind and reset independently of body (10.88853ms)
+✔ public utf16le recursive outer destination limits bind and reset independently of body (8.331369ms)
+✔ public utf16be recursive outer destination limits bind and reset independently of body (9.018494ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 526.440135

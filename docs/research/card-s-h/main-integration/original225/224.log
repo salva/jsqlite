@@ -1,0 +1,14 @@
+✔ UPSTREAM util.c sqlite3GetVarint: exact lengths and unsigned 64-bit result (2.436081ms)
+✔ UPSTREAM serial 0-6,8,9: NULL, integer constants, every signed width and exact extrema (1.741587ms)
+✔ UPSTREAM serial 7: raw IEEE-754 bits and finite/infinity/NaN class are retained (0.541989ms)
+✔ UPSTREAM serial >=12: empty/nonempty BLOB and TEXT borrow bytes and retain encoding (0.524463ms)
+✔ LOCAL-SAFETY: reserved serial 10/11 and malformed varint/header/payload bounds reject (1.38809ms)
+✔ UPSTREAM unpack-compatible trailing bytes are not consumed; borrowed mutation remains visible (0.290784ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 171.20561

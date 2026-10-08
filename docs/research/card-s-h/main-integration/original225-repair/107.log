@@ -1,0 +1,10 @@
+✔ schema-v4 relational public TS consumers (190.718461ms)
+{"schema":"jsqlite-relational-ts-accounting-v1","declared":18,"attempted":3,"passed":3,"unattempted":15,"creditedUpstream":2,"creditedCompanions":0}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 807.372037

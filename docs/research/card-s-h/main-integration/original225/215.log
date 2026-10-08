@@ -1,0 +1,14 @@
+✔ derived compound destination: SELECT t.a AS a,count(*) FILTER (WHERE t.a IN (1,3)) OVER (ORDER BY t.a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW EXCLUDE CURRENT ROW) AS n FROM t1 t WHERE t.a BETWEEN 1 AND 5 COLLATE BINARY ORDER BY 1 (99.956989ms)
+✔ derived compound destination: SELECT t.a AS a,sum(t.a) FILTER (WHERE NULL) OVER (ORDER BY t.a) AS n FROM t1 t WHERE t.a IN (1,3) ORDER BY 1 (21.421432ms)
+✔ derived compound destination: SELECT t.a AS a,count(*) OVER (ORDER BY t.a) AS n FROM t1 t WHERE NULL ORDER BY 1 LIMIT 1 (12.547823ms)
+✔ window source predicates consume rewrite-owned carrier (3.612519ms)
+✔ linked resolver first error missing (10.441891ms)
+✔ linked resolver first error a (8.966017ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 508.794904

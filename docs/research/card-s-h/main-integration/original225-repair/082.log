@@ -1,0 +1,11 @@
+✔ UTF-8: WR unavailable CollSeq retains exact structural PK ownership (106.871026ms)
+✔ UTF-16le: WR unavailable CollSeq retains exact structural PK ownership (23.988914ms)
+✔ UTF-16be: WR unavailable CollSeq retains exact structural PK ownership (20.202343ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 768.818427

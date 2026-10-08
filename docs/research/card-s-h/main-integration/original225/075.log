@@ -1,0 +1,20 @@
+✔ callback Mem UTF16 conversion utf-16le 00d8 (2.38142ms)
+✔ callback Mem UTF16 conversion utf-16le 00dc (1.689522ms)
+✔ callback Mem UTF16 conversion utf-16le 00d84100 (0.229812ms)
+✔ callback Mem UTF16 conversion utf-16le 00dc4100 (0.304703ms)
+✔ callback Mem UTF16 conversion utf-16le 4100ff (0.325084ms)
+✔ callback Mem UTF16 conversion utf-16le 00d800dc (0.208057ms)
+✔ callback Mem UTF16 conversion utf-16be d800 (0.266474ms)
+✔ callback Mem UTF16 conversion utf-16be dc00 (0.215301ms)
+✔ callback Mem UTF16 conversion utf-16be d8000041 (0.405737ms)
+✔ callback Mem UTF16 conversion utf-16be dc000041 (0.520145ms)
+✔ callback Mem UTF16 conversion utf-16be 0041ff (0.216557ms)
+✔ callback Mem UTF16 conversion utf-16be d800dc00 (0.171141ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 188.761525

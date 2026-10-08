@@ -1,0 +1,14 @@
+✔ utf8 sz=4096 stat1 immutable flags and native typed access (117.693246ms)
+✔ utf8 noskipscan stat1 immutable flags and native typed access (38.910851ms)
+✔ utf16le sz=4096 stat1 immutable flags and native typed access (26.601337ms)
+✔ utf16le noskipscan stat1 immutable flags and native typed access (25.109264ms)
+✔ utf16be sz=4096 stat1 immutable flags and native typed access (24.333923ms)
+✔ utf16be noskipscan stat1 immutable flags and native typed access (19.554349ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 592.999633

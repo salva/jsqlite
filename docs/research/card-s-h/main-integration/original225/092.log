@@ -1,0 +1,10 @@
+{"schema":"jsqlite-expression-cross-encoding-ts/1","declared":3,"passed":3,"boundTextUtf8Hex":"4100f09f9880c3a9","results":[{"fixture":"storage-p4096","encoding":"utf-8","outcome":"pass"},{"fixture":"storage-p4096-utf16le","encoding":"utf-16le","outcome":"pass"},{"fixture":"storage-p4096-utf16be","encoding":"utf-16be","outcome":"pass"}]}
+✔ test/conformance/run-expression-cross-encoding-ts.mjs (3589.164981ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3602.599817

@@ -1,0 +1,10 @@
+✔ structured multirow VALUES executes through the public prepared VDBE path (79.581809ms)
+✔ VALUES width mismatch remains an atomic prepare error (17.472134ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 729.246238

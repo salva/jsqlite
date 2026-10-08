@@ -1,0 +1,30 @@
+✔ joined WR native controls pair lookup plans with exact bindings and label post-runtime resources (2.277437ms)
+✔ joined WR typed metadata/reset/rebind native UTF-8 (93.765788ms)
+✔ joined WR selected corruption/off-path covering UTF-8 (44.683399ms)
+✔ joined WR LEFT miss clears primary/secondary and limits latch UTF-8 (27.456108ms)
+✔ joined WR typed metadata/reset/rebind native UTF-16le (16.894455ms)
+✔ joined WR selected corruption/off-path covering UTF-16le (23.29775ms)
+✔ joined WR LEFT miss clears primary/secondary and limits latch UTF-16le (15.410471ms)
+✔ joined WR typed metadata/reset/rebind native UTF-16be (11.131314ms)
+✔ joined WR selected corruption/off-path covering UTF-16be (20.670685ms)
+✔ joined WR LEFT miss clears primary/secondary and limits latch UTF-16be (11.832398ms)
+✔ joined WR required-primary movement UTF-8 (19.419737ms)
+✔ joined WR required-primary movement UTF-16le (19.49936ms)
+✔ joined WR required-primary movement UTF-16be (16.753376ms)
+✔ joined WR live cancellation/deadline reset and reuse UTF-8 (374.570717ms)
+✔ joined WR private-byte admission error before publication and cleanup UTF-8 (9.449427ms)
+✔ joined WR live cancellation/deadline reset and reuse UTF-16le (403.091786ms)
+✔ joined WR private-byte admission error before publication and cleanup UTF-16le (8.6414ms)
+✔ joined WR live cancellation/deadline reset and reuse UTF-16be (402.658754ms)
+✔ joined WR private-byte admission error before publication and cleanup UTF-16be (29.879852ms)
+✔ joined WR operation work ceiling reset retains typed bindings UTF-8 (7.809841ms)
+✔ joined WR operation work ceiling reset retains typed bindings UTF-16le (7.76827ms)
+✔ joined WR operation work ceiling reset retains typed bindings UTF-16be (7.340609ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1948.390137

@@ -1,0 +1,11 @@
+✔ raw malformed declared schema UTF-8 (153.253447ms)
+✔ raw malformed declared schema UTF-16le (28.796523ms)
+✔ raw malformed declared schema UTF-16be (21.21122ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1132.993266

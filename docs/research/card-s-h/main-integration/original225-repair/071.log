@@ -1,0 +1,11 @@
+✔ row-width singleton order utf8 (137.731883ms)
+✔ row-width singleton order utf16le (35.862289ms)
+✔ row-width singleton order utf16be (30.522926ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 744.82618

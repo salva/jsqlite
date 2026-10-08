@@ -1,0 +1,34 @@
+✔ constant derived aggregate nested source resolves before scalar metadata emission (135.665934ms)
+✔ view transient resolution clears circular state and preserves explicit width errors (3.458246ms)
+✔ nested view metadata resolves stored exposed columns before scalar emission (91.960904ms)
+✔ public scalar, correlated aggregate, EXISTS and IN preserve pinned destination rows, types, names, reset (1376.308202ms)
+✔ no-FROM ORDER ordinal range errors match pinned preparation without publishing a statement (72.593286ms)
+✔ producer ORDER ordinal binds producer width and result before flatten transfer (5.740333ms)
+✔ producer ORDER alias binds producer EList before flatten transfer (5.579472ms)
+✔ source-permitted derived LIMIT and ORDER move into parent scan with SRT destination (5.55881ms)
+✔ nonzero-source derived ORDER transfers into parent without child program relocation (5.053032ms)
+✔ nonaggregate joined child consumes enclosing builder at scan and sorter drain (5.216856ms)
+✔ grouped scalar child consumes enclosing aggregate builder and destination (4.709557ms)
+✔ flattenable derived and view grouped children consume the aggregate parent builder (4.684413ms)
+✔ grouped result sorter binds unprojected ORDER group keys from saved accumulator state (4.447083ms)
+✔ ungrouped ordered aggregate child retains the enclosing destination (4.056009ms)
+✔ zero-source derived count child emits producer cardinality into parent aggregate destination (7.500566ms)
+✔ nonflattenable zero-source derived column emits producer row into enclosing destination (3.924258ms)
+✔ nonflattenable zero-source derived column allocates outer limit before producer and drains after both offsets (3.96156ms)
+✔ nonflattenable zero-source derived column binds outer WHERE after producer admission (3.846931ms)
+✔ nonflattenable zero-source derived expression binds projected result in enclosing destination (4.865445ms)
+✔ nonflattenable zero-source multi-column producer retains transient row registers (4.359789ms)
+✔ no-FROM DISTINCT producer admits its sole row without a dedup cursor (4.144362ms)
+✔ no-FROM ORDER producer evaluates bound keys before producer OFFSET (3.892299ms)
+✔ scalar child selects compile into the parent builder rather than splice relocated completed Programs (4.153018ms)
+✔ compound-derived aggregate child uses parent Mem/Exists/Set destinations (30.893776ms)
+✔ compound-derived aggregate destination respects outer LIMIT and OFFSET (26.103439ms)
+✔ joined scalar allocation uses the live enclosing positive-range builder (27.61158ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2410.485307

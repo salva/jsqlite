@@ -1,0 +1,11 @@
+✔ public single-source prepare consumes SourceList/name resolution for alias star and metadata (152.378114ms)
+✔ public resolver metadata and typed values remain exact across database encodings (45.911408ms)
+✔ public INNER join preserves computed projection through ORDER BY alias and LIMIT (13.376832ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 721.183391

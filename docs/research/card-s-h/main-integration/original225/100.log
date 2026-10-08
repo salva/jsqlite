@@ -1,0 +1,18 @@
+✔ ORDER/LIMIT admitted public slice preserves duplicate metadata and resolver precedence (105.089095ms)
+✔ ORDER expressions, explicit collation/NULL placement, and LIMIT coercion follow pinned behavior (44.69347ms)
+✔ public ORDER matrix preserves NULL, numeric, TEXT, and BLOB storage classes (16.059782ms)
+✔ public ORDER collations distinguish declared NOCASE, explicit BINARY, RTRIM, and NUL length rules (13.172275ms)
+✔ ORDER result aliases resolve through explicit COLLATE while retaining that collation (7.067313ms)
+✔ ORDER/LIMIT utf8 compound and scalar destinations execute; derived boundary stays atomic (70.821337ms)
+✔ ORDER/LIMIT utf16le compound and scalar destinations execute; derived boundary stays atomic (41.236179ms)
+✔ ORDER/LIMIT utf16be compound and scalar destinations execute; derived boundary stays atomic (35.184834ms)
+✔ scalar pre-existing text LIMIT is normalized by sqlite3CodeSubselect before MustBeInt (6.860442ms)
+✔ captured pinned expectations retain typed storage order, multi-term order, and explicit error phase (0.431639ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 707.786215

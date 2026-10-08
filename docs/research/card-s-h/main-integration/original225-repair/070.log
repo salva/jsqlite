@@ -1,0 +1,11 @@
+✔ merged rowid primary retains first UNIQUE direction UTF-8 (122.243385ms)
+✔ merged rowid primary retains first UNIQUE direction UTF-16le (28.872317ms)
+✔ merged rowid primary retains first UNIQUE direction UTF-16be (17.588604ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 807.765329

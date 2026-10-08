@@ -1,0 +1,10 @@
+✔ RIGHT unmatched continuation owns downstream selected-index exits (248.443172ms)
+✔ RIGHT interior is one parent subroutine, not a relocated body (5.087426ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 809.750011

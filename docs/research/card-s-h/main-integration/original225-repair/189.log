@@ -1,0 +1,29 @@
+✔ migrated live joined ordered and mixed physical ALL producers consume parent destinations (3.143431ms)
+✔ live compound-derived aggregate ordinary arms are not completed-child splices (0.972686ms)
+✔ remaining generic derived and window fallback ownership is tracked (0.6944ms)
+✔ ordinary mixed ALL delegates arm DISTINCT to existing ordinary producer owner (1.193508ms)
+✔ mixed ordinary ALL owns compound LIMIT in enclosing destination producer (0.690788ms)
+✔ supported grouped window source emits on enclosing builder instead of sourceProgram copying (0.885219ms)
+✔ admitted recursive window source owns enclosing coroutine destination, not completed Program splice (1.392213ms)
+✔ admitted ordered aggregate ALL emits arms and derived destination in enclosing builder (1.022563ms)
+✔ residual physical compound consumes the production multiSelect dispatch without a child Program (1.628174ms)
+✔ residual compound transient descriptor production does not compile a CTE metadata Program (2.032643ms)
+✔ residual aggregate compound forwards the production arm accumulator owner (0.810124ms)
+✔ persistent compound scan admission preserves transient SrcItem ownership (0.723436ms)
+✔ window lowering preserves compound owner before rewriting its first arm (0.162788ms)
+✔ window compound arms share allocation, parameters, destination and explicit exit (1.670194ms)
+✔ ordinary derived flatten production is shared by descriptor and compound arm callers (1.372209ms)
+✔ parser never erases single-source renamed projection solely for absent alias (0.517097ms)
+✔ retained derived compound arms call existing shared destination before schema resolution (0.846135ms)
+✔ retained physical source feeds window payload without a finished child splice (0.668144ms)
+✔ nested retained child delegates same builder coroutine instead of synthetic table scan (0.390728ms)
+✔ residual retained producer metadata and emission use semantic owners on one builder (0.507155ms)
+✔ recursive aggregate and zero-source count consume source destinations before Program publication (2.086025ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 149.17675

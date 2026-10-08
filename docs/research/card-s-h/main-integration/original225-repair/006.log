@@ -1,0 +1,10 @@
+{"schema":"jsqlite-between-lowering-ts/1","outcome":"pass","checks":["lhs-function-once","shared-lhs-register","ordered-comparisons","projection-native-order","no-Expression"]}
+✔ test/conformance/between-lowering.test.mjs (303.181486ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 312.033706

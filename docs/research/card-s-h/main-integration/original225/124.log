@@ -1,0 +1,14 @@
+✔ derived compound destination: WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 2) SELECT x AS y FROM c ORDER BY 1 (116.509864ms)
+✔ derived compound destination: WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 0) SELECT x AS y FROM c ORDER BY 1 (33.734984ms)
+✔ derived compound destination: WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 1 OFFSET 2) SELECT x AS y FROM c ORDER BY 1 (18.566897ms)
+✔ derived compound destination: WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 2) SELECT l.x AS y FROM c l CROSS JOIN c r ORDER BY 1 (20.466083ms)
+✔ forced/repeated CTE fallback owns destination rather than completed child ops (5.862011ms)
+✔ forced CTE child missing identifier stays lexical before empty LIMIT (13.877826ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 773.199582
