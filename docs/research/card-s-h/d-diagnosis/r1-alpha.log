@@ -1,0 +1,22 @@
+✔ immutable 1MB Chinook indexed range join: exact native rows, reset and bounded repeated delivery (606.436472ms)
+ℹ pass=0 rows=211 elapsedMs=178.15
+ℹ pass=1 rows=211 elapsedMs=87.28
+ℹ pass=2 rows=211 elapsedMs=102.39
+✔ 8MB overflow-heavy indexed payload scan: exact native rows, reset and bounded repeated delivery (1071.352822ms)
+ℹ pass=0 rows=256 elapsedMs=325.22
+ℹ pass=1 rows=256 elapsedMs=264.09
+ℹ pass=2 rows=256 elapsedMs=200.71
+✔ private alpha: query a common STAT4 database utf8 (305.990819ms)
+✔ private alpha: query a common STAT4 database utf16le (116.026423ms)
+✔ private alpha: query a common STAT4 database utf16be (82.54845ms)
+✔ utf8: untrusted SQL/file failures leave native indexed query reusable (684.870007ms)
+✔ utf16le: untrusted SQL/file failures leave native indexed query reusable (332.803054ms)
+✔ utf16be: untrusted SQL/file failures leave native indexed query reusable (260.622775ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2164.727127
