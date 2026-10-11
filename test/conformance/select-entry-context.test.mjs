@@ -275,7 +275,7 @@ test('late bounded peer exclusion scan consumes shared registers and labels',()=
 
 test('late sliding and following drains consume shared control labels',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- const start=text.indexOf('    if(sharedSliding){');
+ const start=text.indexOf('    if(sharedSliding&&!pendingEndRows){');
  assert.ok(start>=0);
  const body=text.slice(start,text.indexOf('    const cachedDirectOffset=',start));
  assert.doesNotMatch(body,/\(ops\[(?:filterJump|skip|done|ready)/);

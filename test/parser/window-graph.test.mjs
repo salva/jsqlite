@@ -59,8 +59,10 @@ test('window chain and update retain source diagnostics', () => {
   for(const [sql,message] of cases)assert.throws(()=>resolve(sql),error=>error instanceof NameResolutionError&&error.message===message,sql);
 });
 
-test('frame allocation canonicalizes explicit zero offsets to CURRENT ROW',()=>{
+test('frame allocation retains explicit zero offset kind and expression',()=>{
   const parsed=parseSql('SELECT sum(a) OVER w FROM t1 WINDOW w AS (ORDER BY a ROWS BETWEEN 0 PRECEDING AND 0 FOLLOWING)').statement;
-  assert.deepEqual(parsed.windowDefinitions[0].frame.start,{kind:'current',expr:null});
-  assert.deepEqual(parsed.windowDefinitions[0].frame.end,{kind:'current',expr:null});
+  assert.equal(parsed.windowDefinitions[0].frame.start.kind,'preceding');
+  assert.ok(parsed.windowDefinitions[0].frame.start.expr?.reduction);
+  assert.equal(parsed.windowDefinitions[0].frame.end.kind,'following');
+  assert.ok(parsed.windowDefinitions[0].frame.end.expr?.reduction);
 });
