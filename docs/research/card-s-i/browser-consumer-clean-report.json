@@ -1,0 +1,1653 @@
+{
+  "schema": "jsqlite-browser-e2e/1",
+  "command": [
+    "/opt/node-v24.18.0-linux-x64/bin/node",
+    "/work/jsqlite2/.saivage/work/cards/card-s-i-c-b-c/wr-consumer-clean/test/browser/run.mjs"
+  ],
+  "selection": {
+    "filter": "wr-case5/",
+    "chinook": false,
+    "lane": "current"
+  },
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "current": {
+    "generationId": "g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0",
+    "semanticCatalogSha256": "f7cc9e0def442228322fd5ed2b2efc8dcf965c2e7920cb638bb57810d2ae369c"
+  },
+  "dist": [
+    {
+      "path": "dist/generated/keyword-table.js",
+      "sha256": "d02f793b07969b85af8866f16e9ef17c51ba04e396adbb53333429eda2085dcb"
+    },
+    {
+      "path": "dist/generated/parser-tables.js",
+      "sha256": "9b4e6a30969da3fa13b3972b4b43d8c7f6850461871112ea9b4f4e1727e508cc"
+    },
+    {
+      "path": "dist/index.js",
+      "sha256": "52aeb5590a408ce12c361e21aac16c2236fa249ae7c8f4011dca048adcdef5f9"
+    },
+    {
+      "path": "dist/internal/admission.js",
+      "sha256": "3039c212a67f068442547f8abdeae78d438e397ad6eaff382aa04fe770354f0b"
+    },
+    {
+      "path": "dist/internal/btree.js",
+      "sha256": "2d618180bdbb1918ed3e22b4d8be4caac715d9cb4ede69856b6027859b2ddbcd"
+    },
+    {
+      "path": "dist/internal/comparison.js",
+      "sha256": "c9290e076893b2681a14d37794d5a1e37ffdbe430a57455b5178c8a7bbdfd0d4"
+    },
+    {
+      "path": "dist/internal/cte.js",
+      "sha256": "1d768d725abfe7a47d51f75cdef75254b4cf19e6ea23be9df21ddccb135664f4"
+    },
+    {
+      "path": "dist/internal/date-time.js",
+      "sha256": "d48594091f6663a1ae82728bac8811b48fad7808a3df2ed5f8a911e611206740"
+    },
+    {
+      "path": "dist/internal/functions.js",
+      "sha256": "1828973f0a3963fe9ddb02c190ab6d2489ee6359f34dc1206a38d205f863f15f"
+    },
+    {
+      "path": "dist/internal/json.js",
+      "sha256": "941c255efb9023bbcceab76f7a45c1864bd57231579e509bbedf829421f56984"
+    },
+    {
+      "path": "dist/internal/lemon-runtime.js",
+      "sha256": "cc59b13bc51bb03a28c9f65c67afbe465ca9f01db60fc57834fd5e7883a3c1be"
+    },
+    {
+      "path": "dist/internal/math.js",
+      "sha256": "51563a09499806aa64419bd9e049eb328f6e6fd902765e1f3f457574e0f6a68b"
+    },
+    {
+      "path": "dist/internal/mem.js",
+      "sha256": "c4a7a333e24621a7094b8eb546e4cd8903e87b310df36cf25fc974efc073e473"
+    },
+    {
+      "path": "dist/internal/ordinary-scalars.js",
+      "sha256": "f3906aaa2257e4a5b925f7d2db07d1b3e780529b333df21fff7dc18d93852983"
+    },
+    {
+      "path": "dist/internal/parse.js",
+      "sha256": "29fac723ebca8d2ee8840ba938917392455025173e0e1a415425ecc5c3c4d830"
+    },
+    {
+      "path": "dist/internal/pattern.js",
+      "sha256": "7ff8a6b5b309e97e709b8e256c150fc08f051b6719b16801b089c920729d0904"
+    },
+    {
+      "path": "dist/internal/printf.js",
+      "sha256": "6ad38d8ebc5895a428be00e149ba201d02fe290bff94bfffe3407e9e7f877fae"
+    },
+    {
+      "path": "dist/internal/private-blobkey-balance.js",
+      "sha256": "ef21e9c234b557c8dae4ad0db3def947aaaaa789ee8129ba83916433a54789fe"
+    },
+    {
+      "path": "dist/internal/private-blobkey-pages.js",
+      "sha256": "44592b5f7545c3fc17fd58528b43dfc503dc543a7e632931893c1728150700b6"
+    },
+    {
+      "path": "dist/internal/private-blobkey-staging.js",
+      "sha256": "f5ab562875b9ad6ccb22ff6dfa0bf22c6d530ac6b2416e0f9149867c4398df0c"
+    },
+    {
+      "path": "dist/internal/private-key-vm.js",
+      "sha256": "2066444f766f909d0e3491ed9c6ee999d089aea22bd5eac75c3a75023a5a13a9"
+    },
+    {
+      "path": "dist/internal/private-state.js",
+      "sha256": "6c4211b831fdc009a62ecd3e3a3ef2df6d4c441754c66e190126143d0adb1e60"
+    },
+    {
+      "path": "dist/internal/record-pack.js",
+      "sha256": "38d6f6a7c7abacddc5173b2fbc17c6fc76842775d810b0e75a0b1c60938c2ba5"
+    },
+    {
+      "path": "dist/internal/record.js",
+      "sha256": "6760ce7374f54b9eeeed3725089a2b5a88b2ec93c0b97472d3aa2b8cb66fd637"
+    },
+    {
+      "path": "dist/internal/reprepare.js",
+      "sha256": "c90e9dc692367b2e1253a7a92afb621974452aae8878c4877a25ffc280367781"
+    },
+    {
+      "path": "dist/internal/resolve.js",
+      "sha256": "45ce4116e93a3e77b93357ea1570af4351489e6e5e284d4890c147299694ab7e"
+    },
+    {
+      "path": "dist/internal/rowset.js",
+      "sha256": "c38aab07a87c51822abf7be437709fff8887d7e8ce67fd8bb1fe9881ed11c747"
+    },
+    {
+      "path": "dist/internal/schema.js",
+      "sha256": "cf4afbdd00742cc9e5cd505b9d9e716b59d74f60f65d9db26016aaca91fd78ea"
+    },
+    {
+      "path": "dist/internal/select-compiler.js",
+      "sha256": "f7bf58092414b474813d18ae1e7c52971997909f251060068445ddea7f58b243"
+    },
+    {
+      "path": "dist/internal/select-program.js",
+      "sha256": "41daa0c1336d0c31d140f2f93fd9e47dcde7327c47283a868e3b275030118600"
+    },
+    {
+      "path": "dist/internal/sqlite-case.js",
+      "sha256": "4b38d21a1819589e894dec066ce464f0198b609a86d367ae926350f4cdbf7b42"
+    },
+    {
+      "path": "dist/internal/stat4-estimate.js",
+      "sha256": "eb12f90e03d31aa2abec22463859374c1e25a5abc368a4be875141dbc2ebd355"
+    },
+    {
+      "path": "dist/internal/stat4-probe.js",
+      "sha256": "954808068d1fc1ba21ab68f6799365f02f24be64ffbed4601a561b11653649b6"
+    },
+    {
+      "path": "dist/internal/storage.js",
+      "sha256": "c7cd8e6dc6bb19dd1a51f22339b0c1334a4b396a0fa0cbeedbd15c533294095d"
+    },
+    {
+      "path": "dist/internal/task-scheduler.js",
+      "sha256": "c54cd7eef06da07a93f289f369ef36e9b485bdcd50a187e5be26ccf090d3d943"
+    },
+    {
+      "path": "dist/internal/tokenize.js",
+      "sha256": "7b3d9912afbcfb7d0ee92d2e1d5c9daf10e955b91c138296c217687fd9857111"
+    },
+    {
+      "path": "dist/internal/utf.js",
+      "sha256": "26ee0222a0fd2787a39abcc686b1c6d6aa50507185aeee1ef9641a601210d55a"
+    },
+    {
+      "path": "dist/internal/vdbe-primitives.js",
+      "sha256": "8c495b89c5e28534fea47ca02ea42d1635aa69c3bcf888b616d6963cb289caf5"
+    },
+    {
+      "path": "dist/internal/vdbe.js",
+      "sha256": "e6f1cd27de4d2b19a8cb9c94e318eb03c7d49f41a3e032cd9ed12f428137b3ad"
+    },
+    {
+      "path": "dist/internal/where-or-cost.js",
+      "sha256": "882a0fa46533d0d6bd1abd73eb080914a5e0c699855a7d4bc9114ff669addd54"
+    },
+    {
+      "path": "dist/internal/where-plan.js",
+      "sha256": "d1456b4c2cb369de1c5439ef7d4b04060bf48446333a58d92ef39b956b5dddf8"
+    },
+    {
+      "path": "dist/internal/where-prefix.js",
+      "sha256": "8fc6488c9395b755d3cc3f9cfde635e2f3d3955ea56074fd2c8ae49fc5fac637"
+    },
+    {
+      "path": "dist/internal/window-rewrite.js",
+      "sha256": "49cd1f822774b205f5e036976ec49b3594e514c1a9611024ac26a773a9aa314c"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "test/conformance/cases/stage3-aggregate-group.json",
+      "sha256": "5e64a06611c89aefcdd4c9f19d796444d6402e324c45b570fa6c7e4abdc6e30b"
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/empty.db",
+      "bytes": 4096,
+      "sha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "encoding": 0
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/expr-relational.db",
+      "bytes": 16384,
+      "sha256": "0e45488e476dd1b28660784a2ef340a1016df645393130a609657b25fc6eabf1",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/encoding-utf8.db",
+      "bytes": 12288,
+      "sha256": "66ff4cab504f06fa3bbbfd2785c712362fb9c11e10e825e4bb40f84393e8ee6b",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/encoding-utf16le.db",
+      "bytes": 12288,
+      "sha256": "38ae98d12c3bb6e5273879b2fbc1268c1a90d91179412172e26a4884d063b3f8",
+      "encoding": 2
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/encoding-utf16be.db",
+      "bytes": 12288,
+      "sha256": "8ac45acefa4c170906ad80acec4b95ff5056b035859d683fd7cfbb05a37b8bdf",
+      "encoding": 3
+    },
+    {
+      "path": "test/conformance/cases/stage3-subquery-view.json",
+      "sha256": "942c26e719aa780897276ef6da8479051937d1fa1df9875050dfbff33f4c6650"
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/conformance/cases/stage3-multisource-select.json",
+      "sha256": "f9e3c8eb031f899c47b97b3d5008af5c5448e1b6b2d055a1276f716b5b92ae49"
+    },
+    {
+      "path": "test/conformance/fixtures/multisource-inner-oracle.db",
+      "bytes": 20480,
+      "sha256": "eb6f52ca81a080b35e26b27570b786e64aabba7f1ac18c6c6f598c9b19fc1dd9",
+      "encoding": 1
+    },
+    {
+      "path": "test/conformance/fixtures/multisource-inner-oracle.db",
+      "bytes": 20480,
+      "sha256": "eb6f52ca81a080b35e26b27570b786e64aabba7f1ac18c6c6f598c9b19fc1dd9",
+      "encoding": 1
+    },
+    {
+      "path": "test/conformance/cases/stage3-special-window.json",
+      "sha256": "8dca26da547b4d2668fa388709728d683a5b88a2a751da0c9e4c7115bd2defb9"
+    },
+    {
+      "path": "test/fixtures/special-window/w7.db",
+      "bytes": 8192,
+      "sha256": "7dfce770611c05aa813d00249d11705546056482dd9c1b130a226a51d287ee6a",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/special-window/w2.db",
+      "bytes": 8192,
+      "sha256": "35a1ffd208998917f0516668c6bf94393e4b0ae59b63bd269bd5ef54e3d23197",
+      "encoding": 1
+    },
+    {
+      "path": "test/conformance/cases/stage3-special-window.json",
+      "sha256": "8dca26da547b4d2668fa388709728d683a5b88a2a751da0c9e4c7115bd2defb9"
+    },
+    {
+      "path": "test/fixtures/special-window/w7.db",
+      "bytes": 8192,
+      "sha256": "7dfce770611c05aa813d00249d11705546056482dd9c1b130a226a51d287ee6a",
+      "encoding": 1
+    },
+    {
+      "path": "test/conformance/cases/stage3-advanced-index.json",
+      "sha256": "ccf11c421331ef8e8f04fb0196204749bbe0abb75f53a71931e716494b714480"
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf8.db",
+      "bytes": 12288,
+      "sha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "encoding": 1
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf16le.db",
+      "bytes": 15872,
+      "sha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "encoding": 2
+    },
+    {
+      "path": "test/conformance/fixtures/advanced-index-utf16be.db",
+      "bytes": 15872,
+      "sha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "encoding": 3
+    },
+    {
+      "path": "test/fixtures/or-rowid/utf8-movement.db",
+      "bytes": 200704,
+      "sha256": "8f3dbae4cee74dc29c32a5d6e58e8eb3af6f1c5e553df68024e820b1d6133739",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/or-rowid/utf16le-movement.db",
+      "bytes": 212992,
+      "sha256": "57c1cd73fed7f10c02c2e013dc57b8058bea87c264797f37b9adb1ad1a70f8c7",
+      "encoding": 2
+    },
+    {
+      "path": "test/fixtures/or-rowid/utf16be-movement.db",
+      "bytes": 212992,
+      "sha256": "4662289570ef91598626113f9c4bcc3e0da8c9b21110a71200570bd0396cc3a9",
+      "encoding": 3
+    },
+    {
+      "path": "docs/research/card-s-i/native.json",
+      "sha256": "e8af769b084142629e8cd66c3b4aa91632796a08a8e4532ee7c170c7da2f051b"
+    },
+    {
+      "path": "docs/research/card-s-i/UTF-8.db",
+      "bytes": 61440,
+      "sha256": "6d23490dc51b65b541ddd04bb1415dc072e69cd2cf98faa87e8a8a462b2b0566",
+      "encoding": 1
+    },
+    {
+      "path": "docs/research/card-s-i/UTF-8.db",
+      "bytes": 61440,
+      "sha256": "6d23490dc51b65b541ddd04bb1415dc072e69cd2cf98faa87e8a8a462b2b0566",
+      "encoding": 1
+    },
+    {
+      "path": "docs/research/card-s-i/UTF-16le.db",
+      "bytes": 69632,
+      "sha256": "2ad3c8ad9affdaba86464bc8a842033b4589213baf7fa0ba5a2e26011a789c3b",
+      "encoding": 2
+    },
+    {
+      "path": "docs/research/card-s-i/UTF-16le.db",
+      "bytes": 69632,
+      "sha256": "2ad3c8ad9affdaba86464bc8a842033b4589213baf7fa0ba5a2e26011a789c3b",
+      "encoding": 2
+    },
+    {
+      "path": "docs/research/card-s-i/UTF-16be.db",
+      "bytes": 69632,
+      "sha256": "056427f02f8bd62ea7c7630dd699813f98d23435b523ab5fb1c4150dc95b147c",
+      "encoding": 3
+    },
+    {
+      "path": "docs/research/card-s-i/UTF-16be.db",
+      "bytes": 69632,
+      "sha256": "056427f02f8bd62ea7c7630dd699813f98d23435b523ab5fb1c4150dc95b147c",
+      "encoding": 3
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/empty.db",
+      "bytes": 4096,
+      "sha256": "358b59e0cb0caa9912cbbfac26c5fefb1f4454acf08ff912cc61464565d338f2",
+      "encoding": 0
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "sourceSha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "mutation": {
+        "offset": 4096,
+        "value": 0
+      },
+      "sha256": "0dc1272fc328e4f7466b3bd3d223a53adca86f7207d7b6690d7a263a85b84f5e",
+      "provenance": "btree.c btreeInitPage invalid page flags; t1 rootpage 2"
+    },
+    {
+      "path": "test/browser/budget-native.json",
+      "sha256": "da3bfe148e9a45b1a19dfcd864cedca4176be6d1b9b734771eed7e07ab716988"
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/browser/window-native.json",
+      "sha256": "541686e58c3791d0edbed946b64891a2c8644c6c7ac451afd5f51b33ba8702fa"
+    },
+    {
+      "path": "test/fixtures/aggregate-window/w2rows.db",
+      "bytes": 8192,
+      "sha256": "9be6541f939fac46565265dc282bd158a4e5c4a908d8f8a2f0645e07af24e64e",
+      "encoding": 1
+    },
+    {
+      "path": "test/browser/json-native.json",
+      "sha256": "58934c7b1fbf31ec28daea00951e5e258dec9ca01bfe952224241301cc40fa8f"
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/encoding-utf8.db",
+      "bytes": 12288,
+      "sha256": "66ff4cab504f06fa3bbbfd2785c712362fb9c11e10e825e4bb40f84393e8ee6b",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/encoding-utf16le.db",
+      "bytes": 12288,
+      "sha256": "38ae98d12c3bb6e5273879b2fbc1268c1a90d91179412172e26a4884d063b3f8",
+      "encoding": 2
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/encoding-utf16be.db",
+      "bytes": 12288,
+      "sha256": "8ac45acefa4c170906ad80acec4b95ff5056b035859d683fd7cfbb05a37b8bdf",
+      "encoding": 3
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    },
+    {
+      "path": "test/fixtures/generations/g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0/generated/subquery-utf8.db",
+      "bytes": 12288,
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "encoding": 1
+    }
+  ],
+  "declared": 46,
+  "results": [
+    {
+      "id": "wr-case5/UTF-8/overlap",
+      "provenance": {
+        "capture": "docs/research/card-s-i/native.json",
+        "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+        "classification": "supplemental selected WR consuming probe; not extra upstream cases",
+        "id": "overlap"
+      },
+      "status": "pass",
+      "pageErrors": [],
+      "elapsedMs": 232
+    },
+    {
+      "id": "wr-case5/UTF-8/middle",
+      "provenance": {
+        "capture": "docs/research/card-s-i/native.json",
+        "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+        "classification": "supplemental selected WR consuming probe; not extra upstream cases",
+        "id": "middle"
+      },
+      "status": "pass",
+      "pageErrors": [],
+      "elapsedMs": 228
+    },
+    {
+      "id": "wr-case5/UTF-16le/overlap",
+      "provenance": {
+        "capture": "docs/research/card-s-i/native.json",
+        "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+        "classification": "supplemental selected WR consuming probe; not extra upstream cases",
+        "id": "overlap"
+      },
+      "status": "pass",
+      "pageErrors": [],
+      "elapsedMs": 215
+    },
+    {
+      "id": "wr-case5/UTF-16le/middle",
+      "provenance": {
+        "capture": "docs/research/card-s-i/native.json",
+        "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+        "classification": "supplemental selected WR consuming probe; not extra upstream cases",
+        "id": "middle"
+      },
+      "status": "pass",
+      "pageErrors": [],
+      "elapsedMs": 233
+    },
+    {
+      "id": "wr-case5/UTF-16be/overlap",
+      "provenance": {
+        "capture": "docs/research/card-s-i/native.json",
+        "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+        "classification": "supplemental selected WR consuming probe; not extra upstream cases",
+        "id": "overlap"
+      },
+      "status": "pass",
+      "pageErrors": [],
+      "elapsedMs": 209
+    },
+    {
+      "id": "wr-case5/UTF-16be/middle",
+      "provenance": {
+        "capture": "docs/research/card-s-i/native.json",
+        "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+        "classification": "supplemental selected WR consuming probe; not extra upstream cases",
+        "id": "middle"
+      },
+      "status": "pass",
+      "pageErrors": [],
+      "elapsedMs": 226
+    }
+  ],
+  "browser": {
+    "name": "chromium",
+    "version": "148.0.7778.96",
+    "playwright": "1.60.0"
+  },
+  "gapCases": [
+    {
+      "id": "budget/budget-composed",
+      "sql": "SELECT a FROM (SELECT a,b FROM t1 ORDER BY b LIMIT 4) ORDER BY b DESC",
+      "provenance": {
+        "owner": "select.c coroutine destination and vdbe.c sorter lifecycle; shared budget contract"
+      }
+    },
+    {
+      "id": "control/private-shared",
+      "sql": "SELECT a FROM (SELECT a,b FROM t1 ORDER BY b LIMIT 4) ORDER BY b DESC",
+      "provenance": "api.md bounded-work/lifecycle browser controls; not native work-count parity"
+    }
+  ],
+  "requests": [
+    {
+      "url": "/",
+      "method": "GET"
+    },
+    {
+      "url": "/assertions.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/index.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/storage.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/parse.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-compiler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/resolve.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/schema.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/btree.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/admission.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/cte.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/date-time.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/reprepare.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/sqlite-case.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-program.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/tokenize.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/parser-tables.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/keyword-table.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/lemon-runtime.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/utf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/mem.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/comparison.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-key-vm.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record-pack.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-pages.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/task-scheduler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-prefix.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/rowset.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe-primitives.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-state.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-plan.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/functions.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/ordinary-scalars.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/printf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/pattern.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/math.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/json.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/window-rewrite.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-balance.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-staging.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-or-cost.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-probe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-estimate.js",
+      "method": "GET"
+    },
+    {
+      "url": "/db/17",
+      "method": "GET"
+    },
+    {
+      "url": "/",
+      "method": "GET"
+    },
+    {
+      "url": "/assertions.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/index.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/storage.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/parse.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-compiler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/resolve.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/schema.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/btree.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/admission.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/cte.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/date-time.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/tokenize.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/parser-tables.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/keyword-table.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/lemon-runtime.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/reprepare.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/sqlite-case.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-program.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/utf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/mem.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/comparison.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-key-vm.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record-pack.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-pages.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/task-scheduler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-prefix.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/rowset.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe-primitives.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-state.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-plan.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/functions.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/ordinary-scalars.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/printf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/pattern.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/math.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/json.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/window-rewrite.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-balance.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-staging.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-or-cost.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-probe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-estimate.js",
+      "method": "GET"
+    },
+    {
+      "url": "/db/18",
+      "method": "GET"
+    },
+    {
+      "url": "/",
+      "method": "GET"
+    },
+    {
+      "url": "/assertions.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/index.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/storage.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/parse.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-compiler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/btree.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/resolve.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/schema.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/admission.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/cte.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/date-time.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/tokenize.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/parser-tables.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/keyword-table.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/lemon-runtime.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/comparison.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/utf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/sqlite-case.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/mem.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/reprepare.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-program.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-key-vm.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record-pack.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-pages.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/task-scheduler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-prefix.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/rowset.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe-primitives.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-state.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-plan.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/functions.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/ordinary-scalars.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/printf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/pattern.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/math.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/json.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/window-rewrite.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-balance.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-staging.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-or-cost.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-probe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-estimate.js",
+      "method": "GET"
+    },
+    {
+      "url": "/db/19",
+      "method": "GET"
+    },
+    {
+      "url": "/",
+      "method": "GET"
+    },
+    {
+      "url": "/assertions.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/index.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/storage.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/parse.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-compiler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/resolve.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/schema.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/btree.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/admission.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/cte.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/date-time.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/tokenize.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/parser-tables.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/keyword-table.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/lemon-runtime.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/reprepare.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/sqlite-case.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-program.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/mem.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/utf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/comparison.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-key-vm.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record-pack.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-pages.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/task-scheduler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-prefix.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/rowset.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe-primitives.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-state.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-plan.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/functions.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/ordinary-scalars.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/printf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/pattern.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/math.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/json.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/window-rewrite.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-balance.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-or-cost.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-probe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-staging.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-estimate.js",
+      "method": "GET"
+    },
+    {
+      "url": "/db/20",
+      "method": "GET"
+    },
+    {
+      "url": "/",
+      "method": "GET"
+    },
+    {
+      "url": "/assertions.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/index.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/storage.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/parse.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-compiler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/resolve.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/schema.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/btree.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/admission.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/cte.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/date-time.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/tokenize.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/parser-tables.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/keyword-table.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/lemon-runtime.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/reprepare.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/sqlite-case.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-program.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/utf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/mem.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/comparison.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-key-vm.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record-pack.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-pages.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/task-scheduler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-prefix.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/rowset.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe-primitives.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-state.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-plan.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/functions.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/ordinary-scalars.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/printf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/pattern.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/math.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-balance.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-staging.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/json.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/window-rewrite.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-or-cost.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-probe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-estimate.js",
+      "method": "GET"
+    },
+    {
+      "url": "/db/21",
+      "method": "GET"
+    },
+    {
+      "url": "/",
+      "method": "GET"
+    },
+    {
+      "url": "/assertions.mjs",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/index.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/storage.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/parse.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-compiler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/resolve.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/schema.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/btree.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/admission.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/cte.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/date-time.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/tokenize.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/parser-tables.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/generated/keyword-table.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/lemon-runtime.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/reprepare.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/sqlite-case.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/select-program.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/utf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/comparison.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/mem.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-key-vm.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/record-pack.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-pages.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/task-scheduler.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-prefix.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/rowset.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/vdbe-primitives.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-state.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-plan.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/functions.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/ordinary-scalars.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/printf.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/pattern.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/math.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/json.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/window-rewrite.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/where-or-cost.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-probe.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-balance.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/private-blobkey-staging.js",
+      "method": "GET"
+    },
+    {
+      "url": "/dist/internal/stat4-estimate.js",
+      "method": "GET"
+    },
+    {
+      "url": "/db/22",
+      "method": "GET"
+    }
+  ]
+}

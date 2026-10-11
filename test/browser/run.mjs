@@ -31,13 +31,31 @@ const index=capture('stage3-advanced-index');for(const v of index.variants){cons
 // Selected OR multi-page public rows and reset, independently captured natively.
 const orMovement=json('docs/research/card-s-f-or/movement-native.json');
 for(const v of orMovement.variants){const c=v.cases[0];cases.push({id:`or-movement/${v.id}`,kind:'capture',url:register(v.fixture.path,v.fixture),sql:c.sql,bindings:[],rows:c.runs[0].rows,provenance:{capture:'movement-native',source:orMovement.source}})}
+// Selected WR Case5 supplemental oracle probes; encodings are not source cases.
+const wrCapturePath='docs/research/card-s-i/native.json';
+const wrCapture=json(wrCapturePath);
+if(wrCapture.sourceId!==json('reference/sqlite/manifest.json').sqliteSourceId)throw Error('WR oracle sourceId');
+evidence.push({path:wrCapturePath,sha256:hash(fs.readFileSync(wrCapturePath))});
+function wrTag(c){
+ if(c.type==='null')return {type:'null'};
+ if(c.type==='integer')return {type:'integer',value:c.value};
+ if(c.type==='text')return {type:'text',utf8Hex:Buffer.from(c.value,'utf8').toString('hex')};
+ if(c.type==='blob')return {type:'blob',hex:c.value};
+ const b=Buffer.alloc(8);b.writeDoubleBE(c.value);return {type:'real',ieee754be:b.toString('hex')};
+}
+for(const v of wrCapture.variants){
+ for(const id of ['overlap','middle']){
+  const c=v.cases.find(c=>c.id===id);
+  cases.push({id:`wr-case5/${v.encoding}/${id}`,kind:'capture',url:register(v.fixture.path,v.fixture),sql:c.sql,rows:c.rows.map(r=>r.map(wrTag)),provenance:{capture:wrCapturePath,sourceId:wrCapture.sourceId,classification:'supplemental selected WR consuming probe; not extra upstream cases',id}});
+ }
+}
 const empty=fixture('empty');
 // Valid header/schema; only t1 root btree flags are corrupted, discovered on step.
 const corruptSource=catalog.semantic.fixtures.find(f=>f.id==='subquery-utf8');const corruptPath=`${generation}/${corruptSource.path}`;const corrupt=Buffer.from(fs.readFileSync(corruptPath));if(hash(corrupt)!==corruptSource.sha256)throw Error('corrupt fixture source digest');const pageSize=corrupt.readUInt16BE(16)===1?65536:corrupt.readUInt16BE(16);corrupt[pageSize]=0;files.set('/corrupt-root',corrupt);evidence.push({path:corruptPath,sourceSha256:corruptSource.sha256,mutation:{offset:pageSize,value:0},sha256:hash(corrupt),provenance:'btree.c btreeInitPage invalid page flags; t1 rootpage 2'});cases.push({id:'corrupt/t1-root-flags',kind:'corrupt-step',url:'/corrupt-root',sql:'SELECT a FROM t1',error:{kind:'sqlite',code:11},provenance:'pinned btree.c btreeInitPage; SQLITE_CORRUPT on invalid page flags, header/schema remain intact'});
 const budgets=captureBudget();
 function captureBudget(){const p='test/browser/budget-native.json';evidence.push({path:p,sha256:hash(fs.readFileSync(p))});return json(p)}
 for(const c of budgets.cases)cases.push({...c,id:`budget/${c.id}`,lane:c.id==='budget-composed'?'gap':'current',kind:'capture',url:fixture('subquery-utf8'),openOptions:{limits:{maxPrivateBytes:c.id==='budget-composed'?300:150}}});
-const windowCapture=json('test/browser/window-native.json');evidence.push({path:'test/browser/window-native.json',sha256:hash(fs.readFileSync('test/browser/window-native.json'))});const windowURL=register('test/fixtures/aggregate-window/w2rows.db',json('test/fixtures/aggregate-window/manifest.json').fixtures['w2rows.db']);for(const c of windowCapture.cases){cases.push({...c,id:'window/private-live-rows',kind:'capture',url:windowURL,openOptions:{limits:{maxPrivateBytes:336}}});cases.push({id:'window/private-live-limit',kind:'control',url:windowURL,sql:c.sql,openOptions:{limits:{maxPrivateBytes:200}},error:{kind:'limit'},provenance:c.provenance});}
+const windowCapture=json('test/browser/window-native.json');evidence.push({path:'test/browser/window-native.json',sha256:hash(fs.readFileSync('test/browser/window-native.json'))});const windowURL=register('test/fixtures/aggregate-window/w2rows.db',json('test/fixtures/aggregate-window/manifest.json').fixtures['w2rows.db']);for(const c of windowCapture.cases){cases.push({...c,id:'window/private-live-rows',kind:'capture',url:windowURL,openOptions:{limits:{maxPrivateBytes:359}}});cases.push({id:'window/private-live-limit358',kind:'control',url:windowURL,sql:c.sql,openOptions:{limits:{maxPrivateBytes:358}},error:{kind:'limit'},provenance:{...c.provenance,ownerDecision:'card-o review12 peak359;358 rejects'}});cases.push({id:'window/private-live-limit',kind:'control',url:windowURL,sql:c.sql,openOptions:{limits:{maxPrivateBytes:200}},error:{kind:'limit'},provenance:c.provenance});}
 const j=json('test/browser/json-native.json');evidence.push({path:'test/browser/json-native.json',sha256:hash(fs.readFileSync('test/browser/json-native.json'))});for(const c of j.cases)cases.push({...c,id:`json/${c.id}`,kind:'capture',url:empty});
 if(process.env.JSQLITE_CHINOOK){const d=capture('audit-chinook-b1-b5');const c=d.executions.find(c=>c.fixture==='chinook'&&c.id==='b1-between');cases.push({id:'chinook/b1-between',kind:'capture',url:register(process.env.JSQLITE_CHINOOK,json('test/fixtures/public/chinook.json')),sql:c.sql,columns:c.native.columns.map(name=>({name})),rows:c.native.rows,provenance:{capture:'audit-chinook-b1-b5',sourceId:d.sourceId,id:c.id}})}
 for(const encoding of ['utf8','utf16le','utf16be'])cases.push({id:`lifecycle/${encoding}`,kind:'lifecycle',url:fixture(`encoding-${encoding}`),provenance:'api.md lifecycle; main.c close; vdbeapi.c reset/finalize/clear; browser adaptation assertions, not SQL compatibility credit'});

@@ -1,5 +1,5 @@
 import {integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
-import {windowFrame,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
+import {sortTermsForWindow,windowFrame,type OrderTermNode,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
 import type {ColumnNode,TableNode,ViewNode} from './schema.ts';
 import {sqliteAsciiFold,sqliteIdentifierEqual} from './sqlite-case.ts';
 import type {LemonValue} from './lemon-runtime.ts';
@@ -30,8 +30,8 @@ export interface ResolvedSource extends Omit<SourceItem,'cursorId'|'table'>{read
 export interface ResultColumnDescriptor {readonly name:string;readonly declaredType:string|null;readonly database:string|null;readonly table:string|null;readonly origin:string|null;readonly affinity:ColumnNode['affinity']|null;readonly collation:string}
 export interface ResolvedColumnRef {readonly source:ResolvedSource;readonly columnIndex:number;readonly name:string}
 export interface ResolvedResult {readonly name:string;readonly expression:ExprNode;readonly source:ResolvedSource|null;readonly columnIndex:number|null;readonly mergedSources:readonly ResolvedColumnRef[]|null;readonly resolution:'direct'|'coalesce'|'expression';readonly descriptor:ResultColumnDescriptor}
-export interface ResolvedWindow {readonly functionName:string;readonly argumentCount:number;readonly owner:ExprNode;readonly filter:ExprNode|null;readonly definitionName:string|null;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly frame:WindowFrameNode;readonly compatibleGroup:number}
-export interface ResolvedWindowDefinition {readonly name:string;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly frame:WindowFrameNode}
+export interface ResolvedWindow {readonly functionName:string;readonly argumentCount:number;readonly owner:ExprNode;readonly filter:ExprNode|null;readonly definitionName:string|null;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly orderTerms:readonly OrderTermNode[];readonly frame:WindowFrameNode;readonly compatibleGroup:number}
+export interface ResolvedWindowDefinition {readonly name:string;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly orderTerms:readonly OrderTermNode[];readonly frame:WindowFrameNode}
 export interface ResolvedColumnUse {readonly expression:ExprReduction;readonly source:ResolvedSource;readonly columnIndex:number;readonly selectDepth:number;readonly mergedSources?:readonly ResolvedColumnRef[]|null}
 // resolve.c TK_AGG_FUNCTION.op2: lexical depth relative to this SELECT.
 export interface ResolvedSelect {readonly compoundArms?:readonly ResolvedSelect[];readonly aggregateUses?:ReadonlyMap<ExprReduction,number>;readonly aliasUses?:ReadonlyMap<ExprReduction,ExprReduction>;readonly orderResultColumns:readonly (number|null)[];readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
@@ -379,16 +379,16 @@ function resolvedWindowDefinitions(select:SelectNode):readonly ResolvedWindowDef
  const out:ResolvedWindowDefinition[]=[];
  for(const definition of select.windowDefinitions){
   if(definition.frameError)throw new NameResolutionError(definition.frameError);
-  let partitionBy=definition.partitionBy,orderBy=definition.orderBy;
+  let partitionBy=definition.partitionBy,orderBy=definition.orderBy,orderTerms=definition.orderTerms;
   if(definition.baseName){
    const base=[...out].reverse().find(candidate=>sqliteIdentifierEqual(candidate.name,definition.baseName!));
    if(!base)throw new NameResolutionError(`no such window: ${definition.baseName}`);
    if(definition.partitionBy.length)throw new NameResolutionError(`cannot override PARTITION clause of window: ${definition.baseName}`);
    if(base.orderBy.length&&definition.orderBy.length)throw new NameResolutionError(`cannot override ORDER BY clause of window: ${definition.baseName}`);
    if(!base.frame.implicit)throw new NameResolutionError(`cannot override frame specification of window: ${definition.baseName}`);
-   partitionBy=base.partitionBy;if(base.orderBy.length)orderBy=base.orderBy;
+   partitionBy=base.partitionBy;if(base.orderBy.length){orderBy=base.orderBy;orderTerms=base.orderTerms;}
   }
-  out.push(Object.freeze({name:definition.name,partitionBy:Object.freeze([...partitionBy]),orderBy:Object.freeze([...orderBy]),frame:definition.frame}));
+  out.push(Object.freeze({name:definition.name,partitionBy:Object.freeze([...partitionBy]),orderBy:Object.freeze([...orderBy]),orderTerms,frame:definition.frame}));
  }
  return Object.freeze(out);
 }
@@ -413,33 +413,35 @@ function collectResolvedWindows(select:SelectNode,definitions:readonly ResolvedW
     const allowed=builtinWindowArity[functionName];if(allowed&&!allowed.includes(argumentCount))throw new NameResolutionError(`wrong number of arguments to function ${identifier(token.text)}()`);
     const filterReduction=filterOver?.kind==='reduction'?filterOver.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('filter_clause ::=')):undefined;
     if(filterReduction&&allowed)throw new NameResolutionError('FILTER clause may only be used with aggregate window functions');
-    let definitionName:string|null=null,partitionBy:readonly ExprNode[]=Object.freeze([]),orderBy:readonly ExprNode[]=Object.freeze([]),frame:WindowFrameNode;
+    let definitionName:string|null=null,partitionBy:readonly ExprNode[]=Object.freeze([]),orderBy:readonly ExprNode[]=Object.freeze([]),orderTerms:readonly OrderTermNode[]=Object.freeze([]),frame:WindowFrameNode;
     if(over.signature==='over_clause ::= OVER nm'){
-     const nameToken=nodeTokens(over).at(-1)!;definitionName=identifier(nameToken.text);const definition=[...definitions].reverse().find(value=>sqliteIdentifierEqual(value.name,definitionName!));if(!definition)throw new NameResolutionError(`no such window: ${definitionName}`);({partitionBy,orderBy,frame}=definition);
+     const nameToken=nodeTokens(over).at(-1)!;definitionName=identifier(nameToken.text);const definition=[...definitions].reverse().find(value=>sqliteIdentifierEqual(value.name,definitionName!));if(!definition)throw new NameResolutionError(`no such window: ${definitionName}`);({partitionBy,orderBy,orderTerms,frame}=definition);
     }else{
      const window=reductions(over,'window ::=');if(!window)throw new NameResolutionError('generated window semantic is missing');
      const base=window.signature.startsWith('window ::= nm')?identifier(nodeTokens(window)[0]!.text):null;
      const definition=base?[...definitions].reverse().find(value=>sqliteIdentifierEqual(value.name,base)):undefined;if(base&&!definition)throw new NameResolutionError(`no such window: ${base}`);
      const part=reductions(window,'nexprlist ::=');const order=reductions(window,'sortlist ::=');
-     const ownPart=part?expressionListForResolve(part):Object.freeze([]),ownOrder=order?sortExpressionsForResolve(order):Object.freeze([]);
-     if(definition){if(ownPart.length)throw new NameResolutionError(`cannot override PARTITION clause of window: ${base}`);if(definition.orderBy.length&&ownOrder.length)throw new NameResolutionError(`cannot override ORDER BY clause of window: ${base}`);if(!definition.frame.implicit)throw new NameResolutionError(`cannot override frame specification of window: ${base}`);partitionBy=definition.partitionBy;orderBy=definition.orderBy.length?definition.orderBy:ownOrder;}else{partitionBy=ownPart;orderBy=ownOrder;}
+     const ownPart=part?expressionListForResolve(part):Object.freeze([]),ownTerms=order?sortTermsForWindow(order):Object.freeze([]),ownOrder=ownTerms.map(term=>term.expr);
+     if(definition){if(ownPart.length)throw new NameResolutionError(`cannot override PARTITION clause of window: ${base}`);if(definition.orderBy.length&&ownOrder.length)throw new NameResolutionError(`cannot override ORDER BY clause of window: ${base}`);if(!definition.frame.implicit)throw new NameResolutionError(`cannot override frame specification of window: ${base}`);partitionBy=definition.partitionBy;orderBy=definition.orderBy.length?definition.orderBy:ownOrder;orderTerms=definition.orderBy.length?definition.orderTerms:ownTerms;}else{partitionBy=ownPart;orderBy=ownOrder;orderTerms=ownTerms;}
      frame=windowFrame(window);
     }
     frame=frameForBuiltin(functionName,frame!);
     if(frame.type==='range'&&(frame.start.expr||frame.end.expr)&&orderBy.length!==1)throw new NameResolutionError('RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
-    found.push({functionName,argumentCount,owner,filter:filterReduction?Object.freeze({kind:'tokens',tokens:Object.freeze(nodeTokens(filterReduction)),reduction:filterReduction}):null,definitionName,partitionBy,orderBy,frame});
+    found.push({functionName,argumentCount,owner,filter:filterReduction?Object.freeze({kind:'tokens',tokens:Object.freeze(nodeTokens(filterReduction)),reduction:filterReduction}):null,definitionName,partitionBy,orderBy,orderTerms,frame});
    }
   }
   node.children.forEach(child=>scan(owner,child));
  };
  for(const owner of [...select.result,...select.orderBy.map(term=>term.expr),...(select.having?[select.having]:[])])if(owner.reduction)scan(owner,owner.reduction);
  const equalList=(a:readonly ExprNode[],b:readonly ExprNode[])=>a.length===b.length&&a.every((value,index)=>expressionStructurallyEqual(value,b[index]!,select.from.items,false));
+ // expr.c:ExprListCompare compares DESC/BIGNULL, not syntactic bNulls.
+ const sortFlags=(term:OrderTermNode)=>[term.descending,term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false] as const;
  const groups:typeof found=[];let multiple=false;
- const windows=found.map(value=>{let compatibleGroup=groups.findIndex(group=>group.frame.type===value.frame.type&&group.frame.start.kind===value.frame.start.kind&&group.frame.end.kind===value.frame.end.kind&&group.frame.exclusion===value.frame.exclusion&&((!group.frame.start.expr&&!value.frame.start.expr)||(!!group.frame.start.expr&&!!value.frame.start.expr&&expressionStructurallyEqual(group.frame.start.expr,value.frame.start.expr,select.from.items)))&&((!group.frame.end.expr&&!value.frame.end.expr)||(!!group.frame.end.expr&&!!value.frame.end.expr&&expressionStructurallyEqual(group.frame.end.expr,value.frame.end.expr,select.from.items)))&&equalList(group.partitionBy,value.partitionBy)&&equalList(group.orderBy,value.orderBy));if(compatibleGroup<0){if(groups.length&& !equalList(groups[0]!.partitionBy,value.partitionBy))multiple=true;compatibleGroup=groups.length;groups.push(value);}return Object.freeze({...value,compatibleGroup});});
+ const windows=found.map(value=>{let compatibleGroup=groups.findIndex(group=>group.frame.type===value.frame.type&&group.frame.start.kind===value.frame.start.kind&&group.frame.end.kind===value.frame.end.kind&&group.frame.exclusion===value.frame.exclusion&&((!group.frame.start.expr&&!value.frame.start.expr)||(!!group.frame.start.expr&&!!value.frame.start.expr&&expressionStructurallyEqual(group.frame.start.expr,value.frame.start.expr,select.from.items)))&&((!group.frame.end.expr&&!value.frame.end.expr)||(!!group.frame.end.expr&&!!value.frame.end.expr&&expressionStructurallyEqual(group.frame.end.expr,value.frame.end.expr,select.from.items)))&&equalList(group.partitionBy,value.partitionBy)&&equalList(group.orderBy,value.orderBy)&&group.orderTerms.every((term,i)=>sortFlags(term).every((flag,j)=>flag===sortFlags(value.orderTerms[i]!)[j])));if(compatibleGroup<0){if(groups.length&& !equalList(groups[0]!.partitionBy,value.partitionBy))multiple=true;compatibleGroup=groups.length;groups.push(value);}return Object.freeze({...value,compatibleGroup});});
  return{windows:Object.freeze(windows),multiple};
 }
 function expressionListForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]{const out:ExprNode[]=[];const walk=(part:LemonValue<SqlToken>):void=>{if(part.kind!=='reduction')return;for(const child of part.children)if(child.kind==='reduction'){if(child.signature.startsWith('nexprlist ::='))walk(child);else if(child.signature.startsWith('expr ::=')||child.signature.startsWith('term ::='))out.push(Object.freeze({kind:'tokens',tokens:Object.freeze(child.children.flatMap(function leaves(n):SqlToken[]{return n.kind==='terminal'?(n.value?[n.value]:[]):n.children.flatMap(leaves);})),reduction:child}));}};walk(node);return Object.freeze(out);}
-function sortExpressionsForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]{const items:ExprNode[]=[];const visit=(part:LemonValue<SqlToken>):void=>{if(part.kind!=='reduction')return;if(part.signature.startsWith('sortlist ::=')){const expression=part.children.find(child=>child.kind==='reduction'&&!child.signature.startsWith('sortlist ::=')&&!child.signature.startsWith('sortorder ::=')&&!child.signature.startsWith('nulls ::='));if(expression?.kind==='reduction'){const leaves=(n:LemonValue<SqlToken>):SqlToken[]=>n.kind==='terminal'?(n.value?[n.value]:[]):n.children.flatMap(leaves);items.push(Object.freeze({kind:'tokens',tokens:Object.freeze(leaves(expression)),reduction:expression}));}}for(const child of part.children)if(child.kind==='reduction'&&child.signature.startsWith('sortlist ::='))visit(child);};visit(node);return Object.freeze(items.sort((a,b)=>(a.tokens[0]?.startByte??0)-(b.tokens[0]?.startByte??0)));}
+
 
 /** Bounded ports of select.c:selectExpander and resolve.c:lookupName for ordinary tables. */
 // build.c:sqlite3ViewGetColumnNames and select.c:selectExpander populate the

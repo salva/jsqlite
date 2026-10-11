@@ -456,7 +456,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // physical branch choice is deliberately absent from the published union.
  // where.c4835 excludes RIGHT/FULL, not LEFT: ON arms retain ownership
  // through orArmClause; WhereEnd owns final LEFT null extension.
- if(!source.table.withoutRowid&&!options.forcedIndex&&!options.notIndexed&&!source.joinFromLeft?.right&&!source.joinFromLeft?.outer&&!source.leftOfRightJoin){
+ if(!options.forcedIndex&&!options.notIndexed&&!source.joinFromLeft?.right&&!source.joinFromLeft?.outer&&!source.leftOfRightJoin){
   for(const parent of clause.terms){
    const info=parent.info;
    if(info?.kind!=="or"||(info.indexable&sourceBit(sourceOrdinal))===0n)continue;

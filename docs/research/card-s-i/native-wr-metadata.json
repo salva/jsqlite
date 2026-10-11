@@ -1,0 +1,109 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "classification": "supplemental authored alias/expression/correlated scalar metadata witness; one SQL across three encodings",
+  "sql": "SELECT w.k AS label,w.v AS amount,w.n+1 AS successor,(SELECT z.n FROM w AS z WHERE (z.a=1 AND z.n=w.n) OR (z.b=2 AND z.n=w.n) LIMIT 1) AS correlated FROM w WHERE a=1 OR b=2",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "6d23490dc51b65b541ddd04bb1415dc072e69cd2cf98faa87e8a8a462b2b0566",
+      "metadata": [
+        {
+          "name": "label",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "w",
+          "origin": "k"
+        },
+        {
+          "name": "amount",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "w",
+          "origin": "v"
+        },
+        {
+          "name": "successor",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "correlated",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "w",
+          "origin": "n"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "2ad3c8ad9affdaba86464bc8a842033b4589213baf7fa0ba5a2e26011a789c3b",
+      "metadata": [
+        {
+          "name": "label",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "w",
+          "origin": "k"
+        },
+        {
+          "name": "amount",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "w",
+          "origin": "v"
+        },
+        {
+          "name": "successor",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "correlated",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "w",
+          "origin": "n"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "056427f02f8bd62ea7c7630dd699813f98d23435b523ab5fb1c4150dc95b147c",
+      "metadata": [
+        {
+          "name": "label",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "w",
+          "origin": "k"
+        },
+        {
+          "name": "amount",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "w",
+          "origin": "v"
+        },
+        {
+          "name": "successor",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "correlated",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "w",
+          "origin": "n"
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,84 @@
+## Accepted packed private-key VM and selected WR consumers
+
+
+Explicit `OpenEphemeral.p4KeyInfo` (or packed `IdxInsert.p2`) selects the
+accepted private page arena, not array-backed EphemeralIndexCursor. The
+accepted private Insert/balance primitive and consuming VM now serve represented
+persistent WR Case5 in shared ordinary, INNER and simple scalar lowerers, with
+witness-qualified safe LEFT. Legacy iterator/IN/window consumers remain separate;
+this is not their wholesale migration. MakeRecord owns budgeted SQLite serial-header/payload bytes;
+Insert consumes that snapshot rather than later source-register contents.
+Typed Found/NotFound consume register-range or packed MakeRecord IndexMoveto
+probes with opposite jump polarity; only successful return publishes
+signed seekResult, equality-derived nullRow, cleared deferred movement and stale
+cache. `private-key-vm.ts` owns these transitions, OpenEphemeral reuse ordering,
+and IdxInsert cache invalidation even when primitive insertion returns an error.
+Reuse does not reset seekResult/deferredMoveto; failed clear retains prior nullRow.
+Packed IdxInsert owns publication. USESEEKRESULT cannot supply a scalar loc:
+the accepted primitive exports no trusted insertion token and safely reseeks
+packed bytes. This retains typed comparison/dedup and incurs extra seek work
+instead of upstream seek-result reuse; it is a bounded adaptation, not browser
+necessity or seek-cost parity. The writer/balance machinery is implemented;
+the unimplemented trusted-token optimization is not a missing writer.
+Reuse clears the existing arena when the requested field capacity fits;
+a larger KeyInfo replaces it, closing/detaching the old owner before acquisition
+as allocateCursor does. Only newly acquired arena is disposed on
+cursor-publication failure. Halt/reset/finalize dispose owning cursors and
+packed charges, retaining existing primary-error precedence. Accepted selected
+VM/WR coverage includes representative consuming lifecycle/resource tests for
+reuse, replacement, publication failure and primary cleanup collisions. The
+finite consuming goal is approved by [review15](record:///review.md?card=card-s-i-c-b&v=15);
+this is not exhaustive VM compatibility, native heap parity or product approval.
+Current local-gate/test-owner evidence and remaining incorporation decisions are
+in [the joint boundary](#approved-joint-integration-boundary).
+Packed probe decoder/Mem scratch is reserved before unpacking and refunded after
+seek; register probes own descriptor copies, never release live registers.
+Detailed evidence: [[card:card-s-i-c-b-a]]
+status, `test/value/private-key-vm.test.mjs`. Record packing currently accepts
+ordinary Mem values in database encoding. Optional typed `p4Affinity` applies
+to live input registers before sizing/packing, including REAL→IntReal as in
+vdbe.c. P5 trimming is not admitted by this internal caller yet.
+
+
 # SQLite-to-TypeScript translation guide
+
+## Accepted isolated private BLOBKEY Insert/balance primitive
+
+Independent [[card:card-s-i-c-a-h]] status25 accepts the complete assigned admitted
+primitive from [[card:card-s-i-c-a-g]], following the accepted construction and
+cursor/ownership prerequisites. This is a separate statement-private arena, not
+immutable MAIN, Pager/journal, native heap, VM/WR or whole-product acceptance.
+
+`PrivateBlobkeyCursor.insertIndex` owns a packed full-KeyInfo seek; only boolean
+`savePosition` is admitted. Unknown own options (including nonenumerable/symbol
+keys) reject before work. Scalar seek evidence, PREFORMAT and TransferRow are not
+admitted. NEW consumes capacity once; equal overwrite/replacement conserves entry
+ownership, retains interior child pointers and preserves local/overflow branch
+ordering. Successful balanced SAVEPosition owns its copied key for restore.
+
+`PrivateBlobkeyPages` follows pinned BtreeInsert and reachable BLOBKEY nonroot,
+deeper/dispatcher/shallow/upward balancing: resident/staged CellArray lifetime,
+whole divider entries and overflow ownership, mandatory right redistribution,
+page-number identity rekey (not key sorting), native dependency-ordered edits and
+rebuild fallback. Packed bytes remain authoritative. The exclusive gate, peer
+save/registry/cache/FAULT and primary-error noncancellable cleanup owners remain
+in force; terminal mutation failure is not rollback.
+
+The representation is4096/reserved0/autoVacuum=false with bounded deterministic
+resource allowances, cancellation/deadline checkpoints and exact entry capacity.
+Nonempty full defrag admits5632 before copy/construction: buffer4096 plus1536
+metadata (page/state/empty collections256, eight capability records/closures128
+each including identity, default scratch128, transient parse/view128). All refund
+in finally; fast/empty branches do not allocate this allowance. This is additional
+to live arena/page/lease/control/gather/partition owners, not native sizeof parity.
+Standalone enforcement requires the explicit scratch accountant.
+
+[Independent acceptance and finite matrix](record:///status.md?card=card-s-i-c-a-h&v=25)
+and [delivery/input/test provenance](record:///status.md?card=card-s-i-c-a-g&v=420)
+retain earlier failures and bounded native-source comparisons. Independent affected
+suite358/358, exact/below5632 and shallow101040, plus staged fallback62103 evidence
+are revision-bound verification, not compatibility-wide claims. Native INTERNAL
+capture was not obtained; no oracle capture is invented.
 
 ## Authority and current use
 
@@ -168,14 +248,21 @@ unrepresented deep/transient compositions remain roadmap debt, not a reason to
 repeat accepted bounded migrations. Detailed accepted seam evidence is linked in
 the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
+### Represented WR consuming boundary (current clarification)
+
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) distinguishes completed local executor225/225, current-lane browser47/47, affected370/370 and native receipts from revision-bound failed predecessors. [Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) accepts the selected consuming outcome and SAME finite test-owner completion; parent incorporation/root/main/product/later-v decisions remain separate, with no whole-product approval.
+
 ## WHERE, joins and physical indexes
 
 Selected rowid multi-index OR has bounded delivered runtime execution in
 ordinary single-table and represented inner-join callers: selected arms replan
 into shared-builder RowSetTest/Gosub/Return continuations, with full residual
 truth and existing ORDER sorters. This is not exhaustive optimizer compatibility
-or C-cost parity; WR union, unrepresented nullable outer-join selection, and broader
-cleanup/liveness proofs remain outside the demonstrated boundary. See
+or C-cost parity. Represented persistent WR Case5 now uses typed page-backed
+PK dedup in ordinary/INNER/simple scalar consumers; safe nullable LEFT remains
+bounded by readiness and null-extension ownership. Unrepresented outer-join
+selection and broader cleanup/liveness proofs remain outside the demonstrated boundary. See
+[WR finite evidence and residual gates](research/card-s-i/README.md) and
 [delivery evidence](research/card-s-f-or/verification.md#isolated-delivery-candidate-and-browser-movement).
 `where-plan.ts` owns tagged immutable clause-owned
 OR/AND info, original residual terms, stable term references and indexable masks.
@@ -204,17 +291,19 @@ immutable `kind:"multi-or"`, original `orInfo`, capability:null, setup0/sort0,
 run+1/output estimate and no captured physical branch choice. Lowering must
 replan physical arms from these clauses, preserving binding/seek provenance.
 
-Selected cost production is bounded to rowid persistent-index/equality/range/AND/
-nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
-or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
-scans are not selected OR. Single-table Case5 lowering replans owned
-arms into shared-builder seeks and RowSetTest/Gosub/Return, testing remaining
+Selected cost production includes represented persistent rowid and WR
+index/equality/range/AND/nested alternatives. Forced-index OR, NOT INDEXED and
+RIGHT/FULL selected WR joins retain existing fallback/rejection contracts;
+unsafe nullable readiness/ON factoring is not blanket LEFT admission exclusion.
+Scans are not selected OR. Single-table Case5 lowering replans owned
+arms into shared-builder seeks and Gosub/Return, using rowid RowSetTest or WR
+physical-PK typed-page Found/MakeRecord/IdxInsert, testing remaining
 arm truth after exact selected-constraint consumption and retaining untested
 enclosing parent truth, with the existing ORDER sorter. Nested selected arms recursively
-consume their actual selected plan with independent RowSet/return registers and
-the shared construction frontier; no ordinary-only filtering remains. Represented
-inner callers now use per-level RowSet/Gosub continuations with initialization
-per outer row. Both actual callers test remaining arm residuals only when
+consume their actual selected plan with independent rowid RowSet or WR typed
+PK cursor and return registers, sharing the construction frontier. Represented
+inner callers use per-level Gosub continuations with dedup initialization
+per outer row. Ordinary/inner/simple scalar callers test remaining arm residuals only when
 prereqAll is positioned, retaining independent enclosing conjuncts and full
 untested parent truth; unready OR atoms are deferred intact.
 Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
@@ -225,9 +314,13 @@ tested parents are omitted after arm truth (Case5 disableTerm ownership). See [r
 Correlated arm replanning retains the
 actual already-positioned outer mask; unready prerequisites remain excluded.
 Single-table Case5 retains a common physical index only when every selected
-leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
+leaf arm agrees; nested/non-index/different arms invalidate it, and WR primary
+is excluded from common covering. WhereEnd rewrites
 covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
-reads and existing deferred table positioning intact. Remaining arm truth is tested before
+reads positioned through rowid deferred seek or WR compact-suffix NotFound.
+WR covering maps primary physical fields before secondary lookup; correlated
+scalar bindings preserve physical PK ordinals and logical affinity/metadata.
+Remaining arm truth is tested before
 deduplication; fully tested parents omit repeated common-body truth, while untested
 parents retain their complete residual. This is not an index-only execution claim. Index Rowid
 uses the integer tail cached during physical positioning; no separate index
@@ -873,11 +966,17 @@ Commits `4fa06e2441b978406cbd285b34ff4e6a25868ebc` and
   guards; `advanceAt` identifies the actual singleton Goto or movement opcode.
   Singleton target patching now uses advanceAt, not an offset into nextAt.
   ON matching remains before null extension; WHERE remains after positioning.
-- `where.c:wherePathSatisfiesOrderBy` /5273 WHERE_ONEROW supports only the bounded
-  represented proof: **FINAL ordered producer after exact rowid-equality
-  singleton predecessors**. Statistical nOut0 is not uniqueness. Outer ordering
-  before later fanout is NEVER promoted by this proof. Other joined paths retain
-  zero global order; this is not general multi-source ordering acceptance.
+- `where.c:wherePathSatisfiesOrderBy` WHERE_ONEROW and complete obSat==obDone
+  support the bounded final ordered producer after exact rowid-equality singleton
+  predecessors and complete outer IPK order followed by inner rowid singleton /
+  LEFT NullRow. The outer key stays fixed through matched/null-extended output;
+  lowering consumes the selected full order count, not a VM-recomputed proof.
+  Statistical nOut0 is not uniqueness. Partial proofs, arbitrary fanout and the
+  broader solver domain are not certified by these witnesses. Source/native and
+  exact LEFT spec provenance remain in
+  [owner review24](record:///review.md?card=card-s-b-a-a-b-a-a&v=24) and
+  [owner status147](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=147).
+  This is not general multi-source ordering or integration acceptance.
 
 Fresh strict singular-public ordinary execution on the disclosed peer-dirty
 runtime completed **69/69** cases across UTF8/UTF16LE/UTF16BE, exact rows/errors
@@ -1470,3 +1569,54 @@ No SQL-plan or work-cap change, native-step parity or expanded SQL scope follows
 `skipscan-closure.py --legacy` shared ROOT lane (stat1/WR included); missing input
 or nonzero component remains failure, not skip. [Bounded provenance and delivery
 status](research/card-s-g-legacy-root-repair.md); no engine/SQL scope expansion.
+
+## Approved joint integration boundary
+
+Window owner carrier54f8495 ([o status24](record:///status.md?card=card-o&v=24) / [o-c review12](record:///review.md?card=card-o-c&v=12)) supplies source-owned pending end, bounded following lookahead, phase deletion before Next, current EOF before inverse and shared monotonic identities. Compatible cache-required value/EXCLUDE paths remain retained. Exact composed accounting witness is sorter192 + frame96 + packed71 =359:358/200 reject,359 succeeds; serialized charge is retained, not native heap parity. SingleInsert packed71 + logical11 gives81reject/82success. See research/card-s-i/window-owner-correction.md for revision evidence.
+
+Endpoint review card-t21 approves only exact final successful-high bounded-search test blob69e088e, not the neighboring proposal. LEFT review card-s-b-a-a21 approves exact sorter0 spec: complete outer IPK order persists through inner rowid singleton/LEFT NullRow and production consumes full selected order count; prior final-only assertion is superseded for this bounded witness. Statistical nOut0, arbitrary fanout and incomplete proofs are not certified.
+
+WR f5ff865 and R3 eb8c75 are historical consuming milestones; the admitted
+joint carrier76a77d2/treee77ca0d includes approved original corrections and
+completed local gates on byte-equal executable inputs from96722500: a single
+original225225/225 (three native prerequisites0), typecheck/build0, actual
+Chromium current-lane47/47 (filter null), affected370/370 and pinned native
+capture0 (five genuine source cases, not encoding copies). These are retained
+executor receipts, not fresh successor or Reviewer-run gates. Exact inputs,
+commands and hashes are in [receipt inputs](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-inputs.json),
+[receipt hashes](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-hashes.json)
+and [[card:card-s-i-c-b-c]] status.
+
+SAME independent finite test owner [[card:card-s-i-c-b-d]] completed acceptance
+([status32](record:///status.md?card=card-s-i-c-b-d&v=32)); its affected268/268 and
+4435-inventory checks are descendant-attributed, not a new225/native/browser run.
+[Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) approves the
+selected consuming outcome on76a77d2, not every parent criterion. Parent
+incorporation and renewed parent review, root/main/product promotion and later
+root-v review remain separate decisions. No whole-product/performance/allocator,
+all-browser-lane or exhaustive VM compatibility follows. This docs-only
+successor reuses the qualified receipts; it does not fabricate executable reruns.
+
+### Window semantic production and pending-end consumers
+
+Pinned `window.c:sqlite3WindowAlloc` retains explicit zero PRECEDING/FOLLOWING
+kind and offset expression; invalid CURRENT-to-PRECEDING and FOLLOWING-to-earlier
+frames reject rather than become an executable shorthand. TS named WINDOW
+allocation reports SqlParseError; inline semantic resolution retains
+NameResolutionError internally, with the public error contract unchanged.
+`sqlite3WindowCodeStep` initializes the pending end without stepping; subsequent
+admission positions end before FILTER/AggStep, snapshots current results, and
+flushes final pending input before current EOF/inverse decisions. Incoming
+producer partition registers remain distinct from pending-end scratch. The
+sharedSliding fast path excludes pendingEndRows; compatible value/EXCLUDE cache
+paths remain retained, not newly admitted by this correction.
+
+`test/parser/window-graph.test.mjs`, `test/parser/resolver.test.mjs`,
+`test/conformance/window-rewrite.test.mjs` and
+`test/conformance/select-entry-context.test.mjs` check kind/error ownership,
+exact initialization/FILTER/cursor/target/register relationships and shared-path
+selection. Lifetime/accounting remains the original frame-owner decision
+([status24](record:///status.md?card=card-o&v=24),
+[review12](record:///review.md?card=card-o-c&v=12)); detailed correction and final
+input/gate provenance is retained in [[card:card-s-i-c-b-c]] status. These finite
+checks do not certify all window schedules or inherited WR/VM machinery.

@@ -636,6 +636,22 @@ export class Mem {
       this.#bytes = { ...withoutToken, bytes: source.#bytes.kind === "blob" ? source.blobValue() : copyBytes(source.#bytes.bytes), ownership: "owned", zeroTail: 0 };
     }
   }
+  /** Private async consumers need a nonyielding owned snapshot. Probe must not
+   * mutate either Mem; chunks bound copy work without borrowing across await. */
+  copyFromSnapshot(source: Mem, probe: (units:number)=>void): void {
+    if(source===this)return;
+    if(source.#manifest==="rowset"||source.#manifest==="aggregate")throw new MemError("invalid-state","special state cannot be copied");
+    const state=source.#bytes?source.#checkedBytes():null;
+    probe(1+(source.#numeric?8:0));
+    let bytes:Uint8Array|null=null;
+    if(state){
+      bytes=new Uint8Array(state.bytes.length+state.zeroTail);
+      for(let offset=0;offset<bytes.length;offset+=4096){const end=Math.min(offset+4096,bytes.length);probe(end-offset);bytes.set(state.bytes.subarray(offset,Math.min(end,state.bytes.length)),offset)}
+    }
+    this.#drop();this.#manifest=source.#manifest;this.#numeric=source.#numeric;this.#subtype=source.#subtype;
+    this.#fromBind=source.#fromBind;this.#clearedNull=source.#clearedNull;
+    if(state&&bytes){const {token:_token,...rest}=state;this.#bytes={...rest,bytes,ownership:"owned",zeroTail:0}}
+  }
   moveFrom(source: Mem): void {
     if (source === this) return;
     source.#bytes?.token?.assertValid(); this.#drop();

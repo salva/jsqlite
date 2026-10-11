@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {parseSql} from '../../src/internal/parse.ts';
+import {parseSql,SqlParseError} from '../../src/internal/parse.ts';
 import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
 const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
 const table=(name,columns,primaryKey=[])=>{columns=Object.freeze(columns);return Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns,indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze(primaryKey.map(i=>columns[i])),storageKey:Object.freeze([])})};
@@ -161,7 +161,7 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (RANGE 1 PRECEDING)'),e=>e instanceof NameResolutionError&&e.message==='RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ORDER BY a.x,a.x RANGE 1 PRECEDING)'),e=>e instanceof NameResolutionError&&e.message==='RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ORDER BY a.x RANGE 1 PRECEDING)'));
- assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ROWS BETWEEN CURRENT ROW AND 1 PRECEDING)'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER w FROM a WINDOW w AS (ROWS BETWEEN CURRENT ROW AND 1 PRECEDING)'),e=>e instanceof SqlParseError&&e.message==='unsupported frame specification');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER w2 FROM a WINDOW w1 AS (ORDER BY a.x),w1 AS (PARTITION BY a.x),w2 AS (w1 ORDER BY a.x)'));
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w2 FROM a WINDOW w1 AS (PARTITION BY a.x),w1 AS (ORDER BY a.x),w2 AS (w1 ORDER BY a.x)'),e=>e instanceof NameResolutionError&&e.message==='cannot override ORDER BY clause of window: w1');
  assert.throws(()=>resolve('SELECT sum(a.x) OVER w2 FROM a WINDOW w1 AS (ROWS CURRENT ROW),w2 AS (w1)'),e=>e instanceof NameResolutionError&&e.message==='cannot override frame specification of window: w1');

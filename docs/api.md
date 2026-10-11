@@ -317,7 +317,12 @@ compatibility credit.
   support; declined compositions retain typed temporary unsupported failures.
   Joined WITHOUT ROWID
   comma/CROSS/INNER/LEFT sources use primary-index storage and represented
-  secondary access; WITHOUT ROWID RIGHT/FULL match tracking remains temporary
+  secondary access. Represented persistent WITHOUT ROWID selected OR uses typed
+  primary-key dedup in shared ordinary/INNER/simple scalar producers; represented
+  LEFT nullable-side OR also retains selected execution and null extension.
+  Nullable ON/USING factoring exclusions do not prohibit LEFT admission; forced and
+  NOT INDEXED guards remain unchanged. This does not expand aggregate admission
+  or promise optimizer parity. WITHOUT ROWID RIGHT/FULL match tracking remains temporary
   unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
 - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
   precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses
@@ -477,3 +482,35 @@ Consumer loading, bounded sample costing and failure cleanup are delivered; fini
 independent committed verification and remaining limits are recorded in the
 [consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md).
 See the [translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).
+
+### Represented WR consuming boundary (current clarification)
+
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) distinguishes completed local executor225/225, current-lane browser47/47, affected370/370 and native receipts from revision-bound failed predecessors. [Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) accepts the selected consuming outcome and SAME finite test-owner completion; parent incorporation/root/main/product/later-v decisions remain separate, with no whole-product approval.
+
+
+## Approved joint integration boundary
+
+Window owner carrier54f8495 (o review24 / o-c review12) supplies source-owned pending end, bounded following lookahead, phase deletion before Next, current EOF before inverse and shared monotonic identities. Compatible cache-required value/EXCLUDE paths remain retained. Exact composed accounting witness is sorter192 + frame96 + packed71 =359:358/200 reject,359 succeeds; serialized charge is retained, not native heap parity. SingleInsert packed71 + logical11 gives81reject/82success. See research/card-s-i/window-owner-correction.md for revision evidence.
+
+Endpoint review card-t21 approves only exact final successful-high bounded-search test blob69e088e, not the neighboring proposal. LEFT review card-s-b-a-a21 approves exact sorter0 spec: complete outer IPK order persists through inner rowid singleton/LEFT NullRow and production consumes full selected order count; prior final-only assertion is superseded for this bounded witness. Statistical nOut0, arbitrary fanout and incomplete proofs are not certified.
+
+WR f5ff865 and R3 eb8c75 are historical consuming milestones; the admitted
+joint carrier76a77d2/treee77ca0d includes approved original corrections and
+completed local gates on byte-equal executable inputs from96722500: a single
+original225225/225 (three native prerequisites0), typecheck/build0, actual
+Chromium current-lane47/47 (filter null), affected370/370 and pinned native
+capture0 (five genuine source cases, not encoding copies). These are retained
+executor receipts, not fresh successor or Reviewer-run gates. Exact inputs,
+commands and hashes are in [receipt inputs](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-inputs.json),
+[receipt hashes](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-hashes.json)
+and [[card:card-s-i-c-b-c]] status.
+
+SAME independent finite test owner [[card:card-s-i-c-b-d]] completed acceptance
+([status32](record:///status.md?card=card-s-i-c-b-d&v=32)); its affected268/268 and
+4435-inventory checks are descendant-attributed, not a new225/native/browser run.
+[Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) approves the
+selected consuming outcome on76a77d2, not every parent criterion. Parent
+incorporation and renewed parent review, root/main/product promotion and later
+root-v review remain separate decisions. No whole-product/performance/allocator,
+all-browser-lane or exhaustive VM compatibility follows. This docs-only
+successor reuses the qualified receipts; it does not fabricate executable reruns.

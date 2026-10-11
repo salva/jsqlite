@@ -839,6 +839,18 @@ Node. Whole-product compatibility and untested nullable/WR union optimizations
 are not implied. Candidate identities and fresh delivery gates are retained in
 [[card:card-s-f-c]] status.
 
+### Selected persistent WR Case5 finite evidence
+
+[WR acceptance matrix](research/card-s-i/acceptance-matrix.md) separates selected
+ordinary/INNER/simple scalar/finite LEFT consumers from fallback controls and
+remaining audit boundaries. Accepted typed page VM owns physical-PK dedup;
+rowid RowSet evidence above is not its execution proof. Independent source
+capture credits five exact execsql cases (whereI-3.0 and1.2/1.3/2.2/2.3), not
+encoding multiples, setup/EQP diagnostics or supplemental authored SQL.
+Focused315 and independent d22 checks are finite selected evidence, not an original225 file gate. Actual selected browser6/6 is separate from full46:45pass/1fail window/private-live-rows byte-limit fixture. Parent routes its owning diagnosis; no full-browser waiver.
+
+[Residual attribution](research/card-s-i/original225-residual-attribution.md) replaces the earlier222/3 diagnosis: packaged225/225 and archive224/1 missing generator prerequisite plus separate2/2 retry are distinct. Endpoint/byte/sorter proposals remain provisional, excluded from WR publication. Additive LEFT-order and delegated packed/logical reserve-overlap review tests close finite observation gaps without approving original-owner expectation edits. Full allocator/optimizer parity and whole-product acceptance are unclaimed.
+
 ### Bounded STAT4 consumer verification
 
 Loading and bounded equality/prefix/literal-IN/scalar-range/HIGHTRUTH consumers

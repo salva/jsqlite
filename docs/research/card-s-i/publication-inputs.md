@@ -1,0 +1,7 @@
+# Publication input inventory, not candidate acceptance
+
+[[card:card-s-i-c-b-c]] [explicit path inventory](publication-inputs.json) records58 candidate input paths with work/index/accepted-VM blob hashes, main HEAD and exact index listing hash. It is a snapshot for isolating scoped changes, **not a staged delivery, temp-index tree, authenticated source closure or review approval**.
+
+Shared `src/internal/vdbe.ts`, browser runner and guide/map/API/conformance/audit files contain peer overlays. Full-file copying into an isolated tree would include unrelated ownership. The large preexisting staged deletions and mixed MM state are not authorized cleanup: preserve them. No reset, checkout, index write or ref movement occurred. Missing blob hashes mean absent at that comparison pivot, not absent implementation evidence. The research directory contains historical evidence; it is not wholly a new product payload.
+
+Next construction must compare explicit consumer hunks against accepted VM and retained peer changes, record prerequisite dependencies separately, and test the resulting candidate tree before review. Original225 residual VM/counter witnesses remain red per [diagnosis](original225-residual-attribution.md). Neither importing all work blobs nor removing peer source to obtain green constitutes scoped acceptance. Parent [[card:card-s-i-c-b]] must coordinate overlapping source ownership and existing VM repairs; no new primitive refactor is commissioned here.

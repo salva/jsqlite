@@ -341,7 +341,7 @@ test('AggInverse schedules the registered sliding callback without destroying co
 
 
 test('window cache MakeRecord/NewRowid/Insert execute through budgeted ephemeral ownership', async () => {
-  const limits = {...vdbe.DEFAULT_PRIVATE_STATE_LIMITS, maxEntries: 1, maxKeyBytes: 32, maxBytes: 32};
+  const limits = {...vdbe.DEFAULT_PRIVATE_STATE_LIMITS, maxEntries: 1, maxKeyBytes: 32, maxBytes: 82};
   const program = {ops: [
     {code: 'OpenEphemeral', p1: 1, keyInfo: new (await import('../../src/internal/comparison.ts')).KeyInfo({encoding: 'utf-8', totalFieldCount: 2, keyFieldCount: 0, terms: []})},
     {code: 'Integer', p1: 7n, p2: 1}, {code: 'String', p1: 'abc', p2: 2},
@@ -359,23 +359,42 @@ test('window cache MakeRecord/NewRowid/Insert execute through budgeted ephemeral
 });
 
 
-test('bounded streaming ROWS unbounded-current schedules compatible aggregates after cache insertion', () => {
+test('pending-end ROWS initializes without stepping and reads positioned end before FILTER/snapshot', () => {
   const compilation = compileWindow(resolve(
     'SELECT sum(a) FILTER (WHERE b) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW), ' +
     'count(a) OVER (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) FROM t1',
   ), 'utf-8');
-  const layer = compilation.rewrite.layers[0];
-  const binding = compilation.loopBindings[0];
-  const ops = compilation.program.ops.slice(binding.gosub === undefined ? 0 : compilation.program.ops[binding.gosub].p2, binding.returnAddress + 1);
-  const insert = ops.findIndex(op => op.code === 'Insert');
-  const steps = ops.map((op, index) => op.code === 'AggStep' ? {op, index} : null).filter(Boolean);
-  assert.equal(steps.length, 2);
-  assert.ok(steps.every(item => item.index > insert));
-  assert.deepEqual(steps.map(item => item.op.p2), layer.windows.map(win => win.regAccum));
-  assert.deepEqual(ops.filter(op => op.code === 'AggValue').map(op => op.p2), layer.windows.map(win => win.regResult));
-  const filter = ops.find(op => op.code === 'IfNot');
-  assert.equal(filter.p1, compilation.setup[0].regNew + layer.windows[0].filterColumn);
-  assert.equal(compilation.program.ops[filter.p2]?.code, 'AggValue', 'filter skips the step but still snapshots current state');
+  const layer=compilation.rewrite.layers[0], state=compilation.setup[0];
+  const ops=compilation.program.ops, binding=compilation.loopBindings[0];
+  const insertCall=binding.gosub, insertTarget=ops[insertCall].p2;
+  const insert=ops.findIndex((op,i)=>i>=insertTarget&&op.code==='Insert');
+  assert.equal(ops[insert].p1,layer.iEphCsr);
+  assert.equal(ops[insert+1].code,'Return');
+  const first=ops[insertCall+1];
+  assert.equal(first.code,'IfNot');
+  assert.ok(ops.slice(0,insertCall).some(op=>op.code==='Integer'&&op.p1===0n&&op.p2===first.p1));
+  assert.deepEqual(ops[first.p2],{code:'Integer',p1:1n,p2:first.p1});
+  const positioned=ops[insertCall+2];
+  assert.equal(positioned.code,'EphemeralAdvanceData');
+  assert.equal(positioned.p1,layer.duplicateCursors[1]);
+  assert.equal(positioned.p2,state.regNew);
+  const filter=ops[insertCall+3];
+  assert.equal(filter.code,'IfNot');
+  assert.equal(filter.p1,state.regNew+layer.windows[0].filterColumn);
+  assert.equal(ops[insertCall+4].code,'AggStep');
+  assert.equal(ops[insertCall+4].p2,layer.windows[0].regAccum);
+  assert.equal(filter.p2,insertCall+5,'FILTER skips only sum step, not count');
+  assert.equal(ops[filter.p2].code,'AggStep');
+  assert.equal(ops[filter.p2].p2,layer.windows[1].regAccum);
+  assert.equal(positioned.emptyJump,filter.p2+1);
+  const wait=ops[positioned.emptyJump];
+  assert.equal(wait.code,'IfPos');
+  assert.equal(wait.p2,first.p2);
+  const current=ops[positioned.emptyJump+1];
+  assert.equal(current.code,'EphemeralAdvanceData');
+  assert.equal(current.p1,layer.duplicateCursors[2]);
+  assert.deepEqual(ops.slice(positioned.emptyJump+2,positioned.emptyJump+4).map(op=>[op.code,op.p1,op.p2]),
+    layer.windows.map(win=>['AggValue',win.regAccum,win.regResult]));
 });
 
 
@@ -412,9 +431,14 @@ test('streaming branch detects partition changes and resets shared accumulators 
   ), 'utf-8');
   const layer = compilation.rewrite.layers[0], setup = compilation.setup[0];
   const start = compilation.program.ops[compilation.loopBindings[0].gosub].p2;
-  const ops = compilation.program.ops.slice(start, compilation.loopBindings[0].returnAddress + 1);
+  const ops = compilation.program.ops;
   const compare = ops.find(op => op.code === 'CompareGroup');
-  assert.equal(compare.left, setup.regNew + layer.windows[0].argumentColumn - 1);
+  const incoming=compilation.program.ops[compilation.loopBindings[0].loopBody];
+  assert.equal(incoming.code,'SorterData');
+  assert.equal(compare.left,incoming.p2,'partition compares incoming producer tuple, not pending end scratch');
+  assert.equal(compare.jump,compilation.loopBindings[0].gosub);
+  const init=ops.find(op=>op.code==='IfNot'&&op.p1===setup.regPartInitialized);
+  assert.equal(ops[init.p2].code,'AggReset');
   assert.equal(compare.right, setup.regPart);
   assert.equal(compare.keyInfo, setup.partitionKeyInfo);
   const reset = ops.find(op => op.code === 'AggReset');
@@ -476,9 +500,9 @@ test('window setup builds SQLite KeyInfo for partition and peer comparisons', ()
 test('window step selects SQLite source deletion modes conservatively', () => {
   const mode = (frame) => compileWindow(
     resolve(`SELECT sum(a) OVER (ORDER BY a ${frame}) FROM t1`), 'utf-8').setup[0].deleteMode;
-  assert.equal(mode('ROWS 2 FOLLOWING'), 'return-row');
-  assert.equal(mode('ROWS ?1 FOLLOWING'), 'retain', 'unknown offsets cannot take windowExprGtZero early deletion');
-  assert.equal(mode('RANGE 2 FOLLOWING'), 'retain');
+  assert.equal(mode('ROWS BETWEEN 2 FOLLOWING AND 2 FOLLOWING'), 'return-row');
+  assert.equal(mode('ROWS BETWEEN ?1 FOLLOWING AND ?1 FOLLOWING'), 'retain', 'unknown offsets cannot take windowExprGtZero early deletion');
+  assert.equal(mode('RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING'), 'retain');
   assert.equal(mode('ROWS BETWEEN UNBOUNDED PRECEDING AND 2 PRECEDING'), 'agg-step');
   assert.equal(mode('ROWS BETWEEN UNBOUNDED PRECEDING AND ?1 PRECEDING'), 'retain');
   assert.equal(mode('ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW'), 'return-row');
