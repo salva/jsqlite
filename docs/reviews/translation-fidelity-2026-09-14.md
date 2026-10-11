@@ -69,13 +69,19 @@ uses accepted typed page-backed PK dedup in shared ordinary/INNER/simple scalar
 callers, with bounded safe LEFT null-extension evidence; unsafe readiness/ON
 factoring is not a blanket LEFT exclusion. See the [current finite matrix](../research/card-s-i/acceptance-matrix.md)
 and [source decisions](../research/card-s-i/consumer-decisions.md). This is not
-full goal acceptance: isolated WR publication f5ff865/tree6ebc5ce is complete,
-but integration/acceptance and a fresh single original225 gate on final published
-inputs are incomplete. Original222/3, provisional packaged225/225 and disposable
-archive224/1 plus separate generator retry are revision evidence, not final gates.
+full goal acceptance: isolated WR publication f5ff865/tree6ebc5ce is complete;
+joint integration remains input-bound. Original222/3, provisional packaged225/225,
+archive224/1 plus generator retry, and original full-browser45/46 at window336
+remain historical failures, not waivers. The original frame owner now approves
+pending-end lifetime/accounting and the359-success/358-reject/200-reject witness
+([status24](record:///status.md?card=card-o&v=24),
+[review12](record:///review.md?card=card-o-c&v=12)); this does not certify inherited
+WR/VM or full-browser integration. The four integration test corrections preserve
+explicit zero bounds, allocation/error ownership and actual pending-end CFG rather
+than lexical opcode order. Final-input gate identities and failures remain in
+[[card:card-s-i-c-b-c]] status, not inferred from predecessor runs.
 [Revision-bound diagnosis](../research/card-s-i/original225-residual-attribution.md)
-retains failed histories and refutes the phase-domination hypothesis; provisional
-corrections and full-browser45/46 window336 disposition await original owners.
+retains failed histories and refutes the phase-domination hypothesis.
 No test waiver, whole-green or optimizer parity is inferred. Full expression comparison/flags, recursive
 admission/cleanup, transitive lowering and native cost parity remain unproved.
 The reproduced synthetic RowSet destructor/reset collision now detaches Mem
@@ -4607,11 +4613,17 @@ Commits `4fa06e2441b978406cbd285b34ff4e6a25868ebc` and
   guards; `advanceAt` identifies the actual singleton Goto or movement opcode.
   Singleton target patching now uses advanceAt, not an offset into nextAt.
   ON matching remains before null extension; WHERE remains after positioning.
-- `where.c:wherePathSatisfiesOrderBy` /5273 WHERE_ONEROW supports only the bounded
-  represented proof: **FINAL ordered producer after exact rowid-equality
-  singleton predecessors**. Statistical nOut0 is not uniqueness. Outer ordering
-  before later fanout is NEVER promoted by this proof. Other joined paths retain
-  zero global order; this is not general multi-source ordering acceptance.
+- `where.c:wherePathSatisfiesOrderBy` WHERE_ONEROW and complete obSat==obDone
+  support the bounded final ordered producer after exact rowid-equality singleton
+  predecessors and complete outer IPK order followed by inner rowid singleton /
+  LEFT NullRow. The outer key stays fixed through matched/null-extended output;
+  lowering consumes the selected full order count, not a VM-recomputed proof.
+  Statistical nOut0 is not uniqueness. Partial proofs, arbitrary fanout and the
+  broader solver domain are not certified by these witnesses. Source/native and
+  exact LEFT spec provenance remain in
+  [owner review24](record:///review.md?card=card-s-b-a-a-b-a-a&v=24) and
+  [owner status147](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=147).
+  This is not general multi-source ordering or integration acceptance.
 
 Fresh strict singular-public ordinary execution on the disclosed peer-dirty
 runtime completed **69/69** cases across UTF8/UTF16LE/UTF16BE, exact rows/errors

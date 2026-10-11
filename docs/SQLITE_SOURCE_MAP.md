@@ -520,11 +520,17 @@ Commits `4fa06e2441b978406cbd285b34ff4e6a25868ebc` and
   guards; `advanceAt` identifies the actual singleton Goto or movement opcode.
   Singleton target patching now uses advanceAt, not an offset into nextAt.
   ON matching remains before null extension; WHERE remains after positioning.
-- `where.c:wherePathSatisfiesOrderBy` /5273 WHERE_ONEROW supports only the bounded
-  represented proof: **FINAL ordered producer after exact rowid-equality
-  singleton predecessors**. Statistical nOut0 is not uniqueness. Outer ordering
-  before later fanout is NEVER promoted by this proof. Other joined paths retain
-  zero global order; this is not general multi-source ordering acceptance.
+- `where.c:wherePathSatisfiesOrderBy` WHERE_ONEROW and complete obSat==obDone
+  support the bounded final ordered producer after exact rowid-equality singleton
+  predecessors and complete outer IPK order followed by inner rowid singleton /
+  LEFT NullRow. The outer key stays fixed through matched/null-extended output;
+  lowering consumes the selected full order count, not a VM-recomputed proof.
+  Statistical nOut0 is not uniqueness. Partial proofs, arbitrary fanout and the
+  broader solver domain are not certified by these witnesses. Source/native and
+  exact LEFT spec provenance remain in
+  [owner review24](record:///review.md?card=card-s-b-a-a-b-a-a&v=24) and
+  [owner status147](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=147).
+  This is not general multi-source ordering or integration acceptance.
 
 Fresh strict singular-public ordinary execution on the disclosed peer-dirty
 runtime completed **69/69** cases across UTF8/UTF16LE/UTF16BE, exact rows/errors
@@ -1054,3 +1060,27 @@ Window owner carrier54f8495 (o review24 / o-c review12) supplies source-owned pe
 Endpoint review card-t21 approves only exact final successful-high bounded-search test blob69e088e, not the neighboring proposal. LEFT review card-s-b-a-a21 approves exact sorter0 spec: complete outer IPK order persists through inner rowid singleton/LEFT NullRow and production consumes full selected order count; prior final-only assertion is superseded for this bounded witness. Statistical nOut0, arbitrary fanout and incomplete proofs are not certified.
 
 WR f5ff865 plus R3 eb8c75 remain the represented consuming baseline; this joint candidate includes approved original corrections. Fresh joint gates and independent integration-testowner review remain necessary for promotion; no whole-product/performance/allocator parity.
+
+### Window semantic production and pending-end consumers
+
+Pinned `window.c:sqlite3WindowAlloc` retains explicit zero PRECEDING/FOLLOWING
+kind and offset expression; invalid CURRENT-to-PRECEDING and FOLLOWING-to-earlier
+frames reject rather than become an executable shorthand. TS named WINDOW
+allocation reports SqlParseError; inline semantic resolution retains
+NameResolutionError internally, with the public error contract unchanged.
+`sqlite3WindowCodeStep` initializes the pending end without stepping; subsequent
+admission positions end before FILTER/AggStep, snapshots current results, and
+flushes final pending input before current EOF/inverse decisions. Incoming
+producer partition registers remain distinct from pending-end scratch. The
+sharedSliding fast path excludes pendingEndRows; compatible value/EXCLUDE cache
+paths remain retained, not newly admitted by this correction.
+
+`test/parser/window-graph.test.mjs`, `test/parser/resolver.test.mjs`,
+`test/conformance/window-rewrite.test.mjs` and
+`test/conformance/select-entry-context.test.mjs` check kind/error ownership,
+exact initialization/FILTER/cursor/target/register relationships and shared-path
+selection. Lifetime/accounting remains the original frame-owner decision
+([status24](record:///status.md?card=card-o&v=24),
+[review12](record:///review.md?card=card-o-c&v=12)); detailed correction and final
+input/gate provenance is retained in [[card:card-s-i-c-b-c]] status. These finite
+checks do not certify all window schedules or inherited WR/VM machinery.
