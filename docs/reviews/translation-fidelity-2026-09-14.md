@@ -4993,3 +4993,10 @@ execution under exclusive admission, with failure preserving bindings/error
 ownership. Source paths and finite native/current evidence, including the failed
 full regression run, are in [reprepare evidence](../research/card-h-b-reprepare/README.md).
 This is not general schema reprepare or whole optimizer/plan equivalence approval.
+
+
+### Bounded window owner correction
+
+Ordinary registered no-EXCLUDE bounded ROWS follows pinned windowCodeStep pending-end scheduling: first admission positions without step, later admission steps prior end, flush steps final end; return precedes independent inverse/Delete and current EOF skips final inverse. Source-selected deletion occurs before Next; cache-required EXCLUDE/value consumers retain rows. OpenDup handles share entries/budget and monotonic committed rowids, retain independent saved positions, and failed publication does not consume identity. Delete checks before publication and refunds once. RANGE following additionally gates positioned-end eligibility before returning peers; KeyInfo owns peer collation/DESC/BIGNULL and resolved scalar sort identity survives rewrite.
+
+The six-row composed ROWS witness has logical peak359:358 rejects,359 succeeds/reset,200 remains failure. Packed UTF-8 INTEGER7/TEXT abc overlaps7 serialized bytes+64 policy+11 logical bytes:81 rejects,82 succeeds/reset. These are exact bounded logical-accounting witnesses,not heap/native allocator minima. No budgets weakened;reset/finalize/error preserve first error and cleanup0 in retained controls. Other RANGE/cache/EXCLUDE schedules remain uncertified. See [correction evidence](../research/card-s-i/window-owner-correction.md) for isolated carrier, typed/encoding/partition/empty/cursor/error controls and actual denominators. Selected tests do not certify arbitrary special builtin/composition fidelity.
