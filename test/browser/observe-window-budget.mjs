@@ -24,7 +24,8 @@ assert(events.some(e=>e.before===264&&e.bytes===71));
 assert(transitions.some(e=>e.op==='delete'));
 for(let i=0;i<transitions.length;i++)if(transitions[i].op==='delete'){
  assert.equal(transitions[i+1]?.op,'release');assert.equal(transitions[i+1]?.bytes,24);
- assert.equal(transitions[i+2]?.op,'next','phase Delete then Next, not refund on consumed sorter');
+ const following=transitions.slice(i+2).find(e=>e.op!=='release');
+ assert(!following||following.op==='next','phase Delete precedes next cursor transition; packed release may intervene');
 }
 assert.equal(transitions.at(-1)?.after,0,'halt releases the shared budget');
 transitions.push({op:'public-done'}); // step loop terminated with done; VM may test hasNext instead of calling Next at EOF.
