@@ -1,6 +1,6 @@
 # Case5 source/control/error owner comparison
 
-Independent bounded research by [[card:card-s-i-c-b-e]] for [[card:card-s-i-c-b]], against candidate tree `75a4bbe8a5a4c77306082a692946f6751bfee4b6` and pinned SQLite 3530400. This replaces pending-review assertions in this comparison, not the historical evidence. Detailed provenance, commands, failures and limitations: [review status](record:///status.md?card=card-s-i-c-b-e); prior runtime review: [[card:card-s-i-c-b-d]] status22. Assessed75a4 proposal was unpublished at review; subsequent WR-only integration/ref is authenticated in the consumer publication record.
+Independent bounded research by [[card:card-s-i-c-b-e]] for [[card:card-s-i-c-b]], against candidate tree `75a4bbe8a5a4c77306082a692946f6751bfee4b6` and pinned SQLite 3530400. This replaces pending-review assertions in this comparison, not the historical evidence. Detailed provenance, commands, failures and limitations: [review status](record:///status.md?card=card-s-i-c-b-e); prior runtime review: [[card:card-s-i-c-b-d]] status22. Published WR-only consuming milestone `f5ff865ec317e03edb524dfa8cc82d5cb21283b2` / tree `6ebc5ce85eaee6f6de6080752d4cc46db1c0f267` is complete as isolated publication. Parent integration, goal/product acceptance and the fresh exact final-input original225 gate are **not complete**. Original-owner corrections and the full-browser window/private-live-rows336 disposition remain unapproved in available records; routing is not approval.
 
 ## Final research report — supported, bounded
 

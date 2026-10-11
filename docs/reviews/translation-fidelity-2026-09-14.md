@@ -64,11 +64,19 @@ repairs, exact candidate gates and separate reviewer overlays are recorded in
 
 The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) separates WR acceptance from provisional original225 proposals and the actual out-of-slice full-browser byte-limit failure; no whole-product approval follows.
 
-Ordinary/forced-index fallback is retained. Represented persistent WR Case5 now
-uses typed PK dedup in ordinary/INNER/simple scalar and readiness-safe LEFT
-consumers; unsafe selected joins retain their existing boundaries. The finite
-[WR matrix](../research/card-s-i/acceptance-matrix.md) does not establish exhaustive
-consumer fidelity or original225 owner approval. Earlier222/3 is superseded by packaged225/225 and archive224/1 missing generator plus separate retry; provisional original-owner proposals remain separate. Full expression comparison/flags, recursive
+Ordinary/forced-index fallback is retained. Represented persistent WR union now
+uses accepted typed page-backed PK dedup in shared ordinary/INNER/simple scalar
+callers, with bounded safe LEFT null-extension evidence; unsafe readiness/ON
+factoring is not a blanket LEFT exclusion. See the [current finite matrix](../research/card-s-i/acceptance-matrix.md)
+and [source decisions](../research/card-s-i/consumer-decisions.md). This is not
+full goal acceptance: isolated WR publication f5ff865/tree6ebc5ce is complete,
+but integration/acceptance and a fresh single original225 gate on final published
+inputs are incomplete. Original222/3, provisional packaged225/225 and disposable
+archive224/1 plus separate generator retry are revision evidence, not final gates.
+[Revision-bound diagnosis](../research/card-s-i/original225-residual-attribution.md)
+retains failed histories and refutes the phase-domination hypothesis; provisional
+corrections and full-browser45/46 window336 disposition await original owners.
+No test waiver, whole-green or optimizer parity is inferred. Full expression comparison/flags, recursive
 admission/cleanup, transitive lowering and native cost parity remain unproved.
 The reproduced synthetic RowSet destructor/reset collision now detaches Mem
 ownership and completes reset/finalize before reporting the saved primary;
