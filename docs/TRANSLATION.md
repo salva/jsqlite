@@ -1,10 +1,12 @@
-## Packed private-key VM consuming seam
+## Accepted packed private-key VM and selected WR consumers
 
 
 Explicit `OpenEphemeral.p4KeyInfo` (or packed `IdxInsert.p2`) selects the
-accepted private page arena, not array-backed EphemeralIndexCursor. Legacy
-iterator/IN/window consumers remain separate; WR admission and lowerers are
-unchanged. MakeRecord now owns budgeted SQLite serial-header/payload bytes;
+accepted private page arena, not array-backed EphemeralIndexCursor. The
+accepted private Insert/balance primitive and consuming VM now serve represented
+persistent WR Case5 in shared ordinary, INNER and simple scalar lowerers, with
+witness-qualified safe LEFT. Legacy iterator/IN/window consumers remain separate;
+this is not their wholesale migration. MakeRecord owns budgeted SQLite serial-header/payload bytes;
 Insert consumes that snapshot rather than later source-register contents.
 Typed Found/NotFound consume register-range or packed MakeRecord IndexMoveto
 probes with opposite jump polarity; only successful return publishes
@@ -13,15 +15,22 @@ cache. `private-key-vm.ts` owns these transitions, OpenEphemeral reuse ordering,
 and IdxInsert cache invalidation even when primitive insertion returns an error.
 Reuse does not reset seekResult/deferredMoveto; failed clear retains prior nullRow.
 Packed IdxInsert owns publication. USESEEKRESULT cannot supply a scalar loc:
-the accepted primitive exports no trusted token and safely reseeks packed bytes.
+the accepted primitive exports no trusted insertion token and safely reseeks
+packed bytes. This retains typed comparison/dedup and incurs extra seek work
+instead of upstream seek-result reuse; it is a bounded adaptation, not browser
+necessity or seek-cost parity. The writer/balance machinery is implemented;
+the unimplemented trusted-token optimization is not a missing writer.
 Reuse clears the existing arena when the requested field capacity fits;
 a larger KeyInfo replaces it, closing/detaching the old owner before acquisition
 as allocateCursor does. Only newly acquired arena is disposed on
 cursor-publication failure. Halt/reset/finalize dispose owning cursors and
-packed charges, retaining existing primary-error precedence. This is a bounded
-internal seam, not complete VM/WR acceptance: representative consuming lifecycle/resource tests cover reuse, replacement,
-publication failure and primary cleanup collisions; this is not exhaustive
-VM compatibility or native heap parity.
+packed charges, retaining existing primary-error precedence. Accepted selected
+VM/WR coverage includes representative consuming lifecycle/resource tests for
+reuse, replacement, publication failure and primary cleanup collisions. The
+finite consuming goal is approved by [review15](record:///review.md?card=card-s-i-c-b&v=15);
+this is not exhaustive VM compatibility, native heap parity or product approval.
+Current local-gate/test-owner evidence and remaining incorporation decisions are
+in [the joint boundary](#approved-joint-integration-boundary).
 Packed probe decoder/Mem scratch is reserved before unpacking and refunded after
 seek; register probes own descriptor copies, never release live registers.
 Detailed evidence: [[card:card-s-i-c-b-a]]
@@ -241,7 +250,7 @@ the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
 ### Represented WR consuming boundary (current clarification)
 
-The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) separates WR acceptance from provisional original225 proposals and the actual out-of-slice full-browser byte-limit failure; no whole-product approval follows.
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) distinguishes completed local executor225/225, current-lane browser47/47, affected370/370 and native receipts from revision-bound failed predecessors. [Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) accepts the selected consuming outcome and SAME finite test-owner completion; parent incorporation/root/main/product/later-v decisions remain separate, with no whole-product approval.
 
 ## WHERE, joins and physical indexes
 
@@ -1567,7 +1576,26 @@ Window owner carrier54f8495 ([o status24](record:///status.md?card=card-o&v=24) 
 
 Endpoint review card-t21 approves only exact final successful-high bounded-search test blob69e088e, not the neighboring proposal. LEFT review card-s-b-a-a21 approves exact sorter0 spec: complete outer IPK order persists through inner rowid singleton/LEFT NullRow and production consumes full selected order count; prior final-only assertion is superseded for this bounded witness. Statistical nOut0, arbitrary fanout and incomplete proofs are not certified.
 
-WR f5ff865 plus R3 eb8c75 remain the represented consuming baseline; this joint candidate includes approved original corrections. Fresh joint gates and independent integration-testowner review remain necessary for promotion; no whole-product/performance/allocator parity.
+WR f5ff865 and R3 eb8c75 are historical consuming milestones; the admitted
+joint carrier76a77d2/treee77ca0d includes approved original corrections and
+completed local gates on byte-equal executable inputs from96722500: a single
+original225225/225 (three native prerequisites0), typecheck/build0, actual
+Chromium current-lane47/47 (filter null), affected370/370 and pinned native
+capture0 (five genuine source cases, not encoding copies). These are retained
+executor receipts, not fresh successor or Reviewer-run gates. Exact inputs,
+commands and hashes are in [receipt inputs](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-inputs.json),
+[receipt hashes](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-hashes.json)
+and [[card:card-s-i-c-b-c]] status.
+
+SAME independent finite test owner [[card:card-s-i-c-b-d]] completed acceptance
+([status32](record:///status.md?card=card-s-i-c-b-d&v=32)); its affected268/268 and
+4435-inventory checks are descendant-attributed, not a new225/native/browser run.
+[Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) approves the
+selected consuming outcome on76a77d2, not every parent criterion. Parent
+incorporation and renewed parent review, root/main/product promotion and later
+root-v review remain separate decisions. No whole-product/performance/allocator,
+all-browser-lane or exhaustive VM compatibility follows. This docs-only
+successor reuses the qualified receipts; it does not fabricate executable reruns.
 
 ### Window semantic production and pending-end consumers
 
