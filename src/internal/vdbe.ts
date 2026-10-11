@@ -1,3 +1,6 @@
+import {PrivateKeyVmCursor} from './private-key-vm.ts';
+import {packRecord,recordSize} from './record-pack.ts';
+import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
 import {StorageLimitError} from './storage.ts';
 import { ExecutionTaskScheduler } from "./task-scheduler.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
@@ -15,7 +18,7 @@ import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord,
 import type { ExprNode, SelectNode } from "./parse.ts";
 import { lowerOrdinaryCtes } from "./cte.ts";
 import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
-import { compareMem, compareRecordKey, KeyInfo, UnpackedRecordKey, type BuiltinCollation } from "./comparison.ts";
+import { compareMem, compareRecordKey, KeyInfo, UnpackedRecordKey, unpackRecordKey, type BuiltinCollation } from "./comparison.ts";
 import { EphemeralIndexCursor, FifoCursor, PriorityQueueCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type IndexCursor, type TableCursor, type TableScanCursor } from "./btree.ts";
@@ -127,13 +130,13 @@ type Op =
   | { readonly code: "PriorityShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
   | { readonly code: "FifoInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "FifoShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
-  | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo; readonly insertionOrder?:boolean }
-  | { readonly code: "MakeRecord"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo; readonly p4KeyInfo?:KeyInfo; readonly insertionOrder?:boolean }
+  | { readonly code: "MakeRecord"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4Affinity?:readonly MemAffinity[] }
   | { readonly code: "NewRowid"; readonly p1:number; readonly p2:number }
   | { readonly code: "Insert"; readonly p1:number; readonly p2:number; readonly p3:number }
-  | { readonly code: "Found"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
+  | { readonly code: "Found" | "NotFound"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
   | { readonly code: "InSet"; readonly p1:number; readonly key:number; readonly output:number; readonly affinity:MemAffinity; readonly negated:boolean }
-  | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly replace?:boolean }
+  | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly p2?:number; readonly useSeekResult?:boolean; readonly replace?:boolean }
   | { readonly code: "SetDelete"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "SetRetainIntersection"; readonly p1:number; readonly p2:number }
   | { readonly code: "ClearEphemeral"; readonly p1:number }
@@ -7211,10 +7214,10 @@ export class VdbeStatement implements Statement {
   // table btree is moved (and accounted) on its first uncovered Column read.
   #deferredRowids = new Map<number,bigint>();
   #privateCursors = new Map<number, SorterCursor | EphemeralIndexCursor | FifoCursor | PriorityQueueCursor>();
-  // MakeRecord owns only a register-range descriptor until Insert. This avoids an
-  // unbudgeted second Mem copy; EphemeralIndexCursor performs the single
-  // statement-budgeted copy at the insertion opcode's atomic checkpoint.
-  #packedRecords = new Map<number, {start:number;count:number}>();
+  // MakeRecord owns an execution-budgeted packed snapshot independent of the
+  // source registers. Insert consumes it; overwrite or halt refunds its charge.
+  #packedRecords = new Map<number, {packed:Uint8Array;charge:number}>();
+  #privateKeys = new Map<number,PrivateKeyVmCursor>();
   // Execution-owned RHS Btree substitute, invalidated by each iterator reset.
   #inSets = new Map<number,{values:Mem[];bytes:number}>();
   #privateBytes: PrivateStateByteBudget;
@@ -7324,15 +7327,90 @@ export class VdbeStatement implements Statement {
           case "PriorityShift": {const values=(this.#privateCursors.get(op.p1) as PriorityQueueCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
           case "FifoInsert": await (this.#privateCursors.get(op.p1) as FifoCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "FifoShift": {const values=(this.#privateCursors.get(op.p1) as FifoCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
-          case "OpenEphemeral": this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes,op.insertionOrder));break;
-          case "MakeRecord": this.#packedRecords.set(op.p3,{start:op.p1,count:op.p2});break;
+          case "OpenEphemeral": {
+            // Explicit consuming seam. Legacy ephemeral readers/iterators are not
+            // silently replaced: the private primitive has no Next/Prev contract.
+            const typed=op.p4KeyInfo!==undefined||this.#program.ops.some(i=>i.code==='IdxInsert'&&i.p1===op.p1&&i.p2!==undefined);
+            if(typed){
+              const old=this.#privateKeys.get(op.p1),control=this.#privateControl(options,limit,started);
+              const info=op.p4KeyInfo??op.keyInfo;
+              // vdbe.c OpenEphemeral requires KeyInfo.enc == ENC(db).
+              // Validate the caller invariant before reuse or acquiring an arena:
+              // a malformed program must not clear an existing owner first.
+              if(info.encoding!==this.#program.encoding)throw new JSQLiteError('internal','private OpenEphemeral KeyInfo encoding differs from database');
+              if(old&&info.totalFieldCount<=old.info.totalFieldCount){await old.reuse(control);break}
+              // allocateCursor frees the old cursor before allocating a larger
+              // replacement. Detach it first so halt cannot close it twice if
+              // release or the subsequent acquisition fails.
+              if(old){this.#privateKeys.delete(op.p1);old.close()}
+              const arena=await PrivateBlobkeyPages.open(this.#privateBytes,control,()=>{},this.#program.privateStateLimits);
+              try{const cursor=new PrivateBlobkeyCursor(arena,info,this.#program.privateStateLimits,{owning:true});this.#privateKeys.set(op.p1,new PrivateKeyVmCursor(arena,cursor,info))}
+              catch(error){try{arena.close()}catch{}throw error}
+              break;
+            }
+            this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes,op.insertionOrder));break;}
+          case "MakeRecord": {
+            const values=this.#registers.slice(op.p1,op.p1+op.p2);
+            // vdbe.c OP_MakeRecord applies P4 to the live input registers,
+            // before sizing/serialization; REAL affinity retains IntReal.
+            if(op.p4Affinity){
+              if(op.p4Affinity.length>values.length)throw new JSQLiteError('internal','MakeRecord affinity exceeds input range');
+              for(let i=0;i<op.p4Affinity.length;i++){
+                const affinity=op.p4Affinity[i]!,value=values[i]!;
+                value.applyAffinity(affinity,this.#program.encoding);
+                if(affinity==='real'&&value.initialStorageClass==='integer')value.setIntReal(value.integerValue());
+              }
+            }
+            const charge=recordSize(values)+64;
+            await this.#privateControl(options,limit,started).checkpoint(charge);
+            this.#privateBytes.reserve(charge);
+            try{const packed=packRecord(values,this.#program.encoding),old=this.#packedRecords.get(op.p3);this.#packedRecords.set(op.p3,{packed,charge});if(old)this.#privateBytes.release(old.charge)}
+            catch(error){this.#privateBytes.release(charge);throw error}break;
+          }
           case "NewRowid": this.#registers[op.p2]!.setInt64(BigInt((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).size+1));break;
-          case "Insert": {const record=this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError("internal","Insert record register was not packed");await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(this.#registers.slice(record.start,record.start+record.count),this.#privateControl(options,limit,started));this.#packedRecords.delete(op.p2);break;}
+          case "Insert": {
+            const record=this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError("internal","Insert record register was not packed");
+            const values=decodeRecord(record.packed,this.#program.encoding).values.map(value=>memFromRawRecord(value,this.#borrow));
+            try{await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(values,this.#privateControl(options,limit,started))}finally{for(const value of values)value.release()}
+            this.#privateBytes.release(record.charge);this.#packedRecords.delete(op.p2);break;
+          }
           case "SorterInsert": {this.#privateAccounting={...this.#privateAccounting,sorterRows:this.#privateAccounting.sorterRows+1};const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
           case "SorterData": {const values=(this.#privateCursors.get(op.p1) as SorterCursor).data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "SorterNext": if((this.#privateCursors.get(op.p1) as SorterCursor).next())this.#pc=op.p2;break;
-          case "Found": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(await cursor.found(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started)))this.#pc=op.jump;break;}
+          case "Found":
+          case "NotFound": {
+            const typed=this.#privateKeys.get(op.p1);
+            if(typed){
+              const control=this.#privateControl(options,limit,started),life=new BorrowLifetime();
+              let key:UnpackedRecordKey|undefined,charge=0;
+              try{
+                if(op.keyCount===0){
+                  const record=this.#packedRecords.get(op.keyStart);
+                  if(!record)throw new JSQLiteError('internal','packed probe requires MakeRecord input');
+                  // Packed bytes retain their MakeRecord charge during this await.
+                  // Bound decoder/Mem representation before allocating it.
+                  const requested=128+typed.info.totalFieldCount*128+record.packed.length*2;
+                  await control.checkpoint(record.packed.length);
+                  this.#privateBytes.reserve(requested,'private packed probe exceeds byte limit');charge=requested;
+                  key=unpackRecordKey(record.packed,typed.info,life,{defaultRc:0,caller:'seek'});
+                }else{
+                  // UnpackedRecordKey.release owns its Mem descriptors. Do not
+                  // lend live registers to that destructor (C r.aMem is borrowed).
+                  const values=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount).map(value=>{const copy=new Mem();copy.copyFrom(value);return copy});
+                  key=new UnpackedRecordKey(values,0,'seek',typed.info);
+                }
+                const exists=await typed.seek(key,control);
+                if(exists===(op.code==='Found'))this.#pc=op.jump;
+              }finally{key?.release();life.close();if(charge)this.#privateBytes.release(charge)}
+              break;
+            }
+            if(op.keyCount===0)throw new JSQLiteError('internal','packed probe requires private KeyInfo cursor');
+            const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;
+            const exists=await cursor.found(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));
+            if(exists===(op.code==='Found'))this.#pc=op.jump;
+            break;
+          }
           case "InSet": {
             // expr.c:sqlite3ExprCodeIN four-state scalar result: empty is false
             // even for NULL LHS; otherwise match, RHS NULL, and ordinary miss
@@ -7345,7 +7423,13 @@ export class VdbeStatement implements Statement {
             else out.setInt64(op.negated?1n:0n);
             key.release();break;
           }
-          case "IdxInsert": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),control=this.#privateControl(options,limit,started);if(op.replace)await cursor.replace(key,control);else await cursor.insert(key,control);break;}
+          case "IdxInsert": {
+            const typed=this.#privateKeys.get(op.p1);
+            if(typed){const record=op.p2===undefined?undefined:this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError('internal','private IdxInsert requires packed MakeRecord P2');
+              // No trusted token is exported by the primitive. USESEEKRESULT
+              // therefore requests its accepted packed reseek, never scalar loc.
+              await typed.insert(record.packed,this.#privateControl(options,limit,started));break}
+            const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),control=this.#privateControl(options,limit,started);if(op.replace)await cursor.replace(key,control);else await cursor.insert(key,control);break;}
           case "SetDelete": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).remove(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "SetRetainIntersection": {const control=this.#privateControl(options,limit,started);await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).retainFoundIn(this.#privateCursors.get(op.p2) as EphemeralIndexCursor,control);break;}
           case "ClearEphemeral": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).clear();break;
@@ -7627,8 +7711,10 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
+    for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
+    this.#privateKeys.clear();
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();for(const register of this.#registers)if(register.rowSet())try{register.setNull()}catch(error){if(diagnostic===null)diagnostic=error}for(const set of this.#inSets.values()){for(const value of set.values)value.release();this.#privateBytes.release(set.bytes);}this.#inSets.clear();this.#borrow.invalidate();
     return diagnostic;

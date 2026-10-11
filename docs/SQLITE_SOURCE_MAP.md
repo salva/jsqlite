@@ -1009,3 +1009,7 @@ read-only schema means one expiration replacement, with no schema-change retry
 loop or configurable native prep flags. No new public handles are registered.
 Tests: `test/conformance/stat4-parameter-reprepare.test.mjs`; native/baseline/current
 and verification limits: [evidence](research/card-h-b-reprepare/README.md).
+
+## Packed private-key consuming VM
+
+Pinned vdbe.c OpenEphemeral/Found/NotFound/MakeRecord/IdxInsert and vdbeaux cursor cleanup map to `vdbe.ts`, `private-key-vm.ts`, `record-pack.ts` and accepted PrivateBlobkeyPages/Cursor. Register and packed probes retain separate owned descriptor/snapshot lifetimes. USESEEKRESULT safely reseeks; no scalar seek authority. Representative lifecycle/publication/primary-error/control and deterministic byte admission/refund coverage: `test/value/private-key-vm*.test.mjs`, `test/value/record-pack.test.mjs`. Case5 wherecode.c emits no OpenDup/noReuse/NextPrev/P5 affinity trimming requirements. WR admission/lowerers unchanged. Detailed isolated evidence and limits: [[card:card-s-i-c-b-a]] status.

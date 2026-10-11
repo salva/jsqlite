@@ -1,3 +1,36 @@
+## Packed private-key VM consuming seam
+
+
+Explicit `OpenEphemeral.p4KeyInfo` (or packed `IdxInsert.p2`) selects the
+accepted private page arena, not array-backed EphemeralIndexCursor. Legacy
+iterator/IN/window consumers remain separate; WR admission and lowerers are
+unchanged. MakeRecord now owns budgeted SQLite serial-header/payload bytes;
+Insert consumes that snapshot rather than later source-register contents.
+Typed Found/NotFound consume register-range or packed MakeRecord IndexMoveto
+probes with opposite jump polarity; only successful return publishes
+signed seekResult, equality-derived nullRow, cleared deferred movement and stale
+cache. `private-key-vm.ts` owns these transitions, OpenEphemeral reuse ordering,
+and IdxInsert cache invalidation even when primitive insertion returns an error.
+Reuse does not reset seekResult/deferredMoveto; failed clear retains prior nullRow.
+Packed IdxInsert owns publication. USESEEKRESULT cannot supply a scalar loc:
+the accepted primitive exports no trusted token and safely reseeks packed bytes.
+Reuse clears the existing arena when the requested field capacity fits;
+a larger KeyInfo replaces it, closing/detaching the old owner before acquisition
+as allocateCursor does. Only newly acquired arena is disposed on
+cursor-publication failure. Halt/reset/finalize dispose owning cursors and
+packed charges, retaining existing primary-error precedence. This is a bounded
+internal seam, not complete VM/WR acceptance: representative consuming lifecycle/resource tests cover reuse, replacement,
+publication failure and primary cleanup collisions; this is not exhaustive
+VM compatibility or native heap parity.
+Packed probe decoder/Mem scratch is reserved before unpacking and refunded after
+seek; register probes own descriptor copies, never release live registers.
+Detailed evidence: [[card:card-s-i-c-b-a]]
+status, `test/value/private-key-vm.test.mjs`. Record packing currently accepts
+ordinary Mem values in database encoding. Optional typed `p4Affinity` applies
+to live input registers before sizing/packing, including REAL→IntReal as in
+vdbe.c. P5 trimming is not admitted by this internal caller yet.
+
+
 # SQLite-to-TypeScript translation guide
 
 ## Accepted isolated private BLOBKEY Insert/balance primitive
