@@ -209,9 +209,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT row_number() FILTER (WHERE missing) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='no such column: missing');
  assert.throws(()=>resolve('SELECT row_number() FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
  assert.throws(()=>resolve('SELECT lag(a.x) FILTER (WHERE a.x) OVER () FROM a'),e=>e instanceof NameResolutionError&&e.message==='FILTER clause may only be used with aggregate window functions');
- assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM a'),e=>e instanceof SqlParseError&&e.message==='unsupported frame specification');
- assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 FOLLOWING AND CURRENT ROW) FROM a'),e=>e instanceof SqlParseError&&e.message==='unsupported frame specification');
- assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 FOLLOWING AND 1 PRECEDING) FROM a'),e=>e instanceof SqlParseError&&e.message==='unsupported frame specification');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN CURRENT ROW AND 1 PRECEDING) FROM a'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 FOLLOWING AND CURRENT ROW) FROM a'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
+ assert.throws(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 FOLLOWING AND 1 PRECEDING) FROM a'),e=>e instanceof NameResolutionError&&e.message==='unsupported frame specification');
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) OVER (ORDER BY a.x ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT sum(a.x) FILTER (WHERE a.x) OVER () FROM a'));
  assert.doesNotThrow(()=>resolve('SELECT rank() OVER (),dense_rank() OVER (),percent_rank() OVER (),cume_dist() OVER (),ntile(2) OVER (),lag(a.x) OVER (),lead(a.x,1,0) OVER (),first_value(a.x) OVER (),last_value(a.x) OVER (),nth_value(a.x,1) OVER () FROM a'));
