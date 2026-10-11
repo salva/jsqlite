@@ -239,14 +239,21 @@ unrepresented deep/transient compositions remain roadmap debt, not a reason to
 repeat accepted bounded migrations. Detailed accepted seam evidence is linked in
 the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
+### Represented WR consuming boundary (current clarification)
+
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) separates WR acceptance from provisional original225 proposals and the actual out-of-slice full-browser byte-limit failure; no whole-product approval follows.
+
 ## WHERE, joins and physical indexes
 
 Selected rowid multi-index OR has bounded delivered runtime execution in
 ordinary single-table and represented inner-join callers: selected arms replan
 into shared-builder RowSetTest/Gosub/Return continuations, with full residual
 truth and existing ORDER sorters. This is not exhaustive optimizer compatibility
-or C-cost parity; WR union, unrepresented nullable outer-join selection, and broader
-cleanup/liveness proofs remain outside the demonstrated boundary. See
+or C-cost parity. Represented persistent WR Case5 now uses typed page-backed
+PK dedup in ordinary/INNER/simple scalar consumers; safe nullable LEFT remains
+bounded by readiness and null-extension ownership. Unrepresented outer-join
+selection and broader cleanup/liveness proofs remain outside the demonstrated boundary. See
+[WR finite evidence and residual gates](research/card-s-i/README.md) and
 [delivery evidence](research/card-s-f-or/verification.md#isolated-delivery-candidate-and-browser-movement).
 `where-plan.ts` owns tagged immutable clause-owned
 OR/AND info, original residual terms, stable term references and indexable masks.
@@ -275,17 +282,19 @@ immutable `kind:"multi-or"`, original `orInfo`, capability:null, setup0/sort0,
 run+1/output estimate and no captured physical branch choice. Lowering must
 replan physical arms from these clauses, preserving binding/seek provenance.
 
-Selected cost production is bounded to rowid persistent-index/equality/range/AND/
-nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
-or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
-scans are not selected OR. Single-table Case5 lowering replans owned
-arms into shared-builder seeks and RowSetTest/Gosub/Return, testing remaining
+Selected cost production includes represented persistent rowid and WR
+index/equality/range/AND/nested alternatives. Forced-index OR, NOT INDEXED and
+RIGHT/FULL selected WR joins retain existing fallback/rejection contracts;
+unsafe nullable readiness/ON factoring is not blanket LEFT admission exclusion.
+Scans are not selected OR. Single-table Case5 lowering replans owned
+arms into shared-builder seeks and Gosub/Return, using rowid RowSetTest or WR
+physical-PK typed-page Found/MakeRecord/IdxInsert, testing remaining
 arm truth after exact selected-constraint consumption and retaining untested
 enclosing parent truth, with the existing ORDER sorter. Nested selected arms recursively
-consume their actual selected plan with independent RowSet/return registers and
-the shared construction frontier; no ordinary-only filtering remains. Represented
-inner callers now use per-level RowSet/Gosub continuations with initialization
-per outer row. Both actual callers test remaining arm residuals only when
+consume their actual selected plan with independent rowid RowSet or WR typed
+PK cursor and return registers, sharing the construction frontier. Represented
+inner callers use per-level Gosub continuations with dedup initialization
+per outer row. Ordinary/inner/simple scalar callers test remaining arm residuals only when
 prereqAll is positioned, retaining independent enclosing conjuncts and full
 untested parent truth; unready OR atoms are deferred intact.
 Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
@@ -296,9 +305,13 @@ tested parents are omitted after arm truth (Case5 disableTerm ownership). See [r
 Correlated arm replanning retains the
 actual already-positioned outer mask; unready prerequisites remain excluded.
 Single-table Case5 retains a common physical index only when every selected
-leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
+leaf arm agrees; nested/non-index/different arms invalidate it, and WR primary
+is excluded from common covering. WhereEnd rewrites
 covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
-reads and existing deferred table positioning intact. Remaining arm truth is tested before
+reads positioned through rowid deferred seek or WR compact-suffix NotFound.
+WR covering maps primary physical fields before secondary lookup; correlated
+scalar bindings preserve physical PK ordinals and logical affinity/metadata.
+Remaining arm truth is tested before
 deduplication; fully tested parents omit repeated common-body truth, while untested
 parents retain their complete residual. This is not an index-only execution claim. Index Rowid
 uses the integer tail cached during physical positioning; no separate index

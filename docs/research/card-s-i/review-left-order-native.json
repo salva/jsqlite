@@ -1,0 +1,652 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "b77885c7d975f7922b69f72afe38e6af6129e8f47a7c0b70c9e2487f400df33d",
+  "classification": "independent read-only original LEFT order ownership; rows and complete EXPLAIN, not WR source-case credit",
+  "variants": [
+    {
+      "id": "utf8",
+      "fixture": {
+        "path": "test/conformance/fixtures/index-planner-utf8.db",
+        "sha256": "a4c5fc2dd52ff2ef988a9548979f931fc6dd5ac2f3a9863f51f9e4be50b3e05d"
+      },
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id",
+      "runs": [
+        {
+          "binding": "u8",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": "u1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7531"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": "u8",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le",
+      "fixture": {
+        "path": "test/conformance/fixtures/index-planner-utf16le.db",
+        "sha256": "29d192cd55b8c34351a6114fbd41d7e614b3d2f3b6d4444736831d4870fac84d"
+      },
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id",
+      "runs": [
+        {
+          "binding": "u8",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": "u1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7531"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": "u8",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be",
+      "fixture": {
+        "path": "test/conformance/fixtures/index-planner-utf16be.db",
+        "sha256": "f84bebcfdd49382fde8fb4095c0699b983d65a905b5c051f8f1286bf872210d2"
+      },
+      "sql": "SELECT t.id,u.note FROM t LEFT JOIN u ON u.k=t.id AND u.note=?1 WHERE t.id<=2 ORDER BY t.id",
+      "runs": [
+        {
+          "binding": "u8",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": "u1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "7531"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        },
+        {
+          "binding": "u8",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          "opcodes": [
+            "Init",
+            "Noop",
+            "OpenRead",
+            "OpenRead",
+            "Rewind",
+            "Integer",
+            "Rowid",
+            "Gt",
+            "Integer",
+            "Rowid",
+            "SeekRowid",
+            "Column",
+            "Variable",
+            "Ne",
+            "Integer",
+            "Rowid",
+            "Column",
+            "ResultRow",
+            "IfPos",
+            "NullRow",
+            "Goto",
+            "Next",
+            "Halt",
+            "Transaction",
+            "Goto"
+          ],
+          "sortOperations": 0
+        }
+      ]
+    }
+  ]
+}

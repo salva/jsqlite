@@ -3607,8 +3607,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // Case5 owns a subroutine per selected level. Its body is the ordinary
   // downstream join continuation; every outer-row invocation resets RowSet.
   const emitJoinedOr=(parent:WhereLoop,outer:WhereClause,tableCursor:number,readyMask:bigint,body?:()=>void):{exit:number;returnRegister:number;calls:number[];covering:PhysicalIndex|null;indexCursor:number}=>{
-    const rowset=allocate(),rowid=allocate(),returnRegister=allocate(),calls:number[]=[];
-    ops.push({code:'Null',p2:rowset});const safe=ops.length;ops.push({code:'Integer',p1:0n,p2:returnRegister});
+    const primary=parent.source.table.withoutRowid?primaryFor(parent.source):null;
+    const rowset=primary?builder.cursor():allocate(),rowid=builder.range(primary?.keyInfo.keyFieldCount??1),record=allocate(),returnRegister=allocate(),calls:number[]=[];
+    if(primary){const info=case5KeyInfo(primary);ops.push({code:'OpenEphemeral',p1:rowset,keyInfo:info,p4KeyInfo:info});}else ops.push({code:'Null',p2:rowset});const safe=ops.length;ops.push({code:'Integer',p1:0n,p2:returnRegister});
     const arms=parent.orInfo!.clause.terms.filter(term=>!term.virtual);
     const available=readyMask|(1n<<BigInt(parent.sourceOrdinal));
     // Native untestedTerms leaves parent residual enabled if recursive
@@ -3637,15 +3638,14 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           const at=compilePredicate(term.expression);
           if(at!==undefined)residuals.push(at);
         }
-        ops.push({code:'Rowid',p1:tableCursor,p2:rowid});const duplicate=ops.length;
-        ops.push({code:'RowSetTest',p1:rowset,p2:0,p3:rowid,p4:batch===arms.length-1?-1:batch});
+        const duplicate=emitCase5Identity(ops,primary,tableCursor,rowid,record,rowset,batch,batch===arms.length-1);
         calls.push(ops.length);ops.push({code:'Gosub',p1:returnRegister,p2:0});
         for(const at of residuals)(ops[at] as {p2:number}).p2=ops.length;
-        (ops[duplicate] as {p2:number}).p2=ops.length;
+        patchCase5Duplicate(ops,duplicate,ops.length);
       };
       if(branch.kind==='multi-or'){covering=null;emitJoinedOr(branch,clause,tableCursor,readyMask,()=>consume((arm.prereqAll&~available)===0n));continue;}
-      const cap=branch.capability,physical=cap?.physicalIndex,indexCursor=physical?commonIndexCursor:undefined;
-      covering=physical&&(batch===0||physical===covering)?physical:null;
+      const cap=branch.capability,physical=cap?.physicalIndex,indexCursor=physical?(primary&&physical.index.origin==='primary-key'?tableCursor:commonIndexCursor):undefined;
+      covering=physical&&(!primary||physical.index.origin!=='primary-key')&&(batch===0||physical===covering)?physical:null;
       const guards:number[]=[],ends:number[]=[],equalityGuards:number[]=[],iterators:number[]=[];
       const rhs=(term:WhereTerm):Expression=>{
         // Canonical null tests have a generated NULL RHS, not a resolved child.
@@ -3686,7 +3686,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         if(cap!.nEq){ends.push(ops.length);ops.push({code:'IndexPrefixEnd',p1:indexCursor!,keys:[...skippedKeys,...keys].slice(0,cap!.nEq),affinities:[...skippedAffinities,...affinities].slice(0,cap!.nEq),keyInfo:physical.keyInfo,p2:0});}
         const end=rangeReverse?cap!.lower:cap!.upper;
         if(end){const endKey=key(end.term);if(!end.term.virtualNull){ops.push({code:'IsNull',p1:endKey,p2:0});ends.push(ops.length-1);}ops.push({code:'IndexRangeEnd',p1:indexCursor!,field:cap!.nEq,key:endKey,affinity:end.comparison.kind==='comparison'?end.comparison.affinity:'blob',collation:end.comparison.kind==='comparison'?end.comparison.collation:'binary',operator:end.operator as 'lt'|'le'|'gt'|'ge',p2:0});ends.push(ops.length-1);}
-        ops.push({code:'DeferredSeek',p1:indexCursor!,p2:tableCursor});consume();
+        const primaryMiss=primary?emitWrPrimaryPosition(ops,physical,primary,indexCursor!,tableCursor,allocate):undefined;
+        if(!primary)ops.push({code:'DeferredSeek',p1:indexCursor!,p2:tableCursor});consume();
+        if(primaryMiss!==undefined)(ops[primaryMiss] as {jump:number}).jump=ops.length;
         ops.push({code:reverse?'IndexPrev':'IndexNext',p1:indexCursor!,p2:loopStart});
       }else{
         const eq=cap?.rowidEquality,lower=cap?.rowidLower,upper=cap?.rowidUpper;
@@ -3846,7 +3848,10 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     for(let pc=cover.start;pc<ops.length;pc++){
       const op=ops[pc]!;
       if(op.code==='Column'&&(op.p3??0)===cover.tableCursor){
-        const column=loopSources[level]!.table.columns[op.p1];
+        const table=loopSources[level]!.table;
+        // where.c:sqlite3WhereEnd maps WR primary storage through aiColumn
+        // before looking up the logical column in the agreed secondary.
+        const column=table.withoutRowid?primaryFor(loopSources[level]!).fields[op.p1]?.column:table.columns[op.p1];
         const field=cover.physical.fields.findIndex(field=>column!==undefined&&(field.column===column||
           (field.role==='rowid-tail'&&isIntegerPrimaryKeyAlias(loopSources[level]!.table,op.p1))));
         if(field>=0)ops[pc]={...op,p1:field,p3:cover.cursor};
@@ -3979,13 +3984,39 @@ function sqlName(text: string): string {
   return text;
 }
 
-interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[]; readonly prefixLoop?:PrefixLoop }
+/** wherecode.c Case5: PK aiColumn order, not declaration or suffix order. */
+function case5KeyInfo(primary:PhysicalIndex):KeyInfo {
+  const n=primary.keyInfo.keyFieldCount;
+  return new KeyInfo({encoding:primary.keyInfo.encoding,totalFieldCount:n,keyFieldCount:n,terms:primary.keyInfo.terms.slice(0,n)});
+}
+function emitCase5Identity(ops:Op[],primary:PhysicalIndex|null,tableCursor:number,keyStart:number,record:number,set:number,batch:number,last:boolean):number|undefined {
+  if(!primary){ops.push({code:'Rowid',p1:tableCursor,p2:keyStart});const at=ops.length;ops.push({code:'RowSetTest',p1:set,p2:0,p3:keyStart,p4:last?-1:batch});return at;}
+  const n=primary.keyInfo.keyFieldCount;
+  for(let i=0;i<n;i++){const column=primary.fields[i]!.column;if(!column)throw new JSQLiteError('internal','WR PK has no logical column');ops.push({code:'Column',p1:i,p2:keyStart+i,p3:tableCursor});if(column.affinity==='real')ops.push({code:'RealAffinity',p1:keyStart+i});}
+  let duplicate:number|undefined;
+  if(batch){duplicate=ops.length;ops.push({code:'Found',p1:set,keyStart,keyCount:n,jump:0});}
+  if(!last)ops.push({code:'MakeRecord',p1:keyStart,p2:n,p3:record},{code:'IdxInsert',p1:set,p2:record,keyStart,keyCount:n,useSeekResult:batch!==0});
+  return duplicate;
+}
+function patchCase5Duplicate(ops:Op[],at:number|undefined,target:number):void {
+  if(at===undefined)return;const op=ops[at]!;if(op.code==='Found')ops[at]={...op,jump:target};else (op as {p2:number}).p2=target;
+}
+/** wherecode.c2175: secondary compact PK extraction then primary NotFound. */
+function emitWrPrimaryPosition(ops:Op[],secondary:PhysicalIndex,primary:PhysicalIndex,indexCursor:number,tableCursor:number,allocate:()=>number):number|undefined {
+  if(indexCursor===tableCursor)return undefined;
+  const keys=Array.from({length:primary.keyInfo.keyFieldCount},allocate);
+  for(let i=0;i<keys.length;i++){const field=secondary.index.origin==='primary-key'?i:secondary.primaryKeyFields[i];if(field===undefined)throw new JSQLiteError('internal','WR secondary lost PK mapping');ops.push({code:'Column',p1:field,p2:keys[i]!,p3:indexCursor});}
+  const at=ops.length;ops.push({code:'NotFound',p1:tableCursor,keyStart:keys[0]!,keyCount:keys.length,jump:0});return at;
+}
+
+interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[]; readonly prefixLoop?:PrefixLoop; readonly primaryMiss?:number }
 /** Bounded first-plan translation seam for sqlite3WhereBegin/wherecode.c. */
 function sqlite3WhereBegin(ops: Op[], rootPage: number): FullScanPlan {
   ops.push({code:"OpenRead",p1:rootPage}); const rewindIndex=ops.length;
   ops.push({code:"Rewind",p2:0}); return {loopStart:ops.length,rewindIndex};
 }
 function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): void {
+  if(plan.primaryMiss!==undefined)(ops[plan.primaryMiss] as {jump:number}).jump=ops.length;
   const iterators=plan.inIterators??[];
   if(!plan.singleRow)ops.push(plan.indexCursor===undefined?(plan.reverse?{code:"Prev",p2:continueAt}:{code:"Next",p2:continueAt}):(plan.reverse?{code:"IndexPrev",p1:plan.indexCursor,p2:continueAt}:{code:"IndexNext",p1:plan.indexCursor,p2:continueAt}));
   // where.c:sqlite3WhereEnd unwinds aInLoop inside-out. On outer
@@ -5726,6 +5757,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     }
     ops.push({code:"OpenIndex",p1:selectedPhysical.index.rootPage,p2:accessCursor,physical:selectedPhysical});
   }
+  else if(table.withoutRowid)ops.push({code:"OpenIndex",p1:table.rootPage,p2:0,physical:table.indexes.find(index=>index.origin==="primary-key")!.physical!});
   else ops.push({code:"OpenRead",p1:table.rootPage,p2:0});
   // Child NameContexts number their SrcList cursors independently, but all of
   // these plans execute in this one VDBE. Relocate child-owned read cursors so
@@ -5745,7 +5777,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // overrides the column's declared collation even though the projection can
   // still use the direct-column fast path.
   if(select.hasDistinct)ops.push({code:"OpenEphemeral",p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projected.length,keyFieldCount:projected.length,terms:resolvedResultKeyTerms(expanded)})});
-  const emitPosition=():FullScanPlan=>{
+  const emitPosition=(positionCursor=accessCursor):FullScanPlan=>{
   let rewindIndex:number,prefixLoop:PrefixLoop|undefined;const inIterators:number[]=[],startNullGuards:number[]=[],equalityNullGuards:number[]=[];
   const boundRhs=(term:WhereTerm):Expression=>{if(term.operator==="is-null")return {kind:"literal",value:null};const expression=resolveExpression(term.expression);if(expression.kind!=="binary")throw new JSQLiteError("internal","rowid bound lost binary expression");return term.originalIndexedOperand==="left"?expression.right:expression.left;};
   const inValues=(term:WhereTerm):Expression[]=>{const expression=resolveExpression(term.expression);if(expression.kind!=="in-list"||expression.negated)throw new JSQLiteError("internal","IN constraint lost value list");return expression.values;};
@@ -5765,7 +5797,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const ordinal=(admission:IndexConstraintAdmission)=>selectedNSkip+admissions.indexOf(admission);
     const skippedKeys=Array.from({length:selectedNSkip},()=>builder.register());
     const skippedAffinities=Array<MemAffinity>(selectedNSkip).fill("blob");
-    const prefixEntry=beginPrefixLoop(ops,accessCursor,skippedKeys,skippedAffinities,selectedPhysical.keyInfo,selectedIndexReverse,selectedNSkip);
+    const prefixEntry=beginPrefixLoop(ops,positionCursor,skippedKeys,skippedAffinities,selectedPhysical.keyInfo,selectedIndexReverse,selectedNSkip);
     const inAdmissions=admissions.filter(admission=>admission?.operator==="in");
     let keys:number[];
     if(inAdmissions.length){
@@ -5790,31 +5822,31 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // before applying affinity or seeking. Equality IS NULL is not a range
     // start: its NULL key must remain searchable.
     if(start&&!start.term.virtualNull){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[keys.length-1]!,p2:0});}
-    const affinities=admissions.map(a=>a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);prefixLoop=emitPrefixSeek(ops,prefixEntry,accessCursor,[...skippedKeys,...keys],[...skippedAffinities,...affinities],selectedPhysical.keyInfo,selectedIndexReverse,!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),{enabled:selectedInSeekScan,rowLogEst:selectedPhysical.index.rowLogEst[0]??99,hasRange:!!(selectedIndexLower||selectedIndexUpper)});rewindIndex=prefixLoop.seek;
+    const affinities=admissions.map(a=>a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);prefixLoop=emitPrefixSeek(ops,prefixEntry,positionCursor,[...skippedKeys,...keys],[...skippedAffinities,...affinities],selectedPhysical.keyInfo,selectedIndexReverse,!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),{enabled:selectedInSeekScan,rowLogEst:selectedPhysical.index.rowLogEst[0]??99,hasRange:!!(selectedIndexLower||selectedIndexUpper)});rewindIndex=prefixLoop.seek;
   }else {
     // wherecode.c Case 4 aStartOp: an unconstrained reverse index loop
     // positions with OP_Last, paired with OP_Prev in sqlite3WhereEnd.
     rewindIndex=ops.length;
     ops.push(selectedPhysical
-      ? {code:selectedIndexReverse?"IndexLast":"IndexRewind",p1:accessCursor,p2:0}
+      ? {code:selectedIndexReverse?"IndexLast":"IndexRewind",p1:positionCursor,p2:0}
       : {code:rowidReverse?"Last":"Rewind",p2:0});
   }
   const selectedPrimarySingleRow=!selectedNSkip&&selectedPhysical?.index.origin==="primary-key"&&selectedNEq===selectedPhysical.keyInfo.keyFieldCount;
   // Pinned where.c whereLoopAddBtreeIndex marks a PRIMARY KEY loop WHERE_ONEROW
   // once nEq reaches nKeyCol. wherecode.c then omits the loop-step opcode. This
   // is safe for WITHOUT ROWID PKs because every key term is non-NULL and unique.
-  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(prefixLoop?{prefixLoop}:{}),startNullGuards,...(equalityNullGuards.length?{equalityNullGuards}:{}),...(selectedPhysical?{indexCursor:accessCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
-  if(selectedPhysical&&selectedNEq){const seek=prefixLoop??ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:accessCursor,keys:seek.keys.slice(0,selectedNEq),affinities:seek.affinities.slice(0,selectedNEq),keyInfo:selectedPhysical.keyInfo,p2:0});}
+  const scan:FullScanPlan={rewindIndex,loopStart:ops.length,...(prefixLoop?{prefixLoop}:{}),startNullGuards,...(equalityNullGuards.length?{equalityNullGuards}:{}),...(selectedPhysical?{indexCursor:positionCursor}:{}),...(rowidEquality||selectedPrimarySingleRow?{singleRow:true}:{}),...(inIterators.length?{inIterators}:{}),...(selectedPhysical&&selectedIndexReverse?{reverse:true}:{}),...(!selectedPhysical&&rowidReverse?{reverse:true}:{})};
+  if(selectedPhysical&&selectedNEq){const seek=prefixLoop??ops[rewindIndex] as Extract<Op,{code:"IndexSeekPrefix"}>;ops.push({code:"IndexPrefixEnd",p1:positionCursor,keys:seek.keys.slice(0,selectedNEq),affinities:seek.affinities.slice(0,selectedNEq),keyInfo:selectedPhysical.keyInfo,p2:0});}
   const rangeBackwards=selectedIndexReverse!==!!selectedPhysical?.fields[selectedNEq]?.descending;
   const indexEnd=rangeBackwards?selectedIndexLower:selectedIndexUpper,indexStart=rangeBackwards?selectedIndexUpper:selectedIndexLower;
   // wherecode.c emits a prefix seek and an Idx* termination check. For a
   // range that begins at the prefix edge in physical scan order, the retained
   // bound is the termination test; no independently reconstructed key exists.
-  const rangeEnd=indexEnd??(indexStart&&!selectedEqualities.length?null:indexStart);if(selectedPhysical&&rangeEnd){const key=compileExpressionTree(boundRhs(rangeEnd.term),ops,()=>builder.register(),parameters);if(!rangeEnd.term.virtualNull){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:key,p2:0});}ops.push({code:"IndexRangeEnd",p1:accessCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.affinity:"blob",collation:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.collation:"binary",operator:rangeEnd.operator as "lt"|"le"|"gt"|"ge",p2:0});}
+  const rangeEnd=indexEnd??(indexStart&&!selectedEqualities.length?null:indexStart);if(selectedPhysical&&rangeEnd){const key=compileExpressionTree(boundRhs(rangeEnd.term),ops,()=>builder.register(),parameters);if(!rangeEnd.term.virtualNull){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:key,p2:0});}ops.push({code:"IndexRangeEnd",p1:positionCursor,field:rangeEnd.fieldOrdinal,key,affinity:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.affinity:"blob",collation:rangeEnd.comparison.kind==="comparison"?rangeEnd.comparison.collation:"binary",operator:rangeEnd.operator as "lt"|"le"|"gt"|"ge",p2:0});}
   const end=rowidReverse?rowidLower:rowidUpper;if(end?.expression.reduction){const key=compileExpressionTree(boundRhs(end),ops,()=>builder.register(),parameters);ops.push({code:rowidReverse?"RowidLowerBound":"RowidUpperBound",key,inclusive:end.operator==="le"||end.operator==="ge",p2:0});}
   if(selectedPhysical&&selectedNeedsTableLookup){
-    if(table.withoutRowid){const primary=table.indexes.find(index=>index.origin==="primary-key")?.physical!;const primaryKeyFields=selectedPhysical.primaryKeyFields;if(primaryKeyFields.length!==primary.keyInfo.keyFieldCount)throw new JSQLiteError("unsupported","WITHOUT ROWID secondary primary-key mapping is not represented",{unsupportedClassification:"temporary"});ops.push({code:"DeferredIndexSeek",p1:accessCursor,p2:0,primaryKeyFields,physical:primary});}
-    else ops.push({code:"DeferredSeek",p1:accessCursor,p2:0});
+    if(table.withoutRowid){const primary=table.indexes.find(index=>index.origin==="primary-key")?.physical!;const primaryKeyFields=selectedPhysical.primaryKeyFields;if(primaryKeyFields.length!==primary.keyInfo.keyFieldCount)throw new JSQLiteError("unsupported","WITHOUT ROWID secondary primary-key mapping is not represented",{unsupportedClassification:"temporary"});const miss=emitWrPrimaryPosition(ops,selectedPhysical,primary,positionCursor,0,()=>builder.register());if(miss!==undefined)(scan as {primaryMiss?:number}).primaryMiss=miss;}
+    else ops.push({code:"DeferredSeek",p1:positionCursor,p2:0});
   }
   return scan;
   };
@@ -5830,8 +5862,9 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // Every level owns its own RowSet and exact Gosub return register while
     // registers, cursors, bindings and the construction budget stay shared.
     const emitOr=(parent:WhereLoop,outer:WhereClause,body?:()=>void):{returnRegister:number;skipBody:number;covering:PhysicalIndex|null}=>{
-      const rowset=builder.register(),returnRegister=builder.register(),rowid=builder.register();
-      ops.push({code:'Null',p2:rowset});const safeReturn=ops.length;ops.push({code:'Integer',p1:0n,p2:returnRegister});
+      const primary=parent.source.table.withoutRowid?parent.source.table.indexes.find(index=>index.origin==='primary-key')!.physical!:null;
+      const rowset=primary?builder.cursor():builder.register(),returnRegister=builder.register(),rowid=builder.range(primary?.keyInfo.keyFieldCount??1),record=builder.register();
+      if(primary){const info=case5KeyInfo(primary);ops.push({code:'OpenEphemeral',p1:rowset,keyInfo:info,p4KeyInfo:info});}else ops.push({code:'Null',p2:rowset});const safeReturn=ops.length;ops.push({code:'Integer',p1:0n,p2:returnRegister});
       const calls:number[]=[],arms=parent.orInfo!.clause.terms.filter(term=>!term.virtual);
       let covering:PhysicalIndex|null=null;
       for(const [ordinal,arm] of arms.entries()){
@@ -5847,22 +5880,23 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
             const predicate=resolveExpression(term.expression),truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters);
             residuals.push(ops.length);ops.push({code:'IfNot',p1:truth,p2:0,residual:true});
           }
-          ops.push({code:'Rowid',p2:rowid});const test=ops.length;ops.push({code:'RowSetTest',p1:rowset,p2:0,p3:rowid,p4:ordinal===arms.length-1?-1:ordinal});
+          const test=emitCase5Identity(ops,primary,0,rowid,record,rowset,ordinal,ordinal===arms.length-1);
           calls.push(ops.length);ops.push({code:'Gosub',p1:returnRegister,p2:0});
-          const next=ops.length;for(const residual of residuals)(ops[residual] as {p2:number}).p2=next;(ops[test] as {p2:number}).p2=next;
+          const next=ops.length;for(const residual of residuals)(ops[residual] as {p2:number}).p2=next;patchCase5Duplicate(ops,test,next);
         };
         if(branch.kind==='multi-or'){
           covering=null;
           emitOr(branch,clause,()=>emitArm(true));
         }else{
           const cap=branch.capability;
-          selectedPhysical=cap?.physicalIndex??null;selectedNeedsTableLookup=!!selectedPhysical;
+          selectedPhysical=cap?.physicalIndex??null;selectedNeedsTableLookup=!!selectedPhysical&&(!primary||selectedPhysical.index.origin!=='primary-key');
           // Case5 pCov: once any arm disagrees, later arms cannot restore it.
-          covering=selectedPhysical&&(ordinal===0||selectedPhysical===covering)?selectedPhysical:null;
+          covering=selectedPhysical&&(!primary||selectedPhysical.index.origin!=='primary-key')&&(ordinal===0||selectedPhysical===covering)?selectedPhysical:null;
           selectedEqualities=cap?.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null)??[];selectedNSkip=cap?.nSkip??0;selectedNEq=cap?.nEq??0;selectedInSeekScan=!!cap?.inSeekScan;selectedIndexLower=cap?.lower??null;selectedIndexUpper=cap?.upper??null;selectedIndexReverse=false;
           rowidEquality=cap?.rowidEquality?.term??null;rowidLower=cap?.rowidLower?.term??null;rowidUpper=cap?.rowidUpper?.term??null;rowidReverse=false;
-          if(selectedPhysical)ops.push({code:'OpenIndex',p1:selectedPhysical.index.rootPage,p2:accessCursor,physical:selectedPhysical,orBranch:true});
-          const scan=emitPosition();
+          const positionCursor=primary&&selectedPhysical?.index.origin==='primary-key'?0:accessCursor;
+          if(selectedPhysical)ops.push({code:'OpenIndex',p1:selectedPhysical.index.rootPage,p2:positionCursor,physical:selectedPhysical,orBranch:true});
+          const scan=emitPosition(positionCursor);
           emitArm();
           sqlite3WhereEnd(ops,scan,scan.loopStart);
         }
@@ -5882,7 +5916,15 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // remain reserved; no child publishes or finishes a separate Program.
   // resolve.c pNext references consume the positioned enclosing table row.
   // Linked singleton production must not inherit the child SrcList cursor.
-  const physicalScalarBinding:ResolvedExpressionBinding={policy:'scalar',location:ref=>({kind:'cursor',cursor:ref.source===expanded.sources[0]?0:nestedReadCursors.get(ref.source)??ref.source.cursorId})};
+  const physicalScalarBinding:ResolvedExpressionBinding={policy:'scalar',location:ref=>({
+    kind:'cursor',
+    cursor:ref.source===expanded.sources[0]?0:nestedReadCursors.get(ref.source)??ref.source.cursorId,
+    // expr.c:sqlite3ExprCodeGetColumnOfTable remaps logical WR columns
+    // through the primary aiColumn layout; cursor relocation alone is not enough.
+    ...(ref.source.table.withoutRowid&&ref.columnIndex>=0?{
+      physicalColumnIndex:ref.source.table.indexes.find(i=>i.origin==='primary-key')!.physical!.fields.findIndex(f=>f.column===ref.source.table.columns[ref.columnIndex])
+    }:{})
+  })};
   const sharedPhysicalScalar=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding);
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
@@ -7203,6 +7245,7 @@ export class VdbeStatement implements Statement {
   #rowCount = 0;
   #cursors = new Map<number, TableScanCursor>();
   #indexCursors = new Map<number, IndexCursor>();
+  #indexPhysical = new Map<number, PhysicalIndex>();
   #tableSeekCursors = new Map<number, TableCursor>();
   #jsonCursors = new Map<number,JsonTableCursor>();
   #cursorRoots = new Map<number, number>();
@@ -7283,7 +7326,7 @@ export class VdbeStatement implements Statement {
         switch (op.code) {
           case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
           case "OpenIndex":
-            if(op.orBranch)this.#privateAccounting={...this.#privateAccounting,orBranchStarts:this.#privateAccounting.orBranchStarts+1,orBranchRoots:[...this.#privateAccounting.orBranchRoots,op.p1]}; {this.#indexCursors.set(op.p2,this.#program.database!.indexCursor(op.p1));break;}
+            if(op.orBranch)this.#privateAccounting={...this.#privateAccounting,orBranchStarts:this.#privateAccounting.orBranchStarts+1,orBranchRoots:[...this.#privateAccounting.orBranchRoots,op.p1]}; {this.#indexCursors.set(op.p2,this.#program.database!.indexCursor(op.p1));this.#indexPhysical.set(op.p2,op.physical);break;}
           case "JsonTableRewind": {
             const input=this.#registers[op.input]!,root=op.root===undefined?"$":this.#registers[op.root]!.initialStorageClass==="null"?null:this.#registers[op.root]!.textValue();
             const charge=(units:number)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}};
@@ -7380,6 +7423,18 @@ export class VdbeStatement implements Statement {
           case "SorterNext": if((this.#privateCursors.get(op.p1) as SorterCursor).next())this.#pc=op.p2;break;
           case "Found":
           case "NotFound": {
+            const persistent=this.#indexCursors.get(op.p1);
+            if(persistent){
+              const physical=this.#indexPhysical.get(op.p1);
+              if(!physical)throw new JSQLiteError('internal','persistent key cursor lost descriptor');
+              this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};
+              const values=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount).map(value=>{const copy=new Mem();copy.copyFrom(value);return copy});
+              const key=new UnpackedRecordKey(values,0,'seek',physical.keyInfo);
+              try{const exists=persistent.seek(payload=>{this.#checkControl(options,limit,started);this.#work++;return compareRecordKey(payload,key,physical.keyInfo)},'ge');
+                if(exists)this.#loadIndexRecord(op.p1);else this.#records.delete(op.p1);
+                if(exists===(op.code==='Found'))this.#pc=op.jump;
+              }finally{key.release()}break;
+            }
             const typed=this.#privateKeys.get(op.p1);
             if(typed){
               const control=this.#privateControl(options,limit,started),life=new BorrowLifetime();
@@ -7711,7 +7766,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateKeys.clear();

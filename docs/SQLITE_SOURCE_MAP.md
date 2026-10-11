@@ -1013,3 +1013,36 @@ and verification limits: [evidence](research/card-h-b-reprepare/README.md).
 ## Packed private-key consuming VM
 
 Pinned vdbe.c OpenEphemeral/Found/NotFound/MakeRecord/IdxInsert and vdbeaux cursor cleanup map to `vdbe.ts`, `private-key-vm.ts`, `record-pack.ts` and accepted PrivateBlobkeyPages/Cursor. Register and packed probes retain separate owned descriptor/snapshot lifetimes. USESEEKRESULT safely reseeks; no scalar seek authority. Representative lifecycle/publication/primary-error/control and deterministic byte admission/refund coverage: `test/value/private-key-vm*.test.mjs`, `test/value/record-pack.test.mjs`. Case5 wherecode.c emits no OpenDup/noReuse/NextPrev/P5 affinity trimming requirements. WR admission/lowerers unchanged. Detailed isolated evidence and limits: [[card:card-s-i-c-b-a]] status.
+
+
+### Represented WR consuming boundary (current clarification)
+
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) separates WR acceptance from provisional original225 proposals and the actual out-of-slice full-browser byte-limit failure; no whole-product approval follows.
+
+WITHOUT ROWID Case5 consuming mapping: pinned `where.c:whereLoopAddOr`,
+`wherecode.c2170–2585`, `expr.c:sqlite3ExprCodeGetColumnOfTable`, WhereEnd →
+`where-plan.ts` persistent OR gate; `vdbe.ts:emitCase5Identity/case5KeyInfo`,
+shared ordinary/INNER/scalar Gosub consumers, `emitWrPrimaryPosition` and persistent
+NotFound; primary arms share the positioned table cursor and skip secondary
+lookup (`wherecode.c:iCur!=iIdxCur`). `schema.ts` physical PK descriptors preserve aiColumn order and compact
+secondary suffix; private packed VM owns dedup storage. WR primary is excluded
+from common covering. Native `where.c4835` excludes JT_RIGHT, not LEFT;
+`wherecode.c2355ff` excludes nullable ON/USING factoring, not admission.
+The joined Case5 caller retains LEFT null extension; boundary64 asserts selected
+WR union plus public per-outer null extension/reset (evidence in consumer record).
+`or-wr-boundary.test.mjs` covers selected handoff,
+first/middle/final op shape and typed public/reset companions in three encodings.
+`expr.c4426–4482` logical WR column→primary aiColumn and ColumnDefault maps to
+`vdbe.ts:physicalScalarBinding`→`bindResolvedExpression`→Column/RealAffinity;
+child local access remains `compileInnerTableSelect:columnAccess`. Boundary76
+covers selected outer/child WR union correlation with declaration/PK order
+mismatch and alias/expression/scalar metadata; companion77 checks TEXT/REAL
+correlations and REAL results twice/reset. This is represented caller evidence,
+not full scalar/source fidelity closure (revision evidence in consumer record).
+[Consumer decisions](research/card-s-i/consumer-decisions.md),
+[evidence](record:///status.md?card=card-s-i-c-b-c), and
+[remaining matrix/provenance](research/card-s-i/acceptance-matrix.md).
+Independent exact source cases and dev-only harness are indexed in
+[WR evidence](research/card-s-i/README.md); filtered actual-browser and exact
+original225 residual gates remain distinct. No full matrix or
+optimizer/whole-suite parity claim.

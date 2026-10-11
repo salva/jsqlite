@@ -1,0 +1,4896 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "9ca4b35464fe6d7e273ab17cae1caa360e086c07241a7d61a1f7e05a40c841c2",
+  "upstreamSha256": "b4938c106b00a14e4656c21ea385de02e849e8cce839a12ba72c86beb076c077",
+  "fixture": {
+    "path": "test/fixtures/wr-wherei-expanded.db",
+    "sha256": "2c0eae44db914434616206b12fce5296218ce77740c990ae61368d53ea0227e1"
+  },
+  "classification": "four additional exact execsql cases; eqp1.1/2.1 retained as oracle diagnostics, not independent case credit; one UTF-8 fixture",
+  "cases": [
+    {
+      "id": "whereI-1.2",
+      "sql": "SELECT a FROM t1 WHERE b='b' OR c='x'",
+      "classification": "exact execsql SQL/schema/data; setup whereI-1.0/2.0",
+      "names": [
+        "a"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      "eqp": {
+        "names": [
+          "id",
+          "parent",
+          "notused",
+          "detail"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "MULTI-INDEX OR"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t1 USING INDEX i1 (b=?)"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t1 USING INDEX i2 (c=?)"
+            }
+          ]
+        ]
+      },
+      "explain": {
+        "names": [
+          "addr",
+          "opcode",
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "comment"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "Init"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "value": "OpenRead"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "value": "OpenEphemeral"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "Integer"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "b"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "text",
+              "value": "MakeRecord"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "value": "IdxInsert"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "16"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "x"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "17"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "21"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "22"
+            },
+            {
+              "type": "text",
+              "value": "Found"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "23"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "27"
+            },
+            {
+              "type": "text",
+              "value": "ResultRow"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "28"
+            },
+            {
+              "type": "text",
+              "value": "Return"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "text",
+              "value": "Halt"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "text",
+              "value": "Transaction"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": "whereI-1.3",
+      "sql": "SELECT a FROM t1 WHERE b='a' OR c='z'",
+      "classification": "exact execsql SQL/schema/data; setup whereI-1.0/2.0",
+      "names": [
+        "a"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": {
+        "names": [
+          "id",
+          "parent",
+          "notused",
+          "detail"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "MULTI-INDEX OR"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t1 USING INDEX i1 (b=?)"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t1 USING INDEX i2 (c=?)"
+            }
+          ]
+        ]
+      },
+      "explain": {
+        "names": [
+          "addr",
+          "opcode",
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "comment"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "Init"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "value": "OpenRead"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "value": "OpenEphemeral"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "Integer"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "a"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "text",
+              "value": "MakeRecord"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "value": "IdxInsert"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "16"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "z"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "17"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "21"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "22"
+            },
+            {
+              "type": "text",
+              "value": "Found"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "23"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "27"
+            },
+            {
+              "type": "text",
+              "value": "ResultRow"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "28"
+            },
+            {
+              "type": "text",
+              "value": "Return"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "text",
+              "value": "Halt"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "text",
+              "value": "Transaction"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": "whereI-2.2",
+      "sql": "SELECT a FROM t2 WHERE b='b' OR c='x'",
+      "classification": "exact execsql SQL/schema/data; setup whereI-1.0/2.0",
+      "names": [
+        "a"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "ii"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "iii"
+          }
+        ]
+      ],
+      "eqp": {
+        "names": [
+          "id",
+          "parent",
+          "notused",
+          "detail"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "MULTI-INDEX OR"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t2 USING INDEX i3 (b=?)"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t2 USING INDEX i4 (c=?)"
+            }
+          ]
+        ]
+      },
+      "explain": {
+        "names": [
+          "addr",
+          "opcode",
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "comment"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "Init"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "value": "OpenRead"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "value": "OpenEphemeral"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "Integer"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "b"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "text",
+              "value": "MakeRecord"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "value": "IdxInsert"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "16"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "x"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "17"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "21"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "22"
+            },
+            {
+              "type": "text",
+              "value": "Found"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "23"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "27"
+            },
+            {
+              "type": "text",
+              "value": "ResultRow"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "28"
+            },
+            {
+              "type": "text",
+              "value": "Return"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "text",
+              "value": "Halt"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "text",
+              "value": "Transaction"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": "whereI-2.3",
+      "sql": "SELECT a FROM t2 WHERE b='a' OR c='z'",
+      "classification": "exact execsql SQL/schema/data; setup whereI-1.0/2.0",
+      "names": [
+        "a"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "i"
+          }
+        ]
+      ],
+      "eqp": {
+        "names": [
+          "id",
+          "parent",
+          "notused",
+          "detail"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "MULTI-INDEX OR"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t2 USING INDEX i3 (b=?)"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "INDEX 2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "62"
+            },
+            {
+              "type": "text",
+              "value": "SEARCH t2 USING INDEX i4 (c=?)"
+            }
+          ]
+        ]
+      },
+      "explain": {
+        "names": [
+          "addr",
+          "opcode",
+          "p1",
+          "p2",
+          "p3",
+          "p4",
+          "p5",
+          "comment"
+        ],
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "Init"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "value": "OpenRead"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "value": "OpenEphemeral"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(1,)"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "Integer"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "a"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "9"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "11"
+            },
+            {
+              "type": "text",
+              "value": "MakeRecord"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "12"
+            },
+            {
+              "type": "text",
+              "value": "IdxInsert"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "13"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "14"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "15"
+            },
+            {
+              "type": "text",
+              "value": "ReopenIdx"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "k(2,,)"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "16"
+            },
+            {
+              "type": "text",
+              "value": "String8"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "value": "z"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "17"
+            },
+            {
+              "type": "text",
+              "value": "SeekGE"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "text",
+              "value": "IdxGT"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "text",
+              "value": "NotFound"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "21"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "22"
+            },
+            {
+              "type": "text",
+              "value": "Found"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "integer",
+              "value": "7"
+            },
+            {
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "23"
+            },
+            {
+              "type": "text",
+              "value": "Gosub"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "24"
+            },
+            {
+              "type": "text",
+              "value": "Next"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "18"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "25"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "text",
+              "value": "Column"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "27"
+            },
+            {
+              "type": "text",
+              "value": "ResultRow"
+            },
+            {
+              "type": "integer",
+              "value": "8"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "28"
+            },
+            {
+              "type": "text",
+              "value": "Return"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "26"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "29"
+            },
+            {
+              "type": "text",
+              "value": "Halt"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "30"
+            },
+            {
+              "type": "text",
+              "value": "Transaction"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "31"
+            },
+            {
+              "type": "text",
+              "value": "Goto"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null",
+              "value": null
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

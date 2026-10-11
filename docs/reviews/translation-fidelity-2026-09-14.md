@@ -60,8 +60,15 @@ reproducer are green; finite delivered runtime acceptance is distinct from
 incomplete whole-goal source/caller review. Historical harness weaknesses, their
 repairs, exact candidate gates and separate reviewer overlays are recorded in
 [[card:card-s-f-c]] status; no exhaustive consumer acceptance is inferred.
-Ordinary/forced-index fallback is retained; WR union and unsafe selected joins are
-deferred, not owner-scope withdrawals. Full expression comparison/flags, recursive
+### Represented WR consuming boundary (current clarification)
+
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) separates WR acceptance from provisional original225 proposals and the actual out-of-slice full-browser byte-limit failure; no whole-product approval follows.
+
+Ordinary/forced-index fallback is retained. Represented persistent WR Case5 now
+uses typed PK dedup in ordinary/INNER/simple scalar and readiness-safe LEFT
+consumers; unsafe selected joins retain their existing boundaries. The finite
+[WR matrix](../research/card-s-i/acceptance-matrix.md) does not establish exhaustive
+consumer fidelity or original225 owner approval. Earlier222/3 is superseded by packaged225/225 and archive224/1 missing generator plus separate retry; provisional original-owner proposals remain separate. Full expression comparison/flags, recursive
 admission/cleanup, transitive lowering and native cost parity remain unproved.
 The reproduced synthetic RowSet destructor/reset collision now detaches Mem
 ownership and completes reset/finalize before reporting the saved primary;

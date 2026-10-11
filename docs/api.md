@@ -317,7 +317,12 @@ compatibility credit.
   support; declined compositions retain typed temporary unsupported failures.
   Joined WITHOUT ROWID
   comma/CROSS/INNER/LEFT sources use primary-index storage and represented
-  secondary access; WITHOUT ROWID RIGHT/FULL match tracking remains temporary
+  secondary access. Represented persistent WITHOUT ROWID selected OR uses typed
+  primary-key dedup in shared ordinary/INNER/simple scalar producers; represented
+  LEFT nullable-side OR also retains selected execution and null extension.
+  Nullable ON/USING factoring exclusions do not prohibit LEFT admission; forced and
+  NOT INDEXED guards remain unchanged. This does not expand aggregate admission
+  or promise optimizer parity. WITHOUT ROWID RIGHT/FULL match tracking remains temporary
   unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
 - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
   precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses
@@ -477,3 +482,8 @@ Consumer loading, bounded sample costing and failure cleanup are delivered; fini
 independent committed verification and remaining limits are recorded in the
 [consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md).
 See the [translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).
+
+### Represented WR consuming boundary (current clarification)
+
+The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) separates WR acceptance from provisional original225 proposals and the actual out-of-slice full-browser byte-limit failure; no whole-product approval follows.
+

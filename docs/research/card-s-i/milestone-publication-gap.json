@@ -1,0 +1,28 @@
+{
+  "classification": "publication/coverage-carrier acceptance gap, not new runtime defect",
+  "base_wr_tree": "f45c01285911045ed1152a36227dc8d5242f8a01",
+  "provisional_tree": "75a4bbe8a5a4c77306082a692946f6751bfee4b6",
+  "missing_wr_carriers": [
+    "test/conformance/left-order-ownership-review.test.mjs",
+    "test/conformance/record-insert-overlap-review.test.mjs",
+    "docs/research/card-s-i/review-left-order-native.json"
+  ],
+  "workspace_carrier_hashes": {
+    "test/conformance/left-order-ownership-review.test.mjs": "ac9f99393f928e38416c573e04988899408f9589ae59f7e88fb15c952c162d8e",
+    "test/conformance/record-insert-overlap-review.test.mjs": "cd543b2cda8b8ff07e8f549a7a88959432aefb7d84a1f10a0d26e440dc0d10a5",
+    "docs/research/card-s-i/review-left-order-native.json": "cc723e4db45eac6f64660c20b82b03e591f8c12cab9055e1856b1fb844041b82"
+  },
+  "head": "1e2d0524047bef3205a8133b060c66f31c2f8ac0",
+  "index_sha256": "cd521b3c32fb953c789d8280b6823fa1a99b3e2ee21c60f23f7ebb918b4825c3",
+  "independent_full_browser": {
+    "report_sha256": "7f83a514746567f3a6952f8171324454fa2f4ea7e0f2b273873178760c2ad79a",
+    "passed": 45,
+    "failed": 1,
+    "case": "window/private-live-rows",
+    "kind": "limit",
+    "message": "ephemeral index exceeds total byte limit",
+    "maxPrivateBytes": 336,
+    "owner": "window/browser original owner via parent card-s-i-c-b"
+  },
+  "next": "Green node integrate d carriers, narrow current docs, publish WR-only explicit temp-index commit/ref; retain original225 test/spec proposals separate provisional payload; route browser failure without cap waiver."
+}
