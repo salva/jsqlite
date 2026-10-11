@@ -29,7 +29,10 @@ test('public large partition seek accounts visits, host yields, aborts/deadlines
   s.reset();visits=0;await prefix();assert.equal(await s.step(),'row');assert.equal(visits,600);s.reset();
   // Public maxWorkUnits is cumulative. Compare first600-output threshold with
   // a diagnostic no-charge control wrapper to isolate ONLY lookup work.
-  const minimum=async()=>{let lo=0,hi=100000;while(lo<hi){const mid=Math.floor((lo+hi)/2);s.reset();try{for(let i=0;i<600;i++)await s.step({maxWorkUnits:mid});hi=mid}catch(e){assert.equal(e.kind,'limit');assert.throws(()=>s.reset(),error=>error.kind==='limit');lo=mid+1;}}s.reset();return lo;};
+  const minimum=async()=>{let lo=0,hi=1024;const cap=16777216;
+   const admits=async budget=>{s.reset();try{for(let i=0;i<600;i++)assert.equal(await s.step({maxWorkUnits:budget}),'row');return true}catch(e){assert.equal(e.kind,'limit');assert.throws(()=>s.reset(),error=>error.kind==='limit');return false}};
+   while(!await admits(hi)){assert.ok(hi<cap,'finite threshold search cap exhausted without an admissible upper bound');lo=hi+1;hi=Math.min(hi*2,cap);}
+   while(lo<hi){const mid=Math.floor((lo+hi)/2);if(await admits(mid))hi=mid;else lo=mid+1;}s.reset();return lo;};
   const charged=await minimum();
   EphemeralIndexCursor.prototype.seekRowid=async function(rowid,control){return original.call(this,rowid,{checkpoint:()=>control.checkpoint(0)});};
   const uncharged=await minimum();assert.equal(charged-uncharged,600);

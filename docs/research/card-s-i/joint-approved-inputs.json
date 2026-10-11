@@ -1,0 +1,12 @@
+{
+  "base_wr": "eb8c75f0cc4f3fc64eed0b711dcd77faef118af7",
+  "approved_window": "54f8495bc77b79242a93450ab4730196168dce0a",
+  "endpoint_blob": "69e088eba25a3b16c149844cbc7698bf2dbff7a3",
+  "left_blob": "c2aeb09fa513fe37a421927d870e2660a5ed0a4b",
+  "merge_resolution": [
+    "vdbe import union includes windowRangeTest/bitwiseBinary",
+    "NewRowid accepted monotonic owner newRowid()"
+  ],
+  "browser_change": "ordinal44 success359; new358 control and preserved200 rejection, red reproduced before change",
+  "approval_boundary": "independent integration-testowner final diff review remains parent-routed"
+}

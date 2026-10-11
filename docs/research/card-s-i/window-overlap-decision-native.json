@@ -1,0 +1,2516 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "library": "/work/jsqlite2/.saivage/work/cards/card-e-l/oracle-build/build/libsqlite3-oracle.so",
+  "librarySha256": "3d976cb9d9e6c6f343d4307c707bb52cdebf4c8ebe650397fb9da6fba3c689fe",
+  "fixtureSha256": "9be6541f939fac46565265dc282bd158a4e5c4a908d8f8a2f0645e07af24e64e",
+  "sql": "SELECT a, sum(d) OVER (ORDER BY d ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t1",
+  "rows": [
+    [
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "9"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "12"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      {
+        "type": "integer",
+        "value": "15"
+      }
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "11"
+      }
+    ]
+  ],
+  "explain": [
+    [
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "3",
+        "value": "Init"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "84"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "3",
+        "value": "Null"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "3",
+        "value": "InitCoroutine"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "21"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "3",
+        "value": "SorterOpen"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "3",
+        "value": "k(1,B)"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "3",
+        "value": "OpenRead"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "3",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      {
+        "type": "3",
+        "value": "Rewind"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "12"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "3",
+        "value": "Rowid"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "8"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "9"
+      },
+      {
+        "type": "3",
+        "value": "MakeRecord"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "8"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "10"
+      },
+      {
+        "type": "3",
+        "value": "SorterInsert"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "8"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "3",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "11"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "12"
+      },
+      {
+        "type": "3",
+        "value": "OpenPseudo"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      {
+        "type": "integer",
+        "value": "9"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "13"
+      },
+      {
+        "type": "3",
+        "value": "SorterSort"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "20"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "14"
+      },
+      {
+        "type": "3",
+        "value": "SorterData"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "9"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "15"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "16"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "18"
+      },
+      {
+        "type": "3",
+        "value": "Yield"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      {
+        "type": "3",
+        "value": "SorterNext"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "14"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "20"
+      },
+      {
+        "type": "3",
+        "value": "EndCoroutine"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "21"
+      },
+      {
+        "type": "3",
+        "value": "OpenEphemeral"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "22"
+      },
+      {
+        "type": "3",
+        "value": "OpenDup"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "23"
+      },
+      {
+        "type": "3",
+        "value": "OpenDup"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "24"
+      },
+      {
+        "type": "3",
+        "value": "OpenDup"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "25"
+      },
+      {
+        "type": "3",
+        "value": "Integer"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "10"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "26"
+      },
+      {
+        "type": "3",
+        "value": "InitCoroutine"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "27"
+      },
+      {
+        "type": "3",
+        "value": "Yield"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "63"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "28"
+      },
+      {
+        "type": "3",
+        "value": "Copy"
+      },
+      {
+        "type": "integer",
+        "value": "5"
+      },
+      {
+        "type": "integer",
+        "value": "12"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "29"
+      },
+      {
+        "type": "3",
+        "value": "Copy"
+      },
+      {
+        "type": "integer",
+        "value": "6"
+      },
+      {
+        "type": "integer",
+        "value": "13"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "30"
+      },
+      {
+        "type": "3",
+        "value": "Copy"
+      },
+      {
+        "type": "integer",
+        "value": "7"
+      },
+      {
+        "type": "integer",
+        "value": "14"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "31"
+      },
+      {
+        "type": "3",
+        "value": "MakeRecord"
+      },
+      {
+        "type": "integer",
+        "value": "12"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "15"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "32"
+      },
+      {
+        "type": "3",
+        "value": "NewRowid"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "16"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "33"
+      },
+      {
+        "type": "3",
+        "value": "Insert"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "15"
+      },
+      {
+        "type": "integer",
+        "value": "16"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "34"
+      },
+      {
+        "type": "3",
+        "value": "Ne"
+      },
+      {
+        "type": "integer",
+        "value": "10"
+      },
+      {
+        "type": "integer",
+        "value": "50"
+      },
+      {
+        "type": "integer",
+        "value": "16"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "35"
+      },
+      {
+        "type": "3",
+        "value": "Null"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "36"
+      },
+      {
+        "type": "3",
+        "value": "Integer"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "37"
+      },
+      {
+        "type": "3",
+        "value": "Integer"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "20"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "38"
+      },
+      {
+        "type": "3",
+        "value": "MustBeInt"
+      },
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      {
+        "type": "integer",
+        "value": "40"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "39"
+      },
+      {
+        "type": "3",
+        "value": "Ge"
+      },
+      {
+        "type": "integer",
+        "value": "20"
+      },
+      {
+        "type": "integer",
+        "value": "41"
+      },
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "67"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "40"
+      },
+      {
+        "type": "3",
+        "value": "Halt"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "3",
+        "value": "frame starting offset must be a non-negative integer"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "41"
+      },
+      {
+        "type": "3",
+        "value": "Integer"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "18"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "42"
+      },
+      {
+        "type": "3",
+        "value": "Integer"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "20"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "43"
+      },
+      {
+        "type": "3",
+        "value": "MustBeInt"
+      },
+      {
+        "type": "integer",
+        "value": "18"
+      },
+      {
+        "type": "integer",
+        "value": "45"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "44"
+      },
+      {
+        "type": "3",
+        "value": "Ge"
+      },
+      {
+        "type": "integer",
+        "value": "20"
+      },
+      {
+        "type": "integer",
+        "value": "46"
+      },
+      {
+        "type": "integer",
+        "value": "18"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "67"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "45"
+      },
+      {
+        "type": "3",
+        "value": "Halt"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "3",
+        "value": "frame ending offset must be a non-negative integer"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "46"
+      },
+      {
+        "type": "3",
+        "value": "Rewind"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "47"
+      },
+      {
+        "type": "3",
+        "value": "Rewind"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "48"
+      },
+      {
+        "type": "3",
+        "value": "Rewind"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "49"
+      },
+      {
+        "type": "3",
+        "value": "Goto"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "62"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "50"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "51"
+      },
+      {
+        "type": "3",
+        "value": "AggStep"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "3",
+        "value": "sum(1)"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "52"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "53"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "53"
+      },
+      {
+        "type": "3",
+        "value": "IfPos"
+      },
+      {
+        "type": "integer",
+        "value": "18"
+      },
+      {
+        "type": "integer",
+        "value": "62"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "54"
+      },
+      {
+        "type": "3",
+        "value": "AggValue"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "3",
+        "value": "sum(1)"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "55"
+      },
+      {
+        "type": "3",
+        "value": "Gosub"
+      },
+      {
+        "type": "integer",
+        "value": "11"
+      },
+      {
+        "type": "integer",
+        "value": "79"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "56"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "57"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "57"
+      },
+      {
+        "type": "3",
+        "value": "IfPos"
+      },
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      {
+        "type": "integer",
+        "value": "62"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "58"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "59"
+      },
+      {
+        "type": "3",
+        "value": "AggInverse"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "3",
+        "value": "sum(1)"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "60"
+      },
+      {
+        "type": "3",
+        "value": "Delete"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "61"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "62"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "62"
+      },
+      {
+        "type": "3",
+        "value": "Goto"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "27"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "63"
+      },
+      {
+        "type": "3",
+        "value": "Rewind"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "77"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "64"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "65"
+      },
+      {
+        "type": "3",
+        "value": "AggStep"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "3",
+        "value": "sum(1)"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "66"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "4"
+      },
+      {
+        "type": "integer",
+        "value": "67"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "67"
+      },
+      {
+        "type": "3",
+        "value": "AggValue"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "3",
+        "value": "sum(1)"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "68"
+      },
+      {
+        "type": "3",
+        "value": "Gosub"
+      },
+      {
+        "type": "integer",
+        "value": "11"
+      },
+      {
+        "type": "integer",
+        "value": "79"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "69"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "71"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "70"
+      },
+      {
+        "type": "3",
+        "value": "Goto"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "77"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "71"
+      },
+      {
+        "type": "3",
+        "value": "IfPos"
+      },
+      {
+        "type": "integer",
+        "value": "17"
+      },
+      {
+        "type": "integer",
+        "value": "76"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "72"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "73"
+      },
+      {
+        "type": "3",
+        "value": "AggInverse"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "19"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "3",
+        "value": "sum(1)"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "74"
+      },
+      {
+        "type": "3",
+        "value": "Delete"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "75"
+      },
+      {
+        "type": "3",
+        "value": "Next"
+      },
+      {
+        "type": "integer",
+        "value": "3"
+      },
+      {
+        "type": "integer",
+        "value": "76"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "76"
+      },
+      {
+        "type": "3",
+        "value": "Goto"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "67"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "77"
+      },
+      {
+        "type": "3",
+        "value": "ResetSorter"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "78"
+      },
+      {
+        "type": "3",
+        "value": "Goto"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "83"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "79"
+      },
+      {
+        "type": "3",
+        "value": "Column"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "21"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "80"
+      },
+      {
+        "type": "3",
+        "value": "Copy"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "22"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "81"
+      },
+      {
+        "type": "3",
+        "value": "ResultRow"
+      },
+      {
+        "type": "integer",
+        "value": "21"
+      },
+      {
+        "type": "integer",
+        "value": "2"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "82"
+      },
+      {
+        "type": "3",
+        "value": "Return"
+      },
+      {
+        "type": "integer",
+        "value": "11"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "83"
+      },
+      {
+        "type": "3",
+        "value": "Halt"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "84"
+      },
+      {
+        "type": "3",
+        "value": "Transaction"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "3",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      null
+    ],
+    [
+      {
+        "type": "integer",
+        "value": "85"
+      },
+      {
+        "type": "3",
+        "value": "Goto"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      {
+        "type": "integer",
+        "value": "1"
+      },
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null,
+      {
+        "type": "integer",
+        "value": "0"
+      },
+      null
+    ]
+  ],
+  "capturedRowsEqual": true
+}

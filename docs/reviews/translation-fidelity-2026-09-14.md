@@ -5008,3 +5008,11 @@ execution under exclusive admission, with failure preserving bindings/error
 ownership. Source paths and finite native/current evidence, including the failed
 full regression run, are in [reprepare evidence](../research/card-h-b-reprepare/README.md).
 This is not general schema reprepare or whole optimizer/plan equivalence approval.
+
+## Approved joint integration boundary
+
+Window owner carrier54f8495 (o review24 / o-c review12) supplies source-owned pending end, bounded following lookahead, phase deletion before Next, current EOF before inverse and shared monotonic identities. Compatible cache-required value/EXCLUDE paths remain retained. Exact composed accounting witness is sorter192 + frame96 + packed71 =359:358/200 reject,359 succeeds; serialized charge is retained, not native heap parity. SingleInsert packed71 + logical11 gives81reject/82success. See research/card-s-i/window-owner-correction.md for revision evidence.
+
+Endpoint review card-t21 approves only exact final successful-high bounded-search test blob69e088e, not the neighboring proposal. LEFT review card-s-b-a-a21 approves exact sorter0 spec: complete outer IPK order persists through inner rowid singleton/LEFT NullRow and production consumes full selected order count; prior final-only assertion is superseded for this bounded witness. Statistical nOut0, arbitrary fanout and incomplete proofs are not certified.
+
+WR f5ff865 plus R3 eb8c75 remain the represented consuming baseline; this joint candidate includes approved original corrections. Fresh joint gates and independent integration-testowner review remain necessary for promotion; no whole-product/performance/allocator parity.

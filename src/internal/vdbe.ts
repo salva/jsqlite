@@ -17,7 +17,7 @@ import { SelectProgramBuilder, reachesOwningReturn, emitSelectDestination, type 
 import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord, memToPublicInitial } from "./mem.ts";
 import type { ExprNode, SelectNode } from "./parse.ts";
 import { lowerOrdinaryCtes } from "./cte.ts";
-import { arithmeticBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
+import { windowRangeTest, arithmeticBinary, bitwiseBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, compareRecordKey, KeyInfo, UnpackedRecordKey, unpackRecordKey, type BuiltinCollation } from "./comparison.ts";
 import { EphemeralIndexCursor, FifoCursor, PriorityQueueCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, RecordFormatError } from "./record.ts";
@@ -97,7 +97,7 @@ type Op =
   | { readonly code: "AggReset"; readonly registers:readonly number[] }
   | { readonly code: "CompareJump"; readonly permutation?:readonly number[]; readonly left:number; readonly right:number; readonly count:number; readonly keyInfo:KeyInfo; readonly less:number; readonly equal:number; readonly greater:number }
   | { readonly code: "CompareGroup"; readonly left:number; readonly right:number; readonly count:number; readonly keyInfo:KeyInfo; readonly jump:number }
-  | { readonly code: "WindowRangeTest"; readonly candidate:number; readonly current:number; readonly offset?:number; readonly mode:"end-current"|"end-following"|"end-unbounded"|"start-unbounded"|"start-current"|"start-preceding"|"start-following"; readonly descending:boolean; readonly collation:BuiltinCollation; readonly jump:number }
+  | { readonly code: "WindowRangeTest"; readonly bigNull?:boolean; readonly candidate:number; readonly current:number; readonly offset?:number; readonly mode:"end-current"|"end-following"|"end-unbounded"|"start-unbounded"|"start-current"|"start-preceding"|"start-following"; readonly descending:boolean; readonly collation:BuiltinCollation; readonly jump:number }
   | { readonly code: "CollSeq"; readonly collation:BuiltinCollation }
   | { readonly code: "ShortCircuit"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly jump:number }
   | { readonly code: "Boolean"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly p3:number }
@@ -149,6 +149,8 @@ type Op =
   | { readonly code: "EphemeralNext"; readonly p1:number; readonly p2:number }
   | { readonly code: "IfCursorSizeGt"; readonly p1:number; readonly threshold?:number; readonly thresholdRegister?:number; readonly registerAdjustment?:number; readonly jump:number }
   | { readonly code: "IfRegisterGt"; readonly left:number; readonly right:number; readonly jump:number }
+  | { readonly code: "EphemeralDelete"; readonly p1:number }
+  | { readonly code: "EphemeralPeekNextData"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
   | { readonly code: "EphemeralAdvanceData"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump?:number }
   | { readonly code: "IfEphemeralHasNext"; readonly p1:number; readonly jump:number }
   | { readonly code: "EphemeralResetPosition"; readonly p1:number }
@@ -209,6 +211,8 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
     case "SorterSort":
       return {...original,emptyJump:target(original.emptyJump)};
     case "PriorityShift":case "FifoShift":
+      return {...original,emptyJump:target(original.emptyJump)};
+    case "EphemeralPeekNextData":
       return {...original,emptyJump:target(original.emptyJump)};
     case "EphemeralAdvanceData":
       return original.emptyJump===undefined?original:{...original,emptyJump:target(original.emptyJump)};
@@ -347,6 +351,20 @@ function windowAggregateCallback(ops:Op[],win:WindowCodeLayer['windows'][number]
  if(filter>=0)ops.push({code:'IfNot',p1:source+win.filterColumn!,p2:0});
  ops.push({code:inverse?'AggInverse':'AggStep',name:win.window.functionName,args,p2:accumulator,collation:args.length?collation:'binary'});
  if(filter>=0)(ops[filter] as {p2:number}).p2=ops.length;
+}
+function pendingPriorPeerLayer(layer:WindowRewriteGraph['layers'][number]):boolean {
+ return layer.windows.length>0&&layer.windows.every(win=>win.window.frame.type==='groups'&&(win.window.frame.start.kind==='unbounded'||win.window.frame.start.kind==='preceding')&&win.window.frame.end.kind==='preceding'&&!!win.window.frame.end.expr?.reduction&&win.window.frame.exclusion===null&&win.window.orderBy.length>0&&['sum','total','avg','count','min','max','group_concat','string_agg'].includes(win.window.functionName));
+}
+function pendingCurrentPeerLayer(layer:WindowRewriteGraph['layers'][number]):boolean {
+ return layer.windows.length>0&&layer.windows.every(win=>(win.window.frame.type==='range'||win.window.frame.type==='groups')&&(win.window.frame.start.kind==='unbounded'||win.window.frame.start.kind==='current'||(win.window.frame.type==='groups'&&(win.window.frame.start.kind==='preceding'||win.window.frame.start.kind==='following')))&&(win.window.frame.end.kind==='current'||(win.window.frame.type==='groups'&&win.window.frame.end.kind==='unbounded')||(win.window.frame.type==='groups'&&(win.window.frame.start.kind==='preceding'||win.window.frame.start.kind==='unbounded'||win.window.frame.start.kind==='current'||win.window.frame.start.kind==='following')&&win.window.frame.end.kind==='following'))&&win.window.frame.exclusion===null&&win.window.orderBy.length>0&&['sum','total','avg','count','min','max','group_concat','string_agg'].includes(win.window.functionName));
+}
+/** Ordinary sliding/cumulative ROWS admission for the pending-end CodeStep schedule.
+ * Cache-required value/EXCLUDE consumers must not lose retained rows. */
+function pendingEndRowsLayer(layer:WindowRewriteGraph['layers'][number]):boolean {
+ return layer.windows.length>0&&layer.windows.every(win=>win.window.frame.type==='rows'&&
+   (win.window.frame.end.kind==='unbounded'||win.window.frame.end.kind==='current'||(win.window.frame.end.kind==='following'&&win.window.frame.start.kind==='current')||(win.window.frame.end.kind==='preceding'&&(win.window.frame.start.kind==='preceding'||win.window.frame.start.kind==='unbounded'))||(win.window.frame.end.kind==='following'&&win.window.frame.start.kind==='following'))&&win.window.frame.exclusion===null&&
+   (win.window.frame.start.kind==='preceding'||win.window.frame.start.kind==='current'||win.window.frame.start.kind==='unbounded'||win.window.frame.start.kind==='following')&&
+   ['sum','total','avg','count','min','max','group_concat','string_agg'].includes(win.window.functionName));
 }
 function windowAggStep(p:WindowCodeArg,sourceRegister:number,inverse:boolean,accumulators?:readonly number[]):void {
  for(let index=0;index<p.layer.windows.length;index++){
@@ -728,7 +746,7 @@ export function compileWindowSelectLowering(
     // Resolver-owned provenance is copied alongside generated expressions.
     // Never infer identity from copied token spelling: wrappers, aliases and
     // duplicate names make that unsound.
-    const emitProducerBinding=(binding:typeof layer.bufferBindings[number],target:number,value?:typeof layer.bufferExpressions[number],producerColumn?:number):void=>{
+    const emitProducerBinding=(binding:typeof layer.bufferBindings[number],target:number,value?:typeof layer.bufferExpressions[number],producerColumn?:number,sourceValue?:typeof layer.bufferExpressions[number]):void=>{
       if(index===0&&owner?.retainedSource&&binding){ops.push({code:"Copy",p1:groupedPayload!+binding.columnIndex,p2:target});return;}
       if(index===0&&!owner?.retainedSource&&groupedPayload!==null&&(!recursiveProducer||groupedLayer||binding)){const column=recursiveProducer&&!groupedLayer?binding!.columnIndex:producerColumn??(binding?groupedLayer!.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):value?equivalentBufferExpression(groupedLayer!.bufferExpressions,value):-1);if(column<0){allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;}ops.push({code:"Copy",p1:groupedPayload+column,p2:target});return;}
       if(index>0&&value?.reduction){const child=compileLayers[index-1]!,childState=setup[index-1]!;const win=child.windows.find(item=>item.window.owner.reduction===value.reduction);if(win){ops.push({code:"Copy",p1:win.regResult,p2:target});return;}const column=equivalentBufferExpression(child.bufferExpressions,value);if(column>=0){ops.push({code:"Copy",p1:childState.regNew+column,p2:target});return;}const bound=binding?child.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):-1;if(bound>=0){ops.push({code:"Copy",p1:childState.regNew+bound,p2:target});return;}}
@@ -746,7 +764,7 @@ export function compileWindowSelectLowering(
         // expr.c code generation, just as for the cached FILTER predicate.
         if(valueReduction?.kind==='reduction'){
           if(ownedFilter&&!ownedFilter.filterCarrier)throw new JSQLiteError('internal','window FILTER rewrite lost its carrier');
-          const carrier=ownedFilter?.filterCarrier??resolvedExpressionCarrier(resolved,valueReduction);
+          const carrier=ownedFilter?.filterCarrier??resolvedExpressionCarrier(resolved,sourceValue?.reduction?.kind==='reduction'?sourceValue.reduction:valueReduction);
           // window.c selectWindowRewriteExprCb (TK_AGG_FUNCTION) replaces
           // finalized nested aggregates with columns of the previous layer.
           // Match that payload expression identity before scalar child binding;
@@ -775,7 +793,7 @@ export function compileWindowSelectLowering(
       const column=binding.columnIndex<0||isIntegerPrimaryKeyAlias(binding.source.table,binding.columnIndex)?-1:binding.columnIndex;
       if(column<0)ops.push({code:"Rowid",p1:binding.source.cursorId,p2:target});else ops.push({code:"Column",p1:column,p2:target,p3:binding.source.cursorId,affinity:binding.source.table.columns[column]!.affinity});
     };
-    const key=registers+1;registers+=terms.length;for(let term=0;term<terms.length;term++)emitProducerBinding(terms[term]!.binding,key+term,terms[term]!.expression);
+    const key=registers+1;registers+=terms.length;for(let term=0;term<terms.length;term++)emitProducerBinding(terms[term]!.binding,key+term,terms[term]!.expression,undefined,terms[term]!.sourceExpression);
     const payload=registers+1;registers+=layer.bufferExpressions.length;
     for(let column=0;column<layer.bufferExpressions.length;column++)emitProducerBinding(layer.bufferBindings[column]!,payload+column,layer.bufferExpressions[column],column);
     const directCumulative=index>0&&terms.length===0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");});
@@ -800,13 +818,13 @@ export function compileWindowSelectLowering(
     const wholePartition=layer.windows.length>0&&!directOffset&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.exclusion===null||frame.exclusion==="no-others")&&((frame.type==="rows"&&frame.start.kind==="unbounded"&&frame.end.kind==="unbounded")||(frame.type==="range"&&win.window.orderBy.length===0&&frame.start.kind==="unbounded"&&frame.end.kind==="current")||(frame.type==="groups"&&win.window.orderBy.length===0&&frame.start.kind==="current"&&frame.end.kind==="unbounded"));});
     const wholePartitionExcludeGroup=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="unbounded"&&frame.exclusion==="group";});
     const singlePeerGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length===0&&frame.start.kind==="current"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
-    const orderedCurrentGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const orderedCurrentGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&(win.window.partitionBy.length===0||pendingCurrentPeerLayer(layer))&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
     const rangeCurrentPeerExclusion=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.type==="range"||frame.type==="groups")&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="current"&&frame.exclusion==="ties";});
     const rangeOffsetExcludeCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||(f.start.kind==="preceding"&&!!f.start.expr?.reduction)||f.start.kind==="current"||(f.start.kind==="following"&&!!f.start.expr?.reduction))&&(f.end.kind==="unbounded"||f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion==="current-row"||f.exclusion==="ties"||f.exclusion==="group"||f.exclusion==="no-others");});
     const groupsCumulativeExcludeCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="current"&&f.exclusion==="current-row";});
     const groupsOnePrecedingExcludeGroup=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1&&f.end.kind==="current"&&f.exclusion==="group";});
     const orderedCumulativePeerGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return (frame.type==="groups"||frame.type==="range")&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others");});
-    const orderedCumulativePriorGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="preceding"&&!!frame.end.expr?.reduction&&windowConstantInteger(expressionFromReduction(frame.end.expr.reduction))===1&&(frame.exclusion===null||frame.exclusion==="no-others");});
+    const orderedCumulativePriorGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="preceding"&&!!frame.end.expr?.reduction&&(windowConstantInteger(expressionFromReduction(frame.end.expr.reduction))===1||pendingPriorPeerLayer(layer))&&(frame.exclusion===null||frame.exclusion==="no-others");});
     const orderedCumulativePeerExclusion=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&win.window.orderBy.length>0&&frame.start.kind==="unbounded"&&frame.end.kind==="current"&&(frame.exclusion==="group"||frame.exclusion==="ties");});
     const orderedSuffixGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length>0&&frame.start.kind==="current"&&frame.end.kind==="unbounded"&&(frame.exclusion===null||frame.exclusion==="no-others");});
     const orderedFollowingGroups=layer.windows.length>0&&layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="groups"&&win.window.orderBy.length>0&&frame.start.kind==="following"&&win.window.functionName==="cume_dist"&&frame.end.kind==="unbounded"&&(frame.exclusion===null||frame.exclusion==="no-others");});
@@ -818,12 +836,19 @@ export function compileWindowSelectLowering(
     // ordinary AggStep/AggInverse/AggValue opcodes. Do not collapse this into a
     // host-side partition mapper: regNew/lookahead and all cursor positions are
     // resumable VM state across each output Yield.
-    const orderedRangePrecedingCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&f.exclusion===null;});
+    const sourceFollowingStartPeer=layer.windows[0]!.window.frame.start.kind==='following'&&pendingCurrentPeerLayer(layer);
+    const sourceUnboundedEndPeer=layer.windows[0]!.window.frame.end.kind==='unbounded'&&pendingCurrentPeerLayer(layer);
+    const sourceFollowingPeer=(layer.windows[0]!.window.frame.end.kind==='following'||sourceUnboundedEndPeer)&&pendingCurrentPeerLayer(layer);
+    const sourceSlidingPeer=layer.windows[0]!.window.frame.type==='groups'&&(layer.windows[0]!.window.frame.start.kind==='preceding'||((layer.windows[0]!.window.frame.start.kind==='current'||sourceFollowingStartPeer)&&sourceFollowingPeer))&&(pendingCurrentPeerLayer(layer)||pendingPriorPeerLayer(layer));
+    const sourcePriorPeer=pendingPriorPeerLayer(layer),sourceCurrentPeer=pendingCurrentPeerLayer(layer)||sourcePriorPeer;
+    const orderedRangePrecedingCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&(win.window.orderBy.length===1||pendingCurrentPeerLayer(layer))&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&f.exclusion===null;});
+    const sourceRangeFollowing=orderedRangePrecedingCurrent&&layer.windows.every(win=>win.window.frame.end.kind==='following'&&(win.window.frame.start.kind==='preceding'||win.window.frame.start.kind==='current'||win.window.frame.start.kind==='unbounded')&&['sum','total','avg','count','min','max','group_concat','string_agg'].includes(win.window.functionName));
     const orderedAdjacentGroups=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;if(f.type!=="groups"||win.window.orderBy.length===0||f.start.kind!=="preceding"||!f.start.expr?.reduction||(f.exclusion!==null&&f.exclusion!=="group"))return false;if(f.exclusion==="group"&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1)return false;return f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction);});
     const followingState=setup.find(item=>item.compatibleGroup===layer.compatibleGroup);
     if((following||followingRange||precedingRange||precedingFollowing||followingUnbounded||currentUnbounded||precedingUnbounded||wholePartition||wholePartitionExcludeGroup||singlePeerGroups||orderedCurrentGroups||rangeCurrentPeerExclusion||rangeOffsetExcludeCurrent||groupsCumulativeExcludeCurrent||groupsOnePrecedingExcludeGroup||orderedCumulativePeerGroups||orderedCumulativePriorGroups||orderedCumulativePeerExclusion||orderedSuffixGroups||orderedFollowingGroups||noOrderFollowingGroups||orderedRangePrecedingCurrent||orderedAdjacentGroups)&&!followingState)throw new JSQLiteError("internal","window following state is missing");
-    const rangeState=(followingRange||precedingRange||precedingFollowing)?followingState!:null;
-    const rangeEndCount=(followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded)?++registers:null,rangeStartCount=(followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded)?++registers:null;
+    const sourcePendingRows=pendingEndRowsLayer(layer);
+    const rangeState=(followingRange||precedingRange||precedingFollowing||sourcePendingRows)?followingState!:null;
+    const rangeEndCount=(followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded||sourcePendingRows)?++registers:null,rangeStartCount=(followingRange||precedingRange||precedingFollowing||followingUnbounded||precedingUnbounded||sourcePendingRows)?++registers:null;
     const emitPrecedingRangeDrain=():void=>{
       // window.c keeps the current, end and start rows on independently
       // positioned cursors. Our cursor payload operations share regNew, so the
@@ -837,6 +862,102 @@ export function compileWindowSelectLowering(
       const endCheck=ops.length;ops.push({code:"IfPos",p1:rangeEndCount!,p2:0,p3:1});const endAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){emitStep(win,rangeState!.regNew);}const afterEnd=ops.length;(ops[endCheck] as {p2:number}).p2=afterEnd;(ops[endAdvance] as {emptyJump:number}).emptyJump=afterEnd;
       const startCheck=ops.length;ops.push({code:"IfPos",p1:rangeStartCount!,p2:0,p3:1});const startAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows){emitStep(win,rangeState!.regNew,true);}const snapshot=ops.length;(ops[startCheck] as {p2:number}).p2=snapshot;(ops[startAdvance] as {emptyJump:number}).emptyJump=snapshot;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});for(let i=0;i<rangeState!.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:rangeState!.regNew+i});ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});
       const empty=ops.length;(ops[reversed] as {jump:number}).jump=empty;const emptyLoop=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:"Integer",p1:1n,p2:rangeState!.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:emptyLoop});const complete=ops.length;(ops[output] as {emptyJump:number}).emptyJump=complete;(ops[emptyLoop] as {emptyJump:number}).emptyJump=complete;
+    };
+    // window.c CodeStep: first input initializes cursors only; subsequent
+    // input steps the pending end, counts following, returns current and
+    // inverses/deletes start. Flush steps the final pending end before tail.
+    // Application/value builtins and EXCLUDE keep the existing cache schedule.
+    const boundedLookahead=(precedingFollowing||sourcePendingRows)&&!scannedRows&&layer.windows.every(win=>
+      win.window.frame.exclusion===null&&['sum','total','avg','count','min','max','group_concat','string_agg'].includes(win.window.functionName));
+    const regBoundedInitialized=boundedLookahead?++registers:null;
+    const emitPendingEndInit=():void=>{
+      ops.push({code:'Integer',p1:0n,p2:regBoundedInitialized!});
+      for(const [bound,target] of [[rangeState!.boundRegisters.end,rangeEndCount!],[rangeState!.boundRegisters.start,rangeStartCount!]] as const)
+        ops.push(bound===null?{code:'Integer',p1:0n,p2:target}:{code:'Copy',p1:bound,p2:target});
+      if(layer.windows[0]!.window.frame.start.kind==='following'&&layer.windows[0]!.window.frame.end.kind==='following')ops.push({code:'Binary',op:'-',p1:rangeEndCount!,p2:rangeStartCount!,p3:rangeStartCount!,collation:'binary'});
+    };
+    if(boundedLookahead)emitPendingEndInit();
+    const emitBoundedReturn=(flushing=false,skipInverse=false):void=>{
+      const state=rangeState!;
+      ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length});
+      for(const win of layer.windows)ops.push({code:'AggValue',name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:'Integer',p1:1n,p2:state.regOutputReady},{code:'Yield',p1:producerCoroutine,p2:0});
+      // windowCodeOp RETURN_ROW deletes before Next/EOF; unlike inverse
+      // deletion this includes the final output. Unbounded start has no inverse.
+      if(state.deleteMode==='return-row')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[2]});
+      if(skipInverse||layer.windows[0]!.window.frame.start.kind==='unbounded'||layer.windows[0]!.window.frame.start.kind==='following')return;
+      // Native flush checks current EOF before inverse of the final output.
+      const eof=flushing?ops.length:null;
+      if(flushing)ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+      const skip=ops.length;ops.push({code:'IfPos',p1:rangeStartCount!,p2:0,p3:1});
+      ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});
+      for(const win of layer.windows)emitStep(win,state.regNew,true);
+      if(state.deleteMode==='agg-inverse')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[0]});
+      (ops[skip] as {p2:number}).p2=ops.length;
+      if(eof!==null)(ops[eof+1] as {p2:number}).p2=ops.length;
+    };
+    const emitFollowingInverse=(emptyJump?:number,countdown=true):number=>{
+      const skip=countdown?ops.length:null;if(countdown)ops.push({code:'IfPos',p1:rangeStartCount!,p2:0,p3:1});
+      const advance=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[0],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,...(emptyJump!==undefined?{emptyJump}: {})});
+      for(const win of layer.windows)emitStep(win,rangeState!.regNew,true);
+      if(skip!==null)(ops[skip] as {p2:number}).p2=ops.length;return advance;
+    };
+    const emitPendingEndStep=():void=>{
+      const precedingEnd=layer.windows[0]!.window.frame.end.kind==='preceding';
+      const skip=precedingEnd?ops.length:null;
+      if(precedingEnd)ops.push({code:'IfPos',p1:rangeEndCount!,p2:0,p3:1});
+      const finalStep=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[1],p2:rangeState!.regNew,count:rangeState!.inputRegisters.length,emptyJump:0});
+      for(const win of layer.windows)emitStep(win,rangeState!.regNew);
+      if(rangeState!.deleteMode==='agg-step')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[1]});
+      (ops[finalStep] as {emptyJump:number}).emptyJump=ops.length;
+      if(skip!==null)(ops[skip] as {p2:number}).p2=ops.length;
+    };
+    const emitBoundedFlush=():void=>{
+      // PRECEDING end flush steps conditionally and returns once without inverse.
+      emitPendingEndStep();
+      if(layer.windows[0]!.window.frame.end.kind==='unbounded'&&layer.windows[0]!.window.frame.start.kind==='following'){
+        // window.c3069: skip return with start countdown but inverse every
+        // pending start. After start EOF, return remaining empty frames.
+        const loop=ops.length,skip=ops.length;ops.push({code:'IfPos',p1:rangeStartCount!,p2:0,p3:1});
+        const done=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+        emitBoundedReturn(false,true);
+        (ops[skip] as {p2:number}).p2=ops.length;
+        const inverse=emitFollowingInverse(0,false);ops.push({code:'Goto',p2:loop});
+        (ops[inverse] as {emptyJump:number}).emptyJump=ops.length;
+        const tail=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+        emitBoundedReturn(false,true);ops.push({code:'Goto',p2:tail});
+        (ops[done+1] as {p2:number}).p2=ops.length;(ops[tail+1] as {p2:number}).p2=ops.length;return;
+      }
+      if(layer.windows[0]!.window.frame.end.kind==='unbounded'){
+        const loop=ops.length;
+        const done=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+        emitBoundedReturn(true);
+        ops.push({code:'Goto',p2:loop});
+        const complete=ops.length;
+        (ops[done+1] as {p2:number}).p2=complete;
+        return;
+      }
+      if(layer.windows[0]!.window.frame.end.kind==='preceding'){
+        const empty=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+        emitBoundedReturn(false,true);(ops[empty+1] as {p2:number}).p2=ops.length;return;
+      }
+      if(layer.windows[0]!.window.frame.start.kind==='following'){
+        // Native dual-tail: adjust remaining return countdown, inverse until
+        // start EOF, then return remaining empty frames without callbacks.
+        ops.push({code:'Binary',op:'-',p1:rangeEndCount!,p2:rangeStartCount!,p3:rangeEndCount!,collation:'binary'},{code:'Integer',p1:0n,p2:rangeStartCount!});
+        const loop=ops.length,skip=ops.length;ops.push({code:'IfPos',p1:rangeEndCount!,p2:0,p3:1});
+        const done=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+        emitBoundedReturn(false,true);
+        (ops[skip] as {p2:number}).p2=ops.length;
+        const inverse=emitFollowingInverse(0);ops.push({code:'Goto',p2:loop});
+        (ops[inverse] as {emptyJump:number}).emptyJump=ops.length;
+        const tail=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:ops.length+2},{code:'Goto',p2:0});
+        emitBoundedReturn(false,true);ops.push({code:'Goto',p2:tail});
+        (ops[done+1] as {p2:number}).p2=ops.length;(ops[tail+1] as {p2:number}).p2=ops.length;return;
+      }
+      const test=ops.length;ops.push({code:'IfEphemeralHasNext',p1:layer.duplicateCursors[2],jump:0},{code:'Goto',p2:0});
+      (ops[test] as {jump:number}).jump=ops.length;emitBoundedReturn(true);ops.push({code:'Goto',p2:test});
+      (ops[test+1] as {p2:number}).p2=ops.length;
     };
     const emitPrecedingFollowingDrain=():void=>{
       const emitFastValueResults=():void=>{
@@ -891,7 +1012,7 @@ export function compileWindowSelectLowering(
       const cumulativeRangeTies=frame.exclusion==="ties"&&frame.start.kind==="unbounded"&&frame.end.kind==="current";
       builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;const temporary=layer.windows.map(()=>++registers),term=layer.producerOrderBy.find(item=>item.source==="order")!;const coll=typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary";
       const output=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"EphemeralRowid",p1:layer.duplicateCursors[2],p2:currentRowid});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"AggReset",registers:temporary});
-      const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const startUnbounded=layer.windows[0]!.window.frame.start.kind==="unbounded",beforeStart=ops.length;ops.push(startUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,collation:coll,jump:0});const endUnbounded=layer.windows[0]!.window.frame.end.kind==="unbounded",endEligible=ops.length;ops.push(endUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-current",descending:term.descending,collation:coll,jump:0},{code:"Goto",p2:0});const eligible=ops.length;if(startUnbounded)(ops[beforeStart] as {p2:number}).p2=eligible;if(endUnbounded)(ops[endEligible] as {p2:number}).p2=eligible;else (ops[endEligible] as {jump:number}).jump=eligible;let skipCurrent:number,identityStep:number|null=null;if(layer.windows[0]!.window.frame.exclusion==="no-others"){skipCurrent=ops.length;ops.push({code:"Goto",p2:skipCurrent+1});identityStep=skipCurrent+1;}else if(layer.windows[0]!.window.frame.exclusion==="group"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:outputSave+orderIndex,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const step=ops.length;(ops[peer+1] as {p2:number}).p2=step;skipCurrent=peer;identityStep=step;}else if(cumulativeRangeTies){ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const nonIdentity=ops.length;(ops[skipCurrent] as {p2:number}).p2=nonIdentity;ops.push({code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,collation:coll,jump:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[skipCurrent+1] as {p2:number}).p2=step;}else if(layer.windows[0]!.window.frame.exclusion==="ties"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:outputSave+orderIndex,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const identity=ops.length;(ops[peer] as {jump:number}).jump=identity;ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[peer+1] as {p2:number}).p2=step;}else{ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;(ops[skipCurrent] as {p2:number}).p2=step;}windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGSTEP",state.regNew,temporary);
+      const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:state.applicationCursor!,p2:0});const scan=ops.length;ops.push({code:"EphemeralData",p1:state.applicationCursor!,p2:state.regNew,count:state.inputRegisters.length},{code:"EphemeralRowid",p1:state.applicationCursor!,p2:candidateRowid});const startUnbounded=layer.windows[0]!.window.frame.start.kind==="unbounded",beforeStart=ops.length;ops.push(startUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:coll,jump:0});const endUnbounded=layer.windows[0]!.window.frame.end.kind==="unbounded",endEligible=ops.length;ops.push(endUnbounded?{code:"Goto",p2:0}:layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:coll,jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-current",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:coll,jump:0},{code:"Goto",p2:0});const eligible=ops.length;if(startUnbounded)(ops[beforeStart] as {p2:number}).p2=eligible;if(endUnbounded)(ops[endEligible] as {p2:number}).p2=eligible;else (ops[endEligible] as {jump:number}).jump=eligible;let skipCurrent:number,identityStep:number|null=null;if(layer.windows[0]!.window.frame.exclusion==="no-others"){skipCurrent=ops.length;ops.push({code:"Goto",p2:skipCurrent+1});identityStep=skipCurrent+1;}else if(layer.windows[0]!.window.frame.exclusion==="group"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:outputSave+orderIndex,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const step=ops.length;(ops[peer+1] as {p2:number}).p2=step;skipCurrent=peer;identityStep=step;}else if(cumulativeRangeTies){ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const nonIdentity=ops.length;(ops[skipCurrent] as {p2:number}).p2=nonIdentity;ops.push({code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:coll,jump:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[skipCurrent+1] as {p2:number}).p2=step;}else if(layer.windows[0]!.window.frame.exclusion==="ties"){const peer=ops.length;ops.push({code:"CompareGroup",left:state.regNew+orderIndex,right:outputSave+orderIndex,count:1,keyInfo:state.peerKeyInfo!,jump:0},{code:"Goto",p2:0});const identity=ops.length;(ops[peer] as {jump:number}).jump=identity;ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;identityStep=step;(ops[peer+1] as {p2:number}).p2=step;}else{ops.push({code:"Eq",p1:candidateRowid,p2:currentRowid,p3:same,affinity:"numeric",collation:"binary"});skipCurrent=ops.length;ops.push({code:"IfNot",p1:same,p2:0},{code:"Goto",p2:0});const step=ops.length;(ops[skipCurrent] as {p2:number}).p2=step;}windowCodeOp({ops,layer,state,collationOf:column=>collation(expressionFromReduction(layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGSTEP",state.regNew,temporary);
       const next=ops.length;if(!startUnbounded)(ops[beforeStart] as {jump:number}).jump=next;if(identityStep!==null){if(layer.windows[0]!.window.frame.exclusion==="group")(ops[skipCurrent] as {jump:number}).jump=next;else if(layer.windows[0]!.window.frame.exclusion==="ties"&&layer.windows[0]!.window.frame.start.kind==="unbounded"&&layer.windows[0]!.window.frame.end.kind==="current"){(ops[skipCurrent+2] as {jump:number}).jump=identityStep;(ops[skipCurrent+3] as {p2:number}).p2=next;}else if(layer.windows[0]!.window.frame.exclusion!=="no-others"){(ops[skipCurrent] as {p2:number}).p2=next;(ops[skipCurrent+1] as {p2:number}).p2=identityStep;}}else (ops[skipCurrent+1] as {p2:number}).p2=next;ops.push({code:"EphemeralNext",p1:state.applicationCursor!,p2:scan});const snapshot=ops.length;(ops[rewind] as {p2:number}).p2=snapshot;(ops[endEligible+1] as {p2:number}).p2=snapshot;for(let i=0;i<layer.windows.length;i++)ops.push({code:"AggValue",name:layer.windows[i]!.window.functionName,p1:temporary[i]!,p2:layer.windows[i]!.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[output] as {emptyJump:number}).emptyJump=done;
     };
     const emitRangeCurrentTiesDrain=():void=>{
@@ -950,13 +1071,165 @@ export function compileWindowSelectLowering(
       const inverseStart=ops.length;(ops[nextOutput] as {emptyJump:number}).emptyJump=inverseStart;
       const useInverse=ops.length;ops.push({code:"IfNot",p1:hasInverse,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:inverseLookahead+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:hasInverse},{code:"Goto",p2:0});const advanceInverse=ops.length;(ops[useInverse] as {p2:number}).p2=advanceInverse;const firstInverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const haveInverse=ops.length;(ops[advanceInverse-1] as {p2:number}).p2=haveInverse;for(let i=0;i<peerCount;i++)ops.push({code:"Copy",p1:state.regNew+peerStart+i,p2:state.startPeerRegisters[i]!});const inverse=ops.length;for(const win of layer.windows){emitStep(win,state.regNew,true);}const nextInverse=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0},{code:"CompareGroup",left:state.regNew+peerStart,right:state.startPeerRegisters[0]!,count:peerCount,keyInfo:state.peerKeyInfo!,jump:inverse});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:inverseLookahead+i});ops.push({code:"Integer",p1:1n,p2:hasInverse},{code:"Goto",p2:group});const done=ops.length;(ops[firstOutput] as {emptyJump:number}).emptyJump=done;(ops[firstInverse] as {emptyJump:number}).emptyJump=done;(ops[nextInverse] as {emptyJump:number}).emptyJump=done;
     };
+    const peerCount=sourceCurrentPeer?++registers:null,peerRemaining=sourceCurrentPeer?++registers:null;
+    const priorCountdown=sourcePriorPeer?++registers:null,priorLookaheadFlag=sourcePriorPeer?++registers:null;
+    const priorLookahead=registers+1;if(sourcePriorPeer)registers+=followingState!.inputRegisters.length;
+    if(sourceCurrentPeer)ops.push({code:"Integer",p1:0n,p2:peerCount!});
+    if(sourcePriorPeer)ops.push({code:'Copy',p1:followingState!.boundRegisters.end!,p2:priorCountdown!},{code:'Integer',p1:0n,p2:priorLookaheadFlag!});
+    const startCountdown=sourceSlidingPeer?++registers:null,startLookaheadFlag=sourceSlidingPeer?++registers:null;
+    const startLookahead=registers+1;if(sourceSlidingPeer){registers+=followingState!.inputRegisters.length;ops.push(layer.windows[0]!.window.frame.start.kind==='current'?{code:'Integer',p1:0n,p2:startCountdown!}:{code:'Copy',p1:followingState!.boundRegisters.start!,p2:startCountdown!},{code:'Integer',p1:0n,p2:startLookaheadFlag!});}
+    const startEof=sourceFollowingStartPeer?++registers:null;
+    if(startEof!==null)ops.push({code:'Integer',p1:0n,p2:startEof});
+    const outputCountdown=sourceFollowingPeer?++registers:null,outputLookaheadFlag=sourceFollowingPeer?++registers:null,outputEof=sourceFollowingPeer?++registers:null;
+    const outputLookahead=registers+1;if(sourceFollowingPeer){registers+=followingState!.inputRegisters.length;ops.push(sourceUnboundedEndPeer?(sourceFollowingStartPeer?{code:'Copy',p1:followingState!.boundRegisters.start!,p2:outputCountdown!}:{code:'Integer',p1:0n,p2:outputCountdown!}):{code:'Copy',p1:followingState!.boundRegisters.end!,p2:outputCountdown!},{code:'Integer',p1:0n,p2:outputLookaheadFlag!},{code:'Integer',p1:0n,p2:outputEof!});}
+    if(sourceFollowingStartPeer&&!sourceUnboundedEndPeer)ops.push({code:'Binary',op:'-',p1:followingState!.boundRegisters.end!,p2:followingState!.boundRegisters.start!,p3:startCountdown!,collation:'binary'});
+    const emitCurrentPeerFlush=(final:boolean):void=>{
+      const state=followingState!;
+      const empty=ops.length;ops.push({code:'IfNot',p1:peerCount!,p2:0});
+      const repeat=(body:()=>void,count=peerCount!):void=>{
+        ops.push({code:'Copy',p1:count,p2:peerRemaining!});
+        const loop=ops.length;body();
+        ops.push({code:'IfPos',p1:peerRemaining!,p2:ops.length+2,p3:1},{code:'Goto',p2:0});
+        const check=ops.length;ops.push({code:'IfNot',p1:peerRemaining!,p2:0},{code:'Goto',p2:loop});
+        (ops[check-1] as {p2:number}).p2=ops.length;(ops[check] as {p2:number}).p2=ops.length;
+      };
+      if(sourcePriorPeer){
+        // windowCodeOp GROUPS IfPos(regEnd) then one complete end peer.
+        const skip=ops.length;ops.push({code:'IfPos',p1:priorCountdown!,p2:0,p3:1});
+        const use=ops.length;ops.push({code:'IfNot',p1:priorLookaheadFlag!,p2:0});
+        for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:priorLookahead+i,p2:state.regNew+i});
+        ops.push({code:'Integer',p1:0n,p2:priorLookaheadFlag!},{code:'Goto',p2:0});
+        const advance=ops.length;(ops[use] as {p2:number}).p2=advance;
+        const first=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+        const have=ops.length;(ops[advance-1] as {p2:number}).p2=have;
+        const keyStart=layer.windows[0]!.argumentColumn-state.endPeerRegisters.length;
+        for(let i=0;i<state.endPeerRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+keyStart+i,p2:state.endPeerRegisters[i]!});
+        const step=ops.length;for(const win of layer.windows)emitStep(win,state.regNew);
+        if(state.deleteMode==='agg-step')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[1]});
+        const next=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+        ops.push({code:'CompareGroup',left:state.regNew+keyStart,right:state.endPeerRegisters[0]!,count:state.endPeerRegisters.length,keyInfo:state.peerKeyInfo!,jump:step});
+        for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+i,p2:priorLookahead+i});
+        ops.push({code:'Integer',p1:1n,p2:priorLookaheadFlag!});
+        const done=ops.length;(ops[skip] as {p2:number}).p2=done;(ops[first] as {emptyJump:number}).emptyJump=done;(ops[next] as {emptyJump:number}).emptyJump=done;
+      }else repeat(()=>{ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length});for(const win of layer.windows)emitStep(win,state.regNew);});
+      if(sourceFollowingStartPeer&&!sourceUnboundedEndPeer&&final)ops.push({code:'Binary',op:'-',p1:outputCountdown!,p2:startCountdown!,p3:outputCountdown!,collation:'binary'},{code:'Integer',p1:0n,p2:startCountdown!});
+      const returnStart=ops.length;
+      const skipOutput=sourceFollowingPeer&&(!sourceUnboundedEndPeer||sourceFollowingStartPeer)&&(!final||sourceFollowingStartPeer)?ops.length:null;
+      if(skipOutput!==null)ops.push({code:'IfPos',p1:outputCountdown!,p2:0,p3:1});
+      if(sourceFollowingPeer){
+        const use=ops.length;ops.push({code:'IfNot',p1:outputLookaheadFlag!,p2:0});
+        for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:outputLookahead+i,p2:state.regNew+i});
+        ops.push({code:'Integer',p1:0n,p2:outputLookaheadFlag!},{code:'Goto',p2:0});
+        const advance=ops.length;(ops[use] as {p2:number}).p2=advance;
+        const first=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+        const have=ops.length;(ops[advance-1] as {p2:number}).p2=have;
+        const keyStart=layer.windows[0]!.argumentColumn-state.currentPeerRegisters.length;
+        for(let i=0;i<state.currentPeerRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+keyStart+i,p2:state.currentPeerRegisters[i]!});
+        const row=ops.length;for(const win of layer.windows)ops.push({code:'AggValue',name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:'Integer',p1:1n,p2:state.regOutputReady},{code:'Yield',p1:producerCoroutine,p2:0});
+        if(state.deleteMode==='return-row')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[2]});
+        const next=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+        ops.push({code:'CompareGroup',left:state.regNew+keyStart,right:state.currentPeerRegisters[0]!,count:state.currentPeerRegisters.length,keyInfo:state.peerKeyInfo!,jump:row});
+        for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+i,p2:outputLookahead+i});
+        ops.push({code:'Integer',p1:1n,p2:outputLookaheadFlag!},{code:'Goto',p2:ops.length+3});
+        const eof=ops.length;ops.push({code:'Integer',p1:1n,p2:outputEof!});
+        (ops[first] as {emptyJump:number}).emptyJump=eof;(ops[next] as {emptyJump:number}).emptyJump=eof;
+      }else repeat(()=>{ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length});for(const win of layer.windows)ops.push({code:'AggValue',name:win.window.functionName,p1:win.regAccum,p2:win.regResult});ops.push({code:'Integer',p1:1n,p2:state.regOutputReady},{code:'Yield',p1:producerCoroutine,p2:0});if(state.deleteMode==='return-row')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[2]});});
+      if(skipOutput!==null&&sourceFollowingStartPeer)(ops[skipOutput] as {p2:number}).p2=ops.length;
+      const skipInverse=sourceFollowingPeer&&!sourceFollowingStartPeer?ops.length:null;if(skipInverse!==null)ops.push({code:'IfPos',p1:outputEof!,p2:0,p3:0});
+      if((!final||sourceFollowingPeer)&&sourceSlidingPeer){
+        // windowCodeOp GROUPS IfPos(regStart) then inverse one complete start peer.
+        const skipStartEof=sourceFollowingStartPeer?ops.length:null;
+        if(skipStartEof!==null)ops.push({code:'IfPos',p1:startEof!,p2:0,p3:0});
+        const skip=sourceFollowingStartPeer&&sourceUnboundedEndPeer?null:ops.length;if(skip!==null)ops.push({code:'IfPos',p1:startCountdown!,p2:0,p3:1});
+        const use=ops.length;ops.push({code:'IfNot',p1:startLookaheadFlag!,p2:0});
+        for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:startLookahead+i,p2:state.regNew+i});
+        ops.push({code:'Integer',p1:0n,p2:startLookaheadFlag!},{code:'Goto',p2:0});
+        const advance=ops.length;(ops[use] as {p2:number}).p2=advance;
+        const first=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+        const have=ops.length;(ops[advance-1] as {p2:number}).p2=have;
+        const keyStart=layer.windows[0]!.argumentColumn-state.startPeerRegisters.length;
+        for(let i=0;i<state.startPeerRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+keyStart+i,p2:state.startPeerRegisters[i]!});
+        const step=ops.length;for(const win of layer.windows)emitStep(win,state.regNew,true);
+        if(state.deleteMode==='agg-inverse')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[0]});
+        const next=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});
+        ops.push({code:'CompareGroup',left:state.regNew+keyStart,right:state.startPeerRegisters[0]!,count:state.startPeerRegisters.length,keyInfo:state.peerKeyInfo!,jump:step});
+        for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:'Copy',p1:state.regNew+i,p2:startLookahead+i});
+        ops.push({code:'Integer',p1:1n,p2:startLookaheadFlag!});
+        if(sourceFollowingStartPeer){
+          // CodeStep flush addrBreak2 enters return-only tail after start EOF.
+          const over=ops.length;ops.push({code:'Goto',p2:0});
+          const eof=ops.length;ops.push({code:'Integer',p1:1n,p2:startEof!});
+          (ops[first] as {emptyJump:number}).emptyJump=eof;(ops[next] as {emptyJump:number}).emptyJump=eof;
+          const done=ops.length;(ops[over] as {p2:number}).p2=done;if(skip!==null)(ops[skip] as {p2:number}).p2=done;(ops[skipStartEof!] as {p2:number}).p2=done;
+        }else{
+        const done=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=done;(ops[first] as {emptyJump:number}).emptyJump=done;(ops[next] as {emptyJump:number}).emptyJump=done;
+        }
+      }else if(!final&&layer.windows[0]!.window.frame.start.kind!=='unbounded')repeat(()=>{ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});for(const win of layer.windows)emitStep(win,state.regNew,true);ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[0]});});
+      if(sourceFollowingStartPeer&&final)ops.push({code:'IfPos',p1:outputEof!,p2:ops.length+2,p3:0});
+      if(sourceFollowingPeer&&final)ops.push({code:'Goto',p2:returnStart});
+      if(skipInverse!==null)(ops[skipInverse] as {p2:number}).p2=ops.length;
+      if(skipOutput!==null&&!sourceFollowingStartPeer)(ops[skipOutput] as {p2:number}).p2=ops.length;
+      (ops[empty] as {p2:number}).p2=ops.length;
+    };
+    // window.c windowCodeOp: C cursors are positioned before work, while TS
+    // admission cursors are before-next. Peek borrows the already budgeted row.
+    // Source EXPLAIN evidence: window-owner-correction, pending RANGE receipt.
+    const rangePendingCount=sourceRangeFollowing?++registers:0;
+    if(sourceRangeFollowing)ops.push({code:'Integer',p1:0n,p2:rangePendingCount});
+    const emitRangePendingStep=():void=>{
+      const st=followingState!,remaining=++registers;
+      ops.push({code:'Copy',p1:rangePendingCount,p2:remaining});
+      const loop=ops.length,done=ops.length;ops.push({code:'IfNot',p1:remaining,p2:0},
+        {code:'EphemeralAdvanceData',p1:layer.duplicateCursors[1],p2:st.regNew,count:st.inputRegisters.length});
+      for(const win of layer.windows)emitStep(win,st.regNew);
+      ops.push({code:'IfPos',p1:remaining,p2:ops.length+1,p3:1},{code:'Goto',p2:loop});
+      (ops[done] as {p2:number}).p2=ops.length;
+    };
+    const emitRangeFollowingReturn=(final:boolean):void=>{
+      const st=followingState!,n=st.inputRegisters.length,order=layer.windows[0]!.argumentColumn-st.endPeerRegisters.length;
+      const current=registers+1;registers+=n;const candidate=registers+1;registers+=n;
+      const term=st.peerKeyInfo!.terms[0]!;
+      const test=(mode:'end-following'|'start-preceding'|'start-current',jump:number):void=>{
+        ops.push({code:'WindowRangeTest',candidate:candidate+order,current:current+order,
+          ...(mode==='start-preceding'?{offset:st.boundRegisters.start!}:mode==='end-following'?{offset:st.boundRegisters.end!}:{}),
+          mode,descending:!!term.desc,bigNull:!!term.nullsLarge,collation:typeof term.collation==='string'?term.collation:'binary',jump});
+      };
+      const loop=ops.length,currentPeek=ops.length;ops.push({code:'EphemeralPeekNextData',p1:layer.duplicateCursors[2],p2:current,count:n,emptyJump:0});
+      const gate:number[]=[];
+      if(!final){
+        const peek=ops.length;ops.push({code:'EphemeralPeekNextData',p1:layer.duplicateCursors[1],p2:candidate,count:n,emptyJump:0});gate.push(peek);
+        const check=ops.length;test('end-following',0);gate.push(check);
+      }
+      for(const win of layer.windows)ops.push({code:'AggValue',name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      const row=ops.length;ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:st.regNew,count:n},
+        {code:'Integer',p1:1n,p2:st.regOutputReady},{code:'Yield',p1:producerCoroutine,p2:0});
+      if(st.deleteMode==='return-row')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[2]});
+      const peek=ops.length;ops.push({code:'EphemeralPeekNextData',p1:layer.duplicateCursors[2],p2:candidate,count:n,emptyJump:0});
+      ops.push({code:'CompareGroup',left:current+order,right:candidate+order,count:st.endPeerRegisters.length,keyInfo:st.peerKeyInfo!,jump:row});
+      for(let i=0;i<n;i++)ops.push({code:'Copy',p1:candidate+i,p2:current+i});
+      const inverseDone:number[]=[];
+      if(layer.windows[0]!.window.frame.start.kind!=='unbounded'){
+        const inverse=ops.length,peek=ops.length;ops.push({code:'EphemeralPeekNextData',p1:layer.duplicateCursors[0],p2:candidate,count:n,emptyJump:0});inverseDone.push(peek);
+        test(layer.windows[0]!.window.frame.start.kind==='current'?'start-current':'start-preceding',ops.length+2);
+        const stop=ops.length;ops.push({code:'Goto',p2:0});inverseDone.push(stop);
+        ops.push({code:'EphemeralAdvanceData',p1:layer.duplicateCursors[0],p2:st.regNew,count:n});
+        for(const win of layer.windows)emitStep(win,st.regNew,true);
+        if(st.deleteMode==='agg-inverse')ops.push({code:'EphemeralDelete',p1:layer.duplicateCursors[0]});
+        ops.push({code:'Goto',p2:inverse});
+      }
+      const back=ops.length;for(const pos of inverseDone){const op=ops[pos]!;if(op.code==='Goto')(op as {p2:number}).p2=back;else(op as {emptyJump:number}).emptyJump=back;}
+      ops.push({code:'Goto',p2:loop});
+      const done=ops.length;(ops[currentPeek] as {emptyJump:number}).emptyJump=done;(ops[peek] as {emptyJump:number}).emptyJump=done;
+      for(const pos of gate){const op=ops[pos]!;if(op.code==='WindowRangeTest')(op as {jump:number}).jump=done;else(op as {emptyJump:number}).emptyJump=done;}
+    };
+    const emitRangeFollowingFlush=():void=>{emitRangePendingStep();emitRangeFollowingReturn(true);};
     const emitOrderedRangePrecedingCurrentDrain=():void=>{
       const state=followingState!,orderIndex=layer.windows[0]!.argumentColumn-state.endPeerRegisters.length,currentKey=++registers,endFlag=++registers,startFlag=++registers;
       builder.registers=Math.max(builder.registers,registers);const outputSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;builder.registers=Math.max(builder.registers,registers);const endSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;builder.registers=Math.max(builder.registers,registers);const startSave=state.inputRegisters.length?builder.range(state.inputRegisters.length):builder.registers+1;registers=builder.registers;
       const term=layer.producerOrderBy.find(term=>term.source==="order")!;ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Integer",p1:0n,p2:startFlag});
       const output=ops.length;const outputAdvance=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:outputSave+i});ops.push({code:"Copy",p1:state.regNew+orderIndex,p2:currentKey});
-      const endLoop=ops.length;const endUse=ops.length;ops.push({code:"IfNot",p1:endFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:endSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Goto",p2:0});const endAdvance=ops.length;(ops[endUse] as {p2:number}).p2=endAdvance;const endFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const endHave=ops.length;(ops[endAdvance-1] as {p2:number}).p2=endHave;const endEligible=ops.length;ops.push(layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.end.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-unbounded",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-current",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:endSave+i});ops.push({code:"Integer",p1:1n,p2:endFlag},{code:"Goto",p2:0});const endStep=ops.length;(ops[endEligible] as {jump:number}).jump=endStep;for(const win of layer.windows){emitStep(win,state.regNew);}ops.push({code:"Goto",p2:endLoop});const startLoop=ops.length;(ops[endEligible+state.inputRegisters.length+2] as {p2:number}).p2=startLoop;(ops[endFirst] as {emptyJump:number}).emptyJump=startLoop;
-      const startUse=ops.length;ops.push({code:"IfNot",p1:startFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:startSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:startFlag},{code:"Goto",p2:0});const startAdvance=ops.length;(ops[startUse] as {p2:number}).p2=startAdvance;const startFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const startHave=ops.length;(ops[startAdvance-1] as {p2:number}).p2=startHave;const startEligible=ops.length;ops.push(layer.windows[0]!.window.frame.start.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-unbounded",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:startSave+i});ops.push({code:"Integer",p1:1n,p2:startFlag},{code:"Goto",p2:0});const inverse=ops.length;(ops[startEligible] as {jump:number}).jump=inverse;for(const win of layer.windows){emitStep(win,state.regNew,true);}ops.push({code:"Goto",p2:startLoop});const snapshot=ops.length;(ops[startEligible+state.inputRegisters.length+2] as {p2:number}).p2=snapshot;(ops[startFirst] as {emptyJump:number}).emptyJump=snapshot;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[outputAdvance] as {emptyJump:number}).emptyJump=done;
+      const endLoop=ops.length;const endUse=ops.length;ops.push({code:"IfNot",p1:endFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:endSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:endFlag},{code:"Goto",p2:0});const endAdvance=ops.length;(ops[endUse] as {p2:number}).p2=endAdvance;const endFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const endHave=ops.length;(ops[endAdvance-1] as {p2:number}).p2=endHave;const endEligible=ops.length;ops.push(layer.windows[0]!.window.frame.end.kind==="following"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.end!,mode:"end-following",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.end.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-unbounded",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"end-current",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:endSave+i});ops.push({code:"Integer",p1:1n,p2:endFlag},{code:"Goto",p2:0});const endStep=ops.length;(ops[endEligible] as {jump:number}).jump=endStep;for(const win of layer.windows){emitStep(win,state.regNew);}ops.push({code:"Goto",p2:endLoop});const startLoop=ops.length;(ops[endEligible+state.inputRegisters.length+2] as {p2:number}).p2=startLoop;(ops[endFirst] as {emptyJump:number}).emptyJump=startLoop;
+      const startUse=ops.length;ops.push({code:"IfNot",p1:startFlag,p2:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:startSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:0n,p2:startFlag},{code:"Goto",p2:0});const startAdvance=ops.length;(ops[startUse] as {p2:number}).p2=startAdvance;const startFirst=ops.length;ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length,emptyJump:0});const startHave=ops.length;(ops[startAdvance-1] as {p2:number}).p2=startHave;const startEligible=ops.length;ops.push(layer.windows[0]!.window.frame.start.kind==="unbounded"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-unbounded",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:layer.windows[0]!.window.frame.start.kind==="current"?{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,mode:"start-current",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0}:{code:"WindowRangeTest",candidate:state.regNew+orderIndex,current:outputSave+orderIndex,offset:state.boundRegisters.start!,mode:layer.windows[0]!.window.frame.start.kind==="following"?"start-following":"start-preceding",descending:term.descending,bigNull:state.peerKeyInfo!.terms[0]!.nullsLarge??false,collation:(typeof state.peerKeyInfo!.terms[0]!.collation==="string"?state.peerKeyInfo!.terms[0]!.collation:"binary"),jump:0});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:state.regNew+i,p2:startSave+i});ops.push({code:"Integer",p1:1n,p2:startFlag},{code:"Goto",p2:0});const inverse=ops.length;(ops[startEligible] as {jump:number}).jump=inverse;for(const win of layer.windows){emitStep(win,state.regNew,true);}ops.push({code:"Goto",p2:startLoop});const snapshot=ops.length;(ops[startEligible+state.inputRegisters.length+2] as {p2:number}).p2=snapshot;(ops[startFirst] as {emptyJump:number}).emptyJump=snapshot;for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});for(let i=0;i<state.inputRegisters.length;i++)ops.push({code:"Copy",p1:outputSave+i,p2:state.regNew+i});ops.push({code:"Integer",p1:1n,p2:state.regOutputReady},{code:"Yield",p1:producerCoroutine,p2:0},{code:"Goto",p2:output});const done=ops.length;(ops[outputAdvance] as {emptyJump:number}).emptyJump=done;
     };
     const emitOrderedAdjacentGroupsDrain=():void=>{
       const state=followingState!,peerCount=state.endPeerRegisters.length,peerStart=layer.windows[0]!.argumentColumn-state.partitionRegisters.length-peerCount;
@@ -1160,12 +1433,12 @@ export function compileWindowSelectLowering(
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
     }
-    if(orderedRangePrecedingCurrent&&followingState&&followingState.partitionRegisters.length){
+    if((orderedRangePrecedingCurrent||(sourceCurrentPeer&&(orderedCurrentGroups||sourceSlidingPeer||sourceFollowingPeer)))&&!(sourceCurrentPeer&&orderedCumulativePeerGroups)&&followingState&&followingState.partitionRegisters.length){
       const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-followingState.endPeerRegisters.length;
       const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
       const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
-      emitOrderedRangePrecedingCurrentDrain();
-      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      if(sourceRangeFollowing)emitRangeFollowingFlush();else if(sourceCurrentPeer)emitCurrentPeerFlush(true);else emitOrderedRangePrecedingCurrentDrain();
+      const reset=ops.length;if(sourceRangeFollowing)ops.push({code:'Integer',p1:0n,p2:rangePendingCount});if(sourceFollowingStartPeer&&sourceUnboundedEndPeer)ops.push({code:"Integer",p1:0n,p2:startEof!});if(sourceCurrentPeer)ops.push({code:"Integer",p1:0n,p2:peerCount!});if(sourcePriorPeer)ops.push({code:"Copy",p1:followingState.boundRegisters.end!,p2:priorCountdown!},{code:"Integer",p1:0n,p2:priorLookaheadFlag!});if(sourceSlidingPeer)ops.push(layer.windows[0]!.window.frame.start.kind==='current'?{code:"Integer",p1:0n,p2:startCountdown!}:{code:"Copy",p1:followingState.boundRegisters.start!,p2:startCountdown!},{code:"Integer",p1:0n,p2:startLookaheadFlag!});if(sourceFollowingStartPeer&&!sourceUnboundedEndPeer)ops.push({code:"Integer",p1:0n,p2:startEof!},{code:"Binary",op:"-",p1:followingState.boundRegisters.end!,p2:followingState.boundRegisters.start!,p3:startCountdown!,collation:"binary"});if(sourceFollowingPeer)ops.push(sourceUnboundedEndPeer?(sourceFollowingStartPeer?{code:"Copy",p1:followingState.boundRegisters.start!,p2:outputCountdown!}:{code:"Integer",p1:0n,p2:outputCountdown!}):{code:"Copy",p1:followingState.boundRegisters.end!,p2:outputCountdown!},{code:"Integer",p1:0n,p2:outputLookaheadFlag!},{code:"Integer",p1:0n,p2:outputEof!});ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
       for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
@@ -1184,8 +1457,8 @@ export function compileWindowSelectLowering(
       const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
       const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
       const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
-      emitOrderedCumulativePeerGroupsDrain();
-      const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
+      if(sourceCurrentPeer)emitCurrentPeerFlush(true);else emitOrderedCumulativePeerGroupsDrain();
+      const reset=ops.length;if(sourceRangeFollowing)ops.push({code:'Integer',p1:0n,p2:rangePendingCount});if(sourceFollowingStartPeer&&sourceUnboundedEndPeer)ops.push({code:"Integer",p1:0n,p2:startEof!});if(sourceCurrentPeer)ops.push({code:"Integer",p1:0n,p2:peerCount!});if(sourcePriorPeer)ops.push({code:"Copy",p1:followingState.boundRegisters.end!,p2:priorCountdown!},{code:"Integer",p1:0n,p2:priorLookaheadFlag!});ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
       for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
@@ -1200,7 +1473,7 @@ export function compileWindowSelectLowering(
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
     }
-    if(orderedAdjacentGroups&&followingState&&followingState.partitionRegisters.length){
+    if(orderedAdjacentGroups&&!sourceSlidingPeer&&followingState&&followingState.partitionRegisters.length){
       const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
       const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
       const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
@@ -1213,20 +1486,21 @@ export function compileWindowSelectLowering(
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
     }
-    if((precedingFollowing||precedingRange)&&followingState&&followingState.partitionRegisters.length){
+    if((precedingFollowing||precedingRange||sourcePendingRows)&&followingState&&followingState.partitionRegisters.length){
       const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
       const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
       const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
       // window.c drains the completed partition before caching the pending row
       // from the next partition. The sorter payload remains authoritative while
       // this coroutine suspends for each row of the drain.
-      if(precedingFollowing)emitPrecedingFollowingDrain();else emitPrecedingRangeDrain();
+      if(precedingFollowing||sourcePendingRows){if(boundedLookahead)emitBoundedFlush();else emitPrecedingFollowingDrain();}else emitPrecedingRangeDrain();
       const reset=ops.length;ops.push({code:"AggReset",registers:layer.windows.map(win=>win.regAccum)},{code:"ClearEphemeral",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[0]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[1]},{code:"EphemeralResetPosition",p1:layer.duplicateCursors[2]});
       for(let i=0;i<followingState.partitionRegisters.length;i++)ops.push({code:"Copy",p1:partitionStart+i,p2:followingState.partitionRegisters[i]!});
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
+      if(boundedLookahead)emitPendingEndInit();
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
     }
-    if(followingRange&&followingState&&followingState.partitionRegisters.length){
+    if(followingRange&&!sourcePendingRows&&followingState&&followingState.partitionRegisters.length){
       const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
       const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
       const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
@@ -1236,7 +1510,7 @@ export function compileWindowSelectLowering(
       ops.push({code:"Integer",p1:1n,p2:followingState.regPartInitialized!},{code:"Integer",p1:0n,p2:followingState.regOutputReady});
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
     }
-    if(following&&followingState&&followingState.partitionRegisters.length){
+    if(following&&!sourcePendingRows&&followingState&&followingState.partitionRegisters.length){
       const partitionStart=payload+layer.windows[0]!.argumentColumn-followingState.partitionRegisters.length-layer.windows[0]!.window.orderBy.length;
       const first=ops.length;ops.push({code:"IfNot",p1:followingState.regPartInitialized!,p2:0});
       const equal=ops.length;ops.push({code:"CompareGroup",left:partitionStart,right:followingState.partitionRegisters[0]!,count:followingState.partitionRegisters.length,keyInfo:followingState.partitionKeyInfo!,jump:0});
@@ -1251,32 +1525,98 @@ export function compileWindowSelectLowering(
       (ops[first] as {p2:number}).p2=reset;(ops[equal] as {jump:number}).jump=ops.length;
     }
     const gosub=ops.length;ops.push({code:"Gosub",p1:layer.regGosub,p2:0});
-    ops.push({code:"Yield",p1:producerCoroutine,p2:0});const sorterNext=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:loopBody});
+    // window.c2948: reversed same-kind frame returns this row with empty
+    // accumulators and resets shared eph before asking producer for another row.
+    const reversedPeer=((sourceFollowingStartPeer&&!sourceUnboundedEndPeer)||(sourcePriorPeer&&sourceSlidingPeer))?ops.length:null;
+    if(reversedPeer!==null)ops.push({code:'IfRegisterGt',left:sourceFollowingStartPeer?followingState!.boundRegisters.start!:followingState!.boundRegisters.end!,right:sourceFollowingStartPeer?followingState!.boundRegisters.end!:followingState!.boundRegisters.start!,jump:0});
+    if(sourceCurrentPeer){
+      const state=followingState!,count=layer.windows[0]!.window.orderBy.length,key=payload+layer.windows[0]!.argumentColumn-count;
+      const first=ops.length;ops.push({code:'IfNot',p1:peerCount!,p2:0});
+      const same=ops.length;ops.push({code:'CompareGroup',left:key,right:state.regPeer!,count,keyInfo:state.peerKeyInfo!,jump:0});
+      if(sourceUnboundedEndPeer){const state=followingState!;const remaining=++registers;ops.push({code:"Copy",p1:peerCount!,p2:remaining});const loop=ops.length;const done=ops.length;ops.push({code:"IfNot",p1:remaining,p2:0},{code:"EphemeralAdvanceData",p1:layer.duplicateCursors[1],p2:state.regNew,count:state.inputRegisters.length});for(const win of layer.windows)emitStep(win,state.regNew);ops.push({code:"IfPos",p1:remaining,p2:ops.length+1,p3:1},{code:"Goto",p2:loop});(ops[done] as {p2:number}).p2=ops.length;}else emitCurrentPeerFlush(false);
+      ops.push({code:'Integer',p1:0n,p2:peerCount!});
+      (ops[first] as {p2:number}).p2=ops.length;
+      for(let i=0;i<count;i++)ops.push({code:'Copy',p1:key+i,p2:state.regPeer!+i});
+      (ops[same] as {jump:number}).jump=ops.length;
+      const one=++registers;ops.push({code:'Integer',p1:1n,p2:one},{code:'Binary',op:'+',p1:peerCount!,p2:one,p3:peerCount!,collation:'binary'});
+    }
+    if(sourceRangeFollowing){
+      const st=followingState!,key=payload+layer.windows[0]!.argumentColumn-st.endPeerRegisters.length;
+      const first=ops.length;ops.push({code:'IfNot',p1:rangePendingCount,p2:0});
+      const same=ops.length;ops.push({code:'CompareGroup',left:key,right:st.regPeer!,count:st.endPeerRegisters.length,keyInfo:st.peerKeyInfo!,jump:0});
+      emitRangePendingStep();emitRangeFollowingReturn(false);
+      ops.push({code:'Integer',p1:0n,p2:rangePendingCount});
+      (ops[first] as {p2:number}).p2=ops.length;
+      for(let i=0;i<st.endPeerRegisters.length;i++)ops.push({code:'Copy',p1:key+i,p2:st.regPeer!+i});
+      (ops[same] as {jump:number}).jump=ops.length;
+      ops.push({code:'Binary',op:'+',p1:rangePendingCount,p2:st.regOne,p3:rangePendingCount,collation:'binary'});
+    }
+    if(boundedLookahead){
+      const precedingEnd=layer.windows[0]!.window.frame.end.kind==='preceding';
+      const followingStart=layer.windows[0]!.window.frame.start.kind==='following';
+      const reversed=((precedingEnd&&layer.windows[0]!.window.frame.start.kind==='preceding')||(followingStart&&layer.windows[0]!.window.frame.end.kind==='following'))?ops.length:null;
+      if(reversed!==null)ops.push({code:'IfRegisterGt',left:followingStart?rangeState!.boundRegisters.start!:rangeState!.boundRegisters.end!,right:followingStart?rangeState!.boundRegisters.end!:rangeState!.boundRegisters.start!,jump:0});
+      const first=ops.length;ops.push({code:'IfNot',p1:regBoundedInitialized!,p2:0});
+      emitPendingEndStep();
+      const unboundedEnd=layer.windows[0]!.window.frame.end.kind==='unbounded';
+      const waiting=(precedingEnd||unboundedEnd)?null:ops.length;
+      if(waiting!==null)ops.push({code:'IfPos',p1:rangeEndCount!,p2:0,p3:1});
+      if(!unboundedEnd)emitBoundedReturn();
+      if(waiting!==null)(ops[waiting] as {p2:number}).p2=ops.length;
+      if(followingStart&&!unboundedEnd)emitFollowingInverse();
+      (ops[first] as {p2:number}).p2=ops.length;
+      ops.push({code:'Integer',p1:1n,p2:regBoundedInitialized!});
+      if(reversed!==null){
+        const done=ops.length;ops.push({code:'Goto',p2:0});
+        (ops[reversed] as {jump:number}).jump=ops.length;
+        ops.push({code:'AggReset',registers:layer.windows.map(win=>win.regAccum)});
+        emitBoundedReturn(false,true);
+        ops.push({code:'ClearEphemeral',p1:layer.duplicateCursors[0]});
+        for(const cursor of layer.duplicateCursors)ops.push({code:'EphemeralResetPosition',p1:cursor});
+        emitPendingEndInit();(ops[done] as {p2:number}).p2=ops.length;
+      }
+    }else if(!sourceCurrentPeer&&!sourceRangeFollowing){
+      ops.push({code:"Yield",p1:producerCoroutine,p2:0});
+    }
+    if(reversedPeer!==null){
+      const normal=ops.length;ops.push({code:'Goto',p2:0});
+      (ops[reversedPeer] as {jump:number}).jump=ops.length;
+      const state=followingState!;
+      ops.push({code:'AggReset',registers:layer.windows.map(win=>win.regAccum)},
+        {code:'EphemeralAdvanceData',p1:layer.duplicateCursors[2],p2:state.regNew,count:state.inputRegisters.length});
+      for(const win of layer.windows)ops.push({code:'AggValue',name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
+      ops.push({code:'Integer',p1:1n,p2:state.regOutputReady},{code:'Yield',p1:producerCoroutine,p2:0},
+        {code:'ClearEphemeral',p1:layer.duplicateCursors[0]});
+      for(const cursor of layer.duplicateCursors)ops.push({code:'EphemeralResetPosition',p1:cursor});
+      ops.push({code:'Integer',p1:0n,p2:peerCount!});
+      (ops[normal] as {p2:number}).p2=ops.length;
+    }
+    const sorterNext=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:loopBody});
     (ops[sort] as {emptyJump:number}).emptyJump=ops.length;
     sqlite3WindowCodeStep(()=>{
-      if(orderedCurrentGroups&&followingState)emitOrderedCurrentGroupsDrain();
+      if((orderedCurrentGroups||sourceSlidingPeer||sourceFollowingPeer)&&followingState){if(sourceCurrentPeer)emitCurrentPeerFlush(true);else emitOrderedCurrentGroupsDrain();}
       if((rangeCurrentPeerExclusion||(orderedCumulativePeerExclusion&&layer.windows[0]!.window.frame.exclusion==="ties"))&&followingState)emitRangeCurrentTiesDrain();
       if(rangeOffsetExcludeCurrent&&followingState)emitRangeOffsetExcludeCurrentDrain();
       if(groupsCumulativeExcludeCurrent&&followingState)emitGroupsCumulativeExcludeCurrentDrain();
       if(groupsOnePrecedingExcludeGroup&&followingState)emitGroupsOnePrecedingExcludeGroupDrain();
-      if((orderedCumulativePeerGroups||orderedCumulativePriorGroups||(orderedCumulativePeerExclusion&&layer.windows[0]!.window.frame.exclusion==="group"))&&followingState)emitOrderedCumulativePeerGroupsDrain();
+      if((orderedCumulativePeerGroups||orderedCumulativePriorGroups||(orderedCumulativePeerExclusion&&layer.windows[0]!.window.frame.exclusion==="group"))&&followingState){if(sourceCurrentPeer)emitCurrentPeerFlush(true);else emitOrderedCumulativePeerGroupsDrain();}
       if(orderedSuffixGroups&&followingState)emitOrderedSuffixGroupsDrain();
       if(orderedFollowingGroups&&followingState)emitOrderedFollowingGroupsDrain();
       if(noOrderFollowingGroups&&followingState)emitNoOrderFollowingGroupsDrain();
-      if(orderedRangePrecedingCurrent&&followingState)emitOrderedRangePrecedingCurrentDrain();
+      if(orderedRangePrecedingCurrent&&!(sourceCurrentPeer&&orderedCumulativePeerGroups)&&followingState){if(sourceRangeFollowing)emitRangeFollowingFlush();else if(sourceCurrentPeer)emitCurrentPeerFlush(true);else emitOrderedRangePrecedingCurrentDrain();}
       if(orderedAdjacentGroups&&followingState)emitOrderedAdjacentGroupsDrain();
       if(scannedRows&&followingState){if(layer.windows[0]!.window.frame.exclusion===null)emitEndpointRowsDrain();else emitScannedRowsDrain();}
       if(!scannedRows&&directOffset&&followingState)emitDirectOffsetDrain();
       if(wholePartitionExcludeGroup&&followingState)emitWholePartitionExcludeGroupDrain();
       if((wholePartition||singlePeerGroups)&&followingState)emitWholePartitionDrain();
-      if(followingUnbounded&&followingState)emitFollowingUnboundedDrain();
-      if(currentUnbounded&&followingState)emitCurrentUnboundedDrain();
-      if(precedingUnbounded&&followingState)emitPrecedingUnboundedDrain();
-      if(!scannedRows&&precedingFollowing&&followingState)emitPrecedingFollowingDrain();
-      if(precedingRange&&followingState)emitPrecedingRangeDrain();
-      if(followingRange&&followingState&&rangeEndCount!==null&&rangeStartCount!==null)emitFollowingRangeDrain();
+      if(followingUnbounded&&!sourcePendingRows&&followingState)emitFollowingUnboundedDrain();
+      if(currentUnbounded&&!sourcePendingRows&&followingState)emitCurrentUnboundedDrain();
+      if(precedingUnbounded&&!sourcePendingRows&&followingState)emitPrecedingUnboundedDrain();
+      if(!scannedRows&&(precedingFollowing||sourcePendingRows)&&followingState){if(boundedLookahead)emitBoundedFlush();else emitPrecedingFollowingDrain();}
+      if(precedingRange&&!sourcePendingRows&&followingState)emitPrecedingRangeDrain();
+      if(followingRange&&!sourcePendingRows&&followingState&&rangeEndCount!==null&&rangeStartCount!==null)emitFollowingRangeDrain();
     });
-    if(following&&followingState){
+    if(following&&!sourcePendingRows&&followingState){
       const trailing=ops.length;
       for(const win of layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
       ops.push({code:"EphemeralAdvanceData",p1:layer.duplicateCursors[0],p2:followingState.regNew,count:followingState.inputRegisters.length});
@@ -1338,18 +1678,19 @@ export function compileWindowSelectLowering(
   const wholePartitionOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return (f.exclusion===null||f.exclusion==="no-others")&&((f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="unbounded")||(f.type==="range"&&win.window.orderBy.length===0&&f.start.kind==="unbounded"&&f.end.kind==="current")||(f.type==="groups"&&win.window.orderBy.length===0&&f.start.kind==="current"&&f.end.kind==="unbounded"));};
   const wholePartitionExcludeGroupOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="unbounded"&&f.exclusion==="group";};
   const singlePeerGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length===0&&f.start.kind==="current"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
-  const orderedCurrentGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedCurrentGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&(win.window.partitionBy.length===0||compileLayers.some(layer=>layer.windows.includes(win)&&pendingCurrentPeerLayer(layer)))&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
   const rangeCurrentPeerExclusionOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return (f.type==="range"||f.type==="groups")&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="current"&&f.exclusion==="ties";};
   const rangeOffsetExcludeCurrentOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||(f.start.kind==="preceding"&&!!f.start.expr?.reduction)||f.start.kind==="current"||(f.start.kind==="following"&&!!f.start.expr?.reduction))&&(f.end.kind==="unbounded"||f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion==="current-row"||f.exclusion==="ties"||f.exclusion==="group"||f.exclusion==="no-others");};
   const groupsCumulativeExcludeCurrentOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="current"&&f.exclusion==="current-row";};
   const groupsOnePrecedingExcludeGroupOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.partitionBy.length===0&&win.window.orderBy.length>0&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1&&f.end.kind==="current"&&f.exclusion==="group";};
   const orderedCumulativePeerGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return (f.type==="groups"||f.type==="range")&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="current"&&(f.exclusion===null||f.exclusion==="no-others");};
-  const orderedCumulativePriorGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="preceding"&&!!f.end.expr?.reduction&&windowConstantInteger(expressionFromReduction(f.end.expr.reduction))===1&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedUnboundedEndPeerOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>compileLayers.some(layer=>layer.windows.includes(win)&&pendingCurrentPeerLayer(layer)&&win.window.frame.end.kind==="unbounded");
+  const orderedCumulativePriorGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length>0&&(f.start.kind==="unbounded"||compileLayers.some(layer=>layer.windows.includes(win)&&pendingPriorPeerLayer(layer)))&&f.end.kind==="preceding"&&!!f.end.expr?.reduction&&(windowConstantInteger(expressionFromReduction(f.end.expr.reduction))===1||compileLayers.some(layer=>layer.windows.includes(win)&&pendingPriorPeerLayer(layer)))&&(f.exclusion===null||f.exclusion==="no-others");};
   const cumulativePeerExclusion=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&win.window.orderBy.length>0&&f.start.kind==="unbounded"&&f.end.kind==="current"&&(f.exclusion==="group"||f.exclusion==="ties");};
   const orderedSuffixGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length>0&&f.start.kind==="current"&&f.end.kind==="unbounded"&&(f.exclusion===null||f.exclusion==="no-others");};
   const orderedFollowingGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length>0&&f.start.kind==="following"&&win.window.functionName==="cume_dist"&&f.end.kind==="unbounded"&&(f.exclusion===null||f.exclusion==="no-others");};
   const noOrderFollowingGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="groups"&&win.window.orderBy.length===0&&f.start.kind==="following"&&f.end.kind==="unbounded"&&(f.exclusion===null||f.exclusion==="no-others");};
-  const orderedRangePrecedingCurrentOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="range"&&win.window.orderBy.length===1&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion===null||f.exclusion==="no-others");};
+  const orderedRangePrecedingCurrentOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="range"&&(win.window.orderBy.length===1||compileLayers.some(layer=>layer.windows.includes(win)&&pendingCurrentPeerLayer(layer)))&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&(f.exclusion===null||f.exclusion==="no-others");};
   const orderedAdjacentGroupsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;if(f.type!=="groups"||win.window.orderBy.length===0||f.start.kind!=="preceding"||!f.start.expr?.reduction||(f.exclusion!==null&&f.exclusion!=="group"))return false;if(f.exclusion==="group"&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1)return false;return f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction);};
   const currentFollowing=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const frame=win.window.frame;return frame.type==="rows"&&frame.start.kind==="current"&&frame.end.kind==="following"&&!!frame.end.expr?.reduction&&frame.exclusion===null;};
   const followingFollowing=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="following"&&f.end.kind==="following"&&!!f.start.expr?.reduction&&!!f.end.expr?.reduction&&(f.exclusion===null||f.exclusion==="no-others");};
@@ -1357,7 +1698,8 @@ export function compileWindowSelectLowering(
   const cumulativeExcludeCurrent=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="unbounded"&&f.end.kind==="current"&&f.exclusion==="current-row";};
   const boundedPeerExclusion=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&(f.exclusion==="group"||f.exclusion==="ties"||f.exclusion==="no-others");};
   const boundedExcludeCurrent=(win:NonNullable<typeof outputWindows[number]>):boolean=>{const f=win.window.frame;return f.type==="rows"&&f.start.kind==="preceding"&&!!f.start.expr?.reduction&&f.end.kind==="current"&&f.exclusion==="current-row";};
-  const executableOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>directOffsetOutput(win)||compileLayers.some(layer=>layer.windows.includes(win)&&scannedRowsLayer(layer))||(!!aggregateDefinition(win.window.functionName)&&((win.window.frame.type==="rows"&&win.window.frame.start.kind==="unbounded"&&win.window.frame.end.kind==="current"&&(win.window.frame.exclusion===null||win.window.frame.exclusion==="no-others"))||cumulativeExcludeCurrent(win)||boundedExcludeCurrent(win)||boundedPeerExclusion(win)||runtimeBoundedRows(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)||currentFollowing(win)||followingFollowing(win)||reversedFollowing(win)));
+  const pendingRowsOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>compileLayers.some(layer=>layer.windows.includes(win)&&pendingEndRowsLayer(layer));
+  const executableOutput=(win:NonNullable<typeof outputWindows[number]>):boolean=>directOffsetOutput(win)||compileLayers.some(layer=>layer.windows.includes(win)&&pendingCurrentPeerLayer(layer))||compileLayers.some(layer=>layer.windows.includes(win)&&scannedRowsLayer(layer))||(!!aggregateDefinition(win.window.functionName)&&((win.window.frame.type==="rows"&&win.window.frame.start.kind==="unbounded"&&win.window.frame.end.kind==="current"&&(win.window.frame.exclusion===null||win.window.frame.exclusion==="no-others"))||cumulativeExcludeCurrent(win)||boundedExcludeCurrent(win)||boundedPeerExclusion(win)||runtimeBoundedRows(win)||pendingRowsOutput(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||(orderedCumulativePriorGroupsOutput(win)||orderedUnboundedEndPeerOutput(win))||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)||currentFollowing(win)||followingFollowing(win)||reversedFollowing(win)));
   const outerOrderRepresented=outerOrderEntries.length===rewrite.outer.orderBy.length&&outerOrderEntries.every(entry=>entry!==null);
   const emitsRows=outputEntries.length===resolved.result.length&&outputEntries.length>0&&outerOrderRepresented&&outputEntries.every(entry=>entry!==null&&(entry.kind!=="window"||executableOutput(entry.win)));
   builder.registers=Math.max(builder.registers,registers);
@@ -1376,7 +1718,7 @@ export function compileWindowSelectLowering(
   // window output; Statement never slices host rows.
   const emitOuterResult=():Readonly<{offsetSkip:number|null;limitDone:number|null}>=>{let offsetSkip:number|null=null;if(outerLimit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:outerLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:'output'},outputStart,outputEntries.length);let limitDone:number|null=null;if(outerLimit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:outerLimit.count,p2:0});}return{offsetSkip,limitDone};};
   const rootInit=ops.length;ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});const rootLoop=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0});
-  if(emitsRows){const rootState=setup.at(-1),needsReady=scannedRowsLayer(compileLayers.at(-1)!)||outputWindows.some(win=>win!==null&&(directOffsetOutput(win)||currentFollowing(win)||followingFollowing(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||orderedCumulativePriorGroupsOutput(win)||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)));let skip:number|undefined;if(needsReady&&rootState){skip=ops.length;ops.push({code:"IfNot",p1:rootState.regOutputReady,p2:0});}for(let index=0;index<outputEntries.length;index++){const entry=outputEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:outputStart+index});}if(outerSorter!==null){builder.registers=Math.max(builder.registers,registers);const keyStart=builder.range(outerOrderEntries.length);registers=builder.registers;for(let index=0;index<outerOrderEntries.length;index++){const entry=outerOrderEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:keyStart+index});}ops.push({code:"SorterInsert",p1:outerSorter,keyStart,keyCount:outerOrderEntries.length,payload:outputStart,payloadCount:outputEntries.length});}else{const {offsetSkip}=emitOuterResult();if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=ops.length;}if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;}
+  if(emitsRows){const rootState=setup.at(-1),needsReady=scannedRowsLayer(compileLayers.at(-1)!)||outputWindows.some(win=>win!==null&&(directOffsetOutput(win)||currentFollowing(win)||followingFollowing(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||(orderedCumulativePriorGroupsOutput(win)||orderedUnboundedEndPeerOutput(win))||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)));let skip:number|undefined;if(needsReady&&rootState){skip=ops.length;ops.push({code:"IfNot",p1:rootState.regOutputReady,p2:0});}for(let index=0;index<outputEntries.length;index++){const entry=outputEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:outputStart+index});}if(outerSorter!==null){builder.registers=Math.max(builder.registers,registers);const keyStart=builder.range(outerOrderEntries.length);registers=builder.registers;for(let index=0;index<outerOrderEntries.length;index++){const entry=outerOrderEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:keyStart+index});}ops.push({code:"SorterInsert",p1:outerSorter,keyStart,keyCount:outerOrderEntries.length,payload:outputStart,payloadCount:outputEntries.length});}else{const {offsetSkip}=emitOuterResult();if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=ops.length;}if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;}
   ops.push({code:"Goto",p2:rootLoop});const outerDrain=ops.length;(ops[rootLoop] as {p2:number}).p2=outerDrain;if(outerSorter===null&&outerLimit){(ops[outerLimit.ifZero] as {p2:number}).p2=outerDrain;for(const op of ops)if(op.code==="DecrJumpZero"&&op.p1===outerLimit.count&&op.p2===0)(op as {p2:number}).p2=outerDrain;}if(outerSorter!==null){const sort=ops.length;ops.push({code:"SorterSort",p1:outerSorter,emptyJump:0},{code:"SorterData",p1:outerSorter,p2:outputStart,count:outputEntries.length});const {offsetSkip,limitDone}=emitOuterResult();const next=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"SorterNext",p1:outerSorter,p2:sort+1});const done=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=done;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=done;if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=done;}const ownerExit=ops.length;ops.push(owner?{code:"Goto",p2:0}:{code:"Halt"});
   if(owner){owner.builder.registers=Math.max(owner.builder.registers,registers);owner.builder.reserveCursorsThrough(Math.max(outerSorter??0,...sorterCursors,nextApplicationCursor));}
   const loopBindings:WindowLoopBinding[]=[];
@@ -1384,7 +1726,8 @@ export function compileWindowSelectLowering(
     const target=ops.length;(ops[pending.gosub] as {p2:number}).p2=target;
     const state=setup.find(item=>item.compatibleGroup===pending.layer.compatibleGroup);if(!state)throw new JSQLiteError("internal","window setup layer is missing");
     for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
-    const streaming=!scannedRowsLayer(pending.layer)&&pending.layer.windows.every(win=>{const frame=win.window.frame;return !!aggregateDefinition(win.window.functionName)&&frame.type==="rows"&&(((frame.exclusion===null||frame.exclusion==="no-others")&&(frame.end.kind==="current"&&(frame.start.kind==="unbounded"||frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction))))||(frame.exclusion==="current-row"&&frame.end.kind==="current"&&(frame.start.kind==="unbounded"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)))||((frame.exclusion==="no-others"||((frame.exclusion==="group"||frame.exclusion==="ties")&&win.window.orderBy.length>0))&&frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current"));});
+    const pendingEndRows=pendingEndRowsLayer(pending.layer)||pendingCurrentPeerLayer(pending.layer);
+    const streaming=!pendingEndRows&&!scannedRowsLayer(pending.layer)&&pending.layer.windows.every(win=>{const frame=win.window.frame;return !!aggregateDefinition(win.window.functionName)&&frame.type==="rows"&&(((frame.exclusion===null||frame.exclusion==="no-others")&&(frame.end.kind==="current"&&(frame.start.kind==="unbounded"||frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction))))||(frame.exclusion==="current-row"&&frame.end.kind==="current"&&(frame.start.kind==="unbounded"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction)))||((frame.exclusion==="no-others"||((frame.exclusion==="group"||frame.exclusion==="ties")&&win.window.orderBy.length>0))&&frame.start.kind==="preceding"&&!!frame.start.expr?.reduction&&frame.end.kind==="current"));});
     if(streaming&&state.partitionRegisters.length){
       const partitionStart=state.regNew+pending.layer.windows[0]!.argumentColumn-state.partitionRegisters.length-pending.layer.windows[0]!.window.orderBy.length;
       const firstAt=ops.length;ops.push({code:"IfNot",p1:state.regPartInitialized!,p2:0});
@@ -1459,7 +1802,7 @@ export function compileWindowSelectLowering(
       registers=builder.registers;
     }
     const sharedSliding=!scannedRowsLayer(pending.layer)&&pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others")&&(frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction));});
-    if(sharedSliding){
+    if(sharedSliding&&!pendingEndRows){
       for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);}
       const frame=pending.layer.windows[0]!.window.frame,bounded=frame.start.expr?.reduction?windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)):null;
       const inverse=builder.label(),done=builder.label();builder.jump(inverse,{code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(frame.start.kind==="current"?{threshold:1}:bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!}),jump:0},(op,pc)=>({...op,jump:pc} as Op));builder.jump(done,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(inverse);ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});windowCodeOp({ops,layer:pending.layer,state,collationOf:column=>collation(expressionFromReduction(pending.layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGINVERSE");builder.mark(done);
@@ -1472,7 +1815,7 @@ export function compileWindowSelectLowering(
       for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
     }
     const sharedFollowing=pending.layer.windows.length>0&&pending.layer.windows.every(currentFollowing);
-    if(sharedFollowing){
+    if(sharedFollowing&&!pendingEndRows){
       for(const win of pending.layer.windows){
         const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);
         const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));
@@ -1496,7 +1839,7 @@ export function compileWindowSelectLowering(
       const currentOnly=sliding&&frame.start.kind==="current";
       const followingFrame=currentFollowing(win);
       const reversed=reversedFollowing(win);
-      if(!definition||sharedSliding||sharedFollowing||(!cumulative&&!sliding&&!followingFrame&&!reversed))continue;
+      if(!definition||pendingEndRows||sharedSliding||sharedFollowing||(!cumulative&&!sliding&&!followingFrame&&!reversed))continue;
       const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);
       if(reversed){ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});continue;}
       windowAggregateCallback(ops,win,state.regNew,false,args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary");
@@ -7121,7 +7464,7 @@ function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:read
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);
- if(e.kind==="binary"){const a=evaluateExpression(e.left,encoding,columns);if(e.op==="AND"&&truth(a)===false){out.setInt64(0n);return out}if(e.op==="OR"&&truth(a)===true){out.setInt64(1n);return out}const b=evaluateExpression(e.right,encoding,columns);if(e.op==="||")return concatenateMem(a,b,encoding);if(e.op==="AND"||e.op==="OR"){const x=truth(a),y=truth(b),v=e.op==="AND"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?out.setNull():out.setInt64(v?1n:0n);return out}if(["+","-","*","/","%"].includes(e.op)){return arithmeticBinary(({"+":"add","-":"subtract","*":"multiply","/":"divide","%":"remainder"} as const)[e.op as "+"],a,b)}const is=e.op==="IS"||e.op==="IS NOT";if(!is&&(a.initialStorageClass==="null"||b.initialStorageClass==="null")){out.setNull();return out}const bothNull=a.initialStorageClass==="null"&&b.initialStorageClass==="null",oneNull=a.initialStorageClass==="null"||b.initialStorageClass==="null";let cmp=0;if(!oneNull)cmp=compareMem(a,b,binaryCollation(e.left,e.right));let result:boolean;switch(e.op){case "=":case "==":result=cmp===0;break;case "IS":result=bothNull||(!oneNull&&cmp===0);break;case "!=":case "<>":result=cmp!==0;break;case "IS NOT":result=!bothNull&&(oneNull||cmp!==0);break;case "<":result=cmp<0;break;case "<=":result=cmp<=0;break;case ">":result=cmp>0;break;default:result=cmp>=0}out.setInt64(result?1n:0n);return out}
+ if(e.kind==="binary"){const a=evaluateExpression(e.left,encoding,columns);if(e.op==="AND"&&truth(a)===false){out.setInt64(0n);return out}if(e.op==="OR"&&truth(a)===true){out.setInt64(1n);return out}const b=evaluateExpression(e.right,encoding,columns);if(e.op==="||")return concatenateMem(a,b,encoding);if(["&","|","<<",">>"].includes(e.op))return bitwiseBinary(({"&":"bit-and","|":"bit-or","<<":"shift-left",">>":"shift-right"} as const)[e.op as "&"],a,b);if(e.op==="AND"||e.op==="OR"){const x=truth(a),y=truth(b),v=e.op==="AND"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?out.setNull():out.setInt64(v?1n:0n);return out}if(["+","-","*","/","%"].includes(e.op)){return arithmeticBinary(({"+":"add","-":"subtract","*":"multiply","/":"divide","%":"remainder"} as const)[e.op as "+"],a,b)}const is=e.op==="IS"||e.op==="IS NOT";if(!is&&(a.initialStorageClass==="null"||b.initialStorageClass==="null")){out.setNull();return out}const bothNull=a.initialStorageClass==="null"&&b.initialStorageClass==="null",oneNull=a.initialStorageClass==="null"||b.initialStorageClass==="null";let cmp=0;if(!oneNull)cmp=compareMem(a,b,binaryCollation(e.left,e.right));let result:boolean;switch(e.op){case "=":case "==":result=cmp===0;break;case "IS":result=bothNull||(!oneNull&&cmp===0);break;case "!=":case "<>":result=cmp!==0;break;case "IS NOT":result=!bothNull&&(oneNull||cmp!==0);break;case "<":result=cmp<0;break;case "<=":result=cmp<=0;break;case ">":result=cmp>0;break;default:result=cmp>=0}out.setInt64(result?1n:0n);return out}
  if(e.kind==="case"){const base=e.operand?evaluateExpression(e.operand,encoding,columns):null;for(const [w,r] of e.pairs){const test=evaluateExpression(w,encoding,columns);if(base?(base.initialStorageClass!=="null"&&test.initialStorageClass!=="null"&&compareMem(base,test,"binary")===0):truth(test)===true)return evaluateExpression(r,encoding,columns)}return e.otherwise?evaluateExpression(e.otherwise,encoding,columns):out}
  const args=()=>e.args.map(x=>evaluateExpression(x,encoding,columns));if(e.name==="coalesce"){for(const x of e.args){const v=evaluateExpression(x,encoding,columns);if(v.initialStorageClass!=="null")return v}return out}const a=args();return evaluateFunction(e.name,a,encoding,functionArgumentCollation(e.name,e.args))
 }
@@ -7410,7 +7753,7 @@ export class VdbeStatement implements Statement {
             try{const packed=packRecord(values,this.#program.encoding),old=this.#packedRecords.get(op.p3);this.#packedRecords.set(op.p3,{packed,charge});if(old)this.#privateBytes.release(old.charge)}
             catch(error){this.#privateBytes.release(charge);throw error}break;
           }
-          case "NewRowid": this.#registers[op.p2]!.setInt64(BigInt((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).size+1));break;
+          case "NewRowid": this.#registers[op.p2]!.setInt64((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).newRowid());break;
           case "Insert": {
             const record=this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError("internal","Insert record register was not packed");
             const values=decodeRecord(record.packed,this.#program.encoding).values.map(value=>memFromRawRecord(value,this.#borrow));
@@ -7497,6 +7840,8 @@ export class VdbeStatement implements Statement {
           case "EphemeralNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).next())this.#pc=op.p2;break;
           case "IfCursorSizeGt": {const threshold=op.thresholdRegister===undefined?op.threshold!:Number(this.#registers[op.thresholdRegister]!.integerValue())+(op.registerAdjustment??1);if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).size>threshold)this.#pc=op.jump;break;}
           case "IfRegisterGt": if(this.#registers[op.left]!.integerValue()>this.#registers[op.right]!.integerValue())this.#pc=op.jump;break;
+          case "EphemeralDelete": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).deleteCurrent(this.#privateControl(options,limit,started));break;
+          case "EphemeralPeekNextData": {const values=(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).nextData();if(values===null)this.#pc=op.emptyJump;else for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "EphemeralAdvanceData": {const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor;if(!cursor.next()){if(op.emptyJump!==undefined){this.#pc=op.emptyJump;break;}throw new JSQLiteError("internal","window inverse cursor exhausted");}const values=cursor.data();for(let i=0;i<op.count;i++)this.#registers[op.p2+i]!.copyFrom(values[i]!);break;}
           case "IfEphemeralHasNext": if((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).hasNext())this.#pc=op.jump;break;
           case "EphemeralResetPosition": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).rewindBeforeFirst();break;
@@ -7653,7 +7998,7 @@ export class VdbeStatement implements Statement {
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
           case "Binary": {let a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;if(op.affinity&&["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(op.op)){const left=new Mem(),right=new Mem();left.copyFrom(a);right.copyFrom(b);left.applyAffinity(op.affinity,this.#program.encoding);right.applyAffinity(op.affinity,this.#program.encoding);a=left;b=right}this.#registers[op.p3]!.moveFrom(op.op==="||"?concatenateMem(a,b,this.#program.encoding,this.#program.maxResultBytes):evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
           case "AggReset": for(const register of op.registers)this.#registers[register]!.setNull();break;
-          case "WindowRangeTest": {const candidate=this.#registers[op.candidate]!,current=this.#registers[op.current]!;const numeric=(m:Mem)=>m.initialStorageClass==="integer"||m.initialStorageClass==="real";let yes=false;if(op.mode==="end-unbounded")yes=true;else if(op.mode==="start-unbounded")yes=false;else if(op.mode==="end-current")yes=compareMem(candidate,current,op.collation)*(op.descending?-1:1)<=0;else if(op.mode==="start-current")yes=compareMem(candidate,current,op.collation)*(op.descending?-1:1)<0;else if(numeric(candidate)&&numeric(current)){const number=(m:Mem)=>m.initialStorageClass==="integer"?Number(m.integerValue()):m.realValue(),c=number(candidate),v=number(current),d=number(this.#registers[op.offset!]!);yes=op.mode==="end-following"?(op.descending?c>=v-d:c<=v+d):op.mode==="start-following"?(op.descending?c>v-d:c<v+d):(op.descending?c>v+d:c<v-d)}else yes=op.mode==="end-following"?compareMem(candidate,current,op.collation)===0:compareMem(candidate,current,op.collation)!==0;if(yes)this.#pc=op.jump;break;}
+          case "WindowRangeTest": {if(windowRangeTest(this.#registers[op.candidate]!,this.#registers[op.current]!,op.offset===undefined?undefined:this.#registers[op.offset]!,op.mode,op.descending,op.collation,op.bigNull))this.#pc=op.jump;break;}
           case "CompareJump": {let result=0;for(let i=0;i<op.count;i++){const index=op.permutation?.[i]??i,term=op.keyInfo.terms[i]!;result=compareMem(this.#registers[op.left+index]!,this.#registers[op.right+index]!,term.collation);if(result!==0){if(term.nullsLarge&&(this.#registers[op.left+index]!.initialStorageClass === "null"||this.#registers[op.right+index]!.initialStorageClass === "null"))result=-result;if(term.desc)result=-result;break;}}this.#pc=result<0?op.less:result>0?op.greater:op.equal;break;}
           case "CompareGroup": {let equal=true;for(let i=0;i<op.count;i++)if(compareMem(this.#registers[op.left+i]!,this.#registers[op.right+i]!,op.keyInfo.terms[i]!.collation)!==0){equal=false;break}if(equal)this.#pc=op.jump;break;}
           case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const changed=aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#inverseAggregates.has(op.p2));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
