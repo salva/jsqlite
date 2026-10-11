@@ -1,5 +1,43 @@
 # SQLite-to-TypeScript translation guide
 
+## Accepted isolated private BLOBKEY Insert/balance primitive
+
+Independent [[card:card-s-i-c-a-h]] status25 accepts the complete assigned admitted
+primitive from [[card:card-s-i-c-a-g]], following the accepted construction and
+cursor/ownership prerequisites. This is a separate statement-private arena, not
+immutable MAIN, Pager/journal, native heap, VM/WR or whole-product acceptance.
+
+`PrivateBlobkeyCursor.insertIndex` owns a packed full-KeyInfo seek; only boolean
+`savePosition` is admitted. Unknown own options (including nonenumerable/symbol
+keys) reject before work. Scalar seek evidence, PREFORMAT and TransferRow are not
+admitted. NEW consumes capacity once; equal overwrite/replacement conserves entry
+ownership, retains interior child pointers and preserves local/overflow branch
+ordering. Successful balanced SAVEPosition owns its copied key for restore.
+
+`PrivateBlobkeyPages` follows pinned BtreeInsert and reachable BLOBKEY nonroot,
+deeper/dispatcher/shallow/upward balancing: resident/staged CellArray lifetime,
+whole divider entries and overflow ownership, mandatory right redistribution,
+page-number identity rekey (not key sorting), native dependency-ordered edits and
+rebuild fallback. Packed bytes remain authoritative. The exclusive gate, peer
+save/registry/cache/FAULT and primary-error noncancellable cleanup owners remain
+in force; terminal mutation failure is not rollback.
+
+The representation is4096/reserved0/autoVacuum=false with bounded deterministic
+resource allowances, cancellation/deadline checkpoints and exact entry capacity.
+Nonempty full defrag admits5632 before copy/construction: buffer4096 plus1536
+metadata (page/state/empty collections256, eight capability records/closures128
+each including identity, default scratch128, transient parse/view128). All refund
+in finally; fast/empty branches do not allocate this allowance. This is additional
+to live arena/page/lease/control/gather/partition owners, not native sizeof parity.
+Standalone enforcement requires the explicit scratch accountant.
+
+[Independent acceptance and finite matrix](record:///status.md?card=card-s-i-c-a-h&v=25)
+and [delivery/input/test provenance](record:///status.md?card=card-s-i-c-a-g&v=420)
+retain earlier failures and bounded native-source comparisons. Independent affected
+suite358/358, exact/below5632 and shallow101040, plus staged fallback62103 evidence
+are revision-bound verification, not compatibility-wide claims. Native INTERNAL
+capture was not obtained; no oracle capture is invented.
+
 ## Authority and current use
 
 [SPEC](SPEC.md) owns product scope; [PLAN](PLAN.md) owns sequencing. This is the

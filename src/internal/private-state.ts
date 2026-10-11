@@ -9,7 +9,12 @@ export interface PrivateStateLimits {
 /** Units are deterministic: one per inserted record, copied logical byte,
  * compared KeyInfo term, and merge move. A zero-unit checkpoint surrounds
  * bounded growth without adding work. */
-export interface PrivateStateControl { checkpoint(units?: number): Promise<void> }
+export interface PrivateStateControl {
+  checkpoint(units?: number): Promise<void>;
+  /** Optional nonyielding work/cancel/deadline probe for mutable input ownership.
+   * Must return synchronously without mutating the admitted caller input. */
+  snapshotCheckpoint?(units:number):void;
+}
 export class PrivateStateLimitError extends Error { constructor(message:string){super(message);this.name="PrivateStateLimitError"} }
 /** One execution-owned aggregate budget shared by every private cursor. */
 export class PrivateStateByteBudget {

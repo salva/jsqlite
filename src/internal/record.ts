@@ -148,7 +148,12 @@ function decodeSerial(serialType: bigint, payload: Uint8Array, encoding: Databas
   if (serialType >= 1n && serialType <= 6n) return { storageClass: "integer", value: signedBigEndian(payload) };
   if (serialType === 7n) {
     const bits = unsignedBigEndian(payload);
-    const value = new DataView(payload.buffer, payload.byteOffset, 8).getFloat64(0, false);
+    // serialGet7 assembles the big-endian bits then memcpy's into the REAL.
+    // Reinterpret only those owned eight bytes, never export a borrowed page's
+    // backing buffer (which could outlive its lease or expose unrelated cells).
+    const real = new DataView(new ArrayBuffer(8));
+    real.setBigUint64(0, bits, false);
+    const value = real.getFloat64(0, false);
     const classification = Number.isNaN(value) ? "nan" : Number.isFinite(value) ? "finite" : "infinity";
     return { storageClass: "real", bits, value, classification };
   }

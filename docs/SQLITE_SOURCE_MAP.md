@@ -1,5 +1,32 @@
 # SQLite source map
 
+## Accepted private BLOBKEY primitive mapping
+
+- Pinned `btree.c` fillInCell/clearCell/overwriteCell and BtreeInsert9395ff →
+  `private-blobkey-pages.ts` fill/clear/overwrite + cursor `insertIndex/#writeIndex`;
+  admission/overwrite/Insert tests cover packed seek, equality/replacement,
+  exact-capacity conservation, SAVEPosition, rejected authority and terminal errors.
+- CellArray/rebuildPage/editPage and balance_nonroot8245ff →
+  `private-blobkey-balance.ts` gather/partition/rekey/divider/edit helpers,
+  `private-blobkey-staging.ts` staged splicing, and pages arena nonroot owner;
+  balance/CellArray/Insert tests plus independent staged fallback prove resident
+  and pending lifetime/count conservation, unequal sizes/right redistribution,
+  child/divider/overflow ownership and page-number identity rekey.
+- balance_deeper/dispatcher/shallow/upward → pages arena/token/cursor path;
+  reachable Insert/mutation-authority tests cover expansion/propagation/contraction,
+  acquire/allocate/publication failures, primary cleanup and cursor invalidation.
+- defragmentPage1613ff → `PrivateIndexPage.#defrag`: native shortcut/full copy order,
+  explicit5632 full-branch allowance before construction and finally refund;
+  pages tests exact5632/below5631 and preconstruction/postcopy cancellation;
+  reachable interior contraction shallow peak101040 exact/below/paired cleanup.
+- Independent staged cross-page fallback62103 (pending69 retained until physical
+  consumers complete), complete finite owner matrix and native-source comparisons:
+  [h accepted status25](record:///status.md?card=card-s-i-c-a-h&v=25).
+  [g source/test/input evidence](record:///status.md?card=card-s-i-c-a-g&v=420).
+
+Acceptance is the complete assigned admitted isolated primitive only; no native
+INTERNAL capture, MAIN/Pager/journal/native malloc parity or VM/WR credit.
+
 Current upstream → TypeScript → test/evidence navigation. The source root is
 `reference/sqlite/sqlite-src-3530400/`, pinned by
 [manifest](../reference/sqlite/manifest.json). [Translation guide](TRANSLATION.md)
