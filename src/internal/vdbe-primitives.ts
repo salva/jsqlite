@@ -2,6 +2,7 @@
 // 3.53.4 vdbe.c OP_Add..OP_Remainder, OP_BitAnd..OP_BitNot and
 // OP_And..OP_IsNull. This is an internal register-value layer, not an SQL AST
 // evaluator or public statement path.
+import { compareMem, type BuiltinCollation } from "./comparison.ts";
 import { Mem } from "./mem.ts";
 
 const INT64_MIN = -(1n << 63n);
@@ -160,4 +161,29 @@ export function truthBranch(value: Mem, branch: "if" | "if-not", ifNull: boolean
 
 export function isNull(value: Mem): boolean {
   return value.initialStorageClass === "null";
+}
+
+// window.c windowCodeRangeTest: arithmetic belongs to csr1, even when csr2
+// is nonnumeric. Preserve int64 arithmetic and SQLite storage-class ordering.
+export function windowRangeTest(candidate: Mem, current: Mem, offset: Mem | undefined,
+  mode: "end-current"|"end-following"|"end-unbounded"|"start-unbounded"|"start-current"|"start-preceding"|"start-following",
+  descending: boolean, collation: BuiltinCollation, bigNull = false): boolean {
+  if(mode === "end-unbounded") return true;
+  if(mode === "start-unbounded") return false;
+  const compare = (a: Mem,b: Mem): number => {
+    if(bigNull && (a.initialStorageClass === "null" || b.initialStorageClass === "null"))
+      return a.initialStorageClass === b.initialStorageClass ? 0 : a.initialStorageClass === "null" ? 1 : -1;
+    return compareMem(a,b,collation);
+  };
+  const ordered = (a: Mem,b: Mem) => compare(a,b)*(descending?-1:1);
+  if(mode === "end-current") return ordered(candidate,current)<=0;
+  if(mode === "start-current") return ordered(candidate,current)<0;
+  const left = mode === "start-preceding" ? candidate : current;
+  const right = mode === "start-preceding" ? current : candidate;
+  // OP_Ge/Le before arithmetic protects the PRECEDING inverse threshold.
+  if(mode === "start-preceding" && ordered(left,right)>=0) return false;
+  const shifted = left.initialStorageClass === "integer" || left.initialStorageClass === "real"
+    ? arithmeticBinary(descending?"subtract":"add",left,offset!) : left;
+  const relation = ordered(shifted,right);
+  return mode === "end-following" ? relation>=0 : mode === "start-following" ? relation>0 : relation<0;
 }

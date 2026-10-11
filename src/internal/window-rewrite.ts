@@ -8,7 +8,7 @@ import {productions, tokenIds} from "../generated/parser-tables.ts";
 type Reduction=Extract<LemonValue<SqlToken>,{kind:"reduction"}>;
 export interface WindowExpressionBinding {readonly source:ResolvedSource;readonly columnIndex:number}
 export interface WindowRewriteFunction {readonly window:ResolvedWindow;readonly regAccum:number;readonly regResult:number;readonly argumentColumn:number;readonly filterColumn:number|null;readonly filterCarrier:ResolvedExpressionCarrier|null}
-export interface WindowRewriteSortTerm {readonly expression:ExprNode;readonly binding:WindowExpressionBinding|null;readonly source:"partition"|"order";readonly copiedIntegerToNull:boolean;readonly descending:boolean;readonly nulls:"first"|"last"|null}
+export interface WindowRewriteSortTerm {readonly expression:ExprNode;readonly sourceExpression:ExprNode;readonly binding:WindowExpressionBinding|null;readonly source:"partition"|"order";readonly copiedIntegerToNull:boolean;readonly descending:boolean;readonly nulls:"first"|"last"|null}
 export interface WindowLiftedExpression {readonly expression:ExprNode;readonly kind:"column"|"aggregate"|"window";readonly bufferColumn:number;readonly selectDepth:number;readonly aggregateDepthBefore:number|null;readonly aggregateDepthAfter:number|null;readonly correlatedFromScalarSubquery:boolean}
 export interface WindowAggregateDepthRepair {readonly expression:ExprNode;readonly selectDepth:number;readonly aggregateDepthBefore:number;readonly aggregateDepthAfter:number}
 export interface WindowRewriteOriginalProducer {
@@ -61,20 +61,6 @@ function copySortExpression(value:ExprNode,integerToNull:boolean):ExprNode{
  };
  const reduction=value.reduction?copy(value.reduction):undefined;
  return Object.freeze({kind:"tokens",tokens:Object.freeze(reduction?leaves(reduction):value.tokens.map(token=>Object.freeze({...token}))),...(reduction?{reduction}:{}),...(value.alias===undefined?{}:{alias:value.alias})});
-}
-function windowOrderFlags(window:ResolvedWindow):readonly Pick<WindowRewriteSortTerm,"descending"|"nulls">[]{
- const root=window.owner.reduction;
- if(!root)return Object.freeze([]);
- const find=(node:LemonValue<SqlToken>):Reduction|undefined=>node.kind!=="reduction"?undefined:node.signature.startsWith("sortlist ::=")?node:node.children.map(find).find((value):value is Reduction=>!!value);
- const list=find(root);if(!list)return Object.freeze([]);
- const terms:{node:Reduction;prior:Reduction|undefined}[]=[];
- const collect=(node:Reduction):void=>{const prior=node.children.find((child):child is Reduction=>child.kind==="reduction"&&child.signature.startsWith("sortlist ::="));if(prior)collect(prior);terms.push({node,prior});};collect(list);
- return Object.freeze(terms.map(({node,prior})=>{
-  // Recursive sortlist nodes contain every preceding term. Read flags only
-  // from this node's appended item, matching ExprList_item.sortFlags.
-  const words=node.children.filter(child=>child!==prior).flatMap(leaves).map(token=>sqliteAsciiFold(token.text));
-  return Object.freeze({descending:words.includes("desc"),nulls:words.includes("nulls")?(words.includes("first")?"first" as const:"last" as const):null});
- }));
 }
 function sameOrderTerm(parent:OrderTermNode,producer:WindowRewriteSortTerm,resolved:ResolvedSelect):boolean{
  // expr.c:sqlite3ExprListCompare compares sort flags before sqlite3ExprCompare.
@@ -157,7 +143,7 @@ export function sqlite3WindowRewrite(resolved:ResolvedSelect,allocation?:{regist
  const uses=new Map<Reduction,ResolvedColumnUse>();const collectUses=(owner:ResolvedSelect):void=>{for(const use of owner.columnUses)uses.set(use.expression,use);owner.nested.forEach(collectUses);};collectUses(resolved);
  const groupEntries=[...groups.entries()];
  for(const [groupIndex,[compatibleGroup,windows]] of groupEntries.entries()){const main=windows[0]!;
-  const orderFlags=windowOrderFlags(main);const producerOrderBy=Object.freeze([...main.partitionBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),binding:resolvedBinding(value,uses),source:"partition" as const,copiedIntegerToNull,descending:false,nulls:null});}),...main.orderBy.map((value,index)=>{const copiedIntegerToNull=integerSortKey(value),flags=orderFlags[index]??{descending:false,nulls:null};return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),binding:resolvedBinding(value,uses),source:"order" as const,copiedIntegerToNull,...flags});})]);
+  const orderFlags=main.orderTerms;const producerOrderBy=Object.freeze([...main.partitionBy.map(value=>{const copiedIntegerToNull=integerSortKey(value);return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),sourceExpression:value,binding:resolvedBinding(value,uses),source:"partition" as const,copiedIntegerToNull,descending:false,nulls:null});}),...main.orderBy.map((value,index)=>{const copiedIntegerToNull=integerSortKey(value),flags=orderFlags[index]??{descending:false,nulls:null};return Object.freeze({expression:copySortExpression(value,copiedIntegerToNull),sourceExpression:value,binding:resolvedBinding(value,uses),source:"order" as const,copiedIntegerToNull,...flags});})]);
   if(layers.length===0&&parentOrder.length<=producerOrderBy.length&&parentOrder.every((term,index)=>sameOrderTerm(term,producerOrderBy[index]!,resolved))){parentOrder=Object.freeze([]);prefixElided=true;}
   const terminalRewrite=liftExpressions([...resolved.result.map(result=>result.expression),...parentOrder.map(term=>{const index=resolved.orderResultColumns[resolved.source.orderBy.indexOf(term)];return index!==null&&index!==undefined?resolved.result[index]!.expression:term.expr;}),...groupEntries.slice(groupIndex+1).flatMap(([,pending])=>pending.flatMap(window=>[...window.partitionBy,...window.orderBy,...windowArguments(window.owner)]))],resolved,main),lifted=terminalRewrite.lifted,buffer:ExprNode[]=lifted.map(item=>item.expression),bufferBindings:(WindowExpressionBinding|null)[]=buffer.map(value=>resolvedBinding(value,uses));
   for(const value of [...main.partitionBy,...main.orderBy]){buffer.push(value);bufferBindings.push(resolvedBinding(value,uses));}
