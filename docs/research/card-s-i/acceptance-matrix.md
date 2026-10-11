@@ -2,7 +2,32 @@
 
 Current bounded evidence for [[card:card-s-i-c-b-c]]; **not goal/product approval**.
 
-Published WR-only consuming milestone `f5ff865ec317e03edb524dfa8cc82d5cb21283b2` / tree `6ebc5ce85eaee6f6de6080752d4cc46db1c0f267` is complete as isolated publication. Parent integration, goal/product acceptance and the fresh exact final-input original225 gate are **not complete**. Original-owner corrections and the full-browser window/private-live-rows336 disposition remain unapproved in available records; routing is not approval.
+Published WR-only milestone `f5ff865ec317e03edb524dfa8cc82d5cb21283b2`
+(tree `6ebc5ce85eaee6f6de6080752d4cc46db1c0f267`) remains the bounded consuming
+baseline. Authenticated joint carrier `96722500707580a6849c925a6060cb7d19a91b64`
+(tree `74cd7970e5ec86bbbf376872bf2856d9cc90976e`, exact4435-path inventory) includes
+the approved original-owner corrections and four integration test-contract repairs.
+Executor receipts on those included inputs record a single original225225/225,
+three native prerequisites0, typecheck/build0, actual Chromium current-lane47/47,
+affected370/370 and reauthenticated pinned native capture0. These are executor-run
+receipts, not Reviewer-run gates or parent/root/main/product acceptance.
+
+Window carrier54f8495 is approved by [owner status24](record:///status.md?card=card-o&v=24)
+and [owning review12](record:///review.md?card=card-o-c&v=12): composed359 succeeds,
+358/200 reject; SingleInsert81 rejects/82 succeeds, with packed charge retained.
+Included endpoint blob69e088eba25a3b16c149844cbc7698bf2dbff7a3 uses bounded
+successful-high search; included LEFT spec blobc2aeb09fa513fe37a421927d870e2660a5ed0a4b
+requires sorter0 for complete outer-IPK order through inner singleton/LEFT NullRow.
+These exact approved payloads do not authorize broader optimizer/budget changes.
+[Final receipt](record:///status.md?card=card-s-i-c-b-c&v=438) retains input/log hashes,
+commands and failed attempts; [goal review6](record:///review.md?card=card-s-i-c-b&v=6)
+supports material remediation but requires current-evidence consolidation.
+[Inventory](work:///cards/card-s-i-c-b-c/wr-joint-approved/consolidated-final-inventory.json),
+[gate inputs](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-inputs.json) and
+[gate hashes](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-hashes.json)
+qualify all reused receipts. This documentation-only overlay does not recertify
+source machinery; renewed goal review, parent incorporation and root/product/main
+acceptance remain separate and ungranted here.
 Detailed commands, hashes and failed attempts are in the card status records.
 This matrix tracks named branches rather than counting encodings as source cases.
 
@@ -21,9 +46,9 @@ This matrix tracks named branches rather than counting encodings as source cases
 | Work and representative interruption |78 selected union and NOT INDEXED same rows within finite public budget, low-budget rejection; private VM accounting pins two selected arm starts/seeks versus zero offpath arms, full-primary >=400 advances and strictly more IndexNext than selected;79 selected seek/insert delegates production checkpoint, cancellation primary wins close collision, exact saved primary/reset and owners close once. `test/value/private-key-vm-interruption.test.mjs` supplies actual comparison-stage interruption, baseline refund and zero budget after owning close; fresh composed gate in status | Evidence is composed primitive+integrated invocation, not per-microcheckpoint/native heap parity or total relative page/comparison cost; representative IndexNext movement is now pinned. Public deadline59 is yielded boundary, not comparator-specific timer injection |
 | Source failure ownership | [Owner comparison](source-owner-comparison.md): allocation/null-subplan/recursive rc distinction, ready return consumed, logical WR/REAL, Case5 continuation/WhereEnd, statement error cleanup ordering | Expanded key/residual/covering evidence; no native malloc-injection or unrelated WhereEnd parity claim |
 | Independent oracle | Authenticated original whereI-3.0 plus four additional exact execsql cases1.2/1.3/2.2/2.3: [expanded capture](native-wherei-expanded.json), [dev-only harness](capture-wherei-expanded.py), public typed rows/reset in or-wr-pinned-expanded.test.mjs. One UTF-8 fixture; setup1.0/2.0 and EQP1.1/2.1 not separate case credit | Small upstream fixtures do not establish TS selected multi-or; supplemental selected controls remain separate. Durable supplemental metadata capture supplied separately (one authored SQL, no source-case credit) |
-| Browser | Selected actual Chromium6/6 (two authored queries across three encodings) | Independent actual full46:45pass/1fail window/private-live-rows336 typed byte-limit; existing original window/browser owner disposition required via parent, not cap-only waiver or filtered substitution. |
-| Affected corpus | Published WR focused319/319; detailed exact artifacts in milestone-publication.json | No fresh single original225 gate on final published inputs. Historical222/3, provisional packaged225/225 and disposable archive224/1 plus separate generator2/2 retry are revision evidence only; [attribution](original225-residual-attribution.md) refutes phase-domination diagnosis. Three provisional original corrections remain excluded/unapproved. |
-| Publication | Isolated f5ff865/tree6ebc5ce and explicit52-path inventory published; main/default-index preserved | Integration/acceptance and final-input original225/full-browser gates remain incomplete; no provisional approval promotion. |
+| Browser | Final included96722500 actual Chromium148 current lane47/47, filter=null; [report](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-browser-report.json). Predecessor selected6/6 was two authored queries across three encodings. | Historical full45/46 at window336 is retained failed evidence, superseded for current disposition by approved source-owned359/358/200 witness and final47/47, not a cap-only waiver. Not all lanes/product approval. |
+| Affected corpus | Final single original225225/225 with native prerequisites0; affected370/370 and focused153/153; typecheck/build0. [Original report](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-original225-report.json), [receipt](record:///status.md?card=card-s-i-c-b-c&v=438). WR predecessor319/319 remains milestone-bound. | Historical222/3, provisional packaged225/225, archive224/1 plus separate generator2/2 retry and intermediate224/1 are revision-bound, not combined final gates. [Attribution](original225-residual-attribution.md) retains refuted phase-domination diagnosis. Approved original payloads are now included; no global compatibility claim. |
+| Publication | Isolated WR f5ff865/tree6ebc5ce and52-path inventory; joint96722500/tree74cd797 exact4435 includes approved corrections and completed executor final gates. This doc-only successor preserves executable inputs and receipt applicability (current card status). | Renewed goal review, parent/root incorporation, product/main promotion remain pending, not implied by publication or gates. Default index/main preserved. |
 
 Native overlap capture is reused for row membership of authored supplemental
 queries; that does not authenticate new SQL's oracle plans or metadata. No whole

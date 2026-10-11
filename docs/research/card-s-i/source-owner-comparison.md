@@ -1,8 +1,43 @@
 # Case5 source/control/error owner comparison
 
-Independent bounded research by [[card:card-s-i-c-b-e]] for [[card:card-s-i-c-b]], against candidate tree `75a4bbe8a5a4c77306082a692946f6751bfee4b6` and pinned SQLite 3530400. This replaces pending-review assertions in this comparison, not the historical evidence. Detailed provenance, commands, failures and limitations: [review status](record:///status.md?card=card-s-i-c-b-e); prior runtime review: [[card:card-s-i-c-b-d]] status22. Published WR-only consuming milestone `f5ff865ec317e03edb524dfa8cc82d5cb21283b2` / tree `6ebc5ce85eaee6f6de6080752d4cc46db1c0f267` is complete as isolated publication. Parent integration, goal/product acceptance and the fresh exact final-input original225 gate are **not complete**. Original-owner corrections and the full-browser window/private-live-rows336 disposition remain unapproved in available records; routing is not approval.
+Independent bounded research by [[card:card-s-i-c-b-e]] for [[card:card-s-i-c-b]], against candidate tree `75a4bbe8a5a4c77306082a692946f6751bfee4b6` and pinned SQLite 3530400. This replaces pending-review assertions in this comparison, not the historical evidence. Detailed provenance, commands, failures and limitations: [review status](record:///status.md?card=card-s-i-c-b-e); prior runtime review: [[card:card-s-i-c-b-d]] status22.
 
-## Final research report — supported, bounded
+## Current publication/integration boundary
+
+Published WR-only milestone `f5ff865ec317e03edb524dfa8cc82d5cb21283b2`
+(tree `6ebc5ce85eaee6f6de6080752d4cc46db1c0f267`) remains the bounded consuming
+baseline. Authenticated joint carrier `96722500707580a6849c925a6060cb7d19a91b64`
+(tree `74cd7970e5ec86bbbf376872bf2856d9cc90976e`, exact4435-path inventory) includes
+the approved original-owner corrections and four integration test-contract repairs.
+Executor receipts on those included inputs record a single original225225/225,
+three native prerequisites0, typecheck/build0, actual Chromium current-lane47/47,
+affected370/370 and reauthenticated pinned native capture0. These are executor-run
+receipts, not Reviewer-run gates or parent/root/main/product acceptance.
+
+Window carrier54f8495 is approved by [owner status24](record:///status.md?card=card-o&v=24)
+and [owning review12](record:///review.md?card=card-o-c&v=12): composed359 succeeds,
+358/200 reject; SingleInsert81 rejects/82 succeeds, with packed charge retained.
+Included endpoint blob69e088eba25a3b16c149844cbc7698bf2dbff7a3 uses bounded
+successful-high search; included LEFT spec blobc2aeb09fa513fe37a421927d870e2660a5ed0a4b
+requires sorter0 for complete outer-IPK order through inner singleton/LEFT NullRow.
+These exact approved payloads do not authorize broader optimizer/budget changes.
+[Final receipt](record:///status.md?card=card-s-i-c-b-c&v=438) retains input/log hashes,
+commands and failed attempts; [goal review6](record:///review.md?card=card-s-i-c-b&v=6)
+supports material remediation but requires current-evidence consolidation.
+[Inventory](work:///cards/card-s-i-c-b-c/wr-joint-approved/consolidated-final-inventory.json),
+[gate inputs](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-inputs.json) and
+[gate hashes](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-hashes.json)
+qualify all reused receipts. This documentation-only overlay does not recertify
+source machinery; renewed goal review, parent incorporation and root/product/main
+acceptance remain separate and ungranted here.
+
+The research below is revision-bound to75a4bbe8. Its source/control conclusions
+remain bounded evidence; its original integration recommendations are historical
+and superseded by the current boundary above, not instructions to reopen approved
+payloads or reclassify completed final gates as absent.
+
+
+## Historical research report — supported, bounded at75a4bbe8
 
 Based on accepted exploration [status3](record:///status.md?card=card-s-i-c-b-e&v=3) and accepted assessment [status6](record:///status.md?card=card-s-i-c-b-e&v=6).
 
@@ -12,9 +47,9 @@ Based on accepted exploration [status3](record:///status.md?card=card-s-i-c-b-e&
 
 **Limitations and uncertainty.** Native proposal enumeration/cost parity, transformed fromExists/DUPLICATES_OK, virtual dispatch, SLICE, native IN earlyout and unrelated full WhereEnd branches remain uncertified. Compiler exceptions/GC are not native malloc recovery, and packed reseek retains an extra-work tradeoff. No exhaustive allocator/destructor, whole-browser or whole-product claim follows. These are remaining implementation/review boundaries, not product exclusions. Oracle-library hash differences and finite probe denominators remain disclosed in the versioned evidence.
 
-**Recommendations and handoff.** Parent [[card:card-s-i-c-b]] should consume this report with d22/c399, consolidate stale matrix original225/MakeRecord-phase assertions using later attribution, and route original-owning residual proposals/source-byte overlap/sorter approvals separately. The actual full-browser 45/46 limit failure remains unresolved original-owner diagnosis; do not simply increase the cap. Archive225 224pass/one missing generator input, separate generator retry and packaged225/225 are distinct outcomes. Exhaustive unrepresented-branch/resource/optimizer assessment remains outstanding delegated implementation/review work, not a prerequisite invented for this bounded report. Integration, evidence promotion, policy/product acceptance and publication remain their owners' decisions; review did not publish the candidate; subsequent WR-only integration is separately authenticated. No runtime/test/main/index or peer changes were made by this research.
+**Historical recommendations and handoff (75a4bbe8; superseded for current integration).** Parent [[card:card-s-i-c-b]] should consume this report with d22/c399, consolidate stale matrix original225/MakeRecord-phase assertions using later attribution, and route original-owning residual proposals/source-byte overlap/sorter approvals separately. The actual full-browser 45/46 limit failure remains unresolved original-owner diagnosis; do not simply increase the cap. Archive225 224pass/one missing generator input, separate generator retry and packaged225/225 are distinct outcomes. Exhaustive unrepresented-branch/resource/optimizer assessment remains outstanding delegated implementation/review work, not a prerequisite invented for this bounded report. Integration, evidence promotion, policy/product acceptance and publication remain their owners' decisions; review did not publish the candidate; subsequent WR-only integration is separately authenticated. No runtime/test/main/index or peer changes were made by this research.
 
-## Decision
+## Historical source decision (75a4bbe8)
 
 The finite represented consuming contract is supported by the independent source comparison plus the unchanged-input finite evidence. No concrete new semantic divergence requiring runtime repair was established. This closes the outstanding **non-test producer/control/error annotation** at bounded scope; it is not whole-planner fidelity, original-owner residual-proposal approval, publication, or product acceptance. The two runtime gaps closed by d remain credited without duplicate fixtures. [Consumer decisions](consumer-decisions.md), [nullable boundary](nullable-boundary.md) and [matrix](acceptance-matrix.md) carry the finite witness inventory; stale original225-red and MakeRecord-phase predictions in historical/current evidence must not override d22's later attribution.
 
@@ -33,8 +68,14 @@ The finite represented consuming contract is supported by the independent source
 | `where.c:sqlite3WhereEnd` (7520–7885): reverse unwind continuation, Return/step, inner-to-outer IN, break/skip/LIKE, LEFT null extension; second-pass covering remap; restore/free | Ordinary sqlite3WhereEnd patches primary miss and guard/advance/IN/prefix exits; joined reverse-level cleanup keeps null-pass guard before actual advancement/Return, skips uninitialized RHS restarts, nulls table **and common Case5 covering cursor**, re-enters body; covering maps primary storage→logical→secondary | Register-based IN has no native unopened RHS cursor; null-pass guard preserves that branch's requirement. C ReopenIdx+NullRow becomes NullRow on retained common index descriptor/cursor. Full RIGHT/unmatched, coroutine, DISTINCT skip-ahead, LIKE-repeat, expression-index and native IN earlyout branches are not certified by this WR slice |
 | VM execution/reset/finalize failure ordering | `PrivateKeyVmCursor` updates seek state only after successful primitive return, invalidates insert cache in finally; statement saves primary execution failure, closes private owners while retaining first secondary diagnostic, reset restores READY before rethrow, finalize terminal before rethrow | JS destructor collisions are real adaptation branches, not native malloc parity. Typed private owner cleanup covered by existing finite collision/reset/finalize tests; no global all-destructor proof |
 
-## LEFT and finite acceptance boundary
+## Historical LEFT and finite acceptance boundary (75a4bbe8)
 
 Native JT_RIGHT does not reject safe represented LEFT. Witness64's matching/null extension is independently recaptured by d in all three encodings; witness67/readiness and nullable ON ownership bound conservative fallback. The actual common covering cursor is nulled before synthetic body entry; null-pass continuation prevents old-arm movement or uninitialized IN restart. This supports the qualified safe LEFT witness, not arbitrary nullable composition.
 
 Reuse d's exact-candidate native whereI four source cases, safe LEFT recapture, filtered actual Chromium six encoding probes, lifecycle/resource and public typed tests. The full browser attempt remains 45/46 with an out-of-slice window/private-live-rows limit failure. Original archive225 was 224pass/one missing pinned generator input, followed by separate generator retry; complete packaged225 is separate evidence. Parent must route original225 residual proposals/source-byte overlap/sorter expectations to their original owners and consolidate superseded matrix claims. Neither these routing obligations nor unused native machinery creates a new runtime fixture prerequisite for this bounded source review.
+
+Current disposition is the publication/integration boundary above: final gates are
+completed executor receipts, not independent research reruns. Historical319/selected6,
+222/3, archive224+retry,45/46 at336 and intermediate224/1 remain revision-bound
+evidence in the [current matrix](acceptance-matrix.md) and card records. No new WR
+runtime defect or blanket parity/acceptance is established by this doc repair.
