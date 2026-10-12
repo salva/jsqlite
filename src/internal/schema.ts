@@ -55,6 +55,7 @@ export interface TableNode {
   readonly sql: string;
   readonly columns: readonly ColumnNode[];
   readonly indexes: IndexNode[];
+  readonly strict?: boolean;
   readonly withoutRowid: boolean;
   /** select.c TF_NoVisibleRowid; independent of physical WITHOUT ROWID storage. */
   readonly noVisibleRowid?: boolean;
@@ -864,7 +865,18 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
       let defaultIndex = 0;
       const declaredPrimary = ddl.primaryKey.length ? ddl.primaryKey : ddl.columns.filter(column => column.primaryKey).map(column => column.name);
-      const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: item===schemaTable ? column.declaredType?.toUpperCase()??null : column.declaredType, ...columnTypeEstimate(column.declaredType), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || (ddl.withoutRowid && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage, checks: [] as CheckConstraintNode[] })));
+      // build.c sqlite3EndTable STRICT pass: validate in declaration order,
+      // after PK declaration has selected the INTEGER rowid alias.
+      const strictRowidAlias = !ddl.withoutRowid && declaredPrimary.length===1
+        ? ddl.columns.find(column=>sqliteIdentifierEqual(column.name,declaredPrimary[0]!) &&
+          column.declaredType?.toUpperCase()==="INTEGER" && (ddl.primaryKey.length>0 || !column.primaryKeyDescending))?.name ?? null : null;
+      if(ddl.strict)for(const column of ddl.columns){
+        const type=column.declaredType?.toUpperCase();
+        if(!type)malformed(`missing datatype for ${item.name}.${column.name}`);
+        if(!["INT","INTEGER","REAL","TEXT","BLOB","ANY"].includes(type!))
+          malformed(`unknown datatype for ${item.name}.${column.name}: "${column.declaredType}"`);
+      }
+      const columns = Object.freeze(ddl.columns.map(column => Object.freeze({ name: column.name, declaredType: item===schemaTable ? column.declaredType?.toUpperCase()??null : column.declaredType, ...columnTypeEstimate(column.declaredType), ...(ddl.strict && column.declaredType?.toUpperCase()==="ANY" ? {affinity:"blob" as const} : {}), defaultExpr: column.defaultExpr, generatedExpr: column.generatedExpr, defaultIndex: column.defaultExpr ? defaultIndex++ : null, notNull: column.notNull || ((ddl.withoutRowid || (ddl.strict && !sqliteIdentifierEqual(strictRowidAlias??"",column.name))) && declaredPrimary.some(name => sqliteIdentifierEqual(name, column.name))), primaryKeyPosition: (()=>{const at=declaredPrimary.findIndex(name=>sqliteIdentifierEqual(name, column.name));return at<0?null:at+1;})(), unique: column.unique, collation: column.collation, generatedStorage: column.generatedStorage, checks: [] as CheckConstraintNode[] })));
       const declaredPrimaryKey= Object.freeze(declaredPrimary.map(name => { const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name, name));if(!column)malformed(`primary key refers to unknown column ${name}`);return column; }));
       const declaredPrimaryKeyTerms=Object.freeze(declaredPrimaryKey.map((column,index)=>{const declared=ddl.primaryKeyTerms[index];return Object.freeze({column,expression:null,expressionSql:null,descending:declared?.descending??ddl.columns.find(candidate=>sqliteIdentifierEqual(candidate.name,column.name))?.primaryKeyDescending??false,collation:declared?.collation??column.collation,nulls:declared?.nulls??null}) as IndexTerm;}));
       // build.c equivalent UNIQUE/PK constraints retain the first index's
@@ -890,7 +902,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       const checks=Object.freeze(ddl.checks.map(check=>{const column=check.columnName===null?null:columns.find(candidate=>sqliteIdentifierEqual(candidate.name,check.columnName!))??null;if(check.columnName!==null&&!column)malformed(`CHECK refers to unknown column ${check.columnName}`);const node=Object.freeze({name:check.name,column,expr:check.expr,sql:check.tokens.map(token=>token.text).join(" ")});if(column)(column.checks as CheckConstraintNode[]).push(node);return node;}));
       for(const column of columns)Object.freeze(column.checks);
       const foreignKeys=Object.freeze(ddl.foreignKeys.map(foreign=>{if(foreign.referencedColumns&&foreign.referencedColumns.length!==foreign.columns.length)malformed("number of columns in foreign key does not match referenced columns");const links=Object.freeze(foreign.columns.map((name,index)=>{const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name,name));if(!column)malformed(`unknown column ${name} in foreign key definition`);return Object.freeze({column,referencedColumn:foreign.referencedColumns?.[index]??null});}));return {name:foreign.name,columns:links,referencedTableName:foreign.referencedTable,referencedTable:null,onDelete:foreign.onDelete,onUpdate:foreign.onUpdate,deferrable:foreign.deferrable,initiallyDeferred:foreign.initiallyDeferred,sql:foreign.tokens.map(token=>token.text).join(" ")} as ForeignKeyNode;}));
-      const table: TableNode = { integerPrimaryKey,szTabRow:sqliteLogEst(BigInt((columns.reduce((n,c)=>n+c.szEst,0)+(integerPrimaryKey===null?1:0))*4)),nRowLogEst:200,hasStat1:false, kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], withoutRowid: ddl.withoutRowid, primaryKey, primaryKeyTerms, storageKey, checks, foreignKeys, referencedBy: [] };
+      const table: TableNode = { integerPrimaryKey,szTabRow:sqliteLogEst(BigInt((columns.reduce((n,c)=>n+c.szEst,0)+(integerPrimaryKey===null?1:0))*4)),nRowLogEst:200,hasStat1:false, kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], strict: ddl.strict, withoutRowid: ddl.withoutRowid, primaryKey, primaryKeyTerms, storageKey, checks, foreignKeys, referencedBy: [] };
       // build.c:sqlite3EndTable resolves every generating expression through
       // resolve.c:sqlite3ResolveSelfReference, including STORED definitions.
       // Resolve names/functions without expanding dependencies: cycles belong

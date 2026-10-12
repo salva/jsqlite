@@ -6033,7 +6033,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         }
         catch(error){const identifierTokens=e.identifierTokens??[{text:e.name}],unqualified=identifierTokens.length===1,name=unqualified?sqlName(identifierTokens[0]!.text):e.name;const aliases=allowAlias&&unqualified?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name)):[];if(aliases[0])return resolveExpression(aliases[0],false);/* resolve.c tries identifier resolution first, then rewrites unresolved TRUE/FALSE to TK_TRUEFALSE. */const truth=sqliteAsciiFold(name);if(unqualified&&(truth==="true"||truth==="false"))return{kind:"literal",value:truth==="true"?1n:0n};throw error;}
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
-        const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");
+        const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=table.columns[e.index]!.affinity;
         const column=table.columns[e.index]!;
         if(column.generatedStorage==="virtual"){
           // where.c indexed VIRTUAL-column substitution: selected covering

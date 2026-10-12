@@ -1,0 +1,115 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/UTF-8.db",
+      "sha256": "ea07c8c4d9488d06c0e5cf476b1dd4ad32ba295e85e9128b08ae19fc928a5f51",
+      "sql": "SELECT a,g,s,r FROM t",
+      "types": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/UTF-16le.db",
+      "sha256": "eab2ec4c81630fd18a4692eafbc43c79e0514458a1f853495e0e71b46e521444",
+      "sql": "SELECT a,g,s,r FROM t",
+      "types": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/UTF-16be.db",
+      "sha256": "1c8e3c93d00f0658e75fdd769e3b383106358d6424cff011b91433a334b66354",
+      "sql": "SELECT a,g,s,r FROM t",
+      "types": [
+        3,
+        3,
+        3,
+        2
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "encoding": "UTF-8",
+      "kind": "unknown",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/unknown-UTF-8.db",
+      "sha256": "2b800ffadeed8f578234cc0ed2a47f05efdf12a76c360670cf6c7f1960dfafde",
+      "message": "malformed database schema (t) - unknown datatype for t.a: \"WAT\"",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-8",
+      "kind": "missing",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/missing-UTF-8.db",
+      "sha256": "9cd7965eb8e5ef8163f4f14043b73263864fae83246834f4581c14af92919c43",
+      "message": "malformed database schema (t) - missing datatype for t.a",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-8",
+      "kind": "malformed",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/malformed-UTF-8.db",
+      "sha256": "190c49c92b01a7acd6d6478a1fd1c347fc2ab4e009fe324e92d171a9d43ffa3c",
+      "message": "malformed database schema (t) - near \")\": syntax error",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-16le",
+      "kind": "unknown",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/unknown-UTF-16le.db",
+      "sha256": "6241ae160a41d7d03efb96e41ecc15be1363802fd40501634ab1f8e4ef64499e",
+      "message": "malformed database schema (t) - unknown datatype for t.a: \"WAT\"",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-16le",
+      "kind": "missing",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/missing-UTF-16le.db",
+      "sha256": "fad6a900751286ac678e8dfc30276b359fb6b9df181167643f7da7b61c036387",
+      "message": "malformed database schema (t) - missing datatype for t.a",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-16le",
+      "kind": "malformed",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/malformed-UTF-16le.db",
+      "sha256": "7b27a1e6052207c02eabc6652d6a669f41599f1d54c4818e8eda47abed0d1ead",
+      "message": "malformed database schema (t) - near \")\": syntax error",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-16be",
+      "kind": "unknown",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/unknown-UTF-16be.db",
+      "sha256": "16d137ec0e382fe81786a4bbfd5b63c53bb31252565d676bdaaf7607661967f1",
+      "message": "malformed database schema (t) - unknown datatype for t.a: \"WAT\"",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-16be",
+      "kind": "missing",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/missing-UTF-16be.db",
+      "sha256": "784684108dbb3563fdafb43471fcc225e59dabaeee167c64c3b96f688922ca89",
+      "message": "malformed database schema (t) - missing datatype for t.a",
+      "code": 11
+    },
+    {
+      "encoding": "UTF-16be",
+      "kind": "malformed",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-h/strict-red/malformed-UTF-16be.db",
+      "sha256": "40ea2be9ec20009872df588c7aa28cd6b8df85a772ee18aa03819b504214c9a5",
+      "message": "malformed database schema (t) - near \")\": syntax error",
+      "code": 11
+    }
+  ]
+}

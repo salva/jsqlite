@@ -1663,3 +1663,15 @@ finally, source identity, aggregate/register precedence and NullRow are preserve
 Native-first boundary81 evidence and precise revised isolated export/review status:
 [generated consumers](research/card-t-c-generated-consumers/README.md).
 No full NC_GenCol/lazy-schema/STRICT/generic indexed-expression claim follows.
+
+### STRICT ordinary persisted reads
+
+Generated table-option semantics publish immutable `strict` metadata. Schema
+initialization follows build.c sqlite3EndTable's column-order type validation:
+INT/INTEGER/REAL/TEXT/BLOB/ANY only, missing/custom type is corruption for stored
+SQL, ANY has BLOB affinity and non-rowid primary keys gain implicit NOT NULL.
+Ordinary ANY remains NUMERIC. Read lowering consumes catalog affinity rather
+than re-inferring from decltype, including generated values; this is not CAST or
+write TypeCheck. Existing shared generated admission/consumers remain bounded:
+full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
+implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).
