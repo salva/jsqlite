@@ -865,6 +865,13 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
       let defaultIndex = 0;
       const declaredPrimary = ddl.primaryKey.length ? ddl.primaryKey : ddl.columns.filter(column => column.primaryKey).map(column => column.name);
+      // build.c sqlite3AddPrimaryKey/makeColumnPartOfPrimaryKey run before
+      // EndTable STRICT validation; declaration errors must win over types.
+      for (const name of declaredPrimary) {
+        const column = ddl.columns.find(column => sqliteIdentifierEqual(column.name, name));
+        if (!column) malformed(`no such column: ${name}`);
+        if (column.generatedExpr) malformed('generated columns cannot be part of the PRIMARY KEY');
+      }
       // build.c sqlite3EndTable STRICT pass: validate in declaration order,
       // after PK declaration has selected the INTEGER rowid alias.
       const strictRowidAlias = !ddl.withoutRowid && declaredPrimary.length===1

@@ -1,0 +1,2446 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-8.db",
+      "sha256": "bc1fa6e1b4d55dc97a10caa91cc245216cd439602b411735a0e9e47c937bda78",
+      "tables": {
+        "types": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e54"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "63"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "64"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "54455854"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "424c4f42"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "66"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "inlinepk": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "69"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "tablepk": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "69"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "composite": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e54"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "54455854"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "wr": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "g": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6964"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "72"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7661"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7361"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7672"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7372"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ]
+      },
+      "cases": [
+        {
+          "sql": "SELECT a,va,sa FROM g ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              }
+            ],
+            [
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,a,va,sa,r,vr,sr FROM g ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,va,sa FROM g WHERE va='000123' COLLATE NOCASE ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT va,sa FROM g WHERE id=?",
+          "bindings": [
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16le.db",
+      "sha256": "0c49e57061f125e1cf108d281ed40167405340f19c9647248cdec6cd4c28f4ea",
+      "tables": {
+        "types": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e54"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "63"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "64"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "54455854"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "424c4f42"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "66"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "inlinepk": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "69"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "tablepk": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "69"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "composite": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e54"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "54455854"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "wr": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "g": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6964"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "72"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7661"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7361"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7672"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7372"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ]
+      },
+      "cases": [
+        {
+          "sql": "SELECT a,va,sa FROM g ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              }
+            ],
+            [
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,a,va,sa,r,vr,sr FROM g ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,va,sa FROM g WHERE va='000123' COLLATE NOCASE ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT va,sa FROM g WHERE id=?",
+          "bindings": [
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16be.db",
+      "sha256": "0830bc98d97c3e5bacf445ce90dd8e9b3f0c858a41bfeb87b9e7e0bacf7359a4",
+      "tables": {
+        "types": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e54"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "63"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "64"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "54455854"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "65"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "424c4f42"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "66"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "inlinepk": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "69"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "tablepk": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "69"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "composite": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e54"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "54455854"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "wr": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "62"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ]
+        ],
+        "g": [
+          [
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "6964"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "494e5445474552"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "61"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "72"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "3"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7661"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "4"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7361"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "414e59"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "5"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7672"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7372"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "5245414c"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "3"
+            }
+          ]
+        ]
+      },
+      "cases": [
+        {
+          "sql": "SELECT a,va,sa FROM g ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              }
+            ],
+            [
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,a,va,sa,r,vr,sr FROM g ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "401c000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              },
+              {
+                "type": "real",
+                "ieee754be": "4004000000000000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,va,sa FROM g WHERE va='000123' COLLATE NOCASE ORDER BY id",
+          "bindings": [],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "303030313233"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT va,sa FROM g WHERE id=?",
+          "bindings": [
+            2
+          ],
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "hex": "00ff"
+              },
+              {
+                "type": "blob",
+                "hex": "00ff"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "encoding": "UTF-8",
+      "kind": "pk-order",
+      "sql": "CREATE TABLE t(a WAT, PRIMARY KEY(absent)) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-8-pk-order.db",
+      "sha256": "3e1982f9bfdfbd1b311b0791cc91aaf898cffa644d5332eac36e035afea36c15",
+      "code": 11,
+      "message": "malformed database schema (t) - no such column: absent"
+    },
+    {
+      "encoding": "UTF-8",
+      "kind": "generated-order",
+      "sql": "CREATE TABLE t(a WAT,g ANY AS(sum(a))) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-8-generated-order.db",
+      "sha256": "21e759a206332d9da444d6e70c0a2f62ff0432064c13e27f0afa782cdc0d9a16",
+      "code": 11,
+      "message": "malformed database schema (t) - unknown datatype for t.a: \"WAT\""
+    },
+    {
+      "encoding": "UTF-8",
+      "kind": "generated-pk",
+      "sql": "CREATE TABLE t(a WAT,g ANY AS(a) PRIMARY KEY) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-8-generated-pk.db",
+      "sha256": "e81a571d4e6d552cc23b643940fbaf05e39b44ab0c8320c93a274a6e86440854",
+      "code": 11,
+      "message": "malformed database schema (t) - generated columns cannot be part of the PRIMARY KEY"
+    },
+    {
+      "encoding": "UTF-16le",
+      "kind": "pk-order",
+      "sql": "CREATE TABLE t(a WAT, PRIMARY KEY(absent)) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16le-pk-order.db",
+      "sha256": "44846a17fb5f260bf23ba7239dff3b783919204a07c28bbceafd46ac34966c74",
+      "code": 11,
+      "message": "malformed database schema (t) - no such column: absent"
+    },
+    {
+      "encoding": "UTF-16le",
+      "kind": "generated-order",
+      "sql": "CREATE TABLE t(a WAT,g ANY AS(sum(a))) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16le-generated-order.db",
+      "sha256": "dbc733a8cf9c59b8ac5028e30af0f3951ea63507261fdb27d2168bcdca5968ce",
+      "code": 11,
+      "message": "malformed database schema (t) - unknown datatype for t.a: \"WAT\""
+    },
+    {
+      "encoding": "UTF-16le",
+      "kind": "generated-pk",
+      "sql": "CREATE TABLE t(a WAT,g ANY AS(a) PRIMARY KEY) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16le-generated-pk.db",
+      "sha256": "40a2e3e7ef57cd599934a2ec6cec6dd5f07d44ae71d3087ec21d76605ebb15c7",
+      "code": 11,
+      "message": "malformed database schema (t) - generated columns cannot be part of the PRIMARY KEY"
+    },
+    {
+      "encoding": "UTF-16be",
+      "kind": "pk-order",
+      "sql": "CREATE TABLE t(a WAT, PRIMARY KEY(absent)) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16be-pk-order.db",
+      "sha256": "234dd2907c682c566cc6571e4892a547367663ad9ded7f573eefc30a6fa8ff8f",
+      "code": 11,
+      "message": "malformed database schema (t) - no such column: absent"
+    },
+    {
+      "encoding": "UTF-16be",
+      "kind": "generated-order",
+      "sql": "CREATE TABLE t(a WAT,g ANY AS(sum(a))) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16be-generated-order.db",
+      "sha256": "e870376b9ec8ad6849b834fffdf13e02ccd818be274c2120a0cd37fd939e4c17",
+      "code": 11,
+      "message": "malformed database schema (t) - unknown datatype for t.a: \"WAT\""
+    },
+    {
+      "encoding": "UTF-16be",
+      "kind": "generated-pk",
+      "sql": "CREATE TABLE t(a WAT,g ANY AS(a) PRIMARY KEY) STRICT",
+      "path": "/work/jsqlite2/.saivage/work/cards/card-e-l/strict-boundaries/UTF-16be-generated-pk.db",
+      "sha256": "cc36343949540c2fdf12ba22192167bb3598c5de5fd72147faaa1b96f90cc5d3",
+      "code": 11,
+      "message": "malformed database schema (t) - generated columns cannot be part of the PRIMARY KEY"
+    }
+  ]
+}

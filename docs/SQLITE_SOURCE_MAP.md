@@ -1155,6 +1155,9 @@ INT/INTEGER/REAL/TEXT/BLOB/ANY only, missing/custom type is corruption for store
 SQL, ANY has BLOB affinity and non-rowid primary keys gain implicit NOT NULL.
 Ordinary ANY remains NUMERIC. Read lowering consumes catalog affinity rather
 than re-inferring from decltype, including generated values; this is not CAST or
-write TypeCheck. Existing shared generated admission/consumers remain bounded:
+write enforcement. STRICT VIRTUAL reads use the expr.c/vdbe.c single-column
+TypeCheck branch (including REAL type and datatype errors); PK declaration errors
+precede STRICT type validation. See [boundary evidence](research/card-e-h-strict/boundaries-README.md).
+Existing shared generated admission/consumers remain bounded:
 full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
 implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).

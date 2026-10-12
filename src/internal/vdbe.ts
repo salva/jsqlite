@@ -48,7 +48,7 @@ type Expression =
  | {kind:"variable";spelling:string}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
- | {kind:"column";identifierTokens?:readonly {text:string}[];generated?:Expression;index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
+ | {kind:"column";identifierTokens?:readonly {text:string}[];generated?:Expression;strictGenerated?:{table:string;column:string;type:string};index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
@@ -89,6 +89,7 @@ type Op =
   | { readonly code: "Variable"; readonly p1: number; readonly p2: number }
   | { readonly code: "Binary"; readonly op: string; readonly p1:number; readonly p2:number; readonly p3:number; readonly collation:BuiltinCollation; readonly affinity?:MemAffinity }
   | { readonly code:"IfNullRow"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code:"TypeCheck"; readonly p1:number; readonly affinity:MemAffinity; readonly table:string; readonly column:string; readonly type:string }
   | { readonly code:"Affinity"; readonly p1:number; readonly affinity:MemAffinity }
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
   | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
@@ -1974,7 +1975,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
             try{const dependency=resolvedGeneratedExpressionCarrier(ref.source,ref.columnIndex);generated=bindResolvedExpression(expressionFromReduction(dependency.reduction as Reduction),dependency,cursorFor,true,binding,generatedBusy);}
             finally{busy.delete(ref.columnIndex);}
           }
-          return {...value,...(generated?{generated}:{}),...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),physicalColumnIndex:location?.kind==='cursor'&&location.physicalColumnIndex!==undefined?location.physicalColumnIndex:index>=0&&!ref.source.table.withoutRowid&&column?.generatedStorage!=='virtual'?tableColumnToStorage(ref.source.table,index):undefined,cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
+          return {...value,...(generated?{generated,...(ref.source.table.strict?{strictGenerated:{table:ref.source.table.name,column:column!.name,type:column!.declaredType!.toUpperCase()}}:{})}:{}),...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),physicalColumnIndex:location?.kind==='cursor'&&location.physicalColumnIndex!==undefined?location.physicalColumnIndex:index>=0&&!ref.source.table.withoutRowid&&column?.generatedStorage!=='virtual'?tableColumnToStorage(ref.source.table,index):undefined,cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
     }
 
         // resolve.c lookupName TK_FUNCTION/AFF_DEFER argument list, not the
@@ -2295,11 +2296,12 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     }
     if(expression.generated){
       // expr.c sqlite3ExprCodeGeneratedColumn: initialize only on NullRow,
-      // otherwise code the shared expression then apply (not CAST) affinity.
+      // otherwise code shared expression then STRICT read TypeCheck or affinity.
       const target=allocate(),jump=ops.length;
       ops.push({code:"IfNullRow",p1:expression.cursor??0,p2:0,p3:target});
       const value=emit(expression.generated);ops.push({code:"Copy",p1:value,p2:target});
-      if(expression.affinity&&expression.affinity!=="blob")ops.push({code:"Affinity",p1:target,affinity:expression.affinity});
+      if(expression.strictGenerated)ops.push({code:"TypeCheck",p1:target,affinity:expression.affinity!,...expression.strictGenerated});
+      else if(expression.affinity&&expression.affinity!=="blob")ops.push({code:"Affinity",p1:target,affinity:expression.affinity});
       (ops[jump] as {p2:number}).p2=ops.length;return target;
     }
     const r=allocate();if(expression.index<0&&expression.physicalColumnIndex===undefined)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",p1:expression.physicalColumnIndex??expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
@@ -6048,7 +6050,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
           if(generatedBusy.has(logical))throw new JSQLiteError("sqlite",`generated column loop on "${column.name}"`,{code:1});
           if(!column.generatedExpr?.reduction)throw new JSQLiteError("internal","generated column lost reduction");
           generatedBusy.add(logical);
-          try{e.generated=assign(expressionFromReduction(column.generatedExpr.reduction));}finally{generatedBusy.delete(logical);}
+          try{e.generated=assign(expressionFromReduction(column.generatedExpr.reduction));if(table.strict)e.strictGenerated={table:table.name,column:column.name,type:column.declaredType!.toUpperCase()};}finally{generatedBusy.delete(logical);}
           return e;
         }
         e.index=selectedPhysical&&!selectedNeedsTableLookup?storageColumn(e.index):tableStorageColumn(e.index);e.cursor=0;return e;
@@ -7992,6 +7994,18 @@ export class VdbeStatement implements Statement {
           }
           case "Column": {const cursorNumber=op.p3??0,pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
           case "IfNullRow": {if(!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
+          // vdbe.c OP_TypeCheck P3>=2: one STRICT virtual column on reads.
+          case "TypeCheck": {
+            const value=this.#registers[op.p1]!;
+            value.applyAffinity(op.affinity,this.#program.encoding);
+            let type=value.initialStorageClass;
+            if(type!=="null"){
+              const required=op.type==="INT"||op.type==="INTEGER"?"integer":op.type.toLowerCase();
+              if(required==="real"&&type==="integer"){value.cast("real",this.#program.encoding);type=value.initialStorageClass;}
+              if(required!=="any"&&type!==required)throw new JSQLiteError("sqlite",`cannot store ${type.toUpperCase()} value in ${op.type} column ${op.table}.${op.column}`,{code:3091});
+            }
+            break;
+          }
           case "Affinity": {this.#registers[op.p1]!.applyAffinity(op.affinity,this.#program.encoding);break;}
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
           case "Rowid": {const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
