@@ -370,6 +370,10 @@ function deepFreeze<T>(value:T):T {
 }
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[],sqlBytes:Uint8Array):unknown{
  const root:LemonValue<SqlToken>={kind:"reduction",rule:-1,signature,children};
+ // parse.y allocates Window while reducing frame_opt/window, before resolver
+ // callbacks or containing SELECT/DDL construction. Validate inline and named
+ // definitions alike; preserve offset types even when the expression is zero.
+ if(signature.startsWith("window ::="))windowFrame(root);
  // parse.y typetoken/typename lengths span raw SQL, not joined tokens.
  if(signature.startsWith("typetoken ::="))return exactSource(leaves(root),sqlBytes)??"";
  if(signature==="wqas ::= AS")return "any" satisfies CteMaterialization;

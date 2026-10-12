@@ -59,10 +59,15 @@ test('window chain and update retain source diagnostics', () => {
   for(const [sql,message] of cases)assert.throws(()=>resolve(sql),error=>error instanceof NameResolutionError&&error.message===message,sql);
 });
 
-test('frame allocation retains explicit zero offset kind and expression',()=>{
+test('frame allocation preserves explicit zero offset kind before validation',()=>{
   const parsed=parseSql('SELECT sum(a) OVER w FROM t1 WINDOW w AS (ORDER BY a ROWS BETWEEN 0 PRECEDING AND 0 FOLLOWING)').statement;
+  // window.c sqlite3WindowAlloc validates types before storing offset Exprs;
+  // it never canonicalizes zero to CURRENT. See frame-native.json evidence.
   assert.equal(parsed.windowDefinitions[0].frame.start.kind,'preceding');
   assert.ok(parsed.windowDefinitions[0].frame.start.expr?.reduction);
   assert.equal(parsed.windowDefinitions[0].frame.end.kind,'following');
   assert.ok(parsed.windowDefinitions[0].frame.end.expr?.reduction);
+  for(const bounds of ['CURRENT ROW AND 0 PRECEDING','0 FOLLOWING AND CURRENT ROW'])
+    assert.throws(()=>parseSql(`SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN ${bounds}) FROM t1`),
+      error=>error.message==='unsupported frame specification');
 });

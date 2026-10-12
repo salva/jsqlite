@@ -1,0 +1,65 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "results": [
+    {
+      "sql": "SELECT missing_function(missing_column) OVER (ROWS BETWEEN CURRENT ROW AND 0 PRECEDING) FROM missing_table",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER w FROM missing_table WINDOW w AS (ROWS BETWEEN CURRENT ROW AND 0 PRECEDING)",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER (ROWS BETWEEN 0 FOLLOWING AND CURRENT ROW) FROM missing_table",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER w FROM missing_table WINDOW w AS (ROWS BETWEEN 0 FOLLOWING AND CURRENT ROW)",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER (RANGE BETWEEN CURRENT ROW AND 0 PRECEDING) FROM missing_table",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER w FROM missing_table WINDOW w AS (RANGE BETWEEN CURRENT ROW AND 0 PRECEDING)",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER (RANGE BETWEEN 0 FOLLOWING AND CURRENT ROW) FROM missing_table",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER w FROM missing_table WINDOW w AS (RANGE BETWEEN 0 FOLLOWING AND CURRENT ROW)",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER (GROUPS BETWEEN CURRENT ROW AND 0 PRECEDING) FROM missing_table",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER w FROM missing_table WINDOW w AS (GROUPS BETWEEN CURRENT ROW AND 0 PRECEDING)",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER (GROUPS BETWEEN 0 FOLLOWING AND CURRENT ROW) FROM missing_table",
+      "code": 1,
+      "message": "unsupported frame specification"
+    },
+    {
+      "sql": "SELECT missing_function(missing_column) OVER w FROM missing_table WINDOW w AS (GROUPS BETWEEN 0 FOLLOWING AND CURRENT ROW)",
+      "code": 1,
+      "message": "unsupported frame specification"
+    }
+  ]
+}
