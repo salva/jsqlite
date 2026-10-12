@@ -15,6 +15,14 @@ import { lowerOrdinaryCtes } from "./cte.ts";
  * or schema ownership.
  */
 export function selectGraphContainsWith(root: SelectNode, schema: SchemaGraph): boolean {
+  return selectGraphAdmission(root,schema,false);
+}
+/** select.c expansion only needs schema when resolving a source. Conservative
+ * WITH/derived ownership uses the same graph traversal as residual admission. */
+export function selectGraphNeedsSchema(root:SelectNode):boolean {
+  return selectGraphAdmission(root,null,true);
+}
+function selectGraphAdmission(root:SelectNode,schema:SchemaGraph|null,needsSchema:boolean):boolean {
   const selects = new Set<SelectNode>();
   const reductions = new Set<object>();
   const views = new Set<object>();
@@ -30,12 +38,13 @@ export function selectGraphContainsWith(root: SelectNode, schema: SchemaGraph): 
   };
   const expression = (node: ExprNode | null | undefined): boolean => reduction(node?.reduction);
   const sources = (from: SourceList): boolean => {
+    if(needsSchema&&from.items.length>0)return true;
     if (from.derived && select(from.derived.select)) return true;
     if (from.flattenedDerived && select(from.flattenedDerived.select)) return true;
     for (const item of from.items) {
       if (expression(item.on)) return true;
       if (item.databaseName !== null && sqliteAsciiFold(item.databaseName) !== "main") continue;
-      const view = schema.views.get(sqliteAsciiFold(item.tableName));
+      const view = schema?.views.get(sqliteAsciiFold(item.tableName));
       if (view && !views.has(view)) {
         views.add(view);
         const lowered=lowerOrdinaryCtes(view.select);

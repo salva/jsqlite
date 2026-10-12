@@ -1,0 +1,3813 @@
+{
+  "cases": [
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT v,s FROM t INDEXED BY tvs WHERE v='A' COLLATE nocase ORDER BY s",
+      "rows": [
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "s"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT v,s,z,d FROM t INDEXED BY tvs WHERE v='A' COLLATE nocase ORDER BY s",
+      "rows": [
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "01"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "s",
+        "z",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,r.v,r.s,r.c FROM t l LEFT JOIN t r INDEXED BY tvs ON r.v='missing' COLLATE nocase ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "s",
+        "c"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "c",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "c"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,l.v,r.v,l.s,l.d,l.z FROM t l JOIN t r ON l.id=r.id ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "blob",
+            "01"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "real",
+            3.5
+          ],
+          [
+            "real",
+            6.5
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "real",
+            8.5
+          ],
+          [
+            "blob",
+            ""
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "v",
+        "s",
+        "d",
+        "z"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT v,count(*),sum(s) FROM t GROUP BY v ORDER BY v",
+      "rows": [
+        [
+          [
+            "null",
+            null
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            3.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "7"
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.0
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "count(*)",
+        "sum(s)"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(s)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,(SELECT r.d FROM t r WHERE r.id=l.id) FROM t l ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "real",
+            6.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "(SELECT r.d FROM t r WHERE r.id=l.id)"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "(SELECT r.d FROM t r WHERE r.id=l.id)",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,r.v,r.c,r.d FROM t l LEFT JOIN t r ON r.id=l.id+10 ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "c",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "c",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "c"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,r.d FROM t l JOIN t r ON r.v=l.v COLLATE nocase WHERE l.s>0 ORDER BY l.id,r.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.v,count(*),sum(r.d) FROM t l JOIN t r ON l.id=r.id GROUP BY l.v ORDER BY l.v",
+      "rows": [
+        [
+          [
+            "null",
+            null
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            6.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "7"
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            7.0
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "count(*)",
+        "sum(r.d)"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(r.d)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT id,v,s,d,z FROM t ORDER BY id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "blob",
+            "01"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "real",
+            3.5
+          ],
+          [
+            "real",
+            6.5
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "real",
+            8.5
+          ],
+          [
+            "blob",
+            ""
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "s",
+        "d",
+        "z"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,r.v,r.d FROM t l JOIN t r ON r.id=l.id WHERE l.v='A' COLLATE nocase ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.d,count(*),sum(r.s) FROM t l LEFT JOIN t r ON r.id=l.id+10 GROUP BY l.d HAVING count(*)>0 ORDER BY l.d",
+      "rows": [
+        [
+          [
+            "real",
+            2.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            4.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            6.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            8.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "d",
+        "count(*)",
+        "sum(r.s)"
+      ],
+      "metadata": [
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(r.s)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id) FROM t l ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7!"
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id)"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id)",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "odd.name"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-8.db",
+      "sha256": "9c4d4896025ef6268e2df28f9ef4a952b48de66772b49dce1cb94b0ccff70cd4",
+      "sql": "SELECT l.id,r.z,r.\"odd.name\" FROM t l JOIN t r ON r.id=l.id ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "blob",
+            "00ff"
+          ],
+          [
+            "text",
+            "A!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "blob",
+            "01"
+          ],
+          [
+            "text",
+            "a!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "blob",
+            ""
+          ],
+          [
+            "text",
+            "7!"
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "z",
+        "odd.name"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        },
+        {
+          "name": "odd.name",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "odd.name"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT v,s FROM t INDEXED BY tvs WHERE v='A' COLLATE nocase ORDER BY s",
+      "rows": [
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "s"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT v,s,z,d FROM t INDEXED BY tvs WHERE v='A' COLLATE nocase ORDER BY s",
+      "rows": [
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "01"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "s",
+        "z",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,r.v,r.s,r.c FROM t l LEFT JOIN t r INDEXED BY tvs ON r.v='missing' COLLATE nocase ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "s",
+        "c"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "c",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "c"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,l.v,r.v,l.s,l.d,l.z FROM t l JOIN t r ON l.id=r.id ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "blob",
+            "01"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "real",
+            3.5
+          ],
+          [
+            "real",
+            6.5
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "real",
+            8.5
+          ],
+          [
+            "blob",
+            ""
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "v",
+        "s",
+        "d",
+        "z"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT v,count(*),sum(s) FROM t GROUP BY v ORDER BY v",
+      "rows": [
+        [
+          [
+            "null",
+            null
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            3.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "7"
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.0
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "count(*)",
+        "sum(s)"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(s)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,(SELECT r.d FROM t r WHERE r.id=l.id) FROM t l ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "real",
+            6.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "(SELECT r.d FROM t r WHERE r.id=l.id)"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "(SELECT r.d FROM t r WHERE r.id=l.id)",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,r.v,r.c,r.d FROM t l LEFT JOIN t r ON r.id=l.id+10 ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "c",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "c",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "c"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,r.d FROM t l JOIN t r ON r.v=l.v COLLATE nocase WHERE l.s>0 ORDER BY l.id,r.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.v,count(*),sum(r.d) FROM t l JOIN t r ON l.id=r.id GROUP BY l.v ORDER BY l.v",
+      "rows": [
+        [
+          [
+            "null",
+            null
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            6.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "7"
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            7.0
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "count(*)",
+        "sum(r.d)"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(r.d)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT id,v,s,d,z FROM t ORDER BY id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "blob",
+            "01"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "real",
+            3.5
+          ],
+          [
+            "real",
+            6.5
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "real",
+            8.5
+          ],
+          [
+            "blob",
+            ""
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "s",
+        "d",
+        "z"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,r.v,r.d FROM t l JOIN t r ON r.id=l.id WHERE l.v='A' COLLATE nocase ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.d,count(*),sum(r.s) FROM t l LEFT JOIN t r ON r.id=l.id+10 GROUP BY l.d HAVING count(*)>0 ORDER BY l.d",
+      "rows": [
+        [
+          [
+            "real",
+            2.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            4.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            6.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            8.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "d",
+        "count(*)",
+        "sum(r.s)"
+      ],
+      "metadata": [
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(r.s)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id) FROM t l ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7!"
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id)"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id)",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "odd.name"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16le.db",
+      "sha256": "2adfed2bd396bbf2295fe0ddcee5b9591bfffc57742744e865244418e64a5093",
+      "sql": "SELECT l.id,r.z,r.\"odd.name\" FROM t l JOIN t r ON r.id=l.id ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "blob",
+            "00ff"
+          ],
+          [
+            "text",
+            "A!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "blob",
+            "01"
+          ],
+          [
+            "text",
+            "a!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "blob",
+            ""
+          ],
+          [
+            "text",
+            "7!"
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "z",
+        "odd.name"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        },
+        {
+          "name": "odd.name",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "odd.name"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT v,s FROM t INDEXED BY tvs WHERE v='A' COLLATE nocase ORDER BY s",
+      "rows": [
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "s"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT v,s,z,d FROM t INDEXED BY tvs WHERE v='A' COLLATE nocase ORDER BY s",
+      "rows": [
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "01"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "s",
+        "z",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,r.v,r.s,r.c FROM t l LEFT JOIN t r INDEXED BY tvs ON r.v='missing' COLLATE nocase ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "s",
+        "c"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "c",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "c"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,l.v,r.v,l.s,l.d,l.z FROM t l JOIN t r ON l.id=r.id ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "blob",
+            "01"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "real",
+            3.5
+          ],
+          [
+            "real",
+            6.5
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "real",
+            8.5
+          ],
+          [
+            "blob",
+            ""
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "v",
+        "s",
+        "d",
+        "z"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT v,count(*),sum(s) FROM t GROUP BY v ORDER BY v",
+      "rows": [
+        [
+          [
+            "null",
+            null
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            3.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "7"
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.0
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "count(*)",
+        "sum(s)"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(s)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,(SELECT r.d FROM t r WHERE r.id=l.id) FROM t l ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "real",
+            6.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "(SELECT r.d FROM t r WHERE r.id=l.id)"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "(SELECT r.d FROM t r WHERE r.id=l.id)",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,r.v,r.c,r.d FROM t l LEFT JOIN t r ON r.id=l.id+10 ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "c",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "c",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "c"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,r.d FROM t l JOIN t r ON r.v=l.v COLLATE nocase WHERE l.s>0 ORDER BY l.id,r.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.v,count(*),sum(r.d) FROM t l JOIN t r ON l.id=r.id GROUP BY l.v ORDER BY l.v",
+      "rows": [
+        [
+          [
+            "null",
+            null
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            6.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "7"
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "real",
+            8.5
+          ]
+        ],
+        [
+          [
+            "text",
+            "A"
+          ],
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "real",
+            7.0
+          ]
+        ]
+      ],
+      "names": [
+        "v",
+        "count(*)",
+        "sum(r.d)"
+      ],
+      "metadata": [
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(r.d)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT id,v,s,d,z FROM t ORDER BY id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            1.5
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "blob",
+            "00ff"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            2.5
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "blob",
+            "01"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "real",
+            3.5
+          ],
+          [
+            "real",
+            6.5
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7"
+          ],
+          [
+            "real",
+            4.5
+          ],
+          [
+            "real",
+            8.5
+          ],
+          [
+            "blob",
+            ""
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "s",
+        "d",
+        "z"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "s",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "s"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,r.v,r.d FROM t l JOIN t r ON r.id=l.id WHERE l.v='A' COLLATE nocase ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A"
+          ],
+          [
+            "real",
+            2.5
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a"
+          ],
+          [
+            "real",
+            4.5
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "v",
+        "d"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "v",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "v"
+        },
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.d,count(*),sum(r.s) FROM t l LEFT JOIN t r ON r.id=l.id+10 GROUP BY l.d HAVING count(*)>0 ORDER BY l.d",
+      "rows": [
+        [
+          [
+            "real",
+            2.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            4.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            6.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "real",
+            8.5
+          ],
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "null",
+            null
+          ]
+        ]
+      ],
+      "names": [
+        "d",
+        "count(*)",
+        "sum(r.s)"
+      ],
+      "metadata": [
+        {
+          "name": "d",
+          "declaredType": "REAL",
+          "database": "main",
+          "table": "t",
+          "origin": "d"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(r.s)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id) FROM t l ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "text",
+            "A!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "text",
+            "a!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "text",
+            "7!"
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id)"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "(SELECT r.\"odd.name\" FROM t r WHERE r.id=l.id)",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "odd.name"
+        }
+      ]
+    },
+    {
+      "path": "mixed-UTF-16be.db",
+      "sha256": "fba2d3949756ad50362d876ff6bdb9f4e93b44d935e458264119354990c8d48c",
+      "sql": "SELECT l.id,r.z,r.\"odd.name\" FROM t l JOIN t r ON r.id=l.id ORDER BY l.id",
+      "rows": [
+        [
+          [
+            "integer",
+            "1"
+          ],
+          [
+            "blob",
+            "00ff"
+          ],
+          [
+            "text",
+            "A!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "2"
+          ],
+          [
+            "blob",
+            "01"
+          ],
+          [
+            "text",
+            "a!"
+          ]
+        ],
+        [
+          [
+            "integer",
+            "3"
+          ],
+          [
+            "null",
+            null
+          ],
+          [
+            "null",
+            null
+          ]
+        ],
+        [
+          [
+            "integer",
+            "4"
+          ],
+          [
+            "blob",
+            ""
+          ],
+          [
+            "text",
+            "7!"
+          ]
+        ]
+      ],
+      "names": [
+        "id",
+        "z",
+        "odd.name"
+      ],
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "z",
+          "declaredType": "BLOB",
+          "database": "main",
+          "table": "t",
+          "origin": "z"
+        },
+        {
+          "name": "odd.name",
+          "declaredType": "TEXT",
+          "database": "main",
+          "table": "t",
+          "origin": "odd.name"
+        }
+      ]
+    }
+  ],
+  "fixtures": {
+    "mixed-UTF-8.db": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAABAAAAAQAAAAAAAAAAAAAAAMAAAAEAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAC6VzA0AAAADDtQADygPAA7UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoDBhcTDwFBaW5kZXh0dnN0BENSRUFURSBJTkRFWCB0dnMgT04gdCh2LHMpJgIGFxEPATtpbmRleHRpdANDUkVBVEUgSU5ERVggdGkgT04gdCh2KYFVAQcXDw8Bgxl0YWJsZXR0AkNSRUFURSBUQUJMRSB0KGlkIElOVEVHRVIgUFJJTUFSWSBLRVksYSwgdiBURVhUIENPTExBVEUgbm9jYXNlIEFTIChhKSBWSVJUVUFMLHMgUkVBTCBBUyAoaWQrMC41KSBTVE9SRUQsZCBSRUFMIEFTIChzK2lkKSBWSVJUVUFMLGMgSU5URUdFUiBBUyAoOTkpIFZJUlRVQUwseiBCTE9CLCJvZGQubmFtZSIgVEVYVCBBUyAodnx8JyEnKSBWSVJUVUFMKQ0AAAAED74AD+4P3Q/OD74AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOBAUAAQcMB0ASAAAAAAAADQMFAAAHAEAMAAAAAAAADwIFAA8HDmFABAAAAAAAAAEQAQUADwcQQT/4AAAAAAAAAP8KAAAABA/qAA/7D/UP8A/qAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAw8BYQIEAw8JQQUDDwE3BAQDAAEDCgAAAAQPxgAP8g/jD9UPxgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgQPBwFhQAQAAAAAAAACDQQPBwlBP/gAAAAAAAAOBA8HATdAEgAAAAAAAAQNBAAHAUAMAAAAAAAAAw==",
+    "mixed-UTF-16le.db": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAABAAAAAQAAAAAAAAAAAAAAAMAAAAEAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAC6VzA0AAAADDcUADlsOFA3FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATQMGIRkRAXVpAG4AZABlAHgAdAB2AHMAdAAEQwBSAEUAQQBUAEUAIABJAE4ARABFAFgAIAB0AHYAcwAgAE8ATgAgAHQAKAB2ACwAcwApAEUCBiEVEQFpaQBuAGQAZQB4AHQAaQB0AANDAFIARQBBAFQARQAgAEkATgBEAEUAWAAgAHQAaQAgAE8ATgAgAHQAKAB2ACkAgyIBByEREQGGJXQAYQBiAGwAZQB0AHQAAkMAUgBFAEEAVABFACAAVABBAEIATABFACAAdAAoAGkAZAAgAEkATgBUAEUARwBFAFIAIABQAFIASQBNAEEAUgBZACAASwBFAFkALABhACwAIAB2ACAAVABFAFgAVAAgAEMATwBMAEwAQQBUAEUAIABuAG8AYwBhAHMAZQAgAEEAUwAgACgAYQApACAAVgBJAFIAVABVAEEATAAsAHMAIABSAEUAQQBMACAAQQBTACAAKABpAGQAKwAwAC4ANQApACAAUwBUAE8AUgBFAEQALABkACAAUgBFAEEATAAgAEEAUwAgACgAcwArAGkAZAApACAAVgBJAFIAVABVAEEATAAsAGMAIABJAE4AVABFAEcARQBSACAAQQBTACAAKAA5ADkAKQAgAFYASQBSAFQAVQBBAEwALAB6ACAAQgBMAE8AQgAsACIAbwBkAGQALgBuAGEAbQBlACIAIABUAEUAWABUACAAQQBTACAAKAB2AHwAfAAnACEAJwApACAAVgBJAFIAVABVAEEATAApAA0AAAAED7wAD+0P2w/MD7wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgQFAAEHDAdAEgAAAAAAAA0DBQAABwBADAAAAAAAABACBQARBw5hAEAEAAAAAAAAAREBBQARBxBBAD/4AAAAAAAAAP8KAAAABA/nAA/7D/QP7g/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAxEBYQACBQMRCUEABgMRATcABAQDAAEDCgAAAAQPwwAP8g/iD9MPwwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwQRBwFhAEAEAAAAAAAAAg4EEQcJQQA/+AAAAAAAAA8EEQcBNwBAEgAAAAAAAAQNBAAHAUAMAAAAAAAAAw==",
+    "mixed-UTF-16be.db": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAABAAAAAQAAAAAAAAAAAAAAAMAAAAEAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAC6VzA0AAAADDcUADlsOFA3FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAATQMGIRkRAXUAaQBuAGQAZQB4AHQAdgBzAHQEAEMAUgBFAEEAVABFACAASQBOAEQARQBYACAAdAB2AHMAIABPAE4AIAB0ACgAdgAsAHMAKUUCBiEVEQFpAGkAbgBkAGUAeAB0AGkAdAMAQwBSAEUAQQBUAEUAIABJAE4ARABFAFgAIAB0AGkAIABPAE4AIAB0ACgAdgApgyIBByEREQGGJQB0AGEAYgBsAGUAdAB0AgBDAFIARQBBAFQARQAgAFQAQQBCAEwARQAgAHQAKABpAGQAIABJAE4AVABFAEcARQBSACAAUABSAEkATQBBAFIAWQAgAEsARQBZACwAYQAsACAAdgAgAFQARQBYAFQAIABDAE8ATABMAEEAVABFACAAbgBvAGMAYQBzAGUAIABBAFMAIAAoAGEAKQAgAFYASQBSAFQAVQBBAEwALABzACAAUgBFAEEATAAgAEEAUwAgACgAaQBkACsAMAAuADUAKQAgAFMAVABPAFIARQBEACwAZAAgAFIARQBBAEwAIABBAFMAIAAoAHMAKwBpAGQAKQAgAFYASQBSAFQAVQBBAEwALABjACAASQBOAFQARQBHAEUAUgAgAEEAUwAgACgAOQA5ACkAIABWAEkAUgBUAFUAQQBMACwAegAgAEIATABPAEIALAAiAG8AZABkAC4AbgBhAG0AZQAiACAAVABFAFgAVAAgAEEAUwAgACgAdgB8AHwAJwAhACcAKQAgAFYASQBSAFQAVQBBAEwAKQ0AAAAED7wAD+0P2w/MD7wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADgQFAAEHDAdAEgAAAAAAAA0DBQAABwBADAAAAAAAABACBQARBw4AYUAEAAAAAAAAAREBBQARBxAAQT/4AAAAAAAAAP8KAAAABA/nAA/7D/QP7g/nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAxEBAGECBQMRCQBBBgMRAQA3BAQDAAEDCgAAAAQPwwAP8g/iD9MPwwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwQRBwEAYUAEAAAAAAAAAg4EEQcJAEE/+AAAAAAAAA8EEQcBADdAEgAAAAAAAAQNBAAHAUAMAAAAAAAAAw=="
+  }
+}

@@ -852,7 +852,21 @@ export interface ResolvedExpressionCarrier {
  readonly column:ResolvedColumnUse|null;
  readonly children:readonly ResolvedExpressionCarrier[];
 }
-export function resolvedExpressionCarrier(plan:ResolvedSelect,reduction:ExprReduction):ResolvedExpressionCarrier {
+/** Synthetic TK_COLUMN retains logical identity without fabricating SQL text. */
+export function resolvedColumnCarrier(source:ResolvedSource,columnIndex:number):ResolvedExpressionCarrier {
+ const reduction={kind:'reduction' as const,signature:'expr ::= ID',rule:-1,children:[]} as ExprReduction;
+ return {reduction,column:{source,columnIndex,selectDepth:0,expression:reduction},children:[]};
+}
+/** resolve.c sqlite3ResolveSelfReference: transient SELF TABLE context.
+ * Keep the caller's source identity (including alias) for physical binding. */
+export function resolvedGeneratedExpressionCarrier(source:ResolvedSource,columnIndex:number):ResolvedExpressionCarrier {
+ const expression=source.table.columns[columnIndex]?.generatedExpr;
+ if(!expression?.reduction||expression.reduction.kind!=='reduction')throw new NameResolutionError('generated column lost reduction');
+ const context:NameContext={sources:[source],pNext:null,columnUses:[],nRef:0};
+ resolveAgainstSources(expression,[source],[],false,true,true,[],[],context);
+ return resolvedExpressionCarrier({columnUses:context.columnUses},expression.reduction);
+}
+export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|'aliasUses'>,reduction:ExprReduction):ResolvedExpressionCarrier {
  const uses=new Map(plan.columnUses.map(use=>[use.expression,use]));
  const expressionChildren=(node:LemonValue<SqlToken>):ExprReduction[]=>{
   if(node.kind!=='reduction')return [];

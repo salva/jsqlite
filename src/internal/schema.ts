@@ -1,3 +1,4 @@
+import { resolvedGeneratedExpressionCarrier, NameResolutionError, type ResolvedSource } from "./resolve.ts";
 import { btreeFromConnection, BtreeCursorStateError, BtreeFormatError } from "./btree.ts";
 import { decodeRecord, RecordFormatError, type DatabaseEncoding, type RawRecordValue } from "./record.ts";
 import { parseSql, SqlParseError, type ExprNode, type SchemaDdlNode, type SchemaTriggerStep, type SchemaTriggerUpsert, type SelectNode } from "./parse.ts";
@@ -649,7 +650,7 @@ function parseDdl(sql: string, expected: SchemaDdlNode["kind"], name: string): S
     return parsed.statement;
   } catch (error) {
     if (error instanceof SchemaFormatError) throw error;
-    if (error instanceof SqlParseError) malformed(`${name} - ${error.message}`, error);
+    if (error instanceof SqlParseError) throw new SchemaFormatError(`malformed database schema (${name}) - ${error.message}`, {cause:error});
     throw error;
   }
 }
@@ -815,6 +816,12 @@ export interface SchemaLoadContext {
  readonly maxStat4Bytes?: number;
  readonly check?: Stat4LoadOptions["check"];
 }
+/** Source-free SELECTs do not invoke sqlite3LocateTable/schema initialization.
+ * This uncached empty carrier supplies compiler contracts without publishing a
+ * failed catalog initialization as successfully loaded. */
+export function sourceFreeSchemaGraph(connection:StorageOwnerCarrier):SchemaGraph {
+ return new SchemaGraph(connection,btreeFromConnection(connection).encoding,[],new Map(),new Map(),new Map());
+}
 export function loadSchemaGraph(connection: StorageOwnerCarrier, context: SchemaLoadContext = {}): SchemaGraph {
   const key = connection as object;
   const prior = graphs.get(key);
@@ -884,6 +891,13 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       for(const column of columns)Object.freeze(column.checks);
       const foreignKeys=Object.freeze(ddl.foreignKeys.map(foreign=>{if(foreign.referencedColumns&&foreign.referencedColumns.length!==foreign.columns.length)malformed("number of columns in foreign key does not match referenced columns");const links=Object.freeze(foreign.columns.map((name,index)=>{const column=columns.find(candidate=>sqliteIdentifierEqual(candidate.name,name));if(!column)malformed(`unknown column ${name} in foreign key definition`);return Object.freeze({column,referencedColumn:foreign.referencedColumns?.[index]??null});}));return {name:foreign.name,columns:links,referencedTableName:foreign.referencedTable,referencedTable:null,onDelete:foreign.onDelete,onUpdate:foreign.onUpdate,deferrable:foreign.deferrable,initiallyDeferred:foreign.initiallyDeferred,sql:foreign.tokens.map(token=>token.text).join(" ")} as ForeignKeyNode;}));
       const table: TableNode = { integerPrimaryKey,szTabRow:sqliteLogEst(BigInt((columns.reduce((n,c)=>n+c.szEst,0)+(integerPrimaryKey===null?1:0))*4)),nRowLogEst:200,hasStat1:false, kind: "table", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: item.sql, columns, indexes: [], withoutRowid: ddl.withoutRowid, primaryKey, primaryKeyTerms, storageKey, checks, foreignKeys, referencedBy: [] };
+      // build.c:sqlite3EndTable resolves every generating expression through
+      // resolve.c:sqlite3ResolveSelfReference, including STORED definitions.
+      // Resolve names/functions without expanding dependencies: cycles belong
+      // to expr.c's later compile-local BUSY guard, not schema initialization.
+      const self:ResolvedSource={table,cursorId:-1,tableName:table.name,databaseName:null,arguments:null,alias:null,indexedBy:null,notIndexed:false,on:null,using:null,leftOfRightJoin:false,joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}};
+      try{for(let i=0;i<columns.length;i++)if(columns[i]!.generatedExpr)resolvedGeneratedExpressionCarrier(self,i);}
+      catch(error){if(error instanceof NameResolutionError)throw new SchemaFormatError(`malformed database schema (${item.name}) - ${error.message}`,{cause:error});throw error;}
       tables.set(folded, table);
     }
   }

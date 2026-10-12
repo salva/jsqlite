@@ -528,3 +528,32 @@ semantic walker, interruption/depth parity, STRICT and alternate generated
 producers remain temporary backlog, not permanent exclusions. This is bounded
 admission, not whole compatibility or optimizer acceptance. Assembly evidence:
 `docs/research/card-e-h-delivery/README.md`.
+
+## Bounded generated consumer integration
+
+All retained STORED/VIRTUAL definitions resolve under existing immutable SELF
+TABLE owner before schema publication (build.c sqlite3EndTable2763 / resolve.c
+sqlite3ResolveSelfReference). Name, aggregate and syntax faults produce owning
+schema-name CORRUPT diagnostics; dependency expansion remains compile-local
+with per-source BUSY finally cleanup and native cycle errors. Source-free SELECT
+graphs use an uncached empty schema carrier; WITH/source-bearing graphs initialize
+conservatively rather than claiming full native lazy schema-load parity.
+Joined/coalesced/grouped/correlated generated consumers share linked logical
+column binding with aggregate register/sorter precedence, NullRow before generating
+dependencies and affinity, and STORED physical mapping. Selected single-source
+covering reads consume materialized logical generated index fields, not dependency
+ordinals; noncovering reads compute from table. General indexed-expression
+matching/subtype rules, STRICT and untested producer placements remain gaps.
+Source/caller/test map, pinned typed/metadata fixtures and bounded limitations:
+[generated consumers](research/card-t-c-generated-consumers/README.md).
+
+### Generated dependency lifetime correction (review24)
+
+The prior isolated3957684 delivery remains review-withheld, not MAIN. Its binary
+cycle diagnostics did not establish scalar BUSY lifetime. The shared binder now
+forwards the same per-source map through CASE/BETWEEN/IN-list and aggregate
+argument/filter/order edges, matching expr.c4449–4464 whole-generation BUSY;
+finally, source identity, aggregate/register precedence and NullRow are preserved.
+Native-first boundary81 evidence and precise revised isolated export/review status:
+[generated consumers](research/card-t-c-generated-consumers/README.md).
+No full NC_GenCol/lazy-schema/STRICT/generic indexed-expression claim follows.

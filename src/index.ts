@@ -3,9 +3,9 @@ import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.t
 import { aggregateShapeSupported, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
 import { compileSelect } from "./internal/select-compiler.ts";
 import { rejectBareBuiltinWindowFunctions } from "./internal/resolve.ts";
-import { SchemaFormatError, loadSchemaGraph } from "./internal/schema.ts";
+import { SchemaFormatError, loadSchemaGraph, sourceFreeSchemaGraph } from "./internal/schema.ts";
 import { btreeFromConnection } from "./internal/btree.ts";
-import { selectGraphContainsWith } from "./internal/admission.ts";
+import { selectGraphContainsWith, selectGraphNeedsSchema } from "./internal/admission.ts";
 import { lowerOrdinaryCtes, recursiveCteOwner } from "./internal/cte.ts";
 import {dateTimeEnvironmentOption,type DateTimeEnvironment} from "./internal/date-time.ts";
 
@@ -165,7 +165,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       // reachable, then reject the complete graph before a compiler can create
       // or publish a Program.
       let schemaWork=0;
-      const schema = loadSchemaGraph(this,{check:(_phase,units)=>{
+      const schema = !selectGraphNeedsSchema(parsed.statement)?sourceFreeSchemaGraph(this):loadSchemaGraph(this,{check:(_phase,units)=>{
         if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
         if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
         schemaWork+=units;if(schemaWork>parserWork)failure("limit","schema construction work exceeded");
