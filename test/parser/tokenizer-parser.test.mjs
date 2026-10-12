@@ -73,3 +73,34 @@ test('long function lists retain generated reductions and ordered UTF-8 token sp
  assert.throws(()=>parseSql('SELECT f(1,2,3)',{maxWorkUnits:1}),RangeError);
  assert.equal(parseSql('SELECT f(1,2,3)').lemon.accepted,true,'fresh parse after limit failure');
 });
+
+test('trigger cmdx completion owns internal semicolons and bounded resources',()=>{
+ const sql='CREATE TRIGGER tr AFTER UPDATE OF a,b ON t WHEN new.a<>old.a BEGIN INSERT INTO log VALUES(new.a); UPDATE log SET a=old.a; END; SELECT 2';
+ const parsed=parseSql(sql),tr=parsed.statement.trigger;
+ assert.equal(parsed.tailCodeUnit,sql.indexOf('; SELECT')+1);
+ assert.equal(tr.name,'tr');assert.equal(tr.tableName,'t');assert.equal(tr.event,'update');
+ assert.deepEqual(tr.updateColumns,['a','b']);assert.equal(tr.steps.length,2);assert.ok(tr.when.reduction);
+ assert.ok(Object.isFrozen(tr.steps[0].reduction));
+ assert.throws(()=>parseSql(sql,{maxWorkUnits:2}),RangeError);
+ assert.throws(()=>parseSql(sql,{maxParserDepth:2}),RangeError);
+ assert.throws(()=>parseSql('CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1;'),SqlParseError);
+});
+
+
+test('generated TriggerStep and Upsert semantic fields preserve owner order',()=>{
+ const ddl=parseSql("CREATE TRIGGER log AFTER INSERT ON t BEGIN UPDATE t SET a=? FROM audit WHERE a=?; DELETE FROM t WHERE a=?; INSERT INTO t VALUES(?) ON CONFLICT(a) WHERE a>0 DO UPDATE SET a=? WHERE a>1 ON CONFLICT DO NOTHING; SELECT ?; END;").statement;
+ const steps=ddl.trigger.steps;
+ assert.deepEqual(steps.map(step=>step.operation),['update','delete','insert','select']);
+ assert.ok(steps[0].from);assert.ok(steps[0].where);assert.ok(steps[0].expressions);assert.ok(steps[0].target);
+ assert.ok(steps[2].select);assert.ok(steps[2].upsert.target);assert.ok(steps[2].upsert.targetWhere);assert.ok(steps[2].upsert.expressions);assert.ok(steps[2].upsert.where);assert.ok(steps[2].upsert.next);assert.equal(steps[2].upsert.next.expressions,null);
+ assert.equal(steps[3].target,null);assert.ok(Object.isFrozen(steps[2].upsert));
+ const long="CREATE TRIGGER log AFTER INSERT ON t BEGIN "+"SELECT 1;".repeat(4000)+" END;";
+ assert.throws(()=>parseSql(long,{maxWorkUnits:100}),RangeError);
+ assert.equal(parseSql(long).statement.trigger.steps.length,4000);
+});
+
+test('wide generated trigger SELECT lists do not use host recursion',()=>{
+ const sql='CREATE TRIGGER log AFTER INSERT ON t BEGIN SELECT '+Array(8000).fill('1').join(',')+'; END';
+ assert.throws(()=>parseSql(sql,{maxWorkUnits:100}),RangeError);
+ assert.equal(parseSql(sql).statement.trigger.steps.length,1);
+});

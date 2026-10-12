@@ -1,4 +1,4 @@
-import { lemonTables, productions } from "../generated/parser-tables.ts";
+import { lemonTables, productions, tokenIds } from "../generated/parser-tables.ts";
 
 export type LemonValue<T = unknown> =
   | { readonly kind: "terminal"; readonly tokenId: number; readonly value: T }
@@ -18,6 +18,8 @@ export interface LemonTrace<T = unknown> {
   readonly terminalAction?: number;
   /** Zero-based input terminal that selected the terminal error action. */
   readonly errorInput?: number;
+  /** sqlite3RunParser stops after cmdx completion, before subsequent SQL. */
+  readonly statementEndInput?: number;
 }
 
 export interface LemonLimits {
@@ -43,6 +45,7 @@ export function lemonParse<T = unknown>(
   values: readonly T[] = [],
   limits: LemonLimits = { maxWorkUnits: 10_000_000, maxParserDepth: 2500, maxExpressionDepth: 1000 },
   reductionAction?: LemonReductionAction<T>,
+  stopAfterStatement = false,
 ): LemonTrace<T> {
   const t = lemonTables;
   const stack: Entry<T>[] = [{ state: 0 }];
@@ -129,6 +132,9 @@ export function lemonParse<T = unknown>(
         children,
         ...(semantic === undefined ? {} : { semantic }),
       };
+      if(stopAfterStatement && signature === "cmdx ::= cmd" && lookahead === tokenIds.SEMI) {
+        return {accepted:true,reductions,value,statementEndInput:input};
+      }
       const next = reduceAction(stack.at(-1)!.state, t.ruleLhs[rule]!);
       if (stack.length >= limits.maxParserDepth) throw new RangeError("SQL parser exceeds maxParserDepth");
       stack.push({ state: shiftedState(next), value, expressionDepth });

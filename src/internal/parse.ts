@@ -29,7 +29,48 @@ export interface SchemaIndexTermDeclaration {readonly expr:ExprNode;readonly des
 export type ForeignKeyAction="no-action"|"restrict"|"set-null"|"set-default"|"cascade";
 export interface SchemaCheckDeclaration {readonly name:string|null;readonly columnName:string|null;readonly expr:ExprNode;readonly tokens:readonly SqlToken[]}
 export interface SchemaForeignKeyDeclaration {readonly name:string|null;readonly columns:readonly string[];readonly referencedTable:string;readonly referencedColumns:readonly string[]|null;readonly onDelete:ForeignKeyAction;readonly onUpdate:ForeignKeyAction;readonly deferrable:boolean;readonly initiallyDeferred:boolean;readonly tokens:readonly SqlToken[]}
-export type SchemaDdlNode={readonly kind:"create-table"|"create-index"|"create-view"|"create-trigger";readonly name:string|null;readonly tokens:readonly SqlToken[];readonly columns:readonly SchemaColumnDeclaration[];readonly checks:readonly SchemaCheckDeclaration[];readonly foreignKeys:readonly SchemaForeignKeyDeclaration[];readonly viewColumns:readonly string[];readonly withoutRowid:boolean;readonly indexTerms:readonly SchemaIndexTermDeclaration[];readonly implicitConstraints:readonly {readonly primary:boolean;readonly onError:string;readonly terms:readonly SchemaIndexTermDeclaration[]}[];readonly tableUniqueTerms:readonly (readonly SchemaIndexTermDeclaration[])[];readonly tableName:string|null;readonly select:SelectNode|null;readonly indexWhere:ExprNode|null;readonly tableAsSelect:SelectNode|null;readonly primaryKey:readonly string[];readonly primaryKeyTerms:readonly SchemaIndexTermDeclaration[];readonly indexUnique:boolean};
+/** parse.y trigger_cmd -> trigger.c TriggerStep semantic ownership.
+ * Reduced grammar values retain fields without rescanning SQL tokens. UPDATE
+ * FROM is kept separately: trigger.c wraps it as a nested-from Select in pSrc. */
+export interface SchemaTriggerUpsert {
+ readonly target:LemonValue<SqlToken>|null;
+ readonly targetWhere:LemonValue<SqlToken>|null;
+ readonly expressions:LemonValue<SqlToken>|null;
+ readonly where:LemonValue<SqlToken>|null;
+ readonly next:SchemaTriggerUpsert|null;
+}
+function triggerUpsert(node:LemonValue<SqlToken>|null):SchemaTriggerUpsert|null {
+ if(!node||node.kind!=="reduction"||node.children.length===0)return null;
+ const field=(name:string)=>direct(node,`${name} ::=`)??null;
+ const wheres=node.children.filter(child=>child.kind==="reduction"&&child.signature.startsWith("where_opt ::="));
+ const target=field("sortlist"),expressions=field("setlist");
+ return Object.freeze({target,targetWhere:target?wheres[0]??null:null,expressions,where:expressions?wheres[target?1:0]??null:null,next:triggerUpsert(field("upsert"))});
+}
+export interface SchemaTriggerStep {
+ readonly operation:"select"|"insert"|"update"|"delete";
+ readonly select:LemonValue<SqlToken>|null;
+ readonly where:LemonValue<SqlToken>|null;
+ readonly expressions:LemonValue<SqlToken>|null;
+ readonly target:LemonValue<SqlToken>|null;
+ readonly from:LemonValue<SqlToken>|null;
+ readonly upsert:SchemaTriggerUpsert|null;
+ readonly tokens:readonly SqlToken[];
+ readonly reduction:LemonValue<SqlToken>;
+}
+function triggerStep(reduction:LemonValue<SqlToken>):SchemaTriggerStep {
+ if(reduction.kind!=="reduction")throw new SqlParseError("generated trigger step is missing");
+ const field=(name:string)=>direct(reduction,`${name} ::=`)??null;
+ const select=field("select");
+ const operation=select&&!field("xfullname")?"select":reduction.signature.includes("insert_cmd")?"insert":reduction.signature.startsWith("trigger_cmd ::= UPDATE")?"update":reduction.signature.startsWith("trigger_cmd ::= DELETE")?"delete":null;
+ if(!operation)throw new SqlParseError("unsupported generated trigger step production");
+ return Object.freeze({operation,select,where:field("where_opt"),expressions:field("setlist"),target:field("xfullname"),from:field("from"),upsert:triggerUpsert(field("upsert")),tokens:leaves(reduction),reduction:deepFreeze(reduction)});
+}
+export interface SchemaTriggerDeclaration {
+ readonly name:string; readonly tableName:string; readonly databaseName:string|null; readonly temporary:boolean; readonly timing:"before"|"after"|"instead";
+ readonly event:"insert"|"update"|"delete"; readonly updateColumns:readonly string[];
+ readonly when:ExprNode|null; readonly steps:readonly SchemaTriggerStep[];
+}
+export type SchemaDdlNode={readonly trigger:SchemaTriggerDeclaration|null;readonly kind:"create-table"|"create-index"|"create-view"|"create-trigger";readonly name:string|null;readonly tokens:readonly SqlToken[];readonly columns:readonly SchemaColumnDeclaration[];readonly checks:readonly SchemaCheckDeclaration[];readonly foreignKeys:readonly SchemaForeignKeyDeclaration[];readonly viewColumns:readonly string[];readonly withoutRowid:boolean;readonly indexTerms:readonly SchemaIndexTermDeclaration[];readonly implicitConstraints:readonly {readonly primary:boolean;readonly onError:string;readonly terms:readonly SchemaIndexTermDeclaration[]}[];readonly tableUniqueTerms:readonly (readonly SchemaIndexTermDeclaration[])[];readonly tableName:string|null;readonly select:SelectNode|null;readonly indexWhere:ExprNode|null;readonly tableAsSelect:SelectNode|null;readonly primaryKey:readonly string[];readonly primaryKeyTerms:readonly SchemaIndexTermDeclaration[];readonly indexUnique:boolean};
 export type ParsedStatement=SelectNode|SchemaDdlNode;
 export interface ParseResult{readonly statement:ParsedStatement|null;readonly tailOffset:number;readonly tailCodeUnit:number;readonly lemon:LemonTrace<SqlToken>|null}
 export class SqlParseError extends Error{}
@@ -52,7 +93,11 @@ function contextualTerminals(tokens:readonly SqlToken[]):readonly (number|undefi
  }
  return out;
 }
-function leaves(v:LemonValue<SqlToken>|undefined):SqlToken[]{if(!v)return[];return v.kind==="terminal"?(v.value?[v.value]:[]):v.children.flatMap(leaves);}
+function leaves(v:LemonValue<SqlToken>|undefined):SqlToken[]{
+ const out:SqlToken[]=[],stack=v?[v]:[];
+ while(stack.length){const node=stack.pop()!;if(node.kind==="terminal"){if(node.value)out.push(node.value);}else for(let i=node.children.length-1;i>=0;i--)stack.push(node.children[i]!);}
+ return out;
+}
 function exactSource(tokens:readonly SqlToken[],sqlBytes:Uint8Array):string|undefined{const first=tokens[0],last=tokens.at(-1);return first&&last?new TextDecoder().decode(sqlBytes.subarray(first.startByte,last.endByte)):undefined;}
 /** build.c sqlite3AddColumn dequotes the complete type span before storing
  * metadata or calling AffinityType. util.c sqlite3Dequote stops at the first
@@ -67,15 +112,19 @@ function declaredTypeSource(tokens:readonly SqlToken[],sqlBytes:Uint8Array):stri
  }
  return result;
 }
-function find(v:LemonValue<SqlToken>|undefined,p:(s:string)=>boolean):LemonValue<SqlToken>|undefined{if(!v||v.kind==="terminal")return; if(p(v.signature))return v;for(const c of v.children){const x=find(c,p);if(x)return x;}}
-function findAll(v:LemonValue<SqlToken>|undefined,p:(s:string)=>boolean,out:LemonValue<SqlToken>[]=[]):LemonValue<SqlToken>[] {if(!v||v.kind==="terminal")return out;if(p(v.signature))out.push(v);for(const c of v.children)findAll(c,p,out);return out;}
+function find(v:LemonValue<SqlToken>|undefined,p:(s:string)=>boolean):LemonValue<SqlToken>|undefined{
+ const stack=v?[v]:[];while(stack.length){const node=stack.pop()!;if(node.kind!=="reduction")continue;if(p(node.signature))return node;for(let i=node.children.length-1;i>=0;i--)stack.push(node.children[i]!);}
+}
+function findAll(v:LemonValue<SqlToken>|undefined,p:(s:string)=>boolean,out:LemonValue<SqlToken>[]=[]):LemonValue<SqlToken>[] {
+ const stack=v?[v]:[];while(stack.length){const node=stack.pop()!;if(node.kind!=="reduction")continue;if(p(node.signature))out.push(node);for(let i=node.children.length-1;i>=0;i--)stack.push(node.children[i]!);}return out;
+}
 function direct(v:LemonValue<SqlToken>,prefix:string):LemonValue<SqlToken>|undefined{if(v.kind==="terminal")return;for(const child of v.children)if(child.kind==="reduction"&&child.signature.startsWith(prefix))return child;}
 function sqlIdentifier(token:SqlToken|undefined):string{if(!token)throw new SqlParseError("generated schema name is missing");const value=token.text;if(value[0]==="["&&value.at(-1)==="]")return value.slice(1,-1);if((value[0]==='"'||value[0]==="`")&&value.at(-1)===value[0])return value.slice(1,-1).replaceAll(value[0]+value[0],value[0]);return value;}
 function ddlColumns(root:LemonValue<SqlToken>,sqlBytes:Uint8Array):readonly SchemaColumnDeclaration[]{
  const entries=findAll(root,s=>s.startsWith("columnlist ::=")&&s.includes("columnname carglist")).map(declaration=>{
   const column=direct(declaration,"columnname ::="),args=direct(declaration,"carglist ::=");if(!column||!args)throw new SqlParseError("generated column action is incomplete");
   const nameNode=direct(column,"nm ::="),typeNode=direct(column,"typetoken ::="),nameToken=leaves(nameNode)[0],rawTypeTokens=leaves(typeNode),generatedAt=rawTypeTokens.findIndex(token=>token.text.toUpperCase()==="GENERATED"),typeTokens=generatedAt<0?rawTypeTokens:rawTypeTokens.slice(0,generatedAt),constraints=findAll(args,s=>s.startsWith("ccons ::="));
-  const expression=(prefix:string):ExprNode|null=>{const constraint=constraints.find(c=>c.kind==="reduction"&&c.signature.startsWith(prefix));if(!constraint)return null;const expr=find(constraint,s=>s.startsWith("expr ::="));if(expr)return{kind:"tokens",tokens:leaves(expr)};const tokens=leaves(constraint).slice(1);if(tokens[0]?.text==="("&&tokens.at(-1)?.text===")")tokens.splice(tokens.length-1,1),tokens.splice(0,1);if(!tokens.length)throw new SqlParseError("generated column expression is missing");return{kind:"tokens",tokens};};
+  const expression=(prefix:string):ExprNode|null=>{const constraint=constraints.find(c=>c.kind==="reduction"&&c.signature.startsWith(prefix));if(!constraint)return null;const expr=find(constraint,s=>s.startsWith("expr ::="));if(expr)return{kind:"tokens",tokens:leaves(expr),reduction:expr};const tokens=leaves(constraint).slice(1);if(tokens[0]?.text==="("&&tokens.at(-1)?.text===")")tokens.splice(tokens.length-1,1),tokens.splice(0,1);if(!tokens.length)throw new SqlParseError("generated column expression is missing");return{kind:"tokens",tokens};};
   const has=(prefix:string)=>constraints.some(c=>c.kind==="reduction"&&c.signature.startsWith(prefix));
   const collate=constraints.find(c=>c.kind==="reduction"&&c.signature.startsWith("ccons ::= COLLATE"));
   const generated=constraints.find(c=>c.kind==="reduction"&&(c.signature.startsWith("ccons ::= GENERATED")||c.signature.startsWith("ccons ::= AS generated")));
@@ -84,11 +133,20 @@ function ddlColumns(root:LemonValue<SqlToken>,sqlBytes:Uint8Array):readonly Sche
  });
  return Object.freeze(entries.sort((a,b)=>a.offset-b.offset).map(entry=>entry.value));
 }
-function selectListItems(root:LemonValue<SqlToken>):LemonValue<SqlToken>[] {const out:LemonValue<SqlToken>[]=[];const walk=(node:LemonValue<SqlToken>)=>{if(node.kind==="terminal")return;if(node!==root&&node.signature.startsWith("oneselect ::="))return;if(node.signature==="selcollist ::= sclp scanpt expr scanpt as"||node.signature==="selcollist ::= sclp scanpt STAR"||node.signature==="selcollist ::= sclp scanpt nm DOT STAR")out.push(node);for(const child of node.children)walk(child);};walk(root);return out;}
+function selectListItems(root:LemonValue<SqlToken>):LemonValue<SqlToken>[] {
+ const out:LemonValue<SqlToken>[]=[],stack=[root];
+ while(stack.length){const node=stack.pop()!;if(node.kind!=="reduction")continue;
+  if(node!==root&&node.signature.startsWith("oneselect ::="))continue;
+  if(node.signature==="selcollist ::= sclp scanpt expr scanpt as"||node.signature==="selcollist ::= sclp scanpt STAR"||node.signature==="selcollist ::= sclp scanpt nm DOT STAR")out.push(node);
+  for(let i=node.children.length-1;i>=0;i--)stack.push(node.children[i]!);
+ }return out;
+}
 function expressionList(node:LemonValue<SqlToken>):readonly ExprNode[]{
- const out:ExprNode[]=[];
- const walk=(n:LemonValue<SqlToken>)=>{if(n.kind!=="reduction")return;for(const c of n.children){if(c.kind!=="reduction")continue;if(c.signature.startsWith("nexprlist ::="))walk(c);else if(c.signature.startsWith("expr ::=")||c.signature.startsWith("term ::="))out.push({kind:"tokens",tokens:leaves(c),reduction:c});}};
- walk(node);return Object.freeze(out);
+ const out:ExprNode[]=[],stack=node.kind==="reduction"?[...node.children].reverse():[];
+ while(stack.length){const child=stack.pop()!;if(child.kind!=="reduction")continue;
+  if(child.signature.startsWith("nexprlist ::=")){for(let i=child.children.length-1;i>=0;i--)stack.push(child.children[i]!);}
+  else if(child.signature.startsWith("expr ::=")||child.signature.startsWith("term ::="))out.push({kind:"tokens",tokens:leaves(child),reduction:child});
+ }return Object.freeze(out);
 }
 const noJoin:JoinFlags=Object.freeze({inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false});
 function joinFlags(node:LemonValue<SqlToken>|undefined):JoinFlags{const words=leaves(node).map(t=>t.text.toUpperCase()),names=words.filter(w=>w!=="JOIN"&&w!==",");return Object.freeze({inner:words.includes(",")||names.length===0||names.includes("INNER"),cross:names.includes("CROSS"),natural:names.includes("NATURAL"),left:names.includes("LEFT")||names.includes("FULL"),right:names.includes("RIGHT")||names.includes("FULL"),outer:names.includes("OUTER"),error:names.some(w=>!["INNER","CROSS","NATURAL","LEFT","RIGHT","FULL","OUTER"].includes(w))});}
@@ -292,9 +350,24 @@ function ddlAction(root:LemonValue<SqlToken>,all:readonly SqlToken[],sqlBytes:Ui
  const foreignKeyNodes=kindWord==="TABLE"?findAll(root,s=>s.startsWith("ccons ::= REFERENCES")||s.startsWith("tcons ::= FOREIGN KEY")):[];
  const columnForeignKeyDeferral=(node:LemonValue<SqlToken>):readonly SqlToken[]=>{const column=containingColumn(node),end=leaves(node).at(-1)?.endByte??0;if(!column)return Object.freeze([]);const prior=foreignKeyNodes.filter(candidate=>containingColumn(candidate)===column&&(leaves(candidate).at(-1)?.endByte??0)<end).sort((a,b)=>(leaves(b).at(-1)?.endByte??0)-(leaves(a).at(-1)?.endByte??0))[0];if(prior)return Object.freeze([]);const clause=findAll(root,s=>s.startsWith("ccons ::= defer_subclause")).filter(candidate=>containingColumn(candidate)===column&&(leaves(candidate)[0]?.startByte??-1)>=end).sort((a,b)=>(leaves(a)[0]?.startByte??0)-(leaves(b)[0]?.startByte??0))[0];if(!clause)return Object.freeze([]);const intervening=foreignKeyNodes.some(candidate=>containingColumn(candidate)===column&&(leaves(candidate)[0]?.startByte??0)>end&&(leaves(candidate)[0]?.startByte??0)<(leaves(clause)[0]?.startByte??0));return intervening?Object.freeze([]):Object.freeze(leaves(clause));};
  const foreignKeys=foreignKeyNodes.map(node=>{const ownTokens=leaves(node),tableForm=node.kind==="reduction"&&node.signature.startsWith("tcons ::=");const tokens=tableForm?ownTokens:Object.freeze([...ownTokens,...columnForeignKeyDeferral(node)]);const names=findAll(node,s=>s.startsWith("nm ::="));const tableNode=tableForm?names.find(n=>(leaves(n)[0]?.startByte??0)>(tokens.find(t=>t.text.toUpperCase()==="REFERENCES")?.startByte??-1)):names[0];if(!tableNode)throw new SqlParseError("generated REFERENCES table is missing");const lists=findAll(node,s=>s.startsWith("eidlist ::=")).sort((a,b)=>(leaves(a)[0]?.startByte??0)-(leaves(b)[0]?.startByte??0));const referencesAt=tokens.find(t=>t.text.toUpperCase()==="REFERENCES")?.startByte??-1;const localList=lists.filter(list=>(leaves(list)[0]?.startByte??0)<referencesAt).sort((a,b)=>leaves(b).length-leaves(a).length)[0];const local=tableForm?listNames(localList):Object.freeze([containingColumn(node)!]);const referencedList=find(node,s=>s.startsWith("eidlist_opt ::= LP eidlist RP"));const words=tokens.map(t=>t.text.toUpperCase());const action=(kind:"DELETE"|"UPDATE"):ForeignKeyAction=>{const at=words.findIndex((word,index)=>word==="ON"&&words[index+1]===kind);if(at<0)return "no-action";const pair=words.slice(at+2,at+4).join(" ");if(pair==="SET NULL")return "set-null";if(pair==="SET DEFAULT")return "set-default";if(words[at+2]==="CASCADE")return "cascade";if(words[at+2]==="RESTRICT")return "restrict";return "no-action";};return Object.freeze({name:constraintName(node),columns:local,referencedTable:sqlIdentifier(leaves(tableNode)[0]),referencedColumns:referencedList?listNames(find(referencedList,s=>s.startsWith("eidlist ::="))):null,onDelete:action("DELETE"),onUpdate:action("UPDATE"),deferrable:words.some((word,index)=>word==="DEFERRABLE"&&words[index-1]!=="NOT"),initiallyDeferred:words.some((word,index)=>word==="DEFERRABLE"&&words[index-1]!=="NOT")&&words.some((word,index)=>word==="INITIALLY"&&words[index+1]==="DEFERRED"),tokens:Object.freeze(tokens)});}).sort((a,b)=>(a.tokens[0]?.startByte??0)-(b.tokens[0]?.startByte??0));
- return{kind:`create-${kindWord.toLowerCase()}` as SchemaDdlNode["kind"],name:schemaName(names[0]??find(ddl,s=>s.startsWith("nm ::="))),tokens:all,columns:kindWord==="TABLE"?ddlColumns(root,sqlBytes):Object.freeze([]),checks:Object.freeze(checks),foreignKeys:Object.freeze(foreignKeys),viewColumns:Object.freeze(viewColumns),withoutRowid:options.some(option=>option.kind==="reduction"&&option.signature.startsWith("table_option ::= WITHOUT")&&leaves(option).some(token=>token.text.toUpperCase()==="ROWID")),indexTerms:Object.freeze(indexTerms),implicitConstraints:Object.freeze(implicitConstraints),tableUniqueTerms:Object.freeze(tableUniqueTerms),tableName:kindWord==="INDEX"?schemaName(names.at(-1)):null,select:selected?semanticOf<SelectNode>(selected,"view select"):null,indexWhere:whereExpr?{kind:"tokens",tokens:leaves(whereExpr),reduction:whereExpr}:null,tableAsSelect:tableSelected?semanticOf<SelectNode>(tableSelected,"table AS select"):null,primaryKey:Object.freeze(primaryKey),primaryKeyTerms:Object.freeze(primaryKeyTerms),indexUnique:kindWord==="INDEX"&&leaves(direct(ddl,"uniqueflag ::=")).some(t=>t.text.toUpperCase()==="UNIQUE")};
+ const triggerDecl=kindWord==="TRIGGER"?find(ddl,s=>s.startsWith("trigger_decl ::=")):undefined;
+ let trigger:SchemaTriggerDeclaration|null=null;
+ if(triggerDecl){
+  const nameNode=direct(triggerDecl,"nm ::="),target=direct(triggerDecl,"fullname ::="),event=direct(triggerDecl,"trigger_event ::="),time=direct(triggerDecl,"trigger_time ::="),whenNode=direct(triggerDecl,"when_clause ::="),whenExpr=whenNode?direct(whenNode,"expr ::="):undefined;
+  const ids=event?find(event,s=>s.startsWith("idlist ::=")):undefined;
+  const steps=findAll(ddl,s=>s.startsWith("trigger_cmd ::=")).sort((a,b)=>(leaves(a)[0]?.startByte??0)-(leaves(b)[0]?.startByte??0));
+  const eventWord=leaves(event)[0]?.text.toLowerCase();
+  if(!nameNode||!target||!eventWord||!["insert","update","delete"].includes(eventWord))throw new SqlParseError("generated trigger declaration is missing");
+  const database=direct(triggerDecl,"dbnm ::="),databaseTokens=leaves(database),temporary=leaves(direct(triggerDecl,"temp ::=")).length!==0;
+  trigger=Object.freeze({databaseName:databaseTokens.length?sqlIdentifier(leaves(nameNode)[0]!):null,temporary,name:databaseTokens.length?sqlIdentifier(databaseTokens.at(-1)!):sqlIdentifier(leaves(nameNode)[0]!),tableName:sqlIdentifier(leaves(target).at(-1)!),timing:leaves(time).some(t=>t.text.toUpperCase()==="AFTER")?"after":leaves(time).some(t=>t.text.toUpperCase()==="INSTEAD")?"instead":"before",event:eventWord as SchemaTriggerDeclaration["event"],updateColumns:Object.freeze(ids?findAll(ids,s=>s.startsWith("idlist ::=")).flatMap(n=>{const nm=direct(n,"nm ::=");return nm?[sqlIdentifier(leaves(nm)[0]!)]:[]}).reverse():[]),when:whenExpr?Object.freeze({kind:"tokens",tokens:leaves(whenExpr),reduction:deepFreeze(whenExpr)} as ExprNode):null,steps:Object.freeze(steps.map(triggerStep))});
+ }
+ return{trigger,kind:`create-${kindWord.toLowerCase()}` as SchemaDdlNode["kind"],name:trigger?.name??schemaName(names[0]??find(ddl,s=>s.startsWith("nm ::="))),tokens:all,columns:kindWord==="TABLE"?ddlColumns(root,sqlBytes):Object.freeze([]),checks:Object.freeze(checks),foreignKeys:Object.freeze(foreignKeys),viewColumns:Object.freeze(viewColumns),withoutRowid:options.some(option=>option.kind==="reduction"&&option.signature.startsWith("table_option ::= WITHOUT")&&leaves(option).some(token=>token.text.toUpperCase()==="ROWID")),indexTerms:Object.freeze(indexTerms),implicitConstraints:Object.freeze(implicitConstraints),tableUniqueTerms:Object.freeze(tableUniqueTerms),tableName:kindWord==="INDEX"?schemaName(names.at(-1)):null,select:selected?semanticOf<SelectNode>(selected,"view select"):null,indexWhere:whereExpr?{kind:"tokens",tokens:leaves(whereExpr),reduction:whereExpr}:null,tableAsSelect:tableSelected?semanticOf<SelectNode>(tableSelected,"table AS select"):null,primaryKey:Object.freeze(primaryKey),primaryKeyTerms:Object.freeze(primaryKeyTerms),indexUnique:kindWord==="INDEX"&&leaves(direct(ddl,"uniqueflag ::=")).some(t=>t.text.toUpperCase()==="UNIQUE")};
 }
-function deepFreeze<T>(value:T):T {if(value&&typeof value==="object"&&!Object.isFrozen(value)){for(const child of Object.values(value as object))deepFreeze(child);Object.freeze(value);}return value;}
+function deepFreeze<T>(value:T):T {
+ const stack:unknown[]=[value],seen=new Set<object>();
+ while(stack.length){const node=stack.pop();if(!node||typeof node!=="object"||seen.has(node))continue;seen.add(node);stack.push(...Object.values(node));Object.freeze(node);}
+ return value;
+}
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[],sqlBytes:Uint8Array):unknown{
  const root:LemonValue<SqlToken>={kind:"reduction",rule:-1,signature,children};
  // parse.y typetoken/typename lengths span raw SQL, not joined tokens.
@@ -340,4 +413,4 @@ function productionAction(signature:string,children:readonly LemonValue<SqlToken
 }
 function action(root:LemonValue<SqlToken>,tokens:readonly SqlToken[]):ParsedStatement{const cmd=find(root,s=>s.startsWith("cmd ::="));if(cmd?.kind==="reduction"&&cmd.semantic)return cmd.semantic as ParsedStatement;throw new SqlParseError(`near "${tokens[0]!.text}": syntax error`);}
 export interface ParseLimits{readonly maxSqlBytes?:number;readonly maxWorkUnits?:number;readonly maxParserDepth?:number;readonly maxExpressionDepth?:number}
-export function parseSql(sql:string,limits:number|ParseLimits=16*1024*1024):ParseResult{const options=typeof limits==="number"?{maxSqlBytes:limits}:limits;const maxSqlBytes=options.maxSqlBytes??16*1024*1024,maxWorkUnits=options.maxWorkUnits??10_000_000,maxParserDepth=options.maxParserDepth??2500,maxExpressionDepth=options.maxExpressionDepth??1000;let bytes:Uint8Array;try{bytes=encodeSql(sql);}catch(e){throw new SqlParseError((e as Error).message);}if(bytes.length>maxSqlBytes)throw new RangeError("SQL exceeds maxSqlBytes");const sig=tokenize(bytes).filter(t=>t.kind!=="space"&&t.kind!=="comment"&&t.kind!=="eof");if(!sig.length)return{statement:null,tailOffset:bytes.length,tailCodeUnit:sql.length,lemon:null};const illegal=sig.find(t=>t.kind==="illegal");if(illegal)throw new SqlParseError(`unrecognized token: "${illegal.text}"`);let depth=0,semi:SqlToken|undefined;for(const t of sig){if(t.text==="(")depth++;else if(t.text===")"){if(--depth<0)throw new SqlParseError('near ")": syntax error');}else if(t.text===";"&&depth===0){semi=t;break;}}if(depth)throw new SqlParseError("incomplete input");const tokens=sig.slice(0,semi?sig.indexOf(semi):undefined),ids=contextualTerminals(tokens);if(ids.some(x=>x===undefined))throw new SqlParseError(`unrecognized token: "${tokens[ids.findIndex(x=>x===undefined)]!.text}"`);const sentinel:SqlToken={kind:"punct",startByte:semi?.startByte??bytes.length,endByte:semi?.endByte??bytes.length,text:";"},lemon=lemonParse([...ids as number[],tokenIds.SEMI,0],[...tokens,sentinel],{maxWorkUnits,maxParserDepth,maxExpressionDepth},(signature,children)=>productionAction(signature,children,bytes));if(!lemon.accepted||!lemon.value){const at=lemon.errorInput??tokens.length,token=tokens[at];throw new SqlParseError(token?`near "${token.text}": syntax error`:"incomplete input");}const statement=action(lemon.value,tokens);const tailOffset=semi?.endByte??bytes.length;return{statement,tailOffset,tailCodeUnit:byteToCodeUnit(sql,tailOffset),lemon};}
+export function parseSql(sql:string,limits:number|ParseLimits=16*1024*1024):ParseResult{const options=typeof limits==="number"?{maxSqlBytes:limits}:limits;const maxSqlBytes=options.maxSqlBytes??16*1024*1024,maxWorkUnits=options.maxWorkUnits??10_000_000,maxParserDepth=options.maxParserDepth??2500,maxExpressionDepth=options.maxExpressionDepth??1000;let bytes:Uint8Array;try{bytes=encodeSql(sql);}catch(e){throw new SqlParseError((e as Error).message);}if(bytes.length>maxSqlBytes)throw new RangeError("SQL exceeds maxSqlBytes");const sig=tokenize(bytes).filter(t=>t.kind!=="space"&&t.kind!=="comment"&&t.kind!=="eof");if(!sig.length)return{statement:null,tailOffset:bytes.length,tailCodeUnit:sql.length,lemon:null};const illegal=sig.find(t=>t.kind==="illegal");if(illegal)throw new SqlParseError(`unrecognized token: "${illegal.text}"`);const tokens=sig,ids=contextualTerminals(tokens);if(ids.some(x=>x===undefined))throw new SqlParseError(`unrecognized token: "${tokens[ids.findIndex(x=>x===undefined)]!.text}"`);const sentinel:SqlToken={kind:"punct",startByte:bytes.length,endByte:bytes.length,text:";"},lemon=lemonParse([...ids as number[],tokenIds.SEMI,0],[...tokens,sentinel],{maxWorkUnits,maxParserDepth,maxExpressionDepth},(signature,children)=>productionAction(signature,children,bytes),true);const semi=tokens[lemon.statementEndInput??tokens.length];if(!lemon.accepted||!lemon.value){const at=lemon.errorInput??tokens.length,token=tokens[at];throw new SqlParseError(token?`near "${token.text}": syntax error`:"incomplete input");}const statement=action(lemon.value,tokens);const tailOffset=semi?.endByte??bytes.length;return{statement,tailOffset,tailCodeUnit:byteToCodeUnit(sql,tailOffset),lemon};}

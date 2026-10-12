@@ -8,7 +8,7 @@ import test from "node:test";
 import { chinookFixture } from "../chinook-fixture.mjs";
 
 import { open } from "../../src/index.ts";
-import { loadSchemaGraph, SchemaStateError, SchemaUnsupportedError } from "../../src/internal/schema.ts";
+import { loadSchemaGraph, SchemaStateError, SchemaUnsupportedError, tableColumnToStorage } from "../../src/internal/schema.ts";
 
 const fixtureRoot = new URL("../fixtures/", import.meta.url);
 const current = JSON.parse(await readFile(new URL("CURRENT.json", fixtureRoot), "utf8"));
@@ -124,16 +124,16 @@ test("WITHOUT ROWID secondary suffix retains the primary-key collation and direc
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
 
-test("recognized unconsumed catalog constructs fail explicitly instead of being skipped", async () => {
-  for (const [ddl, pattern] of [
-    ["CREATE TABLE t(a); CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END", /trigger construction/],
+test("trigger catalog constructs are retained instead of being skipped", async () => {
+  for (const ddl of [
+    "CREATE TABLE t(a); CREATE TRIGGER tr AFTER INSERT ON t BEGIN SELECT 1; END",
   ]) {
     const dir = await mkdtemp(join(tmpdir(), "jsqlite-unsupported-schema-"));
     try {
       const path = join(dir, "unsupported.db");
       await execFileP("python3", ["-c", `import sqlite3\np=${JSON.stringify(path)}\nc=sqlite3.connect(p)\nc.executescript(${JSON.stringify(ddl)})\nc.close()`]);
       await withImage(new Uint8Array(await readFile(path)), "unsupported.db", async connection => {
-        assert.throws(() => loadSchemaGraph(connection), error => error instanceof SchemaUnsupportedError && pattern.test(error.message));
+        assert.equal(loadSchemaGraph(connection).triggers.get("tr").target.name,"t");
         connection.close();
       });
     } finally { await rm(dir, { recursive: true, force: true }); }
@@ -277,4 +277,12 @@ test("window LIMIT/OFFSET handoff is encoding-independent", async () => {
   for(const name of ["encoding-utf8.db","encoding-utf16le.db","encoding-utf16be.db"]){await withFixture(name,async connection=>{
     const statement=connection.prepare("SELECT a,row_number() OVER (ORDER BY c DESC) AS rk FROM t1 LIMIT ?1 OFFSET ?2").statement;statement.bind(1,1n);statement.bind(2,0n);assert.equal(await statement.step(),"row");assert.deepEqual([statement.column(0),statement.column(1)],["one",1n]);assert.equal(await statement.step(),"done");statement.finalize();connection.close();
   });}
+});
+
+
+test("build.c table/storage mapping retains STORED fields and moves VIRTUAL to cache tail",()=>{
+ const table={columns:[null,'stored','virtual',null,'stored','virtual',null,'stored','virtual'].map(generatedStorage=>({generatedStorage}))};
+ assert.deepEqual(table.columns.map((_,index)=>tableColumnToStorage(table,index)),[0,1,6,2,3,7,4,5,8]);
+ assert.equal(tableColumnToStorage(table,-1),-1);
+ assert.throws(()=>tableColumnToStorage(table,9),RangeError);
 });

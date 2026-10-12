@@ -1103,3 +1103,17 @@ selection. Lifetime/accounting remains the original frame-owner decision
 [review12](record:///review.md?card=card-o-c&v=12)); detailed correction and final
 input/gate provenance is retained in [[card:card-s-i-c-b-c]] status. These finite
 checks do not certify all window schedules or inherited WR/VM machinery.
+
+
+## Assembled bounded functional-schema admission
+
+The exact patch against b0206817ce8781f937e8fe793b1e964db0ba0c65 in
+`docs/research/card-e-h-delivery/scoped.patch` admits retained immutable triggers
+without write execution and the tested single-source STORED/VIRTUAL/quoted
+identifier consumers. Original SQL/reductions survive initialized source fixation
+and nonconstant frame NULL normalization. Combined Window field order and failed
+construction retries are source/native-controlled. Full Select/CTE/UPDATE-FROM
+semantic walker, interruption/depth parity, STRICT and alternate generated
+producers remain temporary backlog, not permanent exclusions. This is bounded
+admission, not whole compatibility or optimizer acceptance. Assembly evidence:
+`docs/research/card-e-h-delivery/README.md`.

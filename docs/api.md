@@ -514,3 +514,17 @@ incorporation and renewed parent review, root/main/product promotion and later
 root-v review remain separate decisions. No whole-product/performance/allocator,
 all-browser-lane or exhaustive VM compatibility follows. This docs-only
 successor reuses the qualified receipts; it does not fabricate executable reruns.
+
+
+## Assembled bounded functional-schema admission
+
+The exact patch against b0206817ce8781f937e8fe793b1e964db0ba0c65 in
+`docs/research/card-e-h-delivery/scoped.patch` admits retained immutable triggers
+without write execution and the tested single-source STORED/VIRTUAL/quoted
+identifier consumers. Original SQL/reductions survive initialized source fixation
+and nonconstant frame NULL normalization. Combined Window field order and failed
+construction retries are source/native-controlled. Full Select/CTE/UPDATE-FROM
+semantic walker, interruption/depth parity, STRICT and alternate generated
+producers remain temporary backlog, not permanent exclusions. This is bounded
+admission, not whole compatibility or optimizer acceptance. Assembly evidence:
+`docs/research/card-e-h-delivery/README.md`.

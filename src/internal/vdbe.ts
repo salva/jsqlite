@@ -6,7 +6,7 @@ import { ExecutionTaskScheduler } from "./task-scheduler.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
 import {resolvedResultColumn} from "./resolve.ts";
-import {integerPrimaryKeyColumn,freezeTransientTable} from "./schema.ts";
+import {integerPrimaryKeyColumn,freezeTransientTable,tableColumnToStorage} from "./schema.ts";
 import {resolvedExpressionCarrier,type ResolvedExpressionCarrier,type ResolvedSource,type ResolvedExpressionBinding} from './resolve.ts';
 // First compiled no-FROM scalar SELECT slice. The instruction/register split
 // follows expr.c sqlite3ExprCode* and vdbe.c's opcode loop rather than evaluating
@@ -48,7 +48,7 @@ type Expression =
  | {kind:"variable";spelling:string}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
- | {kind:"column";index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
+ | {kind:"column";identifierTokens?:readonly {text:string}[];generated?:Expression;index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
@@ -88,6 +88,8 @@ type Op =
   | { readonly code: "Copy"; readonly p1: number; readonly p2: number }
   | { readonly code: "Variable"; readonly p1: number; readonly p2: number }
   | { readonly code: "Binary"; readonly op: string; readonly p1:number; readonly p2:number; readonly p3:number; readonly collation:BuiltinCollation; readonly affinity?:MemAffinity }
+  | { readonly code:"IfNullRow"; readonly p1:number; readonly p2:number; readonly p3:number }
+  | { readonly code:"Affinity"; readonly p1:number; readonly affinity:MemAffinity }
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
   | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "AggStep"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation; readonly changed?:number }
@@ -1964,7 +1966,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
           const column=ref.columnIndex>=0?ref.source.table.columns[ref.columnIndex]:null;
           const named=index<0?'binary':sqliteAsciiFold(column?.collation??'binary');
           if(named!=='binary'&&named!=='nocase'&&named!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${named}`,{code:1});
-          return {...value,...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),physicalColumnIndex:location?.kind==='cursor'?location.physicalColumnIndex:undefined,cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
+          return {...value,...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),physicalColumnIndex:location?.kind==='cursor'&&location.physicalColumnIndex!==undefined?location.physicalColumnIndex:index>=0&&!ref.source.table.withoutRowid&&column?.generatedStorage!=='virtual'?tableColumnToStorage(ref.source.table,index):undefined,cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
     }
 
         // resolve.c lookupName TK_FUNCTION/AFF_DEFER argument list, not the
@@ -2097,7 +2099,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  }
  if(sig.startsWith("expr ::= CAST")){const at=t.findIndex(x=>x.text.toUpperCase()==="AS");return{kind:"cast",value:expressionFromReduction(all[0]!),affinity:affinityOf(t.slice(at+1,-1).map(x=>x.text).join(" "))}}
  if(sig==="expr ::= expr COLLATE ID|STRING"){const name=sqliteAsciiFold(t.at(-1)!.text);if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${t.at(-1)!.text}`,{code:1});return{kind:"collate",value:expressionFromReduction(all[0]!),collation:name};}
- if((sig.startsWith("expr ::= ID")||sig.startsWith("expr ::= nm"))&&!sig.includes(" LP"))return{kind:"column",index:-1,name:t.map(x=>x.text).join("")};
+ if((sig.startsWith("expr ::= ID")||sig.startsWith("expr ::= nm"))&&!sig.includes(" LP"))return{kind:"column",index:-1,name:t.map(x=>x.text).join(""),identifierTokens:t};
  // resolve.c function lookup selects unary min/max aggregate definitions by arity;
  // two-or-more arguments must continue through the scalar function registry.
  if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),parts=aggregateParts(n),args=sig.includes(" LP STAR RP")?[]:parts.args;const aggregate=aggregateDefinition(name);if(aggregate&&((name!=="min"&&name!=="max")||args.length===1)){const arities=aggregate.arities;if(!arities.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});if(parts.distinct&&args.length!==1)throw new JSQLiteError("sqlite","DISTINCT aggregates must have exactly one argument",{code:1});return{kind:"aggregate",name,args,collation:args[0]?collation(args[0]):"binary",distinct:parts.distinct,filter:parts.filter,orderBy:parts.orderBy};}const definition=resolveBuiltinFunction(name,args.length);if(parts.filter)throw new JSQLiteError("sqlite","FILTER may not be used with non-aggregate function",{code:1});return{kind:"call",name:definition.name,args}}
@@ -2270,6 +2272,15 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     const negated=allocate();ops.push({code:"Not",p1:result,p2:negated});return negated;
   }
   if(expression.kind==="column") {
+    if(expression.generated){
+      // expr.c sqlite3ExprCodeGeneratedColumn: initialize only on NullRow,
+      // otherwise code the shared expression then apply (not CAST) affinity.
+      const target=allocate(),jump=ops.length;
+      ops.push({code:"IfNullRow",p1:expression.cursor??0,p2:0,p3:target});
+      const value=emit(expression.generated);ops.push({code:"Copy",p1:value,p2:target});
+      if(expression.affinity&&expression.affinity!=="blob")ops.push({code:"Affinity",p1:target,affinity:expression.affinity});
+      (ops[jump] as {p2:number}).p2=ops.length;return target;
+    }
     const aggregate=expression.aggregateColumn;
     if(aggregate?.owner.directMode&&!aggregate.owner.useSortingIdx&&aggregate.owner.sourceRegisters!==undefined){
       const target=allocate();ops.push({code:"Copy",p1:aggregate.owner.sourceRegisters+aggregate.iAgg,p2:target});
@@ -5955,7 +5966,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if (schema.views.has(folded)) throw new JSQLiteError("unsupported", "views are not implemented", { unsupportedClassification: "temporary" });
     throw new JSQLiteError("sqlite", `no such table: ${tableName}`, { code: 1 });
   }
-  if (table.columns.some(c => c.generatedExpr)) throw new JSQLiteError("unsupported", "this table storage shape is not implemented", { unsupportedClassification: "temporary" });
+
   // where.c/wherecode.c handoff: choose once from the already-resolved tree and
   // retain the selected physical identity and table-lookup decision unchanged.
   // This lowering slice traverses that persistent index for unsorted
@@ -5986,7 +5997,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // expr.c sqlite3ExprCodeGetColumnOfTable maps table columns through the
   // primary index for WITHOUT ROWID, not through declared column ordinals.
   const tableStorageColumn=(column:number):number=>{
-    if(!table.withoutRowid)return column;
+    if(!table.withoutRowid)return tableColumnToStorage(table,column);
     const primary=table.indexes.find(index=>index.origin==="primary-key")?.physical;
     const at=primary?.fields.findIndex(field=>field.column===table.columns[column]);
     if(at===undefined||at<0)throw new JSQLiteError("unsupported","WITHOUT ROWID table column layout is not represented",{unsupportedClassification:"temporary"});
@@ -6004,25 +6015,35 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if (at < 0) throw new JSQLiteError("sqlite", `no such column: ${name}`, { code: 1 });
     return at;
   };
-  const resolveExpression=(expression:SelectNode["result"][number],allowAlias=true):Expression=>{
+  const generatedBusy=new Set<number>();
+  const assignTableExpression=(input:Expression,allowAlias=true):Expression=>{
     const assign=(e:Expression):Expression=>{
       if(e.kind==="column"){
         try{
-          // expressionFromReduction retains a qualified name as one semantic
-          // column node. Feed its identifier components through the same
-          // source-aware resolver as a direct Expr token sequence; otherwise
-          // `alias.column` is incorrectly searched as a literal column name.
-          const parts=e.name.split('.');
-          e.index=resolve(parts.length===2?[{text:parts[0]!},{text:'.'},{text:parts[1]!}]:[{text:e.name}]);e.cursor=0;
+          // resolve.c distinguishes TK_ID from TK_DOT by tree structure,
+          // never by dots inside an identifier spelling. Retain the Lemon
+          // terminal sequence so quoted dots/escapes remain one component.
+          e.index=resolve(e.identifierTokens??[{text:e.name}]);e.cursor=0;
         }
-        catch(error){const aliases=allowAlias&&!e.name.includes('.')?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,e.name)):[];if(aliases[0])return resolveExpression(aliases[0],false);/* resolve.c tries identifier resolution first, then rewrites unresolved TRUE/FALSE to TK_TRUEFALSE. */const truth=sqliteAsciiFold(e.name);if(!e.name.includes('.')&&(truth==="true"||truth==="false"))return{kind:"literal",value:truth==="true"?1n:0n};throw error;}
+        catch(error){const identifierTokens=e.identifierTokens??[{text:e.name}],unqualified=identifierTokens.length===1,name=unqualified?sqlName(identifierTokens[0]!.text):e.name;const aliases=allowAlias&&unqualified?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name)):[];if(aliases[0])return resolveExpression(aliases[0],false);/* resolve.c tries identifier resolution first, then rewrites unresolved TRUE/FALSE to TK_TRUEFALSE. */const truth=sqliteAsciiFold(name);if(unqualified&&(truth==="true"||truth==="false"))return{kind:"literal",value:truth==="true"?1n:0n};throw error;}
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
-        const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");e.index=selectedPhysical&&!selectedNeedsTableLookup?storageColumn(e.index):tableStorageColumn(e.index);e.cursor=0;return e;
+        const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=affinityOf(table.columns[e.index]!.declaredType??"");
+        const column=table.columns[e.index]!;
+        if(column.generatedStorage==="virtual"){
+          const logical=e.index;
+          if(generatedBusy.has(logical))throw new JSQLiteError("sqlite",`generated column loop on "${column.name}"`,{code:1});
+          if(!column.generatedExpr?.reduction)throw new JSQLiteError("internal","generated column lost reduction");
+          generatedBusy.add(logical);
+          try{e.generated=assign(expressionFromReduction(column.generatedExpr.reduction));}finally{generatedBusy.delete(logical);}
+          return e;
+        }
+        e.index=selectedPhysical&&!selectedNeedsTableLookup?storageColumn(e.index):tableStorageColumn(e.index);e.cursor=0;return e;
       }
       if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="in-list"){e.left=assign(e.left);e.values=e.values.map(assign)}else if(e.kind==="between"){e.value=assign(e.value);e.lower=assign(e.lower);e.upper=assign(e.upper)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
     };
-    return assign(expressionFromReduction(expression.reduction!));
+    return assign(input);
   };
+  const resolveExpression=(expression:SelectNode["result"][number],allowAlias=true):Expression=>assignTableExpression(expressionFromReduction(expression.reduction!),allowAlias);
   // Resolve functions (including arity failures) before rejecting later planning
   // features, as resolve.c does during SELECT preparation.
   select.result.filter(x=>x.reduction&&!expanded.result.some(item=>item.expression===x&&item.columnIndex!==null)).forEach(x=>resolveExpression(x));
@@ -6041,6 +6062,12 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const tokens=select.tokens,orderAt=tokens.findIndex(t=>t.text.toUpperCase()==="ORDER"),limitAt=tokens.findIndex(t=>t.text.toUpperCase()==="LIMIT");
   // resolve.c:resolveOrderGroupBy walks every ExprList item. Preserve that
   // cardinality here so select.c:pushOntoSorter receives a complete key.
+  // SELECT * and direct result-column fast paths must share GetColumnOfTable
+  // lowering rather than reading a nonexistent VIRTUAL payload field.
+  for(const item of projected)if(item.column!==undefined&&table.columns[item.column]?.generatedStorage==="virtual"){
+    item.expression=assignTableExpression({kind:"column",index:item.column,name:table.columns[item.column]!.name},false);
+    delete item.column;
+  }
   const orderTerms:{expression:Expression;resultIndex?:number;descending:boolean;nullsLarge:boolean}[]=[];
   if(orderAt>=0&&!rowidOrderConsumed&&!indexOrderConsumed){
     for(let termNumber=0;termNumber<select.orderBy.length;termNumber++){
@@ -7942,6 +7969,8 @@ export class VdbeStatement implements Statement {
             break;
           }
           case "Column": {const cursorNumber=op.p3??0,pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
+          case "IfNullRow": {if(!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
+          case "Affinity": {this.#registers[op.p1]!.applyAffinity(op.affinity,this.#program.encoding);break;}
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
           case "Rowid": {const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }

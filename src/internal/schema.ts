@@ -1,7 +1,8 @@
 import { btreeFromConnection, BtreeCursorStateError, BtreeFormatError } from "./btree.ts";
 import { decodeRecord, RecordFormatError, type DatabaseEncoding, type RawRecordValue } from "./record.ts";
-import { parseSql, SqlParseError, type ExprNode, type SchemaDdlNode, type SelectNode } from "./parse.ts";
+import { parseSql, SqlParseError, type ExprNode, type SchemaDdlNode, type SchemaTriggerStep, type SchemaTriggerUpsert, type SelectNode } from "./parse.ts";
 import { storageOwner, type StorageOwnerCarrier } from "./storage.ts";
+import { tokenIds, productions } from "../generated/parser-tables.ts";
 import { type SqlToken } from "./tokenize.ts";
 import { decodeSqliteText } from "./utf.ts";
 import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
@@ -100,6 +101,16 @@ export interface PhysicalIndexField { readonly role:"declared"|"primary-key-suff
 /** Source record ownership independent of executable CollSeq/KeyInfo. */
 export interface PhysicalIndexLayout { readonly fields:readonly (Omit<PhysicalIndexField,"collation"> & {readonly collation:string})[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly primaryKeyFields:readonly number[] }
 export interface PhysicalIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; /** Exact secondary-record field ordinal for each primary KeyInfo term, in PK order. */ readonly primaryKeyFields:readonly number[]; readonly keyInfo:KeyInfo }
+/** build.c sqlite3TableColumnToStorage. VIRTUAL columns are absent from
+ * records but occupy the register-cache tail after all nonvirtual columns. */
+export function tableColumnToStorage(table:Pick<TableNode,"columns">,column:number):number {
+ if(column<0)return column;
+ if(column>=table.columns.length)throw new RangeError("table column out of range");
+ let normal=0;
+ for(let i=0;i<column;i++)if(table.columns[i]!.generatedStorage!=="virtual")normal++;
+ return table.columns[column]!.generatedStorage==="virtual"
+  ?table.columns.filter(value=>value.generatedStorage!=="virtual").length+column-normal:normal;
+}
 /** Historical name retained for internal consumers that construct synthetic
  * rowid schemas. The represented physical descriptor now also covers WITHOUT
  * ROWID indexes. */
@@ -114,7 +125,15 @@ export interface ViewNode {
   readonly select: SelectNode;
   readonly columns: readonly string[];
 }
-export type SchemaObject = TableNode | IndexNode | ViewNode;
+export interface TriggerNode {
+ readonly kind:"trigger";readonly name:string;readonly tableName:string;readonly rootPage:0;readonly sql:string;
+ readonly target:TableNode|ViewNode;
+ readonly declaration:NonNullable<SchemaDdlNode["trigger"]>;
+ /** attach.c init-busy fixed expression/step trees (variables become NULL). */
+ readonly initializedWhen:import("./lemon-runtime.ts").LemonValue<SqlToken>|null;
+ readonly initializedSteps:readonly SchemaTriggerStep[];
+}
+export type SchemaObject = TableNode | IndexNode | ViewNode | TriggerNode;
 
 interface SchemaRow { type: string; name: string; tableName: string; rootPage: number; sql: string | null; }
 
@@ -432,6 +451,197 @@ function implicitIndexDefinitions(table:Pick<TableNode,"columns"|"name"|"integer
   }
   return implicit;
 }
+type TriggerReduction=import("./lemon-runtime.ts").LemonValue<SqlToken>;
+/** attach.c sqlite3FixTriggerStep/FixExpr/FixSelect. Retain the original parse
+ * tree separately; initialization owns variable-to-NULL and main fixation. */
+/** Initialized DDL semantic flags belong to the fixed tree, never the original
+ * generated declaration. A schema name is the immutable single-db carrier. */
+export interface InitializedDdlSource {
+ readonly schema:"main"; readonly fixedSchema:true; readonly fromDDL:true;
+ readonly notCte:boolean; readonly hadSchema:boolean;
+}
+export interface InitializedDdlExpr { readonly fromDDL:true }
+interface TriggerFixContext {
+ readonly full:WeakMap<object,TriggerReduction>;
+ readonly sources:WeakMap<object,TriggerReduction>;
+ readonly sourceFlags:WeakMap<object,InitializedDdlSource>;
+}
+function triggerFixContext():TriggerFixContext {return {full:new WeakMap(),sources:new WeakMap(),sourceFlags:new WeakMap()};}
+/** window.c sqlite3WindowOffsetExpr uses expr.c IsConstant with no Parse:
+ * unresolved functions/identifiers and SELECTs disqualify a bound. Traverse
+ * generated expression carriers, never SQL text, before the fixer sees it. */
+function constantWindowOffset(node:TriggerReduction):boolean {
+ const pending=[node];
+ while(pending.length){const value=pending.pop()!;if(value.kind!=="reduction")continue;
+  const signature=value.signature;
+  if(signature.startsWith("select ::=")||signature.startsWith("expr ::= RAISE")||signature.startsWith("term ::= CTIME_KW"))return false;
+  if(signature.startsWith("expr ::= nm DOT")||signature.startsWith("expr ::= idj LP"))return false;
+  if(signature==="expr ::= idj"){
+   const identifiers=[...value.children];let name="";
+   while(identifiers.length){const part=identifiers.pop()!;if(part.kind==="terminal")name=part.value.text.replace(/[a-z]/g,c=>c.toUpperCase());else identifiers.push(...part.children);}
+   if(name!=="TRUE"&&name!=="FALSE")return false;
+   continue;
+  }
+  for(let i=value.children.length-1;i>=0;i--)pending.push(value.children[i]!);
+ }
+ return true;
+}
+function nullTriggerExpression():TriggerReduction {
+ // Keep the original grammar/SQL outside the initialized semantic tree.
+ return Object.freeze({kind:"reduction",signature:"term ::= NULL|FLOAT|BLOB",rule:productions.find(p=>p.signature==="term ::= NULL|FLOAT|BLOB")!.id,
+  children:Object.freeze([Object.freeze({kind:"terminal" as const,tokenId:tokenIds.NULL,value:Object.freeze({kind:"keyword" as const,text:"NULL",startByte:0,endByte:0})})]),semantic:Object.freeze({fromDDL:true,windowOffsetNormalized:true})});
+}
+function initializeTriggerTree(node:TriggerReduction,fail:(message:string)=>never,sourceOnly=false,context=triggerFixContext()):TriggerReduction {
+ const cache=sourceOnly?context.sources:context.full;
+ const cached=cache.get(node);if(cached)return cached;
+ // Grammar lists (columns, sources and expressions) may be much wider than
+ // expression height. Use an explicit postorder stack for ordinary carriers;
+ // semantic owners retain their short-circuit ordering in fixTriggerTree.
+ const owned=(value:TriggerReduction)=>value.kind==="reduction"&&[
+  "expr ::= VARIABLE","select ::= WITH","seltablist ::=","xfullname ::=",
+  "oneselect ::= SELECT","window ::=","filter_over ::=","frame_bound ::=","selectnowith ::= selectnowith multiselect_op",
+ ].some(prefix=>value.signature.startsWith(prefix));
+ const pending:{value:TriggerReduction;finish:boolean}[]=[{value:node,finish:false}];
+ while(pending.length){const entry=pending.pop()!,value=entry.value;if(cache.has(value))continue;
+  if(entry.finish||value.kind==="terminal"||owned(value)||sourceOnly&&(value.signature.startsWith("select ::=")||value.signature.startsWith("exprlist ::="))){cache.set(value,fixTriggerTree(value,fail,sourceOnly,context));continue;}
+  pending.push({value,finish:true});
+  for(let i=value.children.length-1;i>=0;i--)pending.push({value:value.children[i]!,finish:false});
+ }
+ return cache.get(node)!;
+}
+function fixTriggerTree(node:TriggerReduction,fail:(message:string)=>never,sourceOnly:boolean,context:TriggerFixContext):TriggerReduction {
+
+ if(node.kind==="terminal")return node;
+ if(node.signature==="frame_bound ::= expr PRECEDING|FOLLOWING"){
+  const expression=node.children.find(child=>child.kind==="reduction"&&child.signature.startsWith("expr ::="));
+  if(expression&&!constantWindowOffset(expression))return Object.freeze({...node,children:Object.freeze(node.children.map(child=>child===expression?nullTriggerExpression():child)),semantic:Object.freeze({windowOffsetNormalized:true})});
+ }
+ if(node.signature.startsWith("expr ::= VARIABLE")){
+  const token=node.children[0];
+  if(token?.kind!=="terminal")fail("invalid trigger variable");
+  return Object.freeze({...node,signature:"term ::= NULL|FLOAT|BLOB",rule:productions.find(p=>p.signature==="term ::= NULL|FLOAT|BLOB")!.id,children:Object.freeze([Object.freeze({...token,value:Object.freeze({...token.value,text:"NULL",kind:"keyword"}),tokenId:tokenIds.NULL})]),semantic:Object.freeze({fromDDL:true})});
+ }
+ const own=(prefix:string)=>node.children.find(child=>child.kind==="reduction"&&child.signature.startsWith(prefix));
+ const tokenList=(value:TriggerReduction|undefined):SqlToken[]=>!value?[]:value.kind==="terminal"?[value.value]:value.children.flatMap(tokenList);
+ if(sourceOnly&&(node.signature.startsWith("select ::=")||node.signature.startsWith("exprlist ::=")))return node;
+ if(node.signature.startsWith("select ::= WITH")){
+  // attachWithToSelect places WITH on the rightmost Select. Its callback
+  // visits source names/ON, then CTEs, before projection/subqueries.
+  const body=own("selectnowith ::=");
+  const rightmost=(value:TriggerReduction):TriggerReduction|undefined=>{
+   if(value.kind!=="reduction")return;
+   if(value.signature.startsWith("oneselect ::="))return value;
+   for(let i=value.children.length-1;i>=0;i--){const found=rightmost(value.children[i]!);if(found)return found;}
+  };
+  const arm=body?rightmost(body):undefined;
+  const from=arm?.kind==="reduction"?arm.children.find(child=>child.kind==="reduction"&&child.signature.startsWith("from ::=")):undefined;
+  if(from)initializeTriggerTree(from,fail,true,context);
+  const ctes=own("wqlist ::=");
+  const fixedCtes=ctes?initializeTriggerTree(ctes,fail,false,context):undefined;
+  return Object.freeze({...node,semantic:undefined,children:Object.freeze(node.children.map(child=>child===ctes?fixedCtes!:initializeTriggerTree(child,fail,false,context)))});
+ }
+ if(node.signature.startsWith("xfullname ::=")){
+  // sqlite3FixSrcList uses a zeroed Select callback on trigger DML pSrc.
+  const flags=Object.freeze({schema:"main" as const,fixedSchema:true as const,fromDDL:true as const,notCte:false,hadSchema:false});
+  return Object.freeze({...node,semantic:flags,children:Object.freeze(node.children.map(child=>initializeTriggerTree(child,fail,false,context)))});
+ }
+ if(node.signature.startsWith("seltablist ::=")){
+  // SrcList is a left-recursive grammar list but an ordered native array.
+  // Visit prefix before this item's qualifier and ON; subqueries/arguments
+  // belong to WalkSelectFrom, not fixSelectCb.
+  const prefix=own("stl_prefix ::="),fixedPrefix=prefix?initializeTriggerTree(prefix,fail,sourceOnly,context):undefined;
+  const qualifier=tokenList(own("dbnm ::="));
+  if(!context.sourceFlags.has(node)&&qualifier.length){const name=identifier(tokenList(own("nm ::="))[0]);if(!sqliteIdentifierEqual(name,"main"))fail(`cannot reference objects in database ${name}`);}
+  const named=!!own("nm ::=");
+  if(named&&!context.sourceFlags.has(node))context.sourceFlags.set(node,Object.freeze({schema:"main",fixedSchema:true,fromDDL:true,notCte:qualifier.length!==0,hadSchema:qualifier.length!==0}));
+  const on=own("on_using ::="),fixedOn=on?initializeTriggerTree(on,fail,false,context):undefined;
+  return Object.freeze({...node,semantic:context.sourceFlags.get(node),children:Object.freeze(node.children.map(child=>{
+   if(child===prefix)return fixedPrefix!;
+   if(child===on)return fixedOn!;
+   if(child.kind==="reduction"&&child.signature.startsWith("dbnm ::=")&&child.children.length)return Object.freeze({...child,signature:"dbnm ::=",children:Object.freeze([]),semantic:undefined});
+   return initializeTriggerTree(child,fail,sourceOnly,context);
+  }))});
+ }
+ // walker.c Select callback fixes FROM/ON before projection and WHERE;
+ // compound pPrior is walked after the rightmost arm. Rebuild in original
+ // grammar order while visiting semantic fields in their owner order.
+ const ordered=[...node.children];
+ if(node.signature.startsWith("oneselect ::= SELECT")){
+  const fields=["selcollist", "where_opt", "groupby_opt", "having_opt", "orderby_opt", "limit_opt", "from"];
+  const from=own("from ::=");if(from)initializeTriggerTree(from,fail,true,context);
+  ordered.sort((a,b)=>{
+   const rank=(value:TriggerReduction)=>value.kind==="reduction"?fields.findIndex(field=>value.signature.startsWith(`${field} ::=`)):-1;
+   const ar=rank(a),br=rank(b);return (ar<0?99:ar)-(br<0?99:br);
+  });
+ }else if(node.signature.startsWith("filter_over ::=")){
+  // parse.y attaches FILTER to the Window produced by OVER. walker.c visits
+  // that Window's ORDER/PARTITION before FILTER and its frame after FILTER;
+  // grammar child order (FILTER, OVER) is not semantic field order.
+  const filter=own("filter_clause ::="),over=own("over_clause ::=");
+  const window=over&&over.kind==="reduction"?over.children.find(child=>child.kind==="reduction"&&child.signature.startsWith("window ::=")):undefined;
+  if(window?.kind==="reduction"){
+    const frame=window.children.find(child=>child.kind==="reduction"&&child.signature.startsWith("frame_opt ::="));
+    const fields=window.children.filter(child=>child!==frame);
+    const rank=(value:TriggerReduction)=>value.kind!=="reduction"?99:value.signature.startsWith("orderby_opt ::=")||value.signature.startsWith("sortlist ::=")?0:value.signature.startsWith("nexprlist ::=")?1:99;
+    fields.sort((a,b)=>rank(a)-rank(b));
+    for(const child of fields)initializeTriggerTree(child,fail,sourceOnly,context);
+    if(filter)initializeTriggerTree(filter,fail,sourceOnly,context);
+    if(frame)initializeTriggerTree(frame,fail,sourceOnly,context);
+  }else{
+    if(over)initializeTriggerTree(over,fail,sourceOnly,context);
+    if(filter)initializeTriggerTree(filter,fail,sourceOnly,context);
+  }
+  // Rebuild in grammar order, reusing the initialized field identities.
+ }else if(node.signature.startsWith("window ::=")){
+  // walker.c walkWindowList visits ORDER, PARTITION, FILTER, bounds.
+  const rank=(value:TriggerReduction)=>value.kind!=="reduction"?99:value.signature.startsWith("orderby_opt ::=")||value.signature.startsWith("sortlist ::=")?0:value.signature.startsWith("nexprlist ::=")?1:value.signature.startsWith("frame_opt ::=")?3:99;
+  ordered.sort((a,b)=>rank(a)-rank(b));
+ }else if(node.signature.startsWith("selectnowith ::= selectnowith multiselect_op"))ordered.reverse();
+ const fixed=new Map<TriggerReduction,TriggerReduction>();
+ for(const child of ordered){
+  if(node.signature.startsWith("seltablist ::=")&&child.kind==="reduction"&&child.signature.startsWith("dbnm ::=")&&child.children.length)fixed.set(child,Object.freeze({...child,signature:"dbnm ::=",children:Object.freeze([]),semantic:undefined}));
+  else fixed.set(child,initializeTriggerTree(child,fail,sourceOnly,context));
+ }
+ return Object.freeze({...node,semantic:node.signature.startsWith("expr ::=")||node.signature.startsWith("term ::=")?Object.freeze({fromDDL:true}):undefined,children:Object.freeze(node.children.map(child=>fixed.get(child)!))});
+}
+/** attach.c sqlite3FixTriggerStep short-circuit order. Fields are fixed once,
+ * not repeatedly through token containers or semantic back-references. */
+function initializeTriggerStep(step:SchemaTriggerStep,fail:(message:string)=>never,context:TriggerFixContext):SchemaTriggerStep {
+ const fix=(node:TriggerReduction|null)=>node?initializeTriggerTree(node,fail,false,context):null;
+ const select=fix(step.select),where=fix(step.where),expressions=fix(step.expressions);
+ const target=fix(step.target),from=fix(step.from);
+ const fixUpsert=(up:SchemaTriggerUpsert|null):SchemaTriggerUpsert|null=>{
+  if(!up)return null;
+  const target=fix(up.target),targetWhere=fix(up.targetWhere),expressions=fix(up.expressions),where=fix(up.where);
+  return Object.freeze({target,targetWhere,expressions,where,next:fixUpsert(up.next)});
+ };
+ const upsert=fixUpsert(step.upsert);
+ return Object.freeze({...step,select,where,expressions,target,from,upsert});
+}
+function validateTriggerSteps(declaration:NonNullable<SchemaDdlNode["trigger"]>,fail:(message:string)=>never):void {
+ for(const step of declaration.steps){
+  const pending=[step.reduction];while(pending.length){const node=pending.pop()!;
+   if(node.kind!=="reduction")continue;
+   if(node.signature.startsWith("tridxby ::=")&&node.children.length){
+    fail(`the ${node.signature.includes("NOT")?"NOT INDEXED":"INDEXED BY"} clause is not allowed on UPDATE or DELETE statements within triggers`);
+   }
+   if(node.signature.startsWith("trigger_cmd ::=")){
+    const target=node.children.find(child=>child.kind==="reduction"&&child.signature.startsWith("xfullname ::="));
+    if(target?.kind==="reduction"&&target.signature.includes("DOT"))fail("qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers");
+   }
+   for(let i=node.children.length-1;i>=0;i--)pending.push(node.children[i]!);
+  }
+ }
+}
+function parseTrigger(item:SchemaRow):SchemaDdlNode {
+ try{return parseDdl(item.sql!,"create-trigger",item.name)}catch(error){
+  if(error instanceof SchemaFormatError){
+   const prefix=`malformed database schema: ${item.name} - `;
+   if(error.message.startsWith(prefix))throw new SchemaFormatError(`malformed database schema (${item.name}) - ${error.message.slice(prefix.length)}`,{cause:error});
+  }
+  throw error;
+ }
+}
 function parseDdl(sql: string, expected: SchemaDdlNode["kind"], name: string): SchemaDdlNode {
   try {
     const parsed = parseSql(sql);
@@ -556,10 +766,11 @@ export class SchemaGraph {
   readonly tables: ReadonlyMap<string, TableNode>;
   readonly indexes: ReadonlyMap<string, IndexNode>;
   readonly views: ReadonlyMap<string, ViewNode>;
+  readonly triggers: ReadonlyMap<string, TriggerNode>;
   readonly #owner: StorageOwnerCarrier;
-  constructor(owner: StorageOwnerCarrier, encoding: DatabaseEncoding, objects: SchemaObject[], tables: Map<string, TableNode>, indexes: Map<string, IndexNode>, views: Map<string, ViewNode>) {
+  constructor(owner: StorageOwnerCarrier, encoding: DatabaseEncoding, objects: SchemaObject[], tables: Map<string, TableNode>, indexes: Map<string, IndexNode>, views: Map<string, ViewNode>, triggers: Map<string, TriggerNode> = new Map()) {
     this.#owner = owner; this.encoding = encoding; this.objects = Object.freeze(objects);
-    this.tables = readonlyMap(tables); this.indexes = readonlyMap(indexes); this.views = readonlyMap(views);
+    this.tables = readonlyMap(tables); this.indexes = readonlyMap(indexes); this.views = readonlyMap(views); this.triggers = readonlyMap(triggers);
     Object.freeze(this);
   }
   /** build.c:sqlite3FindTable — aliases share a single synthetic Table. */
@@ -575,7 +786,7 @@ export class SchemaGraph {
   withTransientTable(table: TableNode): SchemaGraph {
     freezeTransientTable(table);
     const tables=new Map(this.tables);tables.set(sqliteAsciiFold(table.name),table);
-    return new SchemaGraph(this.#owner,this.encoding,[...this.objects,table],tables,new Map(this.indexes),new Map(this.views));
+    return new SchemaGraph(this.#owner,this.encoding,[...this.objects,table],tables,new Map(this.indexes),new Map(this.views),new Map(this.triggers));
   }
 }
 
@@ -592,7 +803,7 @@ const graphs = new WeakMap<object, SchemaGraph>();
 
 /**
  * Translate prepare.c sqlite3InitOne/sqlite3InitCallback for the supported
- * table, simple-index and view construction tranche. Root page 1 is read via the
+ * table, index, view and retained trigger construction tranche. Root page 1 is read via the
  * existing connection storage owner; every graph value is detached from cursor borrows.
  */
 export function canonicalSchemaCatalog(connection: StorageOwnerCarrier): string {
@@ -625,6 +836,8 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
   const tables = new Map<string, TableNode>();
   const indexes = new Map<string, IndexNode>();
   const views = new Map<string, ViewNode>();
+  const triggers = new Map<string, TriggerNode>();
+  let triggerBytes=0;
   const names = new Set<string>();
   // prepare.c:sqlite3InitOne/build.c:sqlite3StartTable synthesize a Table at
   // root 1 before parsing persisted declarations. It is not a catalog row.
@@ -633,8 +846,10 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
     sql: "CREATE TABLE sqlite_master(type text,name text,tbl_name text,rootpage int,sql text)" };
   for (const item of [schemaTable, ...rows]) {
     const folded = sqliteAsciiFold(item.name);
-    if (names.has(folded)) malformed(`duplicate object name ${item.name}`);
-    names.add(folded);
+    if(item.type!=="trigger"){
+      if (names.has(folded)) malformed(`duplicate object name ${item.name}`);
+      names.add(folded);
+    }
     if (item.type === "table") {
       if (item.sql === null) malformed(`table ${item.name} has null SQL`);
       const ddl = parseDdl(item.sql, "create-table", item.name);
@@ -749,8 +964,37 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       const view: ViewNode = { kind: "view", name: item.name, tableName: item.tableName, rootPage: 0, sql: item.sql, selectSql, select: ddl.select, columns: ddl.viewColumns };
       views.set(folded, Object.freeze(view));
     } else if (item.type === "trigger") {
-      throw new SchemaUnsupportedError(`trigger construction is not implemented: ${item.name}`);
+      // Defer linkage until every table/view exists (prepare.c schema loading).
+      // Parsing still occurs here so malformed SQL is not silently bypassed.
+      if(item.rootPage!==0||item.sql===null)malformed(`invalid trigger ${item.name}`);
+      parseTrigger(item);
     } else malformed(`unknown object type ${item.type}`);
+  }
+  for(const item of rows)if(item.type==="trigger"){
+    if(triggers.has(sqliteAsciiFold(item.name)))throw new SchemaFormatError(`malformed database schema (${item.name}) - trigger ${item.name} already exists`);
+    const ddl=parseTrigger(item),declaration=ddl.trigger;
+    function triggerError(message:string):never{throw new SchemaFormatError(`malformed database schema (${item.name}) - ${message}`);}
+    if(!declaration)triggerError(`invalid trigger ${item.name}`);
+    if(declaration.temporary)throw new SchemaUnsupportedError(`persisted temporary trigger initialization is not implemented: ${item.name}`);
+    if(declaration.databaseName)triggerError("corrupt database");
+    if(sqliteAsciiFold(declaration.name).startsWith("sqlite_"))triggerError(`object name reserved for internal use: ${declaration.name}`);
+    const target=tables.get(sqliteAsciiFold(declaration.tableName))??views.get(sqliteAsciiFold(declaration.tableName));
+    if(!target)triggerError(`no such table: main.${declaration.tableName}`);
+    if(!sqliteIdentifierEqual(item.tableName,declaration.tableName))triggerError(`trigger table mismatch: ${item.name}`);
+    if(target.kind==="view"&&declaration.timing!=="instead")triggerError(`cannot create ${declaration.timing.toUpperCase()} trigger on view: ${target.name}`);
+    if(target.kind==="table"&&declaration.timing==="instead")triggerError(`cannot create INSTEAD OF trigger on table: ${target.name}`);
+    if(sqliteAsciiFold(target.name).startsWith("sqlite_"))triggerError(`cannot create trigger on system table: ${target.name}`);
+    validateTriggerSteps(declaration,triggerError);
+    // Logical retained declaration/fixed-tree envelope. This is not a claim
+    // about host heap size; the file/SQL/parser bounds still own construction.
+    const count=(node:TriggerReduction):number=>{let total=0;const pending=[node];while(pending.length){const value=pending.pop()!;total++;if(value.kind==="reduction")for(const child of value.children)pending.push(child);}return total;};
+    triggerBytes+=128+2*item.sql!.length+128*(declaration.steps.reduce((sum,step)=>sum+count(step.reduction),0)+(declaration.when?.reduction?count(declaration.when.reduction):0));
+    context.check?.("load",1);
+    const fixError=(message:string):never=>triggerError(`trigger ${declaration.name} ${message}`);
+    const fixContext=triggerFixContext();
+    const initializedSteps=Object.freeze(declaration.steps.map(step=>initializeTriggerStep(step,fixError,fixContext)));
+    const initializedWhen=declaration.when?.reduction?initializeTriggerTree(declaration.when.reduction,fixError,false,fixContext):null;
+    triggers.set(sqliteAsciiFold(item.name),Object.freeze({kind:"trigger",name:item.name,tableName:item.tableName,rootPage:0,sql:item.sql!,target,declaration,initializedSteps,initializedWhen}));
   }
   // All physical identities exist before estimates; no competing stat owner.
   for(const index of indexes.values()){
@@ -826,7 +1070,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
     },index=>({nSampleCol:index.table.withoutRowid&&index.origin==="primary-key"?index.terms.length:index.layout.fields.length,nKeyCol:index.terms.length,aiRowEst:rawEstimates.get(index)??null}),{maxBytes:context.maxStat4Bytes??connection[storageOwner].schemaAllowance,...(context.check?{check:context.check}:{})});
   }
   rawEstimates.clear();
-  let schemaBytes=0;
+  let schemaBytes=triggerBytes;
   for(const index of indexes.values()){
     const state=sampleStates.get(index);
     if(state){
@@ -840,11 +1084,11 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
   // Restore physical sqlite_schema declaration order after cross-linking tables.
   const byName = new Map<string, SchemaObject>([...tables, ...indexes, ...views]);
   for (const item of rows) {
-    const object = byName.get(sqliteAsciiFold(item.name));
+    const object = item.type==="trigger"?triggers.get(sqliteAsciiFold(item.name)):byName.get(sqliteAsciiFold(item.name));
     if (object) objects.push(object);
   }
   for (const table of tables.values()) { Object.freeze(table.indexes); Object.freeze(table.referencedBy); Object.freeze(table); }
-  const graph = new SchemaGraph(connection, database.encoding, objects, tables, indexes, views);
+  const graph = new SchemaGraph(connection, database.encoding, objects, tables, indexes, views, triggers);
   context.check?.("finalize",1);
   connection[storageOwner].publishSchema(schemaBytes,()=>{graphs.delete(key);});
   graphs.set(key, graph);
