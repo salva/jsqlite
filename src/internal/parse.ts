@@ -166,15 +166,11 @@ function sourceList(node:LemonValue<SqlToken>|undefined):SourceList{
  // select.c:flattenSubquery case 1. Admit only a deliberately small safe
  // single-source projection. Retaining the generated Select semantic avoids
  // reparsing SQL; every other shape continues to reject atomically.
- // Search only this SrcItem. The recursive stl_prefix carries earlier items;
- // traversing it associates an earlier derived SELECT with the current table.
- const ownSelect=(n:LemonValue<SqlToken>):LemonValue<SqlToken>|undefined=>{
-  if(n.kind==="terminal")return;
-  if(n!==node&&n.signature.startsWith("stl_prefix ::="))return;
-  if(n.signature.startsWith("select ::="))return n;
-  for(const child of n.children){const found=ownSelect(child);if(found)return found;}
- };
- const nested=ownSelect(node);
+ // parse.y gives a derived SrcItem only the Select that is an immediate
+ // child of seltablist ::= stl_prefix LP select RP as on_using. A SELECT
+ // inside ON, a table-function argument, or an earlier prefix belongs to
+ // its expression/previous SrcItem, never to this source's pSelect.
+ const nested=direct(node,"select ::=");
  if(nested){
   const select=nested.kind==="reduction"?nested.semantic as SelectNode|undefined:undefined;
   const ownAs=direct(node,"as ::="),aliases=leaves(ownAs);

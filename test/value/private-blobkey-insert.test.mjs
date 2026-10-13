@@ -675,3 +675,38 @@ test('Insert rejects nonenumerable unadmitted caller flags before work or peer s
  }
  }finally{cursor.close();arena.close();assert.equal(budget.usedBytes,0)}
 });
+
+test('packed replacement unpublished snapshot exit preserves old overflow key and peer retry',async()=>{
+ const limits={maxEntries:1,maxKeyBytes:10000,maxBytes:300000},budget=new PrivateStateByteBudget(limits.maxBytes);
+ const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits),ki=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{collation:'rtrim'}]});
+ const writer=new PrivateBlobkeyCursor(arena,ki,limits),peer=new PrivateBlobkeyCursor(arena,ki,limits);
+ const old=new Uint8Array(6003);old.set([3,0xdd,0x6d,97]);old.fill(32,4);const input=Uint8Array.of(2,15,97),primary=new Error('before owned snapshot');
+ try{
+  await writer.insertIndex(old,{},control);assert.equal(await peer.first(control),true);
+  await peer.withPayload(control,b=>assert.deepEqual(b,old));const baseline=budget.usedBytes;
+  await assert.rejects(writer.insertIndex(input,{}, {async checkpoint(){throw new Error('unexpected await')},snapshotCheckpoint(){throw primary}}),e=>e===primary);
+  assert.equal(budget.usedBytes,baseline);assert.equal(peer.position.state,'VALID');
+  await peer.withPayload(control,b=>assert.deepEqual(b,old));
+  await writer.insertIndex(input,{},control);input.fill(0);
+  assert.equal(await peer.first(control),true);await peer.withPayload(control,b=>assert.deepEqual(b,Uint8Array.of(2,15,97)));
+ }finally{writer.close();peer.close();arena.close();assert.equal(budget.usedBytes,0)}
+});
+
+test('packed structural publication fault propagates same primary to saved peer and all access paths',async()=>{
+ const limits={maxEntries:900,maxKeyBytes:100,maxBytes:500000},primary=new PrivateStateLimitError('published balance path'),controlCharge=576;let armed=false,hits=0;
+ class Budget extends PrivateStateByteBudget{reserve(n,...args){if(armed&&n===controlCharge){hits++;throw primary}return super.reserve(n,...args)}}
+ const budget=new Budget(limits.maxBytes),arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits),writer=new PrivateBlobkeyCursor(arena,info,limits),peer=new PrivateBlobkeyCursor(arena,info,limits);
+ try{
+  await writer.insertIndex(Uint8Array.of(2,2,0,0),{},control);assert.equal(await peer.first(control),true);
+  await peer.withPayload(control,b=>assert.deepEqual(b,Uint8Array.of(2,2,0,0)));
+  armed=true;let failed=false;
+  for(let n=1;n<850;n++){
+   try{await writer.insertIndex(Uint8Array.of(2,2,n>>>8,n&255),{},control)}catch(e){assert.equal(e,primary);failed=true;break}
+  }
+  assert.equal(failed,true);assert.equal(hits,1);armed=false;
+  assert.equal(writer.position.state,'FAULT');assert.equal(peer.position.state,'FAULT');
+  await assert.rejects(peer.first(control),e=>e===primary);await assert.rejects(peer.withPayload(control,()=>assert.fail('fault must not expose stale payload')),e=>e===primary);
+  await assert.rejects(writer.insertIndex(packed(1),{},control),e=>e===primary);
+  assert.equal(arena.referenceCount(2),0);
+ }finally{armed=false;writer.close();peer.close();arena.close();assert.equal(budget.usedBytes,0)}
+});

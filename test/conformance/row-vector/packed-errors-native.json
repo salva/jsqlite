@@ -1,0 +1,1003 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "d826fb901fbc38951f86ea5827778efd06f527e13c8f7a8c7216cc8411553e26",
+  "queriesSha256": "9c425acc5347045582cd66a11b05d9fde1df7e37dd34ea350827720c4fad9dca",
+  "encodings": {
+    "utf8": {
+      "fixtureSha256": "5919107eb9e9944f9be5173e401d20f5fce892928a617f915165e111980e6ac0",
+      "cases": [
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON p.a=r.a AND r.a IN (SELECT q.a,q.b FROM pairs q)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 1,
+            "message": "sub-select returns 2 columns - expected 1"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.missing FROM pairs q WHERE q.a=p.a)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 1,
+            "message": "no such column: q.missing"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a COLLATE absent_collation FROM pairs q)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 257,
+            "message": "no such collation sequence: absent_collation"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 'bad')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q LIMIT NULL)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET 'bad')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1.5')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1e30')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '9223372036854775808')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT x'31')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET '1.5')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1.5)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT -9223372036854775808.0)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 9223372036854775807.0)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1x')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        }
+      ]
+    },
+    "utf16le": {
+      "fixtureSha256": "77438042cc125d093c733e73ff16857151780a46bf65f18aebaae038599797c9",
+      "cases": [
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON p.a=r.a AND r.a IN (SELECT q.a,q.b FROM pairs q)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 1,
+            "message": "sub-select returns 2 columns - expected 1"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.missing FROM pairs q WHERE q.a=p.a)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 1,
+            "message": "no such column: q.missing"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a COLLATE absent_collation FROM pairs q)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 257,
+            "message": "no such collation sequence: absent_collation"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 'bad')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q LIMIT NULL)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET 'bad')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1.5')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1e30')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '9223372036854775808')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT x'31')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET '1.5')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1.5)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT -9223372036854775808.0)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 9223372036854775807.0)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1x')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        }
+      ]
+    },
+    "utf16be": {
+      "fixtureSha256": "b02400bc4ac1e018a2c9ac579342c344b6c4565adce352247b58b38f98dba657",
+      "cases": [
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON p.a=r.a AND r.a IN (SELECT q.a,q.b FROM pairs q)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 1,
+            "message": "sub-select returns 2 columns - expected 1"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.missing FROM pairs q WHERE q.a=p.a)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 1,
+            "message": "no such column: q.missing"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a COLLATE absent_collation FROM pairs q)",
+          "phase": "prepare",
+          "error": {
+            "code": 1,
+            "extendedCode": 257,
+            "message": "no such collation sequence: absent_collation"
+          }
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 'bad')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q LIMIT NULL)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET 'bad')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1.5')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1e30')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '9223372036854775808')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT x'31')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET '1.5')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1.5)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT -9223372036854775808.0)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 9223372036854775807.0)",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        },
+        {
+          "sql": "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1x')",
+          "phase": "step",
+          "runs": [
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            },
+            {
+              "rowsBeforeError": 0,
+              "error": {
+                "code": 20,
+                "extendedCode": 20,
+                "message": "datatype mismatch"
+              },
+              "resetCode": 20
+            }
+          ],
+          "finalizeCode": 0
+        }
+      ]
+    }
+  }
+}

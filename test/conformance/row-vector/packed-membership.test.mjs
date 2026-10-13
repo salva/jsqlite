@@ -45,3 +45,21 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`packed MakeRecord in-fl
   const recovery=db.prepare('SELECT 1 IN (VALUES(1))').statement;try{assert.equal(await recovery.step(),'row');assert.equal(recovery.column(0),1n)}finally{recovery.finalize()}
  }finally{await db?.close();await new Promise(resolve=>server.close(resolve))}
 });
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`correlated LEFT ON packed membership lifecycle ${encoding}`,async()=>{
+ const body=fs.readFileSync(new URL(`../../fixtures/row-vector/pairs-${encoding}.db`,import.meta.url));
+ const server=http.createServer((_q,r)=>r.end(body));await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;
+ const sql='SELECT p.id,r.id FROM pairs p LEFT JOIN pairs r ON p.a=r.a AND r.b IN (SELECT q.b FROM pairs q WHERE q.a=p.a) ORDER BY p.id,r.id';
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  for(const operation of [{signal:AbortSignal.abort('ON membership')},{timeoutMs:0}]){
+   const st=db.prepare(sql).statement;let first;
+   try{await st.step(operation);assert.fail('control must fail')}catch(error){first=error;assert.equal(error.kind,'signal' in operation?'cancelled':'timeout')}
+   await assert.rejects(st.step(),error=>error===first);assert.throws(()=>st.reset(),error=>error===first);st.reset();st.finalize();
+   const recovery=db.prepare(sql).statement;try{assert.equal(await recovery.step(),'row');assert.equal(recovery.column(0),1n);assert.equal(recovery.column(1),1n)}finally{recovery.finalize()}
+  }
+  const suspended=db.prepare(sql).statement;
+  assert.equal(await suspended.step(),'row');suspended.reset();assert.equal(await suspended.step(),'row');
+  db.closeDeferred();suspended.finalize();db=undefined;
+ }finally{await db?.closeDeferred();await new Promise(resolve=>server.close(resolve))}
+});

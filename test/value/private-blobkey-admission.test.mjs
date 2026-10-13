@@ -379,3 +379,21 @@ for(const producer of ['raw','allocation result'])test(`${producer} observer err
  assert.throws(()=>result.release(),e=>e===primary);armed=false;assert.equal(arena.referenceCount(producer==='raw'?2:result.pgno),0);assert.equal(budget.usedBytes,before-128);assert.throws(()=>result.bytes[0],/released/);assert.throws(()=>observed[0],/released/);result.release();
  const next=arena.acquire(2);next.release();arena.close();assert.equal(budget.usedBytes,0);
 });
+
+for(const allowance of [67,68])test(`REPLACE immutable snapshot admission ${allowance}: old publication and primary control ordering`,async()=>{
+ const budget=new PrivateStateByteBudget(limits.maxBytes),arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits);
+ arena.installPage(2,leaf(1));const base=budget.usedBytes,held=limits.maxBytes-base-allowance;budget.reserve(held);let holding=true;
+ const input=new Uint8Array([3,2,1,2]),cancel=new Error('snapshot control pending');let probes=0;
+ const pending={async checkpoint(){throw new Error('must not await before pending snapshot control')},snapshotCheckpoint(){probes++;throw cancel}};
+ try{
+  if(allowance===67){await assert.rejects(arena.replaceCell(2,0,input,pending),/private state exceeds total byte limit/);assert.equal(probes,0,'peak admission precedes snapshot control');}
+  else{await assert.rejects(arena.replaceCell(2,0,input,pending),e=>e===cancel);assert.equal(probes,1,'exact peak admits before control');}
+  assert.equal(budget.usedBytes,base+held,'failed snapshot refunded; old page retained');
+  budget.release(held);holding=false;let lease=arena.acquire(2);assert.equal(lease.page.bytes[4095],1,'no failed operation published');lease.release();
+  const retryBase=budget.usedBytes;let snapshots=0;
+  await arena.replaceCell(2,0,input,{async checkpoint(){input[3]=9},snapshotCheckpoint(units){snapshots++;if(units===4)input[3]=7}});
+  assert.equal(snapshots,2);lease=arena.acquire(2);assert.equal(lease.page.bytes[4095],2,'owned snapshot survives caller mutation before and during awaits');lease.release();
+  assert.equal(budget.usedBytes,retryBase,'successful replacement refunds scratch and does not accumulate old/new ownership');
+ }finally{if(holding)budget.release(held);arena.close()}
+ assert.equal(budget.usedBytes,0);
+});

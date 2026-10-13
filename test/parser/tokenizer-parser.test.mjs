@@ -104,3 +104,23 @@ test('wide generated trigger SELECT lists do not use host recursion',()=>{
  assert.throws(()=>parseSql(sql,{maxWorkUnits:100}),RangeError);
  assert.equal(parseSql(sql).statement.trigger.steps.length,1);
 });
+
+test('parse.y SrcItem pSelect excludes nested ON and function-argument SELECTs',()=>{
+ for(const predicate of [
+  'r.b IN (SELECT q.b FROM pairs q WHERE q.a=p.a)',
+  '(r.a,r.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.a=p.a)',
+  'EXISTS(SELECT q.id FROM pairs q WHERE q.id=r.id)',
+  'r.b=(SELECT q.b FROM pairs q WHERE q.id=r.id)',
+ ]){
+  const select=parseSql(`SELECT p.id,r.id FROM pairs p LEFT JOIN pairs r ON p.a=r.a AND ${predicate}`).statement;
+  assert.equal(select.kind,'select');assert.equal(select.from.derived,undefined,predicate);
+  assert.deepEqual(select.from.items.map(item=>item.tableName),['pairs','pairs']);
+  assert.ok(select.from.items.some(item=>item.on?.reduction),predicate);
+ }
+ const functionSource=parseSql('SELECT value FROM json_each((SELECT 1))').statement;
+ assert.equal(functionSource.from.derived,undefined);
+ const retained=parseSql('SELECT p.id FROM (SELECT id FROM pairs LIMIT 2) p JOIN pairs r ON r.id IN (SELECT id FROM pairs)').statement;
+ assert.equal(retained.from.derived.index,0,'earlier SrcItem keeps its own Select');
+ assert.equal(retained.from.derived.select.hasLimit,true);
+ assert.equal(retained.from.items[1].tableName,'pairs');
+});

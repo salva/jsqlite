@@ -34,18 +34,12 @@ def sequence(case, fixture):
  if case.startswith('capi3c.test:capi3c-1.'):
   sql={'capi3c.test:capi3c-1.1':'SELECT name FROM sqlite_master','capi3c.test:capi3c-1.4':'SELECT name FROM sqlite_master;SELECT 10','capi3c.test:capi3c-1.5':'SELECT namex FROM sqlite_master'}[case]
   prepare(o,sql)
-  if case!='capi3c.test:capi3c-1.5':
-   o[-1]['assertion']={'phase':'prepare','tail':'SELECT 10' if case.endswith('1.4') else '', 'columnCount':1,'metadata':{'name':'name','declaredType':'TEXT','database':'main','table':'sqlite_master','origin':'name'}}
-   o.append(op('emptyStep','step',assertion={'phase':'step','result':'done','rowCount':0}))
-   o.append(op('finalize','finalize'))
+  if case!='capi3c.test:capi3c-1.5': o.append(op('finalize','finalize'))
   return o
  if case.startswith('capi3c.test:capi3c-2.'):
   sql={'capi3c.test:capi3c-2.1':'SELECT name FROM sqlite_master','capi3c.test:capi3c-2.2':'SELECT name FROM sqlite_master;SELECT 10','capi3c.test:capi3c-2.3':'SELECT namex FROM sqlite_master'}[case]
   prepare(o,sql) # public JS-text adaptation of native-only prepare16
-  if case!='capi3c.test:capi3c-2.3':
-   o[-1]['assertion']={'phase':'prepare','tail':'SELECT 10' if case.endswith('2.2') else '', 'columnCount':1,'metadata':{'name':'name','declaredType':'TEXT','database':'main','table':'sqlite_master','origin':'name'}}
-   o.append(op('emptyStep','step',assertion={'phase':'step','result':'done','rowCount':0}))
-   o.append(op('finalize','finalize'))
+  if case!='capi3c.test:capi3c-2.3': o.append(op('finalize','finalize'))
   return o
  if case.startswith('bind.test:bind-2.1.'):
   prepare(o,'SELECT $one,$::two,$x(-z-)')
@@ -108,10 +102,15 @@ for case in m['upstreamCases']+m['companionCases']:
  operations=sequence(case,fixture)
  expected_attempt=next({'index':i,'key':operation['key'],'op':operation['op']} for i,operation in enumerate(operations) if operation['op']=='prepare')
  cases.append({'id':case,'credit':'upstream' if case in m['upstreamCases'] else 'no-credit-companion','fixture':fixture,'setup':[], 'operations':operations,'expected':{'disposition':'unimplemented-temporary','attempted':expected_attempt,'error':{'name':'JSQLiteError','kind':'unsupported','code':None,'extendedCode':None,'unsupportedClassification':'temporary'}}})
+# Current diagnostic expectations are distinct from the retained Stage2 baseline.
+errors={
+ 'close.test:close-1.4.3':dict(operation='prepare',kind='misuse',code=None,extendedCode=None,message='connection is closed'),
+ 'capi3c.test:capi3c-1.5':dict(operation='prepare',kind='sqlite',code=1,extendedCode=1,message='no such column: namex'),
+ 'capi3c.test:capi3c-2.3':dict(operation='prepare',kind='sqlite',code=1,extendedCode=1,message='no such column: namex'),
+}
 for c in cases:
- if c['id'] in ['capi3c.test:capi3c-1.1','capi3c.test:capi3c-1.4','capi3c.test:capi3c-2.1','capi3c.test:capi3c-2.2']:
-  c['expected']={'disposition':'completed','error':None,'attempted':None}
-out={'schema':'jsqlite-ts-cases/1','cases':cases}; rendered=json.dumps(out,indent=2)+'\n'; target=root/'test/conformance/cases/stage2-ts.json'
+ c['diagnosticExpected']=dict(disposition='observed-error',error=errors[c['id']]) if c['id'] in errors else dict(disposition='completed')
+out={'schema':'jsqlite-ts-cases/1','cases':cases,'expectationAuthority':'expected retains historical Stage2 unimplemented baseline; diagnosticExpected owns current sequence observations, no compatibility credit'}; rendered=json.dumps(out,indent=2)+'\n'; target=root/'test/conformance/cases/stage2-ts.json'
 p=argparse.ArgumentParser(); p.add_argument('--check',action='store_true'); args=p.parse_args()
 if args.check:
  if not target.exists() or target.read_text()!=rendered:

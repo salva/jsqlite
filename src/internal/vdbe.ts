@@ -2582,7 +2582,7 @@ function prepareRecursiveSource(select:SelectNode,owner:NonNullable<SelectNode['
  const columns=names.map(name=>Object.freeze({szEst:0,name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
  const table:TableNode=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
  const transient=schema.withTransientTable(table);let expanded:ReturnType<typeof expandAndResolveSelect>;
- try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+ try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
  return {transient,expanded};
 }
 
@@ -2675,7 +2675,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     if(!schema)throw new JSQLiteError("unsupported","window functions are not implemented",{unsupportedClassification:"temporary"});
     let expanded:ReturnType<typeof expandAndResolveSelect>;
     try{expanded=expandAndResolveSelect(select,schema)}
-    catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+    catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
     const compilation=compileWindowSelectLowering(expanded,encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,owner?.destination?{builder:owner.builder,parameters:owner.parameters,destination:owner.destination}:undefined);
     // Publish only a completely represented result list. This is the same
     // atomic gate used by table-backed window lowering.
@@ -2688,7 +2688,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   const singleton=!select.hasValues&&!select.hasCompound&&!select.from.items.length&&!select.hasGroupBy&&!select.hasHaving&&!selectHasAggregate(select);
   if(singleton&&select.hasOrderBy){
     if(!schema)throw new JSQLiteError('unsupported','ordered scalar resolution requires schema',{unsupportedClassification:'temporary'});
-    try{expandAndResolveSelect(select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+    try{expandAndResolveSelect(select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
     select={...select,hasOrderBy:false,orderBy:Object.freeze([])};
   }
   rejectUnsupportedSelectClauses(singleton?{...select,hasDistinct:false}:select);
@@ -2724,7 +2724,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     // common LIMIT/OFFSET belong to the compound, never an individual row.
     for(const arm of select.arms)for(const expressions of arm.valuesRows??[arm.result]){
       const rowSelect={...select,result:expressions,from:arm.from,where:arm.where,hasCompound:false,hasValues:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,arms:Object.freeze([{...arm,result:expressions,origin:'select' as const,valuesRows:null}])};
-      if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+      if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
       compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{...owner,builder:compoundBuilder,parameters,emitRow:(first,count)=>{
         const skip=limit?.offset!==undefined?ops.length:-1;if(skip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
         if(owner)owner.emitRow(first,count);else emitSelectDestination(ops,{kind:'output'},first,count);
@@ -2747,7 +2747,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     const parameters=owner?.parameters??{maximum:0,names:[],named:new Map()};
     for(const row of rows){
       const rowSelect={...select,result:row,hasValues:false,arms:Object.freeze([{...arm!,result:row,origin:'select' as const,valuesRows:null}])};
-      if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+      if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
       compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{...owner,builder,parameters,emitRow:owner?.emitRow??((first,count)=>emitSelectDestination(ops,{kind:'output'},first,count))});
     }
     if(!owner)ops.push({code:'Halt'});
@@ -2762,7 +2762,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   let scalarResolved:ReturnType<typeof expandAndResolveSelect>|undefined=owner?.linkedPlan;
   if(schema){
     try{scalarResolved=expandAndResolveSelect(select,schema)}
-    catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+    catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   }
   const selectProgramBuilder=owner?.builder??new SelectProgramBuilder<Op>();
   const ops=selectProgramBuilder.ops;
@@ -2823,7 +2823,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     }
     if(expression.resolved?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1){
       let plan:ReturnType<typeof expandAndResolveSelect>|undefined=expression.resolved??scalarResolved?.nested.find(child=>child.source===expression.select);
-      if(schema)try{plan=expandAndResolveSelect(expression.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      if(schema)try{plan=expandAndResolveSelect(expression.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       if(!database)throw new JSQLiteError('internal','wide SELECT requires database');
       return compileWideSubquery(expression,plan,selectProgramBuilder,resultOps,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},enclosingBinding,compileSubquery);
     }
@@ -2984,7 +2984,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(nested.hasOrderBy){
         if(!schema)throw new JSQLiteError("unsupported","this ordered expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
         try{expandAndResolveSelect(nested,schema)}
-        catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+        catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       }
       const destination=allocate();
       // expr.c:sqlite3CodeSubselect initializes Mem/Exists before sqlite3Select;
@@ -3083,7 +3083,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         }else{
           let expanded:ReturnType<typeof expandAndResolveSelect>;
           try{expanded=expandAndResolveSelect(part,schema,null,selectProgramBuilder.cursors)}
-          catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+          catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
           compileInnerTableSelect(part,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,
             {builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found}});
         }
@@ -3093,7 +3093,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       (resultOps[onceAt] as {p2:number}).p2=end;
       if(!isIn&&!expression.exists){let expanded:ReturnType<typeof expandAndResolveSelect>;
         const arm=nested.arms[0]!,part:SelectNode={...nested,result:arm.result,from:arm.from,where:arm.where,hasCompound:false,hasOrderBy:false,hasLimit:false,orderBy:Object.freeze([]),limit:null,offset:null,arms:Object.freeze([arm])};
-        try{expanded=expandAndResolveSelect(part,schema,null,selectProgramBuilder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+        try{expanded=expandAndResolveSelect(part,schema,null,selectProgramBuilder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
         const column=expanded.result[0]!;subqueryColumns.set(nested,{name:column.name,declaredType:column.descriptor.declaredType,database:column.descriptor.database,table:column.descriptor.table,origin:column.descriptor.origin});
       }
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);
@@ -3361,7 +3361,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     }
     if(nested.from.items.length===1&&!nested.hasGroupBy&&!nested.hasHaving&&!selectHasAggregate(nested)){
       let plan:ReturnType<typeof expandAndResolveSelect>;
-      try{plan=expandAndResolveSelect(nested,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+      try{plan=expandAndResolveSelect(nested,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       const source=plan.sources[0],item=plan.result[0];
       if(source&&item&&(!nested.where||nested.where.reduction?.kind==="reduction")&&!source.table.withoutRowid&&!source.table.columns.some(column=>column.generatedExpr)){
         // resolve.c:resolveOrderGroupBy binds this admitted single key either
@@ -3636,7 +3636,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
          (!aggregate.filter||!containsNestedAggregateOrSelect(aggregate.filter))){
         let expanded:ReturnType<typeof expandAndResolveSelect>;
         try{expanded=expandAndResolveSelect(materialized.select,schema,null,selectProgramBuilder.cursors)}
-        catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+        catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
         const names=uniqueTransientColumnNames(materialized.select.result.map(item=>item.alias??expressionName(item)));
         const qualifier=materialized.alias??nested.from.items[0]!.tableName;
         const bindArgument=(tree:Expression,first:number):Expression=>{
@@ -3767,7 +3767,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     if(nested.from.items.length>=1&&!nested.hasGroupBy&&!nested.hasHaving&&!selectHasAggregate(nested)&&!selectHasWindow(nested)&&!nested.hasCompound){
       let expanded:ReturnType<typeof expandAndResolveSelect>;
       try{expanded=expandAndResolveSelect(nested,schema,null,selectProgramBuilder.cursors)}
-      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       const destination=allocate(),isIn=expression.kind==='in-subquery';
       const setCursor=isIn?selectProgramBuilder.cursor():-1;
       if(isIn)resultOps.push({code:'OpenEphemeral',p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
@@ -3822,7 +3822,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       // same nMem/nTab ranges as the scalar/EXISTS/IN consumer.
       let expanded:ReturnType<typeof expandAndResolveSelect>;
       try{expanded=expandAndResolveSelect(nested,schema,null,selectProgramBuilder.cursors)}
-      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       compileInnerTableSelect(nested,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
       if(!isIn&&!expression.exists)subqueryColumns.set(nested,{name:expanded.result[0]!.name,declaredType:expanded.result[0]!.descriptor.declaredType,database:expanded.result[0]!.descriptor.database,table:expanded.result[0]!.descriptor.table,origin:expanded.result[0]!.descriptor.origin});
     }
@@ -3921,7 +3921,7 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
   let offset:number|undefined;if(child.offset){const value=compileExpressionTree(expressionFromReduction(child.offset.reduction!),ops,()=>builder.register(),parameters,compileClause);offset=builder.register();ops.push({code:'Copy',p1:value,p2:offset},{code:'MustBeInt',p1:offset});}
   const combined=builder.register(),capacity=builder.register();ops.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});preparedLimit={count,ifZero,combined,capacity,...(offset===undefined?{}:{offset})};
  }
- if(isIn&&tableCompound)preparedLimit=computeLimitRegisters(child,ops,()=>builder.register(),parameters);
+ if(isIn)preparedLimit=computeLimitRegisters(child,ops,()=>builder.register(),parameters,false,compileClause);
  const compoundStops:number[]=[];
  const preparedOwner={...owner,...(preparedLimit?{scalarPrepared:true,sharedLimit:preparedLimit}:{})};
  if(tableCompound){
@@ -3956,7 +3956,7 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
   const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:builder.cursor()});rememberNested(child);}};rememberNested(expanded);
   const compileJoinSubquery=(incoming:SubqueryExpression):number=>{
     const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
-    if((expression.kind==='scalar-subquery'||expression.kind==='in-subquery'&&!expression.select.hasLimit)&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
+    if((expression.kind==='scalar-subquery'||expression.kind==='in-subquery')&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if((expression.resolved??nestedPlans.get(expression.select)?.plan)?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if(expression.select.result.length!==1)throw new JSQLiteError('sqlite',`sub-select returns ${expression.select.result.length} columns - expected 1`,{code:1});
     const entry=nestedPlans.get(expression.select),item=expression.select.result[0];
@@ -4623,7 +4623,7 @@ function compileJoinedUnionAll(select:SelectNode,schema:SchemaGraph,database:Btr
   const first=select.arms[0];if(!first||first.from.items.length<2||first.result.length!==1||select.arms.slice(1).some(arm=>arm.operatorFromPrior!=="union-all"||arm.from.items.length!==0||arm.where!==null||arm.result.length!==1)||select.orderBy.length!==1||select.limit||select.offset)return undefined;
   let identity=expressionFromReduction(select.orderBy[0]!.expr.reduction!);while(identity.kind==="collate")identity=identity.value;if(identity.kind!=="literal"||identity.value!==1n)return undefined;
   const leftSelect:SelectNode={...select,result:first.result,from:first.from,where:first.where,hasDistinct:first.hasDistinct,hasGroupBy:first.hasGroupBy,hasHaving:first.hasHaving,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,arms:Object.freeze([first])};
-  let expanded:ReturnType<typeof expandAndResolveSelect>;try{expanded=expandAndResolveSelect(leftSelect,schema,null,parent?.builder.cursors??0)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+  let expanded:ReturnType<typeof expandAndResolveSelect>;try{expanded=expandAndResolveSelect(leftSelect,schema,null,parent?.builder.cursors??0)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   const builder=parent?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,allocate=()=>builder.register(),parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},sorterCursor=Math.max(builder.cursors,...expanded.sources.map(source=>source.cursorId))+3,descriptor=expanded.result[0]!.descriptor,coll=sqliteAsciiFold(descriptor.collation) as BuiltinCollation,term=select.orderBy[0]!;
   builder.reserveCursorsThrough(sorterCursor);
   ops.push({code:"SorterOpen",p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:coll,desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}]})});
@@ -4710,7 +4710,7 @@ export function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,d
     if(selectHasWindow(arm))return undefined;
     // Use the actual flattened/resolved arm, not the lexical CTE placeholder.
     let collationPlan:ReturnType<typeof expandAndResolveSelect>;
-    try{collationPlan=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+    try{collationPlan=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
     for(let column=0;column<width;column++){
       if(resultCollations[column]!==undefined)continue;
       const expression=arm.result[column]!,result=collationPlan.result[column];
@@ -4787,7 +4787,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   for(const arm of arms){
     if(selectHasWindow(arm)){
       let expanded:ReturnType<typeof expandAndResolveSelect>;
-      try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       const compiled=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,parameters,destination});
       if(compiled.program.columns.length!==width)throw new JSQLiteError('unsupported','window compound arm is not fully represented',{unsupportedClassification:'temporary'});
       columns??=compiled.program.columns;
@@ -4821,7 +4821,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
         const ret=builder.register(),call=ops.length;ops.push({code:'Gosub',p1:ret,p2:0},{code:'Goto',p2:0});
         (ops[call] as {p2:number}).p2=ops.length;
         let producerPlan:ReturnType<typeof expandAndResolveSelect>;
-        try{producerPlan=expandAndResolveSelect(producer,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+        try{producerPlan=expandAndResolveSelect(producer,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
         // select.c tag-select-0488 delegates materialized row production
         // to sqlite3Select with SRT_EphemTab, including all VALUES ELists.
         if(physical)compileInnerTableSelect(producer,producerPlan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'ephemeral',cursor:cursor!}});
@@ -4847,7 +4847,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
     }else if(arm.from.items.length||arm.where){
       let expanded:ReturnType<typeof expandAndResolveSelect>;
       try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}
-      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       columns??=Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})));
       if(expanded.sources.length)compileInnerTableSelect(arm,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,compoundLimit:{registers:limit,stops}});
       else {
@@ -4868,7 +4868,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
       // expression instead of an atomic prepare error.
       let expanded:ReturnType<typeof expandAndResolveSelect>;
       try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}
-      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       // multiSelectValues/selectInnerLoop owns every VALUES EList. Keep
       // scalar subquery hooks and lexical resolution in the shared row owner.
       if(arm.hasGroupBy||arm.hasHaving)throw new JSQLiteError('unsupported','zero-source grouped compound arm is not represented',{unsupportedClassification:'temporary'});
@@ -4977,7 +4977,7 @@ function compileSingleCompoundDerived(select:SelectNode,schema:SchemaGraph,datab
  const childSorter=derived.select.hasOrderBy||flattenedOrder?builder.cursor():-1;
  const plans=arms.map(arm=>{
   let plan:ReturnType<typeof expandAndResolveSelect>;
-  try{plan=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+  try{plan=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   builder.reserveCursorsThrough(Math.max(...plan.sources.map(source=>source.cursorId)));
   return plan;
  });
@@ -5108,7 +5108,7 @@ function compoundArmColumns(arm:SelectNode,schema:SchemaGraph):Program['columns'
       return Object.freeze({...descriptor,name:result.name});
     }));
   }
-  try{return expandAndResolveSelect(arm,schema).result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+  try{return expandAndResolveSelect(arm,schema).result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
 }
 
 function compileTableCompoundProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']}|void {
@@ -5148,7 +5148,7 @@ function resolveTransientArm(node:SelectNode,schema:SchemaGraph):ReturnType<type
   if(node.from.derived){const source=node.from.derived;bindings.set(source.index,transientSourceTable(source.select,node.from.items[source.index]!.tableName,schema));}
   for(const source of node.from.cteDerived??[])bindings.set(source.index,transientSourceTable(source.select,node.from.items[source.index]!.tableName,schema,true));
   try{return expandAndResolveSelect(node,schema,null,0,bindings);}
-  catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+  catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
 }
 
 function transientResultCollations(select:SelectNode,schema:SchemaGraph):readonly BuiltinCollation[]{
@@ -5238,7 +5238,7 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
       const keys=builder.range(mergeOrder.length);ops.push({code:'SorterOpen',p1:cursor,keyInfo:mergeKeyInfo});
       for(const expressions of arm.valuesRows??[arm.result]){
         const rowSelect={...child,result:expressions,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,hasCompound:false,hasValues:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,arms:Object.freeze([{...arm,result:expressions,origin:'select' as const,valuesRows:null}])};
-        try{if(!emitArm)expandAndResolveSelect(rowSelect,schema!)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+        try{if(!emitArm)expandAndResolveSelect(rowSelect,schema!)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
         const emitRow=(first:number,count:number)=>{mergeOrder.forEach((term,index)=>ops.push({code:'Copy',p1:first+term.resultIndex,p2:keys+index}));ops.push({code:'SorterInsert',p1:cursor,keyStart:keys,keyCount:mergeOrder.length,payload:first,payloadCount:count});};
         if(emitArm)emitArm(rowSelect,emitRow,{kind:'sorter',cursor,keyCount:width});
         else compileScalarSelect(rowSelect,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow});
@@ -5310,7 +5310,7 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
           ops.push({code:'Goto',p2:loop});(ops[loop] as {p2:number}).p2=ops.length;
           continue;
         }
-        try{expandAndResolveSelect(rowSelect,schema!)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+        try{expandAndResolveSelect(rowSelect,schema!)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
         compileScalarSelect(rowSelect,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow:(first,count)=>{
           const skip=limit?.offset!==undefined?ops.length:-1;if(skip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
           emitSelectDestination(ops,destination,first,count);
@@ -5335,7 +5335,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   // from the child fall through to the parent's materialized cursor scan.
   const builder=owner?.builder??new SelectProgramBuilder<Op>();builder.reserveCursorsThrough(41);const spool=builder.cursor(),outputSorter=builder.cursor(),ops=builder.ops,base=ops.length;
   let resolved:ReturnType<typeof expandAndResolveSelect>;
-  try{resolved=expandAndResolveSelect(derived.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+  try{resolved=expandAndResolveSelect(derived.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,...(owner?{parameters:owner.parameters}:{}),destination:{kind:'sorter',cursor:spool,keyCount:0}});
   if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','window functions are not implemented',{unsupportedClassification:'temporary'});
   const inner=compilation.program;
@@ -5407,7 +5407,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   const scalarProducer=!values&&!ordered&&!derived.select.from.items.length&&!derived.select.hasCompound&&!derived.select.hasValues&&!selectHasWindow(derived.select)&&!selectHasAggregate(derived.select)&&!derived.select.hasGroupBy&&!derived.select.hasHaving&&derived.select.result.length>0&&derived.select.result.every(result=>!!result.reduction);
   // resolve.c validates ORDER BY names/ordinals even though a zero-source
   // selectInnerLoop has just one candidate and needs no physical sorter.
-  if(scalarProducer){try{expandAndResolveSelect(derived.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+  if(scalarProducer){try{expandAndResolveSelect(derived.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
   const aggregateProducer=!values&&!ordered&&!derived.select.hasCompound&&!derived.select.hasValues&&!selectHasWindow(derived.select)&&(selectHasAggregate(derived.select)||derived.select.hasGroupBy)&&(!derived.select.hasGroupBy||simpleGroupShape(derived.select))&&derived.select.result.length>0&&derived.select.result.every(result=>!!result.reduction);
   // select.c:sqlite3Select aggregate accumulator and SRT_Coroutine share the
   // enclosing Vdbe. Do not compile an aggregate through scalar expression lowering.
@@ -5422,18 +5422,18 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   // this Parse and destination. Keep CTE/VALUES/group/aggregate owners separate.
   const mixedPhysicalAllProducer=derived.select.hasCompound&&!derived.select.hasOrderBy&&!selectHasWindow(derived.select)&&derived.select.arms.some(arm=>arm.from.items.length>0)&&derived.select.arms.some(arm=>!arm.from.items.length)&&derived.select.arms.every((arm,index)=>(index===0||arm.operatorFromPrior==='union-all')&&arm.origin==='select'&&!arm.valuesRows&&!arm.from.derived&&!arm.from.cteDerived?.length&&!arm.hasGroupBy&&!arm.hasHaving&&arm.result.every(result=>!!result.reduction)&&!selectHasAggregate({...derived.select,result:arm.result,from:arm.from,arms:Object.freeze([arm]),hasCompound:false}));
   let mixedPhysicalPlan:ReturnType<typeof expandAndResolveSelect>|undefined;
-  if(mixedPhysicalAllProducer){const last=derived.select.arms.at(-1)!;try{mixedPhysicalPlan=expandAndResolveSelect({...derived.select,result:last.result,from:last.from,where:last.where,hasCompound:false,arms:Object.freeze([last]),hasOrderBy:false,orderBy:Object.freeze([])},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+  if(mixedPhysicalAllProducer){const last=derived.select.arms.at(-1)!;try{mixedPhysicalPlan=expandAndResolveSelect({...derived.select,result:last.result,from:last.from,where:last.where,hasCompound:false,arms:Object.freeze([last]),hasOrderBy:false,orderBy:Object.freeze([])},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
   let joinedOrderedPlan:ReturnType<typeof expandAndResolveSelect>|undefined;
-  if(joinedOrderedAllProducer){const first=derived.select.arms[0]!;try{joinedOrderedPlan=expandAndResolveSelect({...derived.select,result:first.result,from:first.from,where:first.where,hasCompound:false,arms:Object.freeze([first]),hasOrderBy:false,orderBy:Object.freeze([])},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+  if(joinedOrderedAllProducer){const first=derived.select.arms[0]!;try{joinedOrderedPlan=expandAndResolveSelect({...derived.select,result:first.result,from:first.from,where:first.where,hasCompound:false,arms:Object.freeze([first]),hasOrderBy:false,orderBy:Object.freeze([])},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
   let tableCompoundPlan:ReturnType<typeof expandAndResolveSelect>|undefined;
-  if(tableCompoundProducer||groupedAllProducer){const first=derived.select.arms[derived.select.arms.length-1]!;try{tableCompoundPlan=expandAndResolveSelect({...derived.select,result:first.result,from:first.from,where:first.where,hasGroupBy:first.hasGroupBy,groupBy:first.groupBy??Object.freeze([]),hasHaving:first.hasHaving,having:first.having??null,hasCompound:false,arms:Object.freeze([first]),hasOrderBy:false,orderBy:Object.freeze([])},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+  if(tableCompoundProducer||groupedAllProducer){const first=derived.select.arms[derived.select.arms.length-1]!;try{tableCompoundPlan=expandAndResolveSelect({...derived.select,result:first.result,from:first.from,where:first.where,hasGroupBy:first.hasGroupBy,groupBy:first.groupBy??Object.freeze([]),hasHaving:first.hasHaving,having:first.having??null,hasCompound:false,arms:Object.freeze([first]),hasOrderBy:false,orderBy:Object.freeze([])},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
   let tablePlan:ReturnType<typeof expandAndResolveSelect>|undefined;
-  if(tableProducer){try{tablePlan=expandAndResolveSelect(derived.select,schema,null,owner?.builder.cursors??0)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+  if(tableProducer){try{tablePlan=expandAndResolveSelect(derived.select,schema,null,owner?.builder.cursors??0)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
   const orderedAggregateProducer=derived.select.hasCompound&&selectHasAggregate(derived.select)&&derived.select.hasOrderBy;
   let orderedAggregateColumns:Program['columns']|undefined;
   if(orderedAggregateProducer){
     const first=derived.select.arms[0]!;
-    try{orderedAggregateColumns=expandAndResolveSelect({...derived.select,result:first.result,from:first.from,where:first.where,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),arms:Object.freeze([first])},schema).result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+    try{orderedAggregateColumns=expandAndResolveSelect({...derived.select,result:first.result,from:first.from,where:first.where,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),arms:Object.freeze([first])},schema).result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   }
   // Residual represented compound arms consume the production multiSelect
   // dispatch and resolver descriptors. Nested derived and window contexts
@@ -5503,7 +5503,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
     endJumps.push(ops.length);ops.push({code:'EndCoroutine',p1:returnRegister,p2:0});
   }else if(unionProducer||groupedAllProducer){
     // resolve.c validates all arms before any coroutine op can be stepped.
-    for(const arm of derived.select.arms){try{expandAndResolveSelect({...derived.select,result:arm.result,from:arm.from,where:arm.where,groupBy:arm.groupBy??Object.freeze([]),hasGroupBy:arm.hasGroupBy,having:arm.having??null,hasHaving:arm.hasHaving,arms:Object.freeze([arm]),hasCompound:false,hasValues:arm.origin==='values',hasOrderBy:false,orderBy:Object.freeze([])} as SelectNode,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
+    for(const arm of derived.select.arms){try{expandAndResolveSelect({...derived.select,result:arm.result,from:arm.from,where:arm.where,groupBy:arm.groupBy??Object.freeze([]),hasGroupBy:arm.hasGroupBy,having:arm.having??null,hasHaving:arm.hasHaving,arms:Object.freeze([arm]),hasCompound:false,hasValues:arm.origin==='values',hasOrderBy:false,orderBy:Object.freeze([])} as SelectNode,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
     // multiSelect TK_ALL: the shared LIMIT is initialized before the first
     // arm; OFFSET counts candidate rows before the common destination.
     const child=derived.select,dest:SelectDest={kind:'coroutine',register:returnRegister,first:producerOutput};
@@ -5519,7 +5519,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
       }
       if(groupedAllProducer){
         let plan:ReturnType<typeof expandAndResolveSelect>;
-        try{plan=expandAndResolveSelect(armSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+        try{plan=expandAndResolveSelect(armSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
         compileInnerTableSelect(armSelect,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:dest,compoundLimit:{registers:limit,stops}});
         continue;
       }
@@ -5788,7 +5788,7 @@ function compileRepeatedImmutableView(select:SelectNode,schema:SchemaGraph,datab
  if(producer.from.items.length!==1||producer.hasCompound||producer.hasDistinct||producer.hasGroupBy||producer.hasHaving||selectHasAggregate(producer)||selectHasWindow(producer))return undefined;
  const builder=parent?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()};
  let resolved:ReturnType<typeof expandAndResolveSelect>;
- try{resolved=expandAndResolveSelect(producer,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+ try{resolved=expandAndResolveSelect(producer,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
  const names=uniqueTransientColumnNames(l.columns.length?l.columns:resolved.result.map(result=>result.name));
  if(names.length!==resolved.result.length)return undefined;
  const direct=(tree:Expression):{side:0|1;index:number}|null=>{if(tree.kind!=="column")return null;const p=tree.name.split('.').map(sqlName);if(p.length!==2)return null;const side=sqliteIdentifierEqual(p[0]!,li!.alias!)?0:sqliteIdentifierEqual(p[0]!,ri!.alias!)?1:null;if(side===null)return null;const index=names.findIndex(n=>sqliteIdentifierEqual(n,p[1]!));return index<0?null:{side,index};};
@@ -5862,7 +5862,7 @@ function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:
   else if(!compoundOwners&&(producer.hasCompound||(producer.arms[0]?.origin!=='values'&&producer.arms[0]?.origin!=='select')))return compileCteDerivedSourcesFallback(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent);
   const columns=compoundOwners&&producer.hasCompound?producer.result.map(r=>({name:r.alias??expressionName(r),declaredType:null,database:null,table:null,origin:null})):expanded.has(source.use)?expanded.get(source.use)!.result.map(r=>({name:r.name,declaredType:r.descriptor.declaredType,database:r.descriptor.database,table:r.descriptor.table,origin:r.descriptor.origin})):producer.result.map(r=>({name:r.alias??expressionName(r),declaredType:null,database:null,table:null,origin:null}));
   metadata.set(source.use,Object.freeze(columns));
- }}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+ }}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
  for(const source of sources){const columns=metadata.get(source.use)!;names[source.index]=uniqueTransientColumnNames(source.select.result.map((e,i)=>e.alias??columns[i]?.name??`column${i+1}`));}
  const projected=select.result.map(e=>e.reduction?direct(expressionFromReduction(e.reduction)):null);
 
@@ -5899,7 +5899,7 @@ function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:
       // first-arm column-name carrier of the compound owner.
       if(selectHasAggregate(armSelect)||selectHasWindow(armSelect))return undefined;
       let resolved:ReturnType<typeof expandAndResolveSelect>;
-      try{resolved=expandAndResolveSelect(armSelect,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      try{resolved=expandAndResolveSelect(armSelect,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       // multiSelect calls sqlite3Select on each arm with the same destination.
       // The existing table/wherecode producer consumes the enclosing builder
       // and returns to this arm's continuation, rather than relocating PCs.
@@ -5922,7 +5922,7 @@ function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:
      // select.c:sqlite3Select codes a no-FROM WHERE gate before
      // selectInnerLoop's SRT_EphemTab. Addresses and registers belong to the
      // enclosing builder, not to a relocated completed Program.
-     try{expandAndResolveSelect(producer,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+     try{expandAndResolveSelect(producer,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
      const gate=producer.where?compileExpression(producer.where,ops,()=>builder.register(),parameters).register:null;
      const skip=gate===null?null:ops.length;
      if(gate!==null)ops.push({code:'IfNot',p1:gate,p2:0});
@@ -6157,7 +6157,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   }
   let expanded;
   try { expanded=expandAndResolveSelect(select,schema); }
-  catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+  catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   // select.c invokes sqlite3WindowRewrite after resolution/aggregate analysis and
   // before WHERE planning. Construct the complete immutable handoff here. Only
   // residual shapes whose lowering cannot publish every result column reject
@@ -6531,7 +6531,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   })};
   const sharedPhysicalScalar=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding);
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
-    if(expression.kind==='in-subquery'&&!expression.select.hasLimit&&!expression.select.from.derived&&!expression.select.hasCompound&&!expression.select.hasValues&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select))return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
+    if(expression.kind==='in-subquery'&&!expression.select.from.derived&&!expression.select.hasCompound&&!expression.select.hasValues&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select))return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     if(expression.select.hasValues||expression.kind==='in-subquery'&&!expression.select.from.items.length&&!expression.select.hasCompound&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select)&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!expression.select.hasOrderBy)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     if((expression.resolved??scalarPlans.get(expression.select))?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
@@ -6773,7 +6773,7 @@ function compileCompoundDerivedAggregate(select:SelectNode,schema:SchemaGraph,da
  for(const arm of derived.select.arms){
   const single:SelectNode={...derived.select,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:false,hasHaving:false,groupBy:Object.freeze([]),having:null,orderBy:Object.freeze([]),limit:null,offset:null,hasOrderBy:false,hasLimit:false,hasCompound:false,arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])};
   let plan:ReturnType<typeof expandAndResolveSelect>;
-  try{plan=expandAndResolveSelect(single,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+  try{plan=expandAndResolveSelect(single,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   columns??=plan.result.map(result=>({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}));
   if(plan.result.length!==columns.length)throw new JSQLiteError('sqlite','SELECTs to the left and right of UNION ALL do not have the same number of result columns',{code:1});
   const destination:SelectDest={kind:'coroutine',register:producerReturn,first:producerRows};
@@ -6878,7 +6878,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
   // SELECT independently. A single no-FROM candidate has no row ordering to
   // change, but an ORDER term can still fail preparation (even at LIMIT 0).
   if(source.hasOrderBy||source.hasDistinct||source.hasGroupBy||source.hasHaving){
-    try{expandAndResolveSelect(source,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+    try{expandAndResolveSelect(source,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   }
   if(innerHaving&&(!inspectInner(innerHaving)||(selectHasAggregate(source)&&innerAggregates.length===0)))return undefined;
   // resolve.c:resolveOrderGroupBy binds against the derived table's
@@ -6909,7 +6909,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
       };
       rejectAggregate(expressionFromReduction(select.where.reduction));
     }
-    try{expandAndResolveSelect(resolved,schema.withTransientTable(table))}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1});throw error;}
+    try{expandAndResolveSelect(resolved,schema.withTransientTable(table))}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
   }
   const {builder,ops,parameters,destination}=parent,allocate=()=>builder.register();
   const accumulator=allocate(),output=allocate();
@@ -7963,7 +7963,16 @@ export class VdbeStatement implements Statement {
             if(row){for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);this.#pc=op.p2;}else this.#jsonCursors.delete(op.p1);
             break;
           }
-          case "MustBeInt": {const value=this.#registers[op.p1]!;let integer:bigint;if(value.initialStorageClass==="integer")integer=value.integerValue();else if(value.initialStorageClass==="real"&&Number.isInteger(value.realValue())&&value.realValue()>=-9223372036854775808&&value.realValue()<9223372036854775808)integer=BigInt(value.realValue());else if(value.initialStorageClass==="text"&&/^[+-]?[0-9]+$/.test(value.textValue())){integer=BigInt(value.textValue());if(integer<-(1n<<63n)||integer>=(1n<<63n))throw new JSQLiteError("sqlite","datatype mismatch",{code:20});}else throw new JSQLiteError("sqlite","datatype mismatch",{code:20});value.setInt64(integer);break;}
+          case "MustBeInt": {
+            // vdbe.c:OP_MustBeInt applies NUMERIC affinity to the owning Mem,
+            // then tests MEM_Int. Do not parse TEXT independently of Mem or
+            // bypass IntegerAffinity's losslessness/int64 boundary checks.
+            const value=this.#registers[op.p1]!;
+            if(value.initialStorageClass!=="integer")value.applyAffinity("numeric",this.#program.encoding);
+            if(value.initialStorageClass!=="integer")throw new JSQLiteError("sqlite","datatype mismatch",{code:20});
+            value.setInt64(value.integerValue());
+            break;
+          }
           case "WindowCheck": {
             const value=this.#registers[op.p1]!,message=op.boundary==="nth"?"second argument to nth_value must be a positive integer":`frame ${op.boundary} offset must be a non-negative ${op.numeric?"number":"integer"}`;
             // window.c:windowCheckValue uses numeric affinity for both the
@@ -8464,7 +8473,14 @@ export class VdbeStatement implements Statement {
     if (this.#work >= limit) throw new JSQLiteError("limit", "statement exceeds maxWorkUnits");
   }
   #privateControl(options:OperationOptions,limit:number,started:number):PrivateStateControl {
-    return {checkpoint:async(units=0)=>{
+    return {snapshotCheckpoint:(units=0)=>{
+      // Borrowed packed inputs must be copied without an await. Charge/check
+      // that bounded snapshot using the same execution owner; subsequent
+      // private operations still yield through checkpoint below.
+      if(!Number.isSafeInteger(units)||units<0)throw new JSQLiteError("internal","invalid private-state work charge");
+      for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}
+      this.#checkControl(options,limit,started);
+    },checkpoint:async(units=0)=>{
       if(!Number.isSafeInteger(units)||units<0)throw new JSQLiteError("internal","invalid private-state work charge");
       for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.yield();this.#state="running"}}
       this.#checkControl(options,limit,started);

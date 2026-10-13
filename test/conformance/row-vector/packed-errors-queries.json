@@ -1,0 +1,17 @@
+[
+  "SELECT p.id FROM pairs p JOIN pairs r ON p.a=r.a AND r.a IN (SELECT q.a,q.b FROM pairs q)",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.missing FROM pairs q WHERE q.a=p.a)",
+  "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a COLLATE absent_collation FROM pairs q)",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 'bad')",
+  "SELECT p.id FROM pairs p JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q LIMIT NULL)",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET 'bad')",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1.5')",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1e30')",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '9223372036854775808')",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT x'31')",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1 OFFSET '1.5')",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 1.5)",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT -9223372036854775808.0)",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT 9223372036854775807.0)",
+  "SELECT p.id FROM pairs p LEFT JOIN pairs r ON r.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a LIMIT '1x')"
+]

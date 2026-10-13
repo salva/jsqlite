@@ -83,11 +83,20 @@ not universal current failures.
 are not the same-VM coroutine merge algorithm. [Finite disposition](record:///status.md?card=card-t&v=96)
 and [[card:card-t]] retain bounded evidence and limitations; lack of a native
 resumable stack is not a current platform rationale. Expression InSet now requires
-packed BLOBKEY storage: `select.c:SRT_Set` → shared MakeRecord/IdxInsert destination;
+packed BLOBKEY storage: `parse.y:seltablist` immediate `LP select RP` child →
+`parse.ts:sourceList` derived SrcItem; ON/function-argument SELECTs remain expression
+children, not independent metadata producers. Parser production guard and packed
+all-encoding ON scalar/vector/EXISTS controls map this seam; [R1 evidence](research/card-m-packed-independent-review.md#r1-repair--srcitem-production-ownership).
+`select.c:SRT_Set` → shared MakeRecord/IdxInsert destination;
+`vdbe.c:OP_IdxInsert` → PrivateKeyVmCursor.insert/private BLOBKEY packed snapshot;
+VDBE private control supplies synchronous bounded snapshot checks before borrowed
+input copying, followed by asynchronous insertion checks. Public all-encoding
+large Once/correlated reset schedules in `packed-public-resource.test.mjs` and
+[repair evidence](research/card-m-packed-independent-review.md#large-packed-snapshot-control-repair)
+cover the admitted-large-input caller contract;
 `expr.c:sqlite3ExprCodeIN` steps 3/6 → exact seek then NULL fallback (scalar first
 row only, vector traversal). `btree.c:First/Next/payload` → private cursor traversal
-and callback-scoped payload. No borrowed membership evaluator remains; unrelated
-DISTINCT/set-operator cursors retain their own contracts. [Packed public evidence](research/card-m-packed-membership.md)
+and callback-scoped payload. No borrowed membership evaluator remains; unrelatedDISTINCT/set-operator cursors retain their own contracts. [Packed public evidence](research/card-m-packed-membership.md)
 and [source-control tests](../test/conformance/row-vector/structure.test.mjs) map
 these branches, not general storage/complexity parity.
 

@@ -146,11 +146,12 @@ That historical result is not silently promoted to parser or execution credit. A
 early recovery run failed on the first sequence because then-current parser code
 returned a syntax error for `SELECT * FROM t`; this was a harness/parser integration
 failure, not acquisition credit. Subsequent parser repairs restored the intended
-post-parse temporary-unsupported compiler boundary. The current accounting remains
-47 attempted sequences, 0/38 upstream SQL passes, and 0/9 companion SQL passes.
+post-parse temporary-unsupported compiler boundary. That acquisition-era accounting
+is historical, not the current execution contract. The current diagnostic lane
+asserts operation sequences and declared errors separately, with zero SQL
+compatibility credit; see [current diagnostic ownership](#historical-stage2-sequence-diagnostics).
 
 ## First prepared SELECT tests-first tranche ([[card:card-h-a]])
-
 `test/conformance/cases/stage3-first-select.json` adds a separate, bounded tranche;
 it does not alter or replace the historical Stage 2 denominator of **38 upstream +
 9 no-credit companions = 47 sequences**. Its eight literal upstream assertions are
@@ -875,9 +876,22 @@ success/error frontier controls are retained in
 [OR lifecycle evidence](research/card-s-h/c-red/or-unwind-progress.md). Exact
 committed candidate integration checks are documented separately in
 [isolation evidence](research/card-s-h/c-red/isolation-progress.md); passing these
-bounded checks is not overflow discovery metering or independent review acceptance.
+bounded checks is not by itself independent review acceptance. Sequential overflow
+copy/error order and bounded committed input verification are covered separately
+in the [d evidence inventory](research/card-s-h/d-diagnosis/README.md).
 
 
 ### INNER destination stabilization
 
 INNER direct-result stabilization preserves the original20-unit early-LIMIT regression and adds pinned typed metadata/zero/offset/reset plus exact18-failure/19-completion checks. No new compatibility denominator or broad credit. [Evidence](research/card-k-c-inner-limit/README.md).
+
+### Historical Stage2 sequence diagnostics
+
+`run-ts.mjs` uses each case's `diagnosticExpected` for current operation-sequence
+observations; `expected` retains the historical unimplemented baseline, not current
+support authority. This lane asserts exact declared error distinctions and sequence
+completion but grants **zero compatibility credit** (completion alone does not
+compare returned values with the pinned oracle). It reports mismatches as nonpass
+with a final attempted/failed/unattempted denominator. Accounting regression also
+injects an unmatched expectation to verify fail-closed reporting. See [V1 repair
+evidence](research/card-m-packed-independent-review.md#v1-repair--historical-baseline-versus-current-diagnostic-accounting).

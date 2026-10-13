@@ -39,21 +39,41 @@ class ConformanceAccountingTest(unittest.TestCase):
         self.assertEqual(self.summary["tsUnimplemented"], len(self.upstream))
         self.assertEqual(self.summary["tsCompanionUnimplementedNoCredit"], len(self.companions))
 
-    def test_ts_unimplemented_totals_are_separated(self):
-        proc = subprocess.run(
-            ["node", str(ROOT / "test/conformance/run-ts.mjs")],
-            cwd=ROOT, text=True, capture_output=True,
-        )
-        self.assertNotEqual(proc.returncode, 0, "unimplemented TS lane must not pass")
+    def run_diagnostic(self, path=None):
+        command = ["node", str(ROOT / "test/conformance/run-ts.mjs")]
+        if path: command.append(str(path))
+        proc = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
         reports = [json.loads(line) for line in proc.stdout.splitlines()]
-        observations = [row for row in reports if "caseId" in row]
-        report = reports[-1]["summary"]
+        self.assertTrue(reports, proc.stderr)
+        self.assertIn("summary", reports[-1], proc.stderr)
+        return proc, reports[:-1], reports[-1]["summary"]
+
+    def test_current_diagnostic_totals_are_separated(self):
+        proc, observations, report = self.run_diagnostic()
+        self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual([row["caseId"] for row in observations], self.selected)
-        self.assertEqual(report["disposition"], "unimplemented-temporary")
-        self.assertEqual(report["upstream"], len(self.upstream))
-        self.assertEqual(report["companions"], len(self.companions))
-        self.assertEqual(report["attempted"], len(self.selected))
+        self.assertTrue(all(row["credit"] == 0 and row["matched"] for row in observations))
+        self.assertEqual(report, dict(declared=47, attempted=47, upstream=38,
+            companions=9, completed=44, observedErrors=3, passed=47, failed=0,
+            unattempted=0, credit=0, disposition="diagnostic-no-credit"))
+
+    def test_unmatched_expectation_keeps_summary_and_nonpass(self):
+        import os
+        # Disposable fixture under the owning card's work root, never product.
+        work = pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"]) / "accounting-negative"
+        work.mkdir(exist_ok=True)
+        data = json.loads((ROOT / "test/conformance/cases/stage2-ts.json").read_text())
+        data["cases"][0]["diagnosticExpected"] = dict(disposition="observed-error",
+            error=dict(operation="prepare",kind="sqlite",code=1,extendedCode=1,message="intentional unmatched expectation"))
+        fixture = work / "cases.json"
+        fixture.write_text(json.dumps(data))
+        proc, observations, report = self.run_diagnostic(fixture)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertEqual(len(observations), 47)
+        self.assertEqual(report["failed"], 1)
+        self.assertEqual(report["passed"], 46)
         self.assertEqual(report["credit"], 0)
+        self.assertEqual(report["unattempted"], 0)
 
 
 if __name__ == "__main__":

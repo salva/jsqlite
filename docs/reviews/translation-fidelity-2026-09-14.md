@@ -1,3 +1,33 @@
+## Current packed expression membership disposition
+
+Expression InSet is packed-only; scalar/vector borrowed membership fallback has
+been removed. Enforcing ownership exposed table LIMIT/aggregate/join-key producers
+missed by earlier revision-bound migration reports. These now use shared packed
+Set insertion, without unrelated DISTINCT/set-operator conversion. Direct expr.c
+step6 comparison corrected scalar miss to first sorted row only; vector NULL
+fallback still traverses. [Native-first public matrix](../research/card-m-packed-membership.md)
+checks typed rows, full column metadata and reset across all encodings. The
+independent R1 review found a parser ownership divergence: ON SELECT was installed
+as the current SrcItem's derived producer. `sourceList` now takes only the immediate
+`parse.y:seltablist` SELECT child, retaining ON/function-argument expression ownership;
+[R1 repair evidence](../research/card-m-packed-independent-review.md#r1-repair--srcitem-production-ownership)
+records native-first LEFT/INNER scalar/vector/EXISTS controls. This corrects the
+concrete prepare failure. Representative native/public metadata/error and resource
+controls now cover the repaired practical joined slice; see the
+[final independent schedules](../research/card-m-packed-independent-review.md#verify-packed-writer-ownership-schedules).
+No exhaustive error/allocation or whole-product certification is implied. Joined scalar IN LIMIT now reaches the shared wide Set producer and
+missing collation preserves Parse's primary1/extended257 through compiler boundaries;
+[joined error repair evidence](../research/card-m-packed-independent-review.md#joined-error-repair)
+retains native phase/reset/recovery and positive LIMIT controls. MustBeInt now
+uses shared Mem NUMERIC affinity instead of a text integer regex; decimal/exponent/
+whitespace and REAL losslessness/endpoints have pinned controls in the
+[numeric-affinity evidence](../research/card-m-packed-independent-review.md#mustbeint-numeric-affinity-repair).
+Representative public control/admission/cleanup and writer publication schedules
+are covered; exhaustive balancing phases and native allocation schedules remain
+unclaimed. Optional persistent/rowid/NOOP optimizations are not a blocker where
+the correct packed route exists.
+Earlier baseline predictions are not current producer findings.
+
 ## Current bounded host scheduling adaptation — [[card:card-h-e]]
 
 Nested browser timer latency is reproduced on current substantial work independent

@@ -1,22 +1,21 @@
 import fs from "node:fs";
-import { assertOperation } from "./stage2-assertions.mjs";
 import path from "node:path";
 import { startFixtureServer } from "./fixture-server.mjs";
 import { openFixture } from "./public-api-adapter.mjs";
 import { validateCaseData } from "./ts-accounting.mjs";
 const root=path.resolve(new URL("../..",import.meta.url).pathname);
 const manifest=JSON.parse(fs.readFileSync(path.join(root,"test/conformance/cases/stage2-initial.json")));
-const data=JSON.parse(fs.readFileSync(path.join(root,"test/conformance/cases/stage2-ts.json")));
+const data=JSON.parse(fs.readFileSync(process.argv[2] ?? path.join(root,"test/conformance/cases/stage2-ts.json")));
 const expected=[...manifest.upstreamCases,...manifest.companionCases]; validateCaseData(data,expected,manifest.companionCases);
 const bridge=await startFixtureServer(path.join(root,"test/fixtures")); const results=[];
 function statementOf(state) { if(!state.statement) throw new Error("adapter invariant: statement operation without a statement"); return state.statement; }
 async function execute(op,state) {
  switch(op.op) {
   case "openFixture": state.connection=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${encodeURIComponent(op.fixture)}`)); return;
-  case "prepare": { const p=state.connection.prepare(op.sql); state.statement=p?.statement??p; if(op.assertion) assertOperation(op, {phase:"prepare",tail:p.tail,columnCount:state.statement.columnCount,metadata:state.statement.columnMetadata(0)}); return; }
+  case "prepare": { const p=state.connection.prepare(op.sql); state.statement=p?.statement??p; return; }
   case "closeDeferred": state.connection.closeDeferred(); return;
   case "bind": statementOf(state).bind(op.index??op.name, decodeValue(op.value)); return;
-  case "step": {const result=await statementOf(state).step(); state.rowCount=(state.rowCount??0)+(result==="row"?1:0); assertOperation(op,{phase:"step",result,rowCount:state.rowCount}); return;}
+  case "step": await statementOf(state).step(); return;
   case "reset": statementOf(state).reset(); return;
   case "clearBindings": statementOf(state).clearBindings(); return;
   case "finalize": statementOf(state).finalize(); return;
@@ -43,35 +42,38 @@ function decodeValue(v) {
  if(v?.js==="number") { const b=Buffer.from(v.ieee754be,"hex"); return b.readDoubleBE(); }
  throw new Error("malformed generated bind literal");
 }
-const expectedObservedErrors=new Map([
- ["close.test:close-1.4.3",{kind:"misuse",operation:"prepare"}],
- ["capi3c.test:capi3c-1.5",{kind:"sqlite",operation:"prepare"}],
- ["capi3c.test:capi3c-2.3",{kind:"sqlite",operation:"prepare"}],
-]);
 try {
  for (const c of data.cases) {
-  const state={connection:null,statement:null}; let failure=null; const operationAttempts=[];
+  const state={connection:null,statement:null}; let failure=null;
   for (let index=0;index<c.operations.length;index++) {
    const op=c.operations[index];
-   operationAttempts.push({index,key:op.key,op:op.op});
    try { await execute(op,state); } catch(e) { failure={error:e,index,key:op.key,op:op.op}; break; }
   }
   // This is the historical Stage 2 sequence runner. Most mapped operations are
   // now implemented, so completion is success rather than an obsolete expected
   // "temporary unsupported" failure. Retain real observed failures without
   // converting them into compatibility credit.
-  const expectedError=expectedObservedErrors.get(c.id);
-  if(failure){
-   if(!expectedError||failure.op!==expectedError.operation||failure.error?.name!=="JSQLiteError"||failure.error?.kind!==expectedError.kind)throw failure.error;
-  }else if(expectedError)throw new Error(`${c.id}: expected ${expectedError.kind} at ${expectedError.operation}`);
+  const expectedError=c.diagnosticExpected.error;
+  const matched=failure
+   ? !!expectedError && failure.op===expectedError.operation && failure.error?.name==="JSQLiteError"
+     && ['kind','code','extendedCode','message'].every(key=>failure.error?.[key]===expectedError[key])
+   : c.diagnosticExpected.disposition==='completed';
   const result=failure
    ? {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"observed-error",credit:0,attempted:{index:failure.index,key:failure.key,op:failure.op},error:{name:failure.error?.name??"Error",kind:failure.error?.kind??null,code:failure.error?.code??null,extendedCode:failure.error?.extendedCode??null,unsupportedClassification:failure.error?.unsupportedClassification??null,message:String(failure.error?.message??failure.error)},notAttempted:c.operations.slice(failure.index+1).map((op,index)=>({index:index+failure.index+1,key:op.key,op:op.op}))}
    : {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"completed",credit:0,attempted:null,error:null,notAttempted:[]};
-  result.operationAttempts=operationAttempts;
+  result.matched=matched;
   results.push(result); console.log(JSON.stringify(result));
+  // Always retire the case's connection, including failed expectations. Report
+  // subsequent allocated cases and the final denominator rather than aborting.
+  try { state.statement?.finalize(); } catch {} // saved error already observed
+  try { await state.connection?.closeDeferred(); } catch(error) {
+   // Some allocated close sequences already retire their connection.
+   if(error?.kind!=='misuse'||error.message!=='connection is closed')throw error;
+  }
  }
  if(results.length!==data.cases.length)throw new Error("missing Stage 2 results");
- if(results.filter(r=>r.disposition==="observed-error").length!==expectedObservedErrors.size)throw new Error("missing/extra expected Stage 2 errors");
  const upstream=results.filter(r=>r.caseCredit==="upstream"),companions=results.filter(r=>r.caseCredit!=="upstream"),completed=results.filter(r=>r.disposition==="completed").length;
- console.log(JSON.stringify({summary:{attempted:results.length,upstream:upstream.length,companions:companions.length,completed,observedErrors:results.length-completed,credit:0,disposition:"diagnostic-no-credit"}}));
+ const failed=results.filter(r=>!r.matched).length;
+ console.log(JSON.stringify({summary:{declared:data.cases.length,attempted:results.length,upstream:upstream.length,companions:companions.length,completed,observedErrors:results.length-completed,passed:results.length-failed,failed,unattempted:data.cases.length-results.length,credit:0,disposition:"diagnostic-no-credit"}}));
+ if(failed)process.exitCode=1;
 } finally { await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve())); }

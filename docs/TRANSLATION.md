@@ -285,21 +285,27 @@ are admitted only through their actual semantic branches.
 
 `expr.c` scalar/EXISTS/IN lowering uses one VM, linked parent identity and phase,
 conditional Once for uncorrelated producers and rebuild/reset for correlated
-producers. Empty scalar is NULL, EXISTS is INTEGER boolean, and IN preserves
+producers. `parse.y:seltablist` installs a derived source only from its immediate
+`LP select RP` child; nested SELECTs in ON or table-function arguments retain
+expression ownership. Correlated ON membership consequently reaches the linked
+join resolver rather than independent derived-table metadata resolution. Source
+and all-encoding scalar/vector/EXISTS controls: [R1 repair evidence](research/card-m-packed-independent-review.md#r1-repair--srcitem-production-ownership). Empty scalar is NULL, EXISTS is INTEGER boolean, and IN preserves
 NULL/empty/negation semantics. Linked `compileWideSubquery` IN destinations now
 use explicit packed KeyInfo, SRT_Set MakeRecord/IdxInsert and private BLOBKEY;
-CodeIN probes exact non-NULL keys then traverses records for NULL fallback;
-scalar fallback checks only the first sorted row (expr.c step 6), vector fallback
+CodeIN probes exact non-NULL keys then traverses records for NULL fallback;scalar fallback checks only the first sorted row (expr.c step 6), vector fallback
 continues after definite field mismatches. InSet requires packed cursors: the
 superseded borrowed membership evaluator has been removed, including aggregate
 join-key/projection and table LIMIT callers. Auxiliary compound set cursors remain
 separate consumers, not InSet fallback.
 First/Next includes index interior records; payload snapshots and LHS copies own
-charged scratch across awaits. NULL fallback decodes exactly KeyInfo width with
+charged scratch across awaits. Public VDBE private control also supplies synchronous
+snapshot work/cancellation/deadline checks before copying borrowed packed inputs;
+copying cannot yield until the immutable snapshot exists, then insertion resumes
+normal asynchronous checkpoints. [Large-input repair evidence](research/card-m-packed-independent-review.md#large-packed-snapshot-control-repair)
+bounds this copy-before-await adaptation, not native allocation/latency parity. NULL fallback decodes exactly KeyInfo width with
 RawRecordReader inside the payload callback, rejecting extra/missing fields without
 an unbounded intermediate decoded array. LHS admission conservatively covers owned copy
-plus UTF encoding expansion and numeric text scratch. Packed Set record temporaries
-are dead after IdxInsert and refunded after awaited insertion, including errors;
+plus UTF encoding expansion and numeric text scratch. Packed Set record temporariesare dead after IdxInsert and refunded after awaited insertion, including errors;
 non-Set packed callers retain their own register contract. Shared MakeRecord
 admits conservative transient conversion scratch before live affinity/encoding
 mutation, retains it through packing, and refunds it on every exit. Output/input
@@ -309,10 +315,24 @@ also uses packed records, with statement encoding
 installed at cursor admission and explicit packed ClearEphemeral reuse. Other
 scalar/VALUES, aggregate and legacy LIMIT expression destinations now opt into
 packed Set records too. Intermediate compound DISTINCT/set-operator cursors retain
-their own borrowed contracts; they are not membership probes. Exact resource schedules and full native/error
-matrices remain verification gaps, not
-browser necessity or missing-machinery rationale. No general IN/storage/work parity
-is implied. Current attempt and test limitations: [[card:card-m-f-k]]
+their own borrowed contracts; they are not membership probes. Joined scalar IN with ordinary RHS LIMIT/OFFSET uses the same wide SRT_Set
+producer as vector IN, preserving `computeLimitRegisters`/MustBeInt and the
+LIMIT-zero-before-OFFSET branch. MustBeInt applies shared Mem NUMERIC affinity
+before testing INTEGER, including decimal/exponent/whitespace text and lossless
+REAL conversion; it does not independently parse integer text. Int64 REAL
+endpoints remain noninteger per `sqlite3VdbeIntegerAffinity`, unlike exact INTEGER
+text endpoints. [Numeric-affinity repair evidence](research/card-m-packed-independent-review.md#mustbeint-numeric-affinity-repair)
+retains native typed-row/error/reset controls and the bounded test inventory. NameResolutionError retains Parse's extended
+code through every SELECT compiler boundary; missing collation is primary1/
+extended257 (`callback.c:sqlite3GetCollSeq`), not an undifferentiated name error.
+[Joined error repair evidence](research/card-m-packed-independent-review.md#joined-error-repair)
+compares pinned phases, saved errors and recovery, plus valid LIMIT boundaries.
+Representative public control/resource/refund and unpublished/published writer
+ownership schedules are covered in the [independent review](research/card-m-packed-independent-review.md#verify-packed-writer-ownership-schedules).
+No concrete practical joined-IN gap remains reproduced in this admitted slice.
+These bounded checks do not establish exhaustive native allocation/error schedules
+or general IN/storage/work parity; persistent/rowid/NOOP optimization remains backlog
+where the correct packed route exists. Current attempt and test limitations: [[card:card-m-f-k]]
 [status](record:///status.md?card=card-m-f-k); see also
 [API admission](api.md#current-sql-admission) and
 [native-first packed membership evidence](research/card-m-packed-membership.md).
