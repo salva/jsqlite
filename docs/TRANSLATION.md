@@ -1769,3 +1769,8 @@ evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
 Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
 execution, not selected-index strategy credit. Root stage2 harness rejection of
 empty sqlite_master is stale versus pinned/public behavior, not a vector regression.
+
+
+### INNER destination stabilization
+
+Joined direct-result register ownership: plain bound columns/rowid are coded into the SELECT destination, matching select.c selectInnerLoop and expr.c ExprCodeExprList/ExprCodeTarget. Physical access and REAL affinity remain; generated/aggregate carriers retain shared lowering. No work-charge or LIMIT-interface change. See [bounded stabilization evidence](research/card-k-c-inner-limit/README.md).

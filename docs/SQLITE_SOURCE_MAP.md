@@ -1221,3 +1221,8 @@ evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
 Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
 execution, not selected-index strategy credit. Root stage2 harness rejection of
 empty sqlite_master is stale versus pinned/public behavior, not a vector regression.
+
+
+### INNER destination stabilization
+
+`select.c:selectInnerLoop` / `expr.c:sqlite3ExprCodeExprList`, `sqlite3ExprCodeTarget` → `compileInnerTableSelect.emitResultColumn` and direct result caller: destination-targeted plain Column/Rowid with REAL affinity, fallback shared generated/aggregate emission. Tests: multisource-inner-order native metadata/zero/offset/reset and cumulative boundary; [evidence](research/card-k-c-inner-limit/README.md).

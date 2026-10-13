@@ -613,3 +613,37 @@ test('public three-source heterogeneous USING and NATURAL retain the first merge
   await closeTestServer(bridge.server);
  }
 });
+
+// Pinned 3.53.4 native-first capture: docs/research/card-k-c-inner-limit/native.json.
+// Work units are TS checkpoints, not native opcode parity. Keep LIMIT's early
+// exit and cumulative budget checks; never relax the original 20-unit case.
+test('public INNER direct destinations preserve native LIMIT metadata, zero, offset and reset',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
+  const metadata=Array.from({length:2},()=>({name:'x',declaredType:'INT',database:'main',table:'t1',origin:'x'}));
+  for(const [suffix,expected] of [['LIMIT 1',[[31n,31n]]],['LIMIT 0',[]],['LIMIT 1 OFFSET 1',[[31n,30n]]],['WHERE 0 LIMIT 1',[]]]){
+   s=db.prepare('SELECT a.x,b.x FROM t1 AS a CROSS JOIN t1 AS b '+suffix).statement;
+   assert.deepEqual([s.columnMetadata(0),s.columnMetadata(1)],metadata);
+   for(let pass=0;pass<2;pass++){assert.deepEqual(await rows(s),expected);if(!pass)s.reset();}
+   s.finalize();s=null;
+  }
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server);}
+});
+
+test('public INNER direct result has exact cumulative work boundary without budget relaxation',async()=>{
+ const bridge=await startFixtureServer(root);let db,s;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
+  for(const budget of [18,19]){
+   s=db.prepare('SELECT a.x,b.x FROM t1 AS a CROSS JOIN t1 AS b LIMIT 1').statement;
+   assert.equal(await s.step({maxWorkUnits:budget}),'row');
+   assert.deepEqual([s.columnType(0),s.columnType(1)],['integer','integer']);
+   assert.deepEqual([s.column(0),s.column(1)],[31n,31n]);
+   if(budget===18){let primary;await assert.rejects(s.step({maxWorkUnits:budget}),e=>{primary=e;return e.kind==='limit'&&e.message==='statement exceeds maxWorkUnits';});assert.throws(()=>s.reset(),e=>e===primary);}
+   else {assert.equal(await s.step({maxWorkUnits:budget}),'done');s.reset();}
+   assert.equal(await s.step({maxWorkUnits:19}),'row');assert.equal(await s.step({maxWorkUnits:19}),'done');
+   s.finalize();s=null;
+  }
+ }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server);}
+});

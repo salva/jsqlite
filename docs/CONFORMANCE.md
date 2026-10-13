@@ -876,3 +876,8 @@ success/error frontier controls are retained in
 committed candidate integration checks are documented separately in
 [isolation evidence](research/card-s-h/c-red/isolation-progress.md); passing these
 bounded checks is not overflow discovery metering or independent review acceptance.
+
+
+### INNER destination stabilization
+
+INNER direct-result stabilization preserves the original20-unit early-LIMIT regression and adds pinned typed metadata/zero/offset/reset plus exact18-failure/19-completion checks. No new compatibility denominator or broad credit. [Evidence](research/card-k-c-inner-limit/README.md).

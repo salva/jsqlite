@@ -1,0 +1,112 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixtureSha256": "ab57be190e1601517424c3400df95f13d1022b256b9f058c94b247493a1d505d",
+  "cases": [
+    {
+      "sql": "SELECT a.x,b.x FROM t1 AS a CROSS JOIN t1 AS b LIMIT 1",
+      "metadata": [
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ],
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ]
+      ],
+      "rows": [
+        [
+          {
+            "type": 1,
+            "value": "31"
+          },
+          {
+            "type": 1,
+            "value": "31"
+          }
+        ]
+      ],
+      "done": 101
+    },
+    {
+      "sql": "SELECT a.x,b.x FROM t1 AS a CROSS JOIN t1 AS b LIMIT 0",
+      "metadata": [
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ],
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ]
+      ],
+      "rows": [],
+      "done": 101
+    },
+    {
+      "sql": "SELECT a.x,b.x FROM t1 AS a CROSS JOIN t1 AS b LIMIT 1 OFFSET 1",
+      "metadata": [
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ],
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ]
+      ],
+      "rows": [
+        [
+          {
+            "type": 1,
+            "value": "31"
+          },
+          {
+            "type": 1,
+            "value": "30"
+          }
+        ]
+      ],
+      "done": 101
+    },
+    {
+      "sql": "SELECT a.x,b.x FROM t1 AS a CROSS JOIN t1 AS b WHERE 0 LIMIT 1",
+      "metadata": [
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ],
+        [
+          "x",
+          "INT",
+          "main",
+          "t1",
+          "x"
+        ]
+      ],
+      "rows": [],
+      "done": 101
+    }
+  ]
+}

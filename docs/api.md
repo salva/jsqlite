@@ -593,3 +593,8 @@ evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
 Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
 execution, not selected-index strategy credit. Root stage2 harness rejection of
 empty sqlite_master is stale versus pinned/public behavior, not a vector regression.
+
+
+### INNER destination stabilization
+
+Ordinary joined direct-column projection retains column metadata/storage classes and early LIMIT termination without temporary result-register copies. Work units remain charged at existing checkpoints; fixture-specific exact boundaries are regression evidence, not a universal opcode/performance contract. [Evidence](research/card-k-c-inner-limit/README.md).

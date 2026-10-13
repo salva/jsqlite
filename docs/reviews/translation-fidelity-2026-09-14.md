@@ -5078,3 +5078,8 @@ finally, source identity, aggregate/register precedence and NullRow are preserve
 Native-first boundary81 evidence and precise revised isolated export/review status:
 [generated consumers](../research/card-t-c-generated-consumers/README.md).
 No full NC_GenCol/lazy-schema/STRICT/generic indexed-expression claim follows.
+
+
+### INNER destination stabilization
+
+2026-10-13 bounded INNER LIMIT correction: afa4d exact archive failed before first row because joined direct-column result lowering materialized two redundant register copies. Destination-targeted Column/Rowid preserves physical access/REAL affinity and shared generated/aggregate paths. Original20-unit row+done test passes without cap/charge changes; no Cartesian nontermination established. [Source and regression evidence](../research/card-k-c-inner-limit/README.md).
