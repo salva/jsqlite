@@ -3,6 +3,34 @@
 import argparse, concurrent.futures, hashlib, json, os, pathlib, signal, subprocess, time
 
 
+def prerequisite_commands(files, library, work_root):
+    """Fixture producers run in dependency order, outside the source tree."""
+    commands = []
+    names = {pathlib.Path(f).name for f in files}
+    if names & {'where-operand-admission-public.test.mjs', 'where-order-consumption-public.test.mjs', 'skipscan-seek-consumer.test.mjs'}:
+        for script, output in [('operand-admission', 'r1-native'), ('order-consumption', 'r2-native')]:
+            commands.append(['python3', f'test/conformance/capture-where-{script}.py', '--library', str(library), '--output-dir', str(work_root/output)])
+    if any(name.startswith('skipscan-') and name.endswith('.test.mjs') for name in names):
+        root = work_root/'skipscan-native'
+        base = 'docs/research/card-s-g/'
+        commands.extend([
+            ['python3', base+'capture.py', '--library', str(library), '--output-dir', str(root), '--fixture-dir', 'fixtures'],
+            ['python3', base+'capture-primitive-companions.py', '--library', str(library), '--output-dir', str(root/'primitive-companions')],
+            ['python3', base+'capture-order-companions.py', '--library', str(library), '--output', str(root/'order-native.json'), '--primitive-root', str(root/'primitive-companions')],
+            ['python3', base+'capture-stat1-companions.py', '--library', str(library), '--output-dir', str(root/'stat1-companions'), '--primitive-root', str(root/'primitive-companions')],
+            ['python3', base+'capture-corruption-companions.py', '--library', str(library), '--output-dir', str(root/'corruption-companions'), '--primitive-root', str(root/'primitive-companions')],
+            ['python3', base+'capture-wr-layout.py', '--library', str(library), '--output-dir', str(root)],
+        ])
+    return commands
+
+
+def test_command(file):
+    # This script requires a positional fixture, unlike node:test suites.
+    if file == 'test/conformance/run-audit-chinook-b1-b5-ts.mjs':
+        return ['node', '--experimental-strip-types', file, 'examples/browser/chinook.sqlite']
+    return ['node', '--experimental-strip-types', '--test', file]
+
+
 def component(command, log, seconds, env):
     start = time.monotonic()
     with log.open('wb') as out:
@@ -19,6 +47,15 @@ def component(command, log, seconds, env):
             except subprocess.TimeoutExpired:
                 os.killpg(proc.pid, signal.SIGKILL)
                 code = proc.wait()
+            finally:
+                # The leader may exit on TERM while its workers ignore it.
+                # Waiting for the leader alone does not contain that session.
+                # Always finish timeout containment of the original process group;
+                # keep the leader's actual exit and timeout classification.
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
     return dict(command=command, exit=code, classification='timeout' if timeout else
                 'completed' if code == 0 else 'fail', seconds=round(time.monotonic()-start, 3),
                 log=str(log), log_sha256=hashlib.sha256(log.read_bytes()).hexdigest())
@@ -29,6 +66,7 @@ def main():
     p.add_argument('files', nargs='*')
     p.add_argument('--jobs', type=int, default=1, help='positive file concurrency (default: serial; avoids resource contention)')
     p.add_argument('--watchdog-seconds', type=int, default=30, help='positive per-file watchdog; recorded in manifest (default: 30)')
+    p.add_argument('--oracle-library', type=pathlib.Path, help='existing dev oracle; capture producers verify the pinned source identity')
     args = p.parse_args()
     if args.watchdog_seconds < 1:
         p.error('--watchdog-seconds must be positive')
@@ -41,7 +79,7 @@ def main():
         'test/conformance/*.test.mjs', 'test/conformance/run-*-ts.mjs',
         'test/storage/*.test.mjs', 'test/parser/*.test.mjs') for f in root.glob(pattern)
         for f in [f.relative_to(root)]
-        if f.name != 'run-audit-chinook-b1-b5-ts.mjs'})
+        })
     if not files:
         raise SystemExit('empty inventory')
     env = dict(os.environ, CHINOOK_DB='examples/browser/chinook.sqlite',
@@ -60,19 +98,30 @@ def main():
     def save():
         (work/'manifest.json').write_text(json.dumps(report, indent=2)+'\n')
     save()
-    # These two public suites explicitly require independently generated native fixtures.
-    if any(pathlib.Path(f).name in ('where-operand-admission-public.test.mjs',
-                                   'where-order-consumption-public.test.mjs') for f in files):
-        library = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'oracle-build/build/libsqlite3-oracle.so'
-        for i, command in enumerate([
-            ['sh', 'tools/oracle/build.sh'],
-            ['python3','test/conformance/capture-where-operand-admission.py','--library',str(library),'--output-dir',str(library.parents[2]/'r1-native')],
-            ['python3','test/conformance/capture-where-order-consumption.py','--library',str(library),'--output-dir',str(library.parents[2]/'r2-native')],
-        ]):
+    work_root = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']).resolve()
+    library = args.oracle_library.resolve() if args.oracle_library else work_root/'oracle-build/build/libsqlite3-oracle.so'
+    commands = prerequisite_commands(files, library, work_root)
+    if commands:
+        if args.oracle_library:
+            report['oracle_library'] = dict(path=str(library), sha256=hashlib.sha256(library.read_bytes()).hexdigest())
+        else:
+            commands.insert(0, ['sh', 'tools/oracle/build.sh'])
+        # Producer outputs are evidence: use a fresh purpose work root on rerun.
+        # WR producer deliberately refuses to overwrite old fixtures.
+        if any(pathlib.Path(f).name.startswith('skipscan-') for f in files):
+            env['SKIPSCAN_NATIVE_ROOT'] = str(work_root/'skipscan-native')
+        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK') if k in env}
+        for i, command in enumerate(commands):
             result = component(command, work/f'prerequisite-{i}.log', 180, env)
             report['prerequisites'].append(result); save()
             if result['classification'] != 'completed':
                 report['not_run'] = files; save(); return 1
+        report['generated_inputs'] = {
+            str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for directory in ('r1-native', 'r2-native', 'skipscan-native')
+            for path in sorted((work_root/directory).rglob('*')) if path.is_file()
+        }
+        save()
     # Emit once sequentially before concurrent demo units launch a browser.
     # Direct units use the same owner; installed-demo roots are never rebuilt.
     if any(f in ('test/demo/entry.test.mjs', 'test/demo/browser.test.mjs') for f in files):
@@ -82,7 +131,7 @@ def main():
             report['not_run'] = files; save(); return 1
     def run(pair):
         i, file = pair
-        result = component(['node','--experimental-strip-types','--test',file], work/f'{i:03d}.log',args.watchdog_seconds,env)
+        result = component(test_command(file), work/f'{i:03d}.log',args.watchdog_seconds,env)
         result['file'] = file
         return result
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:

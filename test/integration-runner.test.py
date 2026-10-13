@@ -17,4 +17,72 @@ class Runner(unittest.TestCase):
   result=runner.component([sys.executable,'-c',"import signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);print('ready',flush=True);time.sleep(20)"],work/'ignore-term.log',0.2,os.environ)
   self.assertEqual(result['classification'],'timeout')
   self.assertEqual(result['exit'],-signal.SIGKILL)
+ def test_node_resource_watchdogs_and_aggregate_exits(self):
+  """Resource controls are not a reconstruction of the historical 42-file run."""
+  import subprocess, json, hashlib
+  work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'node-resource-controls'
+  work.mkdir(parents=True,exist_ok=True)
+  # Closed resources must terminate; open resources and CPU work must remain
+  # failures under the same external watchdog, not credited as engine interrupt.
+  controls={
+   'closed': "import http from 'node:http';const s=http.createServer();s.listen(0,'127.0.0.1',()=>s.close(()=>console.log('closed')));",
+   'http': "import http from 'node:http';http.createServer().listen(0,'127.0.0.1',()=>console.log('http-ready'));",
+   'worker': "import {Worker} from 'node:worker_threads';const w=new Worker(\"setInterval(()=>{},1000)\",{eval:true});w.once('online',()=>console.log('worker-ready'));",
+   'loop': "console.log('loop-ready');while(true){}",
+  }
+  for name,source in controls.items():
+   result=runner.component(['node','--input-type=module','-e',source],work/f'{name}.log',1,os.environ)
+   self.assertEqual(result['classification'],'completed' if name=='closed' else 'timeout')
+   self.assertIn('closed' if name=='closed' else name+'-ready',(work/f'{name}.log').read_text())
+   self.assertEqual(result['log_sha256'],hashlib.sha256((work/f'{name}.log').read_bytes()).hexdigest())
+   self.assertLess(result['seconds'],5)
+  # Invoke the actual CLI: an earlier real failure/timeout cannot be erased by
+  # a final successful file. No fixture producers or native library required.
+  files=[]
+  for name,source in [('fail',"throw new Error('intentional-control');"),('timeout',controls['http']),('pass',"console.log('final-pass');")]:
+   file=work/f'{name}.test.mjs';file.write_text(source);files.append(str(file))
+  env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(work/'aggregate'))
+  proc=subprocess.run([sys.executable,'tools/test/integration.py','--watchdog-seconds','1',*files],env=env,capture_output=True,text=True,timeout=15)
+  self.assertEqual(proc.returncode,1,proc.stdout+proc.stderr)
+  report=json.loads((work/'aggregate/integration-run/manifest.json').read_text())
+  self.assertEqual(report['files'],files)
+  self.assertEqual([r['classification'] for r in report['results']],['fail','timeout','completed'])
+  self.assertEqual(report['results'][-1]['exit'],0)
+  self.assertEqual(report['input_drift'],[])
+  self.assertEqual(report['prerequisites'],[])
+  for result in report['results']:
+   self.assertEqual(result['log_sha256'],hashlib.sha256(pathlib.Path(result['log']).read_bytes()).hexdigest())
+
+ def test_fixture_plan_and_chinook_invocation(self):
+  root=pathlib.Path('/purpose/run');library=root/'oracle.so'
+  plan=runner.prerequisite_commands(['test/storage/skipscan-prefix-seek.test.mjs','test/conformance/skipscan-stat1-producer.test.mjs','test/conformance/where-operand-admission-public.test.mjs'],library,root)
+  scripts=[pathlib.Path(c[1]).name for c in plan]
+  self.assertEqual(scripts,['capture-where-operand-admission.py','capture-where-order-consumption.py','capture.py','capture-primitive-companions.py','capture-order-companions.py','capture-stat1-companions.py','capture-corruption-companions.py','capture-wr-layout.py'])
+  for command in plan:
+   output=pathlib.Path(command[command.index('--output-dir' if '--output-dir' in command else '--output')+1]);self.assertTrue(output.is_relative_to(root))
+  self.assertEqual(runner.prerequisite_commands(['test/value/mem.test.mjs'],library,root),[])
+  command=runner.test_command('test/conformance/run-audit-chinook-b1-b5-ts.mjs')
+  self.assertNotIn('--test',command);self.assertEqual(command[-1],'examples/browser/chinook.sqlite')
+  self.assertIn('--test',runner.test_command('test/value/mem.test.mjs'))
+ def test_watchdog_contains_descendant_after_leader_exits(self):
+  import subprocess, time
+  work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'integration-runner-tests';work.mkdir(exist_ok=True)
+  pidfile=work/'descendant.pid';pidfile.unlink(missing_ok=True)
+  child="import os,signal,time;signal.signal(signal.SIGTERM,signal.SIG_IGN);open(%r,'w').write(str(os.getpid()));time.sleep(20)" % str(pidfile)
+  parent="import subprocess,sys,time;subprocess.Popen([sys.executable,'-c',%r]);time.sleep(20)" % child
+  result=runner.component([sys.executable,'-c',parent],work/'descendant.log',0.5,os.environ)
+  try:
+   self.assertEqual(result['classification'],'timeout')
+   self.assertLess(result['seconds'],5)
+   pid=int(pidfile.read_text())
+   def running():
+    try:return pathlib.Path(f'/proc/{pid}/stat').read_text().split(') ',1)[1].split()[0]!='Z'
+    except FileNotFoundError:return False
+   deadline=time.monotonic()+0.5
+   while running() and time.monotonic()<deadline:time.sleep(0.01)
+   self.assertFalse(running(),'watchdog must kill same-session descendant even if leader exits on TERM')
+  finally:
+   if pidfile.exists():
+    try:os.kill(int(pidfile.read_text()),signal.SIGKILL)
+    except ProcessLookupError:pass
 if __name__=='__main__':unittest.main()
