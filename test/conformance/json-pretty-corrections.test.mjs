@@ -3,6 +3,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {openFixture} from './public-api-adapter.mjs';
 import {startFixtureServer} from './fixture-server.mjs';
+import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
 async function withDb(options,run){
  const bridge=await startFixtureServer(root);let db;
@@ -117,22 +118,38 @@ for(const [name,escape,count,decoded] of [['u0041',String.raw`\u0041`,3000,'A'],
   test(`escape-dense ${name} ${shape} controls interrupt classification, save error and reuse`,()=>withDb({},async db=>{
    for(const mode of ['work','cancel','deadline']){
     const s=db.prepare('SELECT json_pretty(?1)').statement;s.bind(1,escapedDocument(escape,count,shape));
-    const join=Array.prototype.join,now=Date.now;let publications=0,expired=false,timerRan=false;
+    const join=Array.prototype.join,now=Date.now,yieldTask=ExecutionTaskScheduler.prototype.yield;
+    let publications=0,expired=false,cancelArmed=false,suspended=false,resumed=false;
     const abort=new AbortController();
+    // Classification may have only one host-task suspension. MessageChannel
+    // and timers have no cross-task-source ordering guarantee (card-h-e).
+    // Delegate the real scheduler unchanged, and deliver cancellation while
+    // its Promise is pending, not at the synchronous decoded publication.
+    // Thus missing suspension, late suspension, or missing post-resume checks
+    // still fail; real-host timer delivery is covered by the large-input tests.
+    if(mode==='cancel')ExecutionTaskScheduler.prototype.yield=function(){
+     const pending=yieldTask.call(this);
+     if(cancelArmed){
+      cancelArmed=false;suspended=true;
+      queueMicrotask(()=>{assert.equal(resumed,false,'abort delivered before scheduler resumes');abort.abort('during strict classification suspension')});
+      return pending.then(()=>{resumed=true});
+     }
+     return pending;
+    };
     Array.prototype.join=function(separator){
      if(this.length===count&&this.every(c=>c===decoded)){
       publications++;
-      if(publications===1){if(mode==='deadline')expired=true;if(mode==='cancel')setTimeout(()=>{timerRan=true;abort.abort('during strict classification')},0)}
+      if(publications===1){if(mode==='deadline')expired=true;if(mode==='cancel')cancelArmed=true}
      }
      return join.call(this,separator);
     };
     if(mode==='deadline')Date.now=()=>expired?1002:1000;
     let first;try{
      first=await s.step(mode==='work'?{maxWorkUnits:230}:mode==='cancel'?{signal:abort.signal}:{timeoutMs:2}).then(()=>null,e=>e);
-    }finally{Array.prototype.join=join;Date.now=now}
+    }finally{Array.prototype.join=join;Date.now=now;ExecutionTaskScheduler.prototype.yield=yieldTask}
     assert.equal(first?.kind,mode==='work'?'limit':mode==='cancel'?'cancelled':'timeout',`${name}/${shape}/${mode}`);
     assert.equal(publications,1,'failure within scanner/classifier, before second decoded publication');
-    if(mode==='cancel')assert.equal(timerRan,true,'cooperative suspension inside classification');
+    if(mode==='cancel'){assert.equal(suspended,true,'cooperative suspension inside classification');assert.equal(resumed,true,'real scheduler task completed')}
     await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.reset(),e=>e===first);
     s.bind(1,'{}');assert.equal(await s.step(),'row');assert.equal(s.column(0),'{}');s.finalize();
     const reuse=db.prepare("SELECT json_pretty('{}')").statement;assert.equal(await reuse.step(),'row');reuse.finalize();
