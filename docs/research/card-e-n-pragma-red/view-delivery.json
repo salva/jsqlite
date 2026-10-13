@@ -1,0 +1,25 @@
+{
+  "base": "54e7a22861d16310cb625d3d331599572b9717a8",
+  "included": [
+    "src/internal/pragma.ts",
+    "src/internal/resolve.ts",
+    "docs/research/card-e-n-pragma-red/capture-view.py",
+    "docs/research/card-e-n-pragma-red/view-native.json",
+    "docs/research/card-e-n-pragma-red/view-public.mjs",
+    "docs/research/card-e-n-pragma-red/view-boundaries.test.mjs",
+    "docs/research/card-e-n-pragma-red/VIEW.md",
+    "docs/api.md",
+    "docs/TRANSLATION.md",
+    "docs/SQLITE_SOURCE_MAP.md"
+  ],
+  "realIndexSha256": "fcd423c2d78d1dd5cd0b180fb0fe0d95e7b164b4d7b359af6c115ccdf62894bf",
+  "sourceHashes": {
+    "src/internal/pragma.ts": "f2f9172ade48b06c19a4eee17cbc384e264fa2c30eaf3cc5e875f868f3af42b8",
+    "src/internal/resolve.ts": "74e678eeac600f7815433edfb363ea5104a3a13d1573585b99e1a7c7426b7a8d",
+    "docs/research/card-e-n-pragma-red/capture-view.py": "3dfa1abf68c748fbc22da844242863afced1f4e900f4e5edf44f06343b5eb29c",
+    "docs/research/card-e-n-pragma-red/view-native.json": "9fba192872cb74eb41034db45c1c7f44ff8cb246636f3418c38d850f871a0397",
+    "docs/research/card-e-n-pragma-red/view-public.mjs": "ffcda09185771c9a35544ed9e984cd4547b7bb9a0eca0c107286d9c066fea1fc",
+    "docs/research/card-e-n-pragma-red/view-boundaries.test.mjs": "90b401bb6d1bc16eed6f01d1a9b03f2ce1d85d0bf602b23204bd21413dd1b8c8",
+    "docs/research/card-e-n-pragma-red/VIEW.md": "88c9fce2a04f55fd34d9ae66ac9d8a04440df3deaeaf43dc503eb20790ad0933"
+  }
+}

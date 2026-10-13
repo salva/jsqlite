@@ -1,3 +1,4 @@
+import {resolvedViewTable,NameResolutionError} from './resolve.ts';
 import {pragmaNames} from './pragma-names.ts';
 import {JSQLiteError} from '../index.ts';
 import type {PragmaNode} from './parse.ts';
@@ -42,8 +43,13 @@ export function compilePragma(node:PragmaNode,schema:SchemaGraph,maxRows:number,
  if(name==='database_list'){
   for(const database of databases)emit([database.sequence,database.name,database.file]);
  }else if(names.length>0&&node.argument!==null&&db!=='temp'){
-  const key=sqliteAsciiFold(node.argument),table=findSchemaTable(schema,key);
-  if((name==='table_info'||extended)&&!table&&schema.views.has(key))throw new JSQLiteError('unsupported','PRAGMA view column derivation is not implemented',{unsupportedClassification:'temporary'});
+  const key=sqliteAsciiFold(node.argument);let table=findSchemaTable(schema,key);
+  if((name==='table_info'||extended)&&!table&&schema.views.has(key)){
+   check();
+   try{table=resolvedViewTable(schema.views.get(key)!,{...schema,viewMetadata:true,check});}
+   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+   check();
+  }
   if(name==='index_list'){
    for(const [i,index] of (table?.indexes??[]).entries())emit([i,index.name,index.unique?1:0,{create:'c',unique:'u','primary-key':'pk'}[index.origin],index.partialWhere?1:0]);
   }else if(name==='index_info'||name==='index_xinfo'){

@@ -25,7 +25,7 @@ export function transientColumnNames(names:readonly string[]):readonly string[]{
  return Object.freeze(result);
 }
 
-export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>;readonly views?:ReadonlyMap<string,ViewNode>}
+export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>;readonly views?:ReadonlyMap<string,ViewNode>;readonly viewMetadata?:boolean;readonly check?:()=>void}
 export interface ResolvedSource extends Omit<SourceItem,'cursorId'|'table'>{readonly cursorId:number;readonly table:TableNode}
 export interface ResultColumnDescriptor {readonly name:string;readonly declaredType:string|null;readonly database:string|null;readonly table:string|null;readonly origin:string|null;readonly affinity:ColumnNode['affinity']|null;readonly collation:string}
 export interface ResolvedColumnRef {readonly source:ResolvedSource;readonly columnIndex:number;readonly name:string}
@@ -466,20 +466,43 @@ function expressionListForResolve(node:LemonValue<SqlToken>):readonly ExprNode[]
 // transient source before resolve.c walks its consumers. Keep stored view output
 // names separate from the linked producer's underlying column provenance.
 const resolvingViews=new Set<ViewNode>();
-function resolvedViewTable(view:ViewNode,schema:ResolutionSchema):TableNode{
+// SQLITE_AFF_NONE is distinct from BLOB although both need no coercion.
+// Keep the source value alongside browser-safe Column affinity for metadata
+// producers; consumers must not infer NONE from absent declaredType.
+const metadataAffinities=new WeakMap<ColumnNode,ColumnNode['affinity']|undefined>();
+function columnExpressionAffinity(column:ColumnNode|undefined):ColumnNode['affinity']|undefined{
+ return column&&metadataAffinities.has(column)?metadataAffinities.get(column):column?.affinity;
+}
+export function resolvedViewTable(view:ViewNode,schema:ResolutionSchema):TableNode{
  if(resolvingViews.has(view))throw new NameResolutionError(`view ${view.name} is circularly defined`);
+ schema.check?.();
  resolvingViews.add(view);
  try{
   const producer=expandAndResolveSelect(view.select,schema);
-  if(view.columns.length&&view.columns.length!==producer.result.length)throw new NameResolutionError(`expected ${view.columns.length} columns for '${view.name}' but got ${producer.result.length}`);
+  if(!schema.viewMetadata&&view.columns.length&&view.columns.length!==producer.result.length)throw new NameResolutionError(`expected ${view.columns.length} columns for '${view.name}' but got ${producer.result.length}`);
   const names=transientColumnNames(view.columns.length?view.columns:producer.result.map(item=>item.name));
-  const columns=names.map((name,index)=>{const descriptor=producer.result[index]!.descriptor;return {szEst:0,name,declaredType:transientDeclaredType(descriptor.declaredType,descriptor.affinity??'blob'),affinity:descriptor.affinity??'blob',collation:descriptor.collation,primaryKeyPosition:null} as ColumnNode;});
+  // build.c viewGetColumnNames uses SQLITE_AFF_NONE for metadata, not the
+  // BLOB default used by materialized SELECT sources. Explicit arity mismatch
+  // retains names without assigning types (SELECT consumption still errors).
+  const columns=names.map((name,index)=>{
+   schema.check?.();
+   const item=producer.result[index],descriptor=item?.descriptor;
+   const affinity=item?.expression.reduction?resolvedExpressionAffinity(item.expression.reduction,producer):item?.source&&item.columnIndex!==null?item.columnIndex<0?'integer':columnExpressionAffinity(item.source.table.columns[item.columnIndex]):descriptor?.affinity;
+   const hasTypes=!view.columns.length||view.columns.length===producer.result.length;
+   const declaredType=schema.viewMetadata
+    ?(!hasTypes?null:affinity===undefined||affinity===null?descriptor?.declaredType??null:transientDeclaredType(descriptor?.declaredType??null,affinity))
+    :transientDeclaredType(descriptor!.declaredType,descriptor!.affinity??'blob');
+   const column={szEst:0,name,declaredType,affinity:affinity??'blob',collation:descriptor?.collation??'BINARY',primaryKeyPosition:null} as ColumnNode;
+   if(schema.viewMetadata)metadataAffinities.set(column,hasTypes?affinity??undefined:undefined);
+   return column;
+  });
   const table={integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:'table',name:view.name,tableName:view.name,rootPage:0,columns,indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:view.sql} as TableNode;
   bindTransientProducer(table,producer);
   return table;
  }finally{resolvingViews.delete(view)}
 }
 export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema,outer:NameContext|null=null,cursorBase=0,transientTables:ReadonlyMap<number,TableNode>=new Map()):ResolvedSelect{
+ schema.check?.();
  const limitContext:NameContext={sources:[],pNext:null,columnUses:[],nRef:0};
  // resolve.c resolveSelectStep resolves LIMIT/OFFSET with an empty context:
  // neither this SELECT's sources nor an outer correlated frame is visible.
@@ -681,7 +704,7 @@ export function resolvedExpressionAffinity(expression:LemonValue<SqlToken>,plan:
   const likely=deferredLikelyArgument(node);
   if(likely){node=likely;continue;}
   const merged=resolvedDeferredCoalesce(node,plan)?.mergedSources?.[0];
-  if(merged)return merged.columnIndex<0?'integer':merged.source.table.columns[merged.columnIndex]?.affinity;
+  if(merged)return merged.columnIndex<0?'integer':columnExpressionAffinity(merged.source.table.columns[merged.columnIndex]);
 
   const child=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
   if(node.signature==='expr ::= LP expr RP'||node.signature.startsWith('expr ::= expr COLLATE')){if(!child)return undefined;node=child;continue;}
@@ -707,10 +730,10 @@ export function resolvedExpressionAffinity(expression:LemonValue<SqlToken>,plan:
   const use=plan.columnUses.find(use=>use.expression===node);
   if(!use){
    const result=plan.result.find(result=>(result.expression.reduction===node||result.expression.reduction===expression));
-   if(result?.source&&result.columnIndex!==null)return result.columnIndex<0?'integer':result.source.table.columns[result.columnIndex]?.affinity;
+   if(result?.source&&result.columnIndex!==null)return result.columnIndex<0?'integer':columnExpressionAffinity(result.source.table.columns[result.columnIndex]);
    return undefined;
   }
-  return use.columnIndex<0?'integer':use.source.table.columns[use.columnIndex]?.affinity;
+  return use.columnIndex<0?'integer':columnExpressionAffinity(use.source.table.columns[use.columnIndex]);
  }
 }
 

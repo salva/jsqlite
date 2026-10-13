@@ -1,0 +1,4310 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "image": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-view-red/UTF-8.db",
+      "base64": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAADgAAAAMAAAAAAAAAAAAAAA4AAAAEAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAC6VzA0AAAAOCyoAD7sO1Q6GDjMN9g24DXoNAgy6DHEMKwvJC3kLKgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABNDgYVIyMIZ3ZpZXdub2FmZm5lc3RlZG5vYWZmbmVzdGVkQ1JFQVRFIFZJRVcgbm9hZmZuZXN0ZWQgQVMgU0VMRUNUICogRlJPTSBleHByTg0GFSEhCG12aWV3YmxvYm5lc3RlZGJsb2JuZXN0ZWRDUkVBVEUgVklFVyBibG9ibmVzdGVkIEFTIFNFTEVDVCAqIEZST00gYmxvYnZpZXdgDAcVHR0IgRd2aWV3YmxvYnZpZXdibG9idmlld0NSRUFURSBWSUVXIGJsb2J2aWV3IEFTIFNFTEVDVCBDQVNUKGEgQVMgQkxPQikgQVMgYiwgTlVMTCBBUyBuIEZST00gdEQLBhUfHwhddmlld2JhZHNvdXJjZWJhZHNvdXJjZUNSRUFURSBWSUVXIGJhZHNvdXJjZSBBUyBTRUxFQ1QgeiBGUk9NIHRHCgYVHR0IZ3ZpZXdiYWRhcml0eWJhZGFyaXR5Q1JFQVRFIFZJRVcgYmFkYXJpdHkoeCx5KSBBUyBTRUxFQ1QgaWQgRlJPTSB0RgkGFRkZCG12aWV3cSB2aWV3cSB2aWV3Q1JFQVRFIFZJRVcgInEgdmlldyIoInEgY29sIikgQVMgU0VMRUNUIHMgRlJPTSB0dggHFRUVCIFTdmlld2V4cHJleHByQ1JFQVRFIFZJRVcgZXhwciBBUyBTRUxFQ1QgQ0FTVChpZCBBUyBURVhUKSBBUyBjYXN0ZWQsIGlkKzEgQVMgcGx1cywgTlVMTCBBUyBuaWwsICd4JyBBUyBsaXQgRlJPTSB0PAcGFRMTCGV2aWV3ZHVwZHVwQ1JFQVRFIFZJRVcgZHVwIEFTIFNFTEVDVCBhLGEsaWQgQVMgYSBGUk9NIHQ8BgYVFxcIXXZpZXdjeWNsZWN5Y2xlQ1JFQVRFIFZJRVcgY3ljbGUgQVMgU0VMRUNUICogRlJPTSBjeWNsZTsFBhUZGQhXdmlld25lc3RlZG5lc3RlZENSRUFURSBWSUVXIG5lc3RlZCBBUyBTRUxFQ1QgKiBGUk9NIHZRBAYVHR0Ie3ZpZXdleHBsaWNpdGV4cGxpY2l0Q1JFQVRFIFZJRVcgZXhwbGljaXQoInF1b3RlZCBhIixiKSBBUyBTRUxFQ1QgYSxhIEZST00gdE0DBxUPDwiBDXZpZXd2dkNSRUFURSBWSUVXIHYgQVMgU0VMRUNUIGlkLGEsdixzLGlkKzEgQVMgZXhwcixOVUxMIEFTIG5pbCBGUk9NIHSBYwIHFw8PAYM1dGFibGV0dANDUkVBVEUgVEFCTEUgdChpZCBJTlRFR0VSIFBSSU1BUlkgS0VZLCBhIFRFWFQgTk9UIE5VTEwgREVGQVVMVCAoJ1gnKSwgdiBJTlQgR0VORVJBVEVEIEFMV0FZUyBBUyAobGVuZ3RoKGEpKSBWSVJUVUFMLCBzIElOVCBHRU5FUkFURUQgQUxXQVlTIEFTIChpZCsxKSBTVE9SRUQsIHAgSU5UIFJFRkVSRU5DRVMgcGFyZW50KGlkKSBPTiBERUxFVEUgU0VUIE5VTEwpIFNUUklDVEMBBhcZGQFjdGFibGVwYXJlbnRwYXJlbnQCQ1JFQVRFIFRBQkxFIHBhcmVudChpZCBJTlRFR0VSIFBSSU1BUlkgS0VZKQ0AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "sha256": "7f6bf0eae657d8b10959d79066cada45a2ea7580bdd412519c2e40459e8d8f0f",
+      "cases": [
+        {
+          "sql": "PRAGMA table_info(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(explicit)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "quoted a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(nested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(cycle)",
+          "prepareCode": 1,
+          "error": "view cycle is circularly defined"
+        },
+        {
+          "sql": "PRAGMA table_info(missing)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA table_info(dup)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a:1"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "a:2"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(expr)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "casted"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "plus"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "lit"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA main.table_info(\"q view\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "q col"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(badarity)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "y"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(badsource)",
+          "prepareCode": 1,
+          "error": "no such column: z"
+        },
+        {
+          "sql": "PRAGMA temp.table_info(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA absent.table_info(v)",
+          "prepareCode": 1,
+          "error": "unknown database absent"
+        },
+        {
+          "sql": "PRAGMA table_info(v); SELECT 7",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": " SELECT 7",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(blobview)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "n"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(blobnested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "n"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(noaffnested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "casted"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "plus"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "lit"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "image": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-view-red/UTF-16le.db",
+      "base64": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAADgAAAAMAAAAAAAAAAAAAAA4AAAAEAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAC6VzA0AAAAOBrcAD30NvA0mDIYMEwueCykKQQm3CSsIpQfpB08GtwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgRUOBx05OQiBQXYAaQBlAHcAbgBvAGEAZgBmAG4AZQBzAHQAZQBkAG4AbwBhAGYAZgBuAGUAcwB0AGUAZABDAFIARQBBAFQARQAgAFYASQBFAFcAIABuAG8AYQBmAGYAbgBlAHMAdABlAGQAIABBAFMAIABTAEUATABFAEMAVAAgACoAIABGAFIATwBNACAAZQB4AHAAcgCBFw0HHTU1CIFNdgBpAGUAdwBiAGwAbwBiAG4AZQBzAHQAZQBkAGIAbABvAGIAbgBlAHMAdABlAGQAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAYgBsAG8AYgBuAGUAcwB0AGUAZAAgAEEAUwAgAFMARQBMAEUAQwBUACAAKgAgAEYAUgBPAE0AIABiAGwAbwBiAHYAaQBlAHcAgTkMBx0tLQiCIXYAaQBlAHcAYgBsAG8AYgB2AGkAZQB3AGIAbABvAGIAdgBpAGUAdwBDAFIARQBBAFQARQAgAFYASQBFAFcAIABiAGwAbwBiAHYAaQBlAHcAIABBAFMAIABTAEUATABFAEMAVAAgAEMAQQBTAFQAKABhACAAQQBTACAAQgBMAE8AQgApACAAQQBTACAAYgAsACAATgBVAEwATAAgAEEAUwAgAG4AIABGAFIATwBNACAAdACBAwsHHTExCIEtdgBpAGUAdwBiAGEAZABzAG8AdQByAGMAZQBiAGEAZABzAG8AdQByAGMAZQBDAFIARQBBAFQARQAgAFYASQBFAFcAIABiAGEAZABzAG8AdQByAGMAZQAgAEEAUwAgAFMARQBMAEUAQwBUACAAegAgAEYAUgBPAE0AIAB0AIEJCgcdLS0IgUF2AGkAZQB3AGIAYQBkAGEAcgBpAHQAeQBiAGEAZABhAHIAaQB0AHkAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAYgBhAGQAYQByAGkAdAB5ACgAeAAsAHkAKQAgAEEAUwAgAFMARQBMAEUAQwBUACAAaQBkACAARgBSAE8ATQAgAHQAgQcJBx0lJQiBTXYAaQBlAHcAcQAgAHYAaQBlAHcAcQAgAHYAaQBlAHcAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAIgBxACAAdgBpAGUAdwAiACgAIgBxACAAYwBvAGwAIgApACAAQQBTACAAUwBFAEwARQBDAFQAIABzACAARgBSAE8ATQAgAHQAgWUIBx0dHQiDGXYAaQBlAHcAZQB4AHAAcgBlAHgAcAByAEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAGUAeABwAHIAIABBAFMAIABTAEUATABFAEMAVAAgAEMAQQBTAFQAKABpAGQAIABBAFMAIABUAEUAWABUACkAIABBAFMAIABjAGEAcwB0AGUAZAAsACAAaQBkACsAMQAgAEEAUwAgAHAAbAB1AHMALAAgAE4AVQBMAEwAIABBAFMAIABuAGkAbAAsACAAJwB4ACcAIABBAFMAIABsAGkAdAAgAEYAUgBPAE0AIAB0AHMHBx0ZGQiBPXYAaQBlAHcAZAB1AHAAZAB1AHAAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAZAB1AHAAIABBAFMAIABTAEUATABFAEMAVAAgAGEALABhACwAaQBkACAAQQBTACAAYQAgAEYAUgBPAE0AIAB0AHMGBx0hIQiBLXYAaQBlAHcAYwB5AGMAbABlAGMAeQBjAGwAZQBDAFIARQBBAFQARQAgAFYASQBFAFcAIABjAHkAYwBsAGUAIABBAFMAIABTAEUATABFAEMAVAAgACoAIABGAFIATwBNACAAYwB5AGMAbABlAHEFBx0lJQiBIXYAaQBlAHcAbgBlAHMAdABlAGQAbgBlAHMAdABlAGQAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAbgBlAHMAdABlAGQAIABBAFMAIABTAEUATABFAEMAVAAgACoAIABGAFIATwBNACAAdgCBHQQHHS0tCIFpdgBpAGUAdwBlAHgAcABsAGkAYwBpAHQAZQB4AHAAbABpAGMAaQB0AEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAGUAeABwAGwAaQBjAGkAdAAoACIAcQB1AG8AdABlAGQAIABhACIALABiACkAIABBAFMAIABTAEUATABFAEMAVAAgAGEALABhACAARgBSAE8ATQAgAHQAgRMDBx0REQiCDXYAaQBlAHcAdgB2AEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAHYAIABBAFMAIABTAEUATABFAEMAVAAgAGkAZAAsAGEALAB2ACwAcwAsAGkAZAArADEAIABBAFMAIABlAHgAcAByACwATgBVAEwATAAgAEEAUwAgAG4AaQBsACAARgBSAE8ATQAgAHQAgz4CByEREQGGXXQAYQBiAGwAZQB0AHQAA0MAUgBFAEEAVABFACAAVABBAEIATABFACAAdAAoAGkAZAAgAEkATgBUAEUARwBFAFIAIABQAFIASQBNAEEAUgBZACAASwBFAFkALAAgAGEAIABUAEUAWABUACAATgBPAFQAIABOAFUATABMACAARABFAEYAQQBVAEwAVAAgACgAJwBYACcAKQAsACAAdgAgAEkATgBUACAARwBFAE4ARQBSAEEAVABFAEQAIABBAEwAVwBBAFkAUwAgAEEAUwAgACgAbABlAG4AZwB0AGgAKABhACkAKQAgAFYASQBSAFQAVQBBAEwALAAgAHMAIABJAE4AVAAgAEcARQBOAEUAUgBBAFQARQBEACAAQQBMAFcAQQBZAFMAIABBAFMAIAAoAGkAZAArADEAKQAgAFMAVABPAFIARQBEACwAIABwACAASQBOAFQAIABSAEUARgBFAFIARQBOAEMARQBTACAAcABhAHIAZQBuAHQAKABpAGQAKQAgAE8ATgAgAEQARQBMAEUAVABFACAAUwBFAFQAIABOAFUATABMACkAIABTAFQAUgBJAEMAVACBAAEHISUlAYE5dABhAGIAbABlAHAAYQByAGUAbgB0AHAAYQByAGUAbgB0AAJDAFIARQBBAFQARQAgAFQAQQBCAEwARQAgAHAAYQByAGUAbgB0ACgAaQBkACAASQBOAFQARQBHAEUAUgAgAFAAUgBJAE0AQQBSAFkAIABLAEUAWQApAA0AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "sha256": "01889c78dd562d0d0375499c286aada62daf5a294a234487e35dbf7184a6e535",
+      "cases": [
+        {
+          "sql": "PRAGMA table_info(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(explicit)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "quoted a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(nested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(cycle)",
+          "prepareCode": 1,
+          "error": "view cycle is circularly defined"
+        },
+        {
+          "sql": "PRAGMA table_info(missing)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA table_info(dup)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a:1"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "a:2"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(expr)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "casted"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "plus"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "lit"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA main.table_info(\"q view\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "q col"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(badarity)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "y"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(badsource)",
+          "prepareCode": 1,
+          "error": "no such column: z"
+        },
+        {
+          "sql": "PRAGMA temp.table_info(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA absent.table_info(v)",
+          "prepareCode": 1,
+          "error": "unknown database absent"
+        },
+        {
+          "sql": "PRAGMA table_info(v); SELECT 7",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": " SELECT 7",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(blobview)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "n"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(blobnested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "n"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(noaffnested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "casted"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "plus"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "lit"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "image": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-view-red/UTF-16be.db",
+      "base64": "U1FMaXRlIGZvcm1hdCAzABAAAQEAQCAgAAAADgAAAAMAAAAAAAAAAAAAAA4AAAAEAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAC6VzA0AAAAOBrcAD30NvA0mDIYMEwueCykKQQm3CSsIpQfpB08GtwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgRUOBx05OQiBQQB2AGkAZQB3AG4AbwBhAGYAZgBuAGUAcwB0AGUAZABuAG8AYQBmAGYAbgBlAHMAdABlAGQAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAbgBvAGEAZgBmAG4AZQBzAHQAZQBkACAAQQBTACAAUwBFAEwARQBDAFQAIAAqACAARgBSAE8ATQAgAGUAeABwAHKBFw0HHTU1CIFNAHYAaQBlAHcAYgBsAG8AYgBuAGUAcwB0AGUAZABiAGwAbwBiAG4AZQBzAHQAZQBkAEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAGIAbABvAGIAbgBlAHMAdABlAGQAIABBAFMAIABTAEUATABFAEMAVAAgACoAIABGAFIATwBNACAAYgBsAG8AYgB2AGkAZQB3gTkMBx0tLQiCIQB2AGkAZQB3AGIAbABvAGIAdgBpAGUAdwBiAGwAbwBiAHYAaQBlAHcAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAYgBsAG8AYgB2AGkAZQB3ACAAQQBTACAAUwBFAEwARQBDAFQAIABDAEEAUwBUACgAYQAgAEEAUwAgAEIATABPAEIAKQAgAEEAUwAgAGIALAAgAE4AVQBMAEwAIABBAFMAIABuACAARgBSAE8ATQAgAHSBAwsHHTExCIEtAHYAaQBlAHcAYgBhAGQAcwBvAHUAcgBjAGUAYgBhAGQAcwBvAHUAcgBjAGUAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAYgBhAGQAcwBvAHUAcgBjAGUAIABBAFMAIABTAEUATABFAEMAVAAgAHoAIABGAFIATwBNACAAdIEJCgcdLS0IgUEAdgBpAGUAdwBiAGEAZABhAHIAaQB0AHkAYgBhAGQAYQByAGkAdAB5AEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAGIAYQBkAGEAcgBpAHQAeQAoAHgALAB5ACkAIABBAFMAIABTAEUATABFAEMAVAAgAGkAZAAgAEYAUgBPAE0AIAB0gQcJBx0lJQiBTQB2AGkAZQB3AHEAIAB2AGkAZQB3AHEAIAB2AGkAZQB3AEMAUgBFAEEAVABFACAAVgBJAEUAVwAgACIAcQAgAHYAaQBlAHcAIgAoACIAcQAgAGMAbwBsACIAKQAgAEEAUwAgAFMARQBMAEUAQwBUACAAcwAgAEYAUgBPAE0AIAB0gWUIBx0dHQiDGQB2AGkAZQB3AGUAeABwAHIAZQB4AHAAcgBDAFIARQBBAFQARQAgAFYASQBFAFcAIABlAHgAcAByACAAQQBTACAAUwBFAEwARQBDAFQAIABDAEEAUwBUACgAaQBkACAAQQBTACAAVABFAFgAVAApACAAQQBTACAAYwBhAHMAdABlAGQALAAgAGkAZAArADEAIABBAFMAIABwAGwAdQBzACwAIABOAFUATABMACAAQQBTACAAbgBpAGwALAAgACcAeAAnACAAQQBTACAAbABpAHQAIABGAFIATwBNACAAdHMHBx0ZGQiBPQB2AGkAZQB3AGQAdQBwAGQAdQBwAEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAGQAdQBwACAAQQBTACAAUwBFAEwARQBDAFQAIABhACwAYQAsAGkAZAAgAEEAUwAgAGEAIABGAFIATwBNACAAdHMGBx0hIQiBLQB2AGkAZQB3AGMAeQBjAGwAZQBjAHkAYwBsAGUAQwBSAEUAQQBUAEUAIABWAEkARQBXACAAYwB5AGMAbABlACAAQQBTACAAUwBFAEwARQBDAFQAIAAqACAARgBSAE8ATQAgAGMAeQBjAGwAZXEFBx0lJQiBIQB2AGkAZQB3AG4AZQBzAHQAZQBkAG4AZQBzAHQAZQBkAEMAUgBFAEEAVABFACAAVgBJAEUAVwAgAG4AZQBzAHQAZQBkACAAQQBTACAAUwBFAEwARQBDAFQAIAAqACAARgBSAE8ATQAgAHaBHQQHHS0tCIFpAHYAaQBlAHcAZQB4AHAAbABpAGMAaQB0AGUAeABwAGwAaQBjAGkAdABDAFIARQBBAFQARQAgAFYASQBFAFcAIABlAHgAcABsAGkAYwBpAHQAKAAiAHEAdQBvAHQAZQBkACAAYQAiACwAYgApACAAQQBTACAAUwBFAEwARQBDAFQAIABhACwAYQAgAEYAUgBPAE0AIAB0gRMDBx0REQiCDQB2AGkAZQB3AHYAdgBDAFIARQBBAFQARQAgAFYASQBFAFcAIAB2ACAAQQBTACAAUwBFAEwARQBDAFQAIABpAGQALABhACwAdgAsAHMALABpAGQAKwAxACAAQQBTACAAZQB4AHAAcgAsAE4AVQBMAEwAIABBAFMAIABuAGkAbAAgAEYAUgBPAE0AIAB0gz4CByEREQGGXQB0AGEAYgBsAGUAdAB0AwBDAFIARQBBAFQARQAgAFQAQQBCAEwARQAgAHQAKABpAGQAIABJAE4AVABFAEcARQBSACAAUABSAEkATQBBAFIAWQAgAEsARQBZACwAIABhACAAVABFAFgAVAAgAE4ATwBUACAATgBVAEwATAAgAEQARQBGAEEAVQBMAFQAIAAoACcAWAAnACkALAAgAHYAIABJAE4AVAAgAEcARQBOAEUAUgBBAFQARQBEACAAQQBMAFcAQQBZAFMAIABBAFMAIAAoAGwAZQBuAGcAdABoACgAYQApACkAIABWAEkAUgBUAFUAQQBMACwAIABzACAASQBOAFQAIABHAEUATgBFAFIAQQBUAEUARAAgAEEATABXAEEAWQBTACAAQQBTACAAKABpAGQAKwAxACkAIABTAFQATwBSAEUARAAsACAAcAAgAEkATgBUACAAUgBFAEYARQBSAEUATgBDAEUAUwAgAHAAYQByAGUAbgB0ACgAaQBkACkAIABPAE4AIABEAEUATABFAFQARQAgAFMARQBUACAATgBVAEwATAApACAAUwBUAFIASQBDAFSBAAEHISUlAYE5AHQAYQBiAGwAZQBwAGEAcgBlAG4AdABwAGEAcgBlAG4AdAIAQwBSAEUAQQBUAEUAIABUAEEAQgBMAEUAIABwAGEAcgBlAG4AdAAoAGkAZAAgAEkATgBUAEUARwBFAFIAIABQAFIASQBNAEEAUgBZACAASwBFAFkAKQ0AAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "sha256": "f0132f163a4785f97fcca2ee978d027f9833e75eafccd61bdaf67670d1866567",
+      "cases": [
+        {
+          "sql": "PRAGMA table_info(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(explicit)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "quoted a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(nested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(cycle)",
+          "prepareCode": 1,
+          "error": "view cycle is circularly defined"
+        },
+        {
+          "sql": "PRAGMA table_info(missing)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA table_info(dup)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a:1"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "a:2"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(expr)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "casted"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "plus"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "lit"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA main.table_info(\"q view\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "q col"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(badarity)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "y"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(badsource)",
+          "prepareCode": 1,
+          "error": "no such column: z"
+        },
+        {
+          "sql": "PRAGMA temp.table_info(v)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA absent.table_info(v)",
+          "prepareCode": 1,
+          "error": "unknown database absent"
+        },
+        {
+          "sql": "PRAGMA table_info(v); SELECT 7",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": " SELECT 7",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "expr"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "5"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(blobview)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "n"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(blobnested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "n"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(noaffnested)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "casted"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "plus"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "nil"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "lit"
+              },
+              {
+                "type": 3,
+                "value": ""
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
