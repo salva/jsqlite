@@ -895,3 +895,51 @@ is absent (3399 dirty entries, unchanged index/HEAD); broader native storage/
 cursor-mode fidelity questions from prior review are not resolved by green tests.
 Planner must settle coherent scoped delivery/remaining fidelity evidence, rather
 than manufacture tests or destructive cleanup. Current API/gates unchanged.
+
+## MAIN scoped follow-up integration
+
+[[card:card-m-f-k]] integrates the reviewed owning repairs as
+`e17d3a12ad76085b5666010fabbf038f653f60ec` (HEAD-relative to ef62b9c5).
+22 selected paths: parse/resolve/vdbe, parser SrcItem guard, packed success/error
+queries/captures/public/resource tests and capture script, two writer/admission
+files, diagnostic runner/generator/accounting and selected CONFORMANCE,
+TRANSLATION/source-map/audit sections plus this research. API inspected: its only
+current diff is unrelated PRAGMA work, so excluded. Also excluded all other
+PRAGMA/window/bitwise/STAT/w/e source/docs/tests and peer staged deletions.
+Guide/map select only expression hunks; audit selects only packed disposition at
+top; CONFORMANCE selects historical/current diagnostic ownership, not STAT or
+join-barrier histories. No product guarantee or gate expansion.
+
+Separate delivery index built from exact HEAD; commit did not stage peer work.
+Purpose-named card work `main-followup` retains head-work.diff, includes.json,
+index-before/index-after/index-changes.json and status-before (3399 entries).
+Real-index comparison proves changes confined to18 selected paths and every
+other entry byte-identical. Three-way index overlaps in resolve and diagnostic/
+parser/docs files were not discarded: resolve applies only error-class and
+collation-code changes atop peer index; four other conflicting index versions
+remain verbatim. They consequently retain staged inverse deltas relative to new
+HEAD, not missing delivered work. No global clean-tree claim.
+
+Failed attempts: partial context patch assembly rejected guide hunks twice
+(proc-6edd6b95e25a,proc-3cee9a2dcfac); fixed by exact HEAD line-range reconstruction
+in separate index. Index merge rejected resolve then diagnostic overlap
+(proc-dfcd35b0bea9,proc-bfc4768c8792); handled explicitly as above, not reset.
+These were integration mechanics, not hidden failing SQL or test results.
+
+Postcommit fail-fast proc-d49c6cff2c3b (waited terminal exit0): typecheck;
+explicit CHINOOK_DB examples/browser/chinook.sqlite affected parser/routes/
+foundation/Chinook/composition/all row-vector/all value952/952, no fail/cancel/
+skip/todo; package boundary; accounting4/4; deterministic diagnostic generator;
+diff hygiene. Returned stdout final totals read at93200. It includes native/public
+metadata/error and resource schedules, not just prepare probes. proc-10287f72084b
+explicit pinned membership and error recaptures byte-identical, HEAD show-check,
+postcheck real index byte-identical to saved after-index. Captures cover31 success
+and15 error SQL across3 encodings with metadata/typed rows/reset and phase/codes/
+recovery as specified in the fixtures. Earlier111 focused pass remains red-node
+provenance, not substituted for postcommit952.
+
+No remaining concrete reproduced practical joined-IN lowering gap found in this
+admitted slice. Representative writer/control/accounting delivery now complete;
+optional persistent/rowid/NOOP optimization and exhaustive allocator/balancing/
+error schedules remain unclaimed backlog, not an unspecified acceptance blocker.
+This is scoped delivery, not full-product or peer audit acceptance.
