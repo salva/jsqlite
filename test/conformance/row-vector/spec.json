@@ -1,0 +1,262 @@
+{
+  "schema": "jsqlite-row-vector-spec/1",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "setup": [
+    "CREATE TABLE pairs(id INTEGER PRIMARY KEY,a NUMERIC,b TEXT COLLATE NOCASE)",
+    "INSERT INTO pairs VALUES(1,1,'Alpha'),(2,2,'beta'),(3,NULL,NULL),(4,1,'ALPHA')",
+    "CREATE TABLE t1(x,y)",
+    "INSERT INTO t1 VALUES(1,1),(1,2),(2,3),(2,4),(3,5),(3,6)"
+  ],
+  "cases": [
+    {
+      "id": "rowvalue-1.1.eq",
+      "sql": "SELECT (1,2,3) = (1,2,3)",
+      "upstream": "rowvalue.test:1.1.eq",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.3.eq",
+      "sql": "SELECT (1,2,NULL) = (1,2,3)",
+      "upstream": "rowvalue.test:1.3.eq",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.7.eq",
+      "sql": "SELECT (1,NULL,1) = (1,1,2)",
+      "upstream": "rowvalue.test:1.7.eq",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.1.ne",
+      "sql": "SELECT (1,2,3) != (1,2,3)",
+      "upstream": "rowvalue.test:1.1.ne",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.3.ne",
+      "sql": "SELECT (1,2,NULL) != (1,2,3)",
+      "upstream": "rowvalue.test:1.3.ne",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.7.ne",
+      "sql": "SELECT (1,NULL,1) != (1,1,2)",
+      "upstream": "rowvalue.test:1.7.ne",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.1.is",
+      "sql": "SELECT (1,2,3) IS (1,2,3)",
+      "upstream": "rowvalue.test:1.1.is",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.3.is",
+      "sql": "SELECT (1,2,NULL) IS (1,2,3)",
+      "upstream": "rowvalue.test:1.3.is",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.7.is",
+      "sql": "SELECT (1,NULL,1) IS (1,1,2)",
+      "upstream": "rowvalue.test:1.7.is",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.1.isnot",
+      "sql": "SELECT (1,2,3) IS NOT (1,2,3)",
+      "upstream": "rowvalue.test:1.1.isnot",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.3.isnot",
+      "sql": "SELECT (1,2,NULL) IS NOT (1,2,3)",
+      "upstream": "rowvalue.test:1.3.isnot",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-1.7.isnot",
+      "sql": "SELECT (1,NULL,1) IS NOT (1,1,2)",
+      "upstream": "rowvalue.test:1.7.isnot",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-2.1.lt",
+      "sql": "SELECT (1,1,3) < (1,2,3)",
+      "upstream": "rowvalue.test:2.1.lt",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-2.1.gt",
+      "sql": "SELECT (1,1,3) > (1,2,3)",
+      "upstream": "rowvalue.test:2.1.gt",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-2.1.le",
+      "sql": "SELECT (1,1,3) <= (1,2,3)",
+      "upstream": "rowvalue.test:2.1.le",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-2.1.ge",
+      "sql": "SELECT (1,1,3) >= (1,2,3)",
+      "upstream": "rowvalue.test:2.1.ge",
+      "credit": 0
+    },
+    {
+      "id": "literal-in",
+      "sql": "SELECT (1,2) IN ((1,2),(3,4)),(1,2) NOT IN ((3,4),(1,2))",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "values-in",
+      "sql": "SELECT (1,2) IN (VALUES(1,2),(1,2),(3,4))",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "null-in",
+      "sql": "SELECT (1,NULL) IN (VALUES(1,2)),(9,NULL) IN (VALUES(1,2)),(1,NULL) NOT IN (VALUES(1,2))",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "empty-in",
+      "sql": "SELECT (NULL,2) IN (SELECT a,b FROM pairs WHERE 0),(NULL,2) NOT IN (SELECT a,b FROM pairs WHERE 0)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "affinity",
+      "sql": "SELECT id,(a,b)=('1','alpha'),(a,b) IN (SELECT a,b FROM pairs) FROM pairs ORDER BY id",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "collation",
+      "sql": "SELECT (1,'a' COLLATE NOCASE)=(1,'A'),(1,'a' COLLATE BINARY)=(1,'A' COLLATE NOCASE)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "mixed",
+      "sql": "SELECT (1,1.0)=(1.0,1),(1,'1')=(1,1),(1,x'00')<(1,x'01')",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "lazy-error",
+      "sql": "SELECT (0,abs(-9223372036854775808)) < (1,0)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "needed-error",
+      "sql": "SELECT (1,abs(-9223372036854775808)) < (1,0)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "arity-compare",
+      "sql": "SELECT (1,2)=(1,2,3)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "arity-in",
+      "sql": "SELECT (1,2) IN (SELECT a FROM pairs)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "row-projection",
+      "sql": "SELECT (1,2)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "join",
+      "sql": "SELECT p.id,q.id FROM pairs p JOIN pairs q ON (p.a,p.b)=(q.a,q.b) ORDER BY p.id,q.id",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "correlated",
+      "sql": "SELECT p.id,(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<=p.id) FROM pairs p ORDER BY p.id",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "multi-subquery",
+      "sql": "SELECT (1,'Alpha')=(SELECT a,b FROM pairs WHERE id=1)",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "where-vector",
+      "sql": "SELECT id FROM pairs WHERE (a,b)>=(1,'alpha') ORDER BY id",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "scalar-controls",
+      "sql": "SELECT id,a=1,CASE WHEN a BETWEEN 1 AND 2 THEN a ELSE 0 END,a IN(1,2) FROM pairs ORDER BY id",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "metadata-controls",
+      "sql": "SELECT pairs.a,pairs.b,a+b AS sum FROM pairs ORDER BY id",
+      "upstream": null,
+      "credit": 0
+    },
+    {
+      "id": "params",
+      "sql": "SELECT (?1,?2)=(1,2),(?1,?2) IN(VALUES(1,2),(3,4))",
+      "upstream": null,
+      "credit": 0,
+      "bindings": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "rowvalue-5.1",
+      "sql": "SELECT (2,4) IN(SELECT * FROM t1)",
+      "upstream": "rowvalue.test:5.1",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-5.2",
+      "sql": "SELECT (3,4) IN(SELECT * FROM t1)",
+      "upstream": "rowvalue.test:5.2",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-5.3",
+      "sql": "SELECT (NULL,4) IN(SELECT * FROM t1)",
+      "upstream": "rowvalue.test:5.3",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-5.4",
+      "sql": "SELECT (NULL,0) IN(SELECT * FROM t1)",
+      "upstream": "rowvalue.test:5.4",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-5.5",
+      "sql": "SELECT (NULL,4) NOT IN(SELECT * FROM t1)",
+      "upstream": "rowvalue.test:5.5",
+      "credit": 0
+    },
+    {
+      "id": "rowvalue-5.6",
+      "sql": "SELECT (NULL,0) NOT IN(SELECT * FROM t1)",
+      "upstream": "rowvalue.test:5.6",
+      "credit": 0
+    }
+  ]
+}
