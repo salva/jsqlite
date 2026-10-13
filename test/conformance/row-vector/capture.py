@@ -23,7 +23,7 @@ def run(d,c):
  for i,v in enumerate(c.get('bindings',[]),1):assert L.sqlite3_bind_int64(s,i,v)==0
  cols=[L.sqlite3_column_name(s,i).decode() for i in range(L.sqlite3_column_count(s))];rows=[]
  while (rc:=L.sqlite3_step(s))==100:rows.append([cell(s,i) for i in range(len(cols))])
- out={'columns':cols,'rows':rows} if rc==101 else {'error':{'phase':'step','code':rc,'message':L.sqlite3_errmsg(d).decode()}}
+ out={'columns':cols,'rows':rows} if rc==101 else {'columns':cols,'error':{'phase':'step','code':rc,'message':L.sqlite3_errmsg(d).decode()}}
  reset=L.sqlite3_reset(s);L.sqlite3_finalize(s);out['resetCode']=reset;return out
 out={'schema':'jsqlite-row-vector/1','sourceId':spec['sourceId'],'credit':0,'encodings':{}}
 outdir=root/'test/fixtures/row-vector';outdir.mkdir(parents=True,exist_ok=True)

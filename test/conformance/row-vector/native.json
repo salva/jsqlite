@@ -548,6 +548,9 @@
           "sql": "SELECT (1,abs(-9223372036854775808)) < (1,0)",
           "bindings": [],
           "native": {
+            "columns": [
+              "(1,abs(-9223372036854775808)) < (1,0)"
+            ],
             "error": {
               "phase": "step",
               "code": 1,
@@ -1599,6 +1602,9 @@
           "sql": "SELECT (1,abs(-9223372036854775808)) < (1,0)",
           "bindings": [],
           "native": {
+            "columns": [
+              "(1,abs(-9223372036854775808)) < (1,0)"
+            ],
             "error": {
               "phase": "step",
               "code": 1,
@@ -2650,6 +2656,9 @@
           "sql": "SELECT (1,abs(-9223372036854775808)) < (1,0)",
           "bindings": [],
           "native": {
+            "columns": [
+              "(1,abs(-9223372036854775808)) < (1,0)"
+            ],
             "error": {
               "phase": "step",
               "code": 1,

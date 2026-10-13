@@ -26,11 +26,12 @@ for(const [encoding,entry] of Object.entries(capture.encodings)){
   try{
     db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
     for(const c of entry.cases){
-      let statement,actual,error,resetError,finalizeError,firstErrorIdentity=false;
+      let statement,actual,columns,error,resetError,finalizeError,firstErrorIdentity=false,phase="prepare";
       try{
         statement=db.prepare(c.sql).statement;
         for(let i=0;i<(c.bindings??[]).length;i++)statement.bind(i+1,BigInt(c.bindings[i]));
-        const columns=Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i).name);
+        columns=Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i).name);
+        phase="step";
         const rows=[];
         while(await statement.step(c.operation)==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>typed(statement,i)));
         statement.reset();
@@ -48,12 +49,14 @@ for(const [encoding,entry] of Object.entries(capture.encodings)){
       const expected=c.native;
       const ok=expected.error
         ? error?.kind==='sqlite'&&error.code===expected.error.code&&error.message===expected.error.message&&
-          expected.error.phase==='step'&&resetError?.code===expected.resetCode&&resetError.message===expected.error.message&&
-          firstErrorIdentity&&finalizeError===undefined
+          phase===expected.error.phase&&
+          (phase==='prepare'?columns===undefined:same(columns,expected.columns))&&
+          (phase==='prepare'?statement===undefined&&resetError===undefined:
+            resetError?.code===expected.resetCode&&resetError.message===expected.error.message&&firstErrorIdentity)&&finalizeError===undefined
         : actual!==undefined&&same(actual.columns,expected.columns)&&same(actual.rows,expected.rows)&&
           same(actual.resetRows,expected.rows)&&actual.resetCode===expected.resetCode&&error===undefined&&finalizeError===undefined;
       ok?match++:mismatch++;
-      console.log(JSON.stringify({encoding,id:c.id,outcome:ok?'match':'mismatch-or-unimplemented',actual,error,resetError,firstErrorIdentity,finalizeError,credit:0}));
+      console.log(JSON.stringify({encoding,id:c.id,outcome:ok?'match':'mismatch-or-unimplemented',actual,columns,error,errorPhase:error?phase:undefined,resetError,firstErrorIdentity,finalizeError,credit:0}));
     }
   }finally{
     try{db?.closeDeferred()}catch{}
@@ -61,3 +64,5 @@ for(const [encoding,entry] of Object.entries(capture.encodings)){
   }
 }
 console.log(JSON.stringify({summary:{declared:Object.values(capture.encodings).reduce((n,e)=>n+e.cases.length,0),match,mismatch,credit:0}}));
+
+if(mismatch!==0)process.exitCode=1;
