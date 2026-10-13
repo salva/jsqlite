@@ -2226,13 +2226,17 @@ function expressionName(expression: SelectNode["result"][number]): string {
 /** Default select.c short-column-name behavior for a resolved JSON virtual
  * column. Keep expressionName() for computed expressions: its exact UTF-8
  * source span, including comments and spacing, is observable metadata. */
-function jsonResultMetadata(expression:SelectNode["result"][number],tree:Expression,starts:readonly number[],tables:readonly string[],physical?:TableNode):ColumnMetadata {
+function jsonResultMetadata(expression:SelectNode["result"][number],tree:Expression,starts:readonly number[],tables:readonly string[],physical?:TableNode,identities:readonly number[]=[]):ColumnMetadata {
   // select.c separates sqlite3GenerateColumnNames (which skips COLLATE)
   // from columnType (which does not). Preserve names, not column origins.
   if(tree.kind==="collate"){
-    const named=jsonResultMetadata(expression,tree.value,starts,tables,physical);
+    const named=jsonResultMetadata(expression,tree.value,starts,tables,physical,identities);
     return Object.freeze({name:named.name,declaredType:null,database:null,table:null,origin:null});
   }
+  // select.c columnType and column-name generation resolve implicit rowid
+  // separately from named payload fields (IPK aliases use their declared name).
+  if(tree.kind==="register"&&identities.includes(tree.index)){const source=identities.indexOf(tree.index);return Object.freeze({name:expression.alias??"rowid",declaredType:"INTEGER",database:"main",table:tables[source]!,origin:"rowid"});}
+  if(physical&&tree.kind==="column"&&tree.cursor===0&&tree.index<0){const ipk=physical.columns.findIndex((_,index)=>isIntegerPrimaryKeyAlias(physical,index)),column=physical.columns[ipk];const name=column?.name??"rowid";return Object.freeze({name:expression.alias??name,declaredType:column?.declaredType??"INTEGER",database:"main",table:physical.tableName,origin:name});}
   if(tree.kind==="register")for(let source=0;source<starts.length;source++){const index=tree.index-starts[source]!;if(index>=0&&index<JSON_TABLE_COLUMNS.length){const origin=JSON_TABLE_COLUMNS[index]!;return Object.freeze({name:expression.alias??origin,declaredType:index>=JSON_EACH_COLUMNS.length?"":null,database:"main",table:tables[source]!,origin});}}
   if(physical&&tree.kind==="column"&&tree.cursor===0&&tree.index>=0){const column=physical.columns[tree.index];if(column)return Object.freeze({name:expression.alias??column.name,declaredType:column.declaredType,database:"main",table:physical.tableName,origin:column.name});}
   return Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null});
@@ -6064,7 +6068,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     for(const output of outputs){registers++;ops.push({code:"Copy",p1:output,p2:registers});}if(shared?.consume){builder.registers=registers;shared.consume(out,outputs.length);registers=builder.registers;}else emitSelectDestination(ops,shared?.destination??{kind:"output"},out,outputs.length);
     const consumeReturn=ops.length;if(whereSkip!==null)(ops[whereSkip] as {p2:number}).p2=consumeReturn;ops.push({code:"Return",p1:returnReg});
     const halt=ops.length;(ops[finished] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
-    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>jsonResultMetadata(result,outputTrees[index]!,[rowStart],[jsonItem.tableName],table))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>jsonResultMetadata(result,outputTrees[index]!,[rowStart],[jsonItem.tableName],table,[jsonIdentity]))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
   if(select.from.items.length===2&&select.from.items.every(item=>jsonNames.has(item.tableName.toLowerCase()))){
     if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError("unsupported","this correlated JSON table composition is not implemented",{unsupportedClassification:"temporary"});

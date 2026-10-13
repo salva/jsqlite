@@ -149,7 +149,7 @@ internals, not host JSON.parse semantics. Tests
 [pattern/window](../test/conformance/ordinary-scalars-pattern-window.test.mjs).
 Evidence [[card:card-p]], [[card:card-q]], [[card:card-r]] and
 [card-r metadata status](record:///status.md?card=card-r).
-`json_pretty` remains temporary unsupported; built-in JSON is not a blanket gap.
+`json_pretty` accepted bounded delivery `f1eb053` is pending promotion into this candidate baseline; built-in JSON is not a blanket gap.
 Exact function tranche runs/IDs remain in existing oracle/conformance research,
 not duplicated here.
 
@@ -183,3 +183,20 @@ public typed, metadata/error/reset evidence across three encodings;
 [repair provenance](research/card-r-d-physical-json-repair.md),
 [verification bounds](research/card-r-e-mixed-json-verify.md).
 No host registration or generalized virtual-table planner credit.
+
+### Review27 mixed row identity and delivery state
+
+Mixed physical/JSON AggInfo input now retains separate physical OP_Rowid and
+JSON per-scan identity slots, including grouped sorter/saved rows. JSON identity
+resets to zero on rewind and increments on successful Next; unmatched LEFT
+extension is SQL NULL. rowid/_rowid_/oid are not JSON id/key/offset aliases.
+Direct implicit identity metadata follows select.c:columnType: INTEGER rowid
+origins, or the physical IPK declared name/type. Ordinary recursive aggregate
+input keeps its original layout, without the mixed rowIdentities flag.
+Pinned json.c:jsonEachCursorReset/Next/Rowid, expr.c negative-column lowering and
+select.c accumulator/metadata consumers map to vdbe.ts identity registers and
+AggInfo source/input/group capture. All-encoding IPK/non-IPK native/public
+companions are in json-mixed-rowid-integration.test.mjs;
+[correction evidence](research/card-r-e-review27-correction.md).
+Accepted pretty `f1eb053` remains bounded delivery pending promotion into this
+baseline, not a compatibility retraction or claim that it is integrated here.

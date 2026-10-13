@@ -426,7 +426,7 @@ select.c naming from columnType production. [Scoped integration evidence](resear
 bounds typed public/oracle comparisons and lifecycle schedules; it is not
 exhaustive JSON or virtual-table-planning parity.
 
-`json_pretty` remains recognized but temporary unsupported. Host extensions and
+`json_pretty` has accepted bounded delivery `f1eb053` (arities 1/2, default/custom indentation, subtype-0 TEXT, cooperative work/output/private-state controls). That delivery is pending promotion into this mixed candidate: its baseline does not contain the accepted pretty implementation. This is a delivery-state distinction, not an unsupported-function decision or implied integration. Host extensions and
 external virtual-table modules remain SPEC exclusions, not an excuse to exclude
 built-in JSON.
 
@@ -438,3 +438,20 @@ optimizer/index proofs and native intermediate scheduling equivalence remain
 visible roadmap work. Historical predictions are verified at the next consuming
 slice. No new implementation, compatibility credit, whole-project completion,
 operator/configuration changes or all-project cleanup gate is authorized here.
+
+### Review27 mixed row identity and delivery state
+
+Mixed physical/JSON AggInfo input now retains separate physical OP_Rowid and
+JSON per-scan identity slots, including grouped sorter/saved rows. JSON identity
+resets to zero on rewind and increments on successful Next; unmatched LEFT
+extension is SQL NULL. rowid/_rowid_/oid are not JSON id/key/offset aliases.
+Direct implicit identity metadata follows select.c:columnType: INTEGER rowid
+origins, or the physical IPK declared name/type. Ordinary recursive aggregate
+input keeps its original layout, without the mixed rowIdentities flag.
+Pinned json.c:jsonEachCursorReset/Next/Rowid, expr.c negative-column lowering and
+select.c accumulator/metadata consumers map to vdbe.ts identity registers and
+AggInfo source/input/group capture. All-encoding IPK/non-IPK native/public
+companions are in json-mixed-rowid-integration.test.mjs;
+[correction evidence](research/card-r-e-review27-correction.md).
+Accepted pretty `f1eb053` remains bounded delivery pending promotion into this
+baseline, not a compatibility retraction or claim that it is integrated here.
