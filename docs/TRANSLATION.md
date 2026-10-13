@@ -298,7 +298,16 @@ superseded borrowed membership evaluator has been removed, including aggregate
 join-key/projection and table LIMIT callers. Auxiliary compound set cursors remain
 separate consumers, not InSet fallback.
 First/Next includes index interior records; payload snapshots and LHS copies own
-charged scratch across awaits. Public VDBE private control also supplies synchronous
+charged scratch across awaits. MakeRecord predicts conversion scratch from
+the Mem representation and requested affinity/encoding: no allowance for
+no-conversion INTEGER/NULL/BLOB or same-encoding TEXT; actual numeric text
+scanning/stringification and UTF translation remain admitted before mutation
+and through packed admission. This is a conservative logical-byte bound, not
+native heap parity. [Conditional admission matrix and coordination](research/card-m-conditional-conversion-admission.md). Public VDBE private control also supplies synchronous
+snapshot work/cancellation/deadline checks before copying borrowed packed inputs;
+copying cannot yield until the immutable snapshot exists, then insertion resumes
+normal asynchronous checkpoints. [Large-input repair evidence](research/card-m-packed-independent-review.md#large-packed-snapshot-control-repair)
+bounds this copy-before-await adaptation, not native allocation/latency parity. Public VDBE private control also supplies synchronous
 snapshot work/cancellation/deadline checks before copying borrowed packed inputs;
 copying cannot yield until the immutable snapshot exists, then insertion resumes
 normal asynchronous checkpoints. [Large-input repair evidence](research/card-m-packed-independent-review.md#large-packed-snapshot-control-repair)

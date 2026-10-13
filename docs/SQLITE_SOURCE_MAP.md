@@ -88,6 +88,10 @@ packed BLOBKEY storage: `parse.y:seltablist` immediate `LP select RP` child →
 children, not independent metadata producers. Parser production guard and packed
 all-encoding ON scalar/vector/EXISTS controls map this seam; [R1 evidence](research/card-m-packed-independent-review.md#r1-repair--srcitem-production-ownership).
 `select.c:SRT_Set` → shared MakeRecord/IdxInsert destination;
+`vdbe.c:OP_MakeRecord` affinity-before-size → `Mem.recordConversionBytes`
+branch prediction + shared MakeRecord conditional scratch admission/finally;
+[owner matrix/tests/evidence](research/card-m-conditional-conversion-admission.md)
+maps no-op versus actual conversion and preserves packed admission/overlap.
 `vdbe.c:OP_IdxInsert` → PrivateKeyVmCursor.insert/private BLOBKEY packed snapshot;
 VDBE private control supplies synchronous bounded snapshot checks before borrowed
 input copying, followed by asynchronous insertion checks. Public all-encoding

@@ -47,3 +47,27 @@ owner test before coherent exact225/full current/browser48 reruns; do not reuse
 old green or stale dist. w owns its failure-companion reconciliation, not this
 card. No Chromium rerun claimed here. Existing companion mismatch and broader
 coordination remain explicit obligations, not a reason to restore false charge.
+
+## Delivery and current verification
+
+MAIN45bbacf0 delivers only21-line Mem predictor, MakeRecord comment/summation,
+new owner test and this matrix; JSON metadata dirty hunks excluded. Separate
+index from HEAD preserves real index byte-for-byte (cmp proc-80458444bbbb),
+including STAT4/STRICT/bitwise/docs/window/accounting peers. Real-index inverse
+deltas remain intentionally preserved rather than reset. Mem work→HEAD empty;
+vdbe remaining dirty hunks only JSON peers. No w harness/test edits.
+
+Postcommit proc-12a903a418ca && chain waited exit0: typecheck,802/802 all value +
+packed success/error/public-resource + window lookahead/rewrite, no fail/cancel/
+skip/todo, current source window observer peak359/reset/Delete/Next, diff hygiene.
+Totals explicitly read returned stdout79700. It includes new23 tests and actual
+conversion-admission record-pack control. Native fixture metadata/error tests
+remain distinct from logical-byte assertions. Earlier proc-a0945c033864802/801
+failure was alias test finalization rethrowing saved error; test now checks reset
+identity before finalize, runtime unchanged. proc-fd1c27e5ecc2797/796 companion
+mismatch remains w-owned, not erased by selected passing chain.
+
+No full current/exact225/Chromium48 approval or fresh execution claimed. This
+handoff provides coherent exact source hunks and successful owner reproducer;
+root/w must coordinate larger reruns and reconcile their regression-only failure
+companion without converting the approved359 success assertion to rejection.
