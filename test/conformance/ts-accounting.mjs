@@ -9,6 +9,12 @@ export function validateCaseData(doc, expectedIds, companionIds = []) {
     if (!Array.isArray(c.operations) || c.operations.length === 0 || c.operations[0].op !== "openFixture" || c.operations[0].fixture !== c.fixture) throw new Error(`malformed operations: ${c.id}`);
     const keys=c.operations.map(o=>o?.key);
     if (keys.some(k=>typeof k!=="string") || new Set(keys).size!==keys.length || c.operations.some(o=>typeof o?.op!=="string")) throw new Error(`malformed operation identity: ${c.id}`);
+    if (c.expected?.disposition === "completed") {
+      if (!["capi3c.test:capi3c-1.1","capi3c.test:capi3c-1.4","capi3c.test:capi3c-2.1","capi3c.test:capi3c-2.2"].includes(c.id) || c.expected.error !== null || c.expected.attempted !== null) throw new Error(`malformed completion: ${c.id}`);
+      const prepare=c.operations.find(o=>o.op==="prepare"), step=c.operations.find(o=>o.op==="step");
+      if (prepare?.assertion?.phase!=="prepare" || step?.assertion?.phase!=="step" || step.assertion.result!=="done" || step.assertion.rowCount!==0) throw new Error(`missing source assertions: ${c.id}`);
+      continue;
+    }
     const e=c.expected?.error, a=c.expected?.attempted;
     if (c.expected?.disposition !== "unimplemented-temporary" || !Number.isInteger(a?.index) || a.index < 1 || c.operations[a.index]?.key !== a.key || c.operations[a.index]?.op !== a.op || a.op !== "prepare" || e?.name!=="JSQLiteError" || e?.kind!=="unsupported" || e?.code!==null || e?.extendedCode!==null || e?.unsupportedClassification!=="temporary") throw new Error(`malformed expectation: ${c.id}`);
   }

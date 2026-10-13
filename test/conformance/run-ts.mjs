@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { assertOperation } from "./stage2-assertions.mjs";
 import path from "node:path";
 import { startFixtureServer } from "./fixture-server.mjs";
 import { openFixture } from "./public-api-adapter.mjs";
@@ -12,10 +13,10 @@ function statementOf(state) { if(!state.statement) throw new Error("adapter inva
 async function execute(op,state) {
  switch(op.op) {
   case "openFixture": state.connection=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${encodeURIComponent(op.fixture)}`)); return;
-  case "prepare": { const p=state.connection.prepare(op.sql); state.statement=p?.statement??p; return; }
+  case "prepare": { const p=state.connection.prepare(op.sql); state.statement=p?.statement??p; if(op.assertion) assertOperation(op, {phase:"prepare",tail:p.tail,columnCount:state.statement.columnCount,metadata:state.statement.columnMetadata(0)}); return; }
   case "closeDeferred": state.connection.closeDeferred(); return;
   case "bind": statementOf(state).bind(op.index??op.name, decodeValue(op.value)); return;
-  case "step": await statementOf(state).step(); return;
+  case "step": {const result=await statementOf(state).step(); state.rowCount=(state.rowCount??0)+(result==="row"?1:0); assertOperation(op,{phase:"step",result,rowCount:state.rowCount}); return;}
   case "reset": statementOf(state).reset(); return;
   case "clearBindings": statementOf(state).clearBindings(); return;
   case "finalize": statementOf(state).finalize(); return;
@@ -44,18 +45,15 @@ function decodeValue(v) {
 }
 const expectedObservedErrors=new Map([
  ["close.test:close-1.4.3",{kind:"misuse",operation:"prepare"}],
- ["capi3c.test:capi3c-1.1",{kind:"sqlite",operation:"prepare"}],
- ["capi3c.test:capi3c-1.4",{kind:"sqlite",operation:"prepare"}],
  ["capi3c.test:capi3c-1.5",{kind:"sqlite",operation:"prepare"}],
- ["capi3c.test:capi3c-2.1",{kind:"sqlite",operation:"prepare"}],
- ["capi3c.test:capi3c-2.2",{kind:"sqlite",operation:"prepare"}],
  ["capi3c.test:capi3c-2.3",{kind:"sqlite",operation:"prepare"}],
 ]);
 try {
  for (const c of data.cases) {
-  const state={connection:null,statement:null}; let failure=null;
+  const state={connection:null,statement:null}; let failure=null; const operationAttempts=[];
   for (let index=0;index<c.operations.length;index++) {
    const op=c.operations[index];
+   operationAttempts.push({index,key:op.key,op:op.op});
    try { await execute(op,state); } catch(e) { failure={error:e,index,key:op.key,op:op.op}; break; }
   }
   // This is the historical Stage 2 sequence runner. Most mapped operations are
@@ -69,6 +67,7 @@ try {
   const result=failure
    ? {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"observed-error",credit:0,attempted:{index:failure.index,key:failure.key,op:failure.op},error:{name:failure.error?.name??"Error",kind:failure.error?.kind??null,code:failure.error?.code??null,extendedCode:failure.error?.extendedCode??null,unsupportedClassification:failure.error?.unsupportedClassification??null,message:String(failure.error?.message??failure.error)},notAttempted:c.operations.slice(failure.index+1).map((op,index)=>({index:index+failure.index+1,key:op.key,op:op.op}))}
    : {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"completed",credit:0,attempted:null,error:null,notAttempted:[]};
+  result.operationAttempts=operationAttempts;
   results.push(result); console.log(JSON.stringify(result));
  }
  if(results.length!==data.cases.length)throw new Error("missing Stage 2 results");

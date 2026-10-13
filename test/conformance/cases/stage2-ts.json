@@ -447,7 +447,28 @@
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT name FROM sqlite_master"
+          "sql": "SELECT name FROM sqlite_master",
+          "assertion": {
+            "phase": "prepare",
+            "tail": "",
+            "columnCount": 1,
+            "metadata": {
+              "name": "name",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "name"
+            }
+          }
+        },
+        {
+          "key": "emptyStep",
+          "op": "step",
+          "assertion": {
+            "phase": "step",
+            "result": "done",
+            "rowCount": 0
+          }
         },
         {
           "key": "finalize",
@@ -455,19 +476,9 @@
         }
       ],
       "expected": {
-        "disposition": "unimplemented-temporary",
-        "attempted": {
-          "index": 1,
-          "key": "prepare",
-          "op": "prepare"
-        },
-        "error": {
-          "name": "JSQLiteError",
-          "kind": "unsupported",
-          "code": null,
-          "extendedCode": null,
-          "unsupportedClassification": "temporary"
-        }
+        "disposition": "completed",
+        "error": null,
+        "attempted": null
       }
     },
     {
@@ -484,7 +495,28 @@
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT name FROM sqlite_master;SELECT 10"
+          "sql": "SELECT name FROM sqlite_master;SELECT 10",
+          "assertion": {
+            "phase": "prepare",
+            "tail": "SELECT 10",
+            "columnCount": 1,
+            "metadata": {
+              "name": "name",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "name"
+            }
+          }
+        },
+        {
+          "key": "emptyStep",
+          "op": "step",
+          "assertion": {
+            "phase": "step",
+            "result": "done",
+            "rowCount": 0
+          }
         },
         {
           "key": "finalize",
@@ -492,19 +524,9 @@
         }
       ],
       "expected": {
-        "disposition": "unimplemented-temporary",
-        "attempted": {
-          "index": 1,
-          "key": "prepare",
-          "op": "prepare"
-        },
-        "error": {
-          "name": "JSQLiteError",
-          "kind": "unsupported",
-          "code": null,
-          "extendedCode": null,
-          "unsupportedClassification": "temporary"
-        }
+        "disposition": "completed",
+        "error": null,
+        "attempted": null
       }
     },
     {
@@ -554,7 +576,28 @@
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT name FROM sqlite_master"
+          "sql": "SELECT name FROM sqlite_master",
+          "assertion": {
+            "phase": "prepare",
+            "tail": "",
+            "columnCount": 1,
+            "metadata": {
+              "name": "name",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "name"
+            }
+          }
+        },
+        {
+          "key": "emptyStep",
+          "op": "step",
+          "assertion": {
+            "phase": "step",
+            "result": "done",
+            "rowCount": 0
+          }
         },
         {
           "key": "finalize",
@@ -562,19 +605,9 @@
         }
       ],
       "expected": {
-        "disposition": "unimplemented-temporary",
-        "attempted": {
-          "index": 1,
-          "key": "prepare",
-          "op": "prepare"
-        },
-        "error": {
-          "name": "JSQLiteError",
-          "kind": "unsupported",
-          "code": null,
-          "extendedCode": null,
-          "unsupportedClassification": "temporary"
-        }
+        "disposition": "completed",
+        "error": null,
+        "attempted": null
       }
     },
     {
@@ -591,7 +624,28 @@
         {
           "key": "prepare",
           "op": "prepare",
-          "sql": "SELECT name FROM sqlite_master;SELECT 10"
+          "sql": "SELECT name FROM sqlite_master;SELECT 10",
+          "assertion": {
+            "phase": "prepare",
+            "tail": "SELECT 10",
+            "columnCount": 1,
+            "metadata": {
+              "name": "name",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "name"
+            }
+          }
+        },
+        {
+          "key": "emptyStep",
+          "op": "step",
+          "assertion": {
+            "phase": "step",
+            "result": "done",
+            "rowCount": 0
+          }
         },
         {
           "key": "finalize",
@@ -599,19 +653,9 @@
         }
       ],
       "expected": {
-        "disposition": "unimplemented-temporary",
-        "attempted": {
-          "index": 1,
-          "key": "prepare",
-          "op": "prepare"
-        },
-        "error": {
-          "name": "JSQLiteError",
-          "kind": "unsupported",
-          "code": null,
-          "extendedCode": null,
-          "unsupportedClassification": "temporary"
-        }
+        "disposition": "completed",
+        "error": null,
+        "attempted": null
       }
     },
     {
