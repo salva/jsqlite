@@ -2,6 +2,21 @@
 
 Owner: [[card:card-i-a]]. Date: 2026-10-13. Evidence-only; no runtime repair.
 
+## Supported conclusion
+
+The accepted assessment supports this **bounded tests-first implementation
+baseline**, not vector compatibility, conformance promotion, or release acceptance.
+On the recorded shared worktree, selected legal vector constructs fail admission;
+source inspection identifies missing generated vector semantics/lowering and
+context-sensitive multi-column child width/destination ownership. The six passing
+scalar-control executions narrow the regression target but do not prove general
+preservation. Evidence, inference, limitations, and recommended handoffs below
+remain distinct.
+
+Evidence commits: `f31a27e5`, `05565f52`. Accepted versioned assessment:
+`record:///status.md?card=card-i-a&v=55`.
+
+
 ## Revision and identity
 
 HEAD at capture is `3376615bca981c8d4fc5a2fb9da9b3dde60a4039`, the accepted
@@ -80,7 +95,13 @@ path. The observed errors confirm two separate prerequisites: generated vector
 semantic/lowering admission, and context-sensitive child width/destination
 ownership. Relaxing every scalar subquery width check would be incorrect.
 
-## Bounded implementable slice and handoff
+## Inference and recommended implementation handoff
+
+These are source-backed implementation recommendations, not executed repairs or
+approval of a broader scope. The observations do not demonstrate a TS vector
+wrong-result algorithm: selected vector execution never begins. Removing all
+scalar width guards would break legitimate width-one callers.
+
 
 1. First functional slice: generated vectors of width >=2 in all eight comparison
    operators and literal/VALUES IN, with projection/WHERE/join callers. Retain
@@ -119,6 +140,48 @@ additional collations, nested/outer joins, correlated limits/order/empty cases,
 width-error precedence, binding storage classes beyond INTEGER, repeated rebinding,
 index/STAT4 plans and vector index optimization. Do not disturb staged peer STAT4,
 doc, bitwise, schema, research, or index work.
+
+## Assessment evidence and provenance limits
+
+Assessment checked the two commits' scoped paths and source/fixture manifests.
+All **3084 recorded dirty-worktree path/content hashes** were unchanged since
+exploration. This supports reuse on those shared inputs, but staged index contents
+were not independently hash-pinned, and untracked/dependency/environment inputs
+were not exhaustively inventoried. It does not create an immutable runtime
+revision or attribute behavior solely to the STRICT milestone.
+
+Assessment independently recaptured byte-identical native expectations and reran
+the public lane: **123 attempts, 6 matches, 117 mismatch/unimplemented, zero
+credit**. Native/cmp/public commands each returned status 0. Provenance and
+manifest checks: `work:///cards/card-i-a/processes/proc-1dbaf52dcea7/stdout.log`.
+Recapture/public rerun: `work:///cards/card-i-a/processes/proc-a4775a652618/stdout.log`.
+Earlier exploration also completed typecheck and native recapture:
+`work:///cards/card-i-a/processes/proc-6b4fa7383ff1/stdout.log`.
+
+The initial reused public runner collected cases but failed its summary with an
+undefined `cap` ReferenceError; it was corrected and rerun. Its enclosing sequential
+shell's exit 0 did not erase that failure. Final spelling-preserving corpus rerun:
+`work:///cards/card-i-a/processes/proc-93c6cda8e8bf/stdout.log`.
+
+The public runner cannot accept matching prepare errors and is not a complete
+phase/extended-code error gate. Therefore **117 is a combined admission/error-
+contract gap count, not 117 independent semantic defects**. SQL equality spelling
+and fixture/schema setup are preserved, but selected assertion IDs are native
+semantic targets, not credited TS assertions.
+
+## Required next verification and residual ownership
+
+After generated admission and child-destination repairs, rerun all 123 attempts.
+Add callback-count and multi-column single-evaluation probes, additional binding
+classes with repeated rebinding/reset, exact prepare/step/extended-code errors,
+complete origin metadata, and reachable cancellation/deadline/work/cleanup and
+reprepare checks. Continue to preserve scalar IN/CASE/BETWEEN/correlation and peer
+STAT4/doc/bitwise/research/index/schema work. Root retains routing decisions for
+the shared subquery prerequisite; unimplemented residuals listed above remain
+explicit outstanding implementation/verification work, not waived scope. Optional
+vector index optimization can follow correct source-shaped scans. Only exact
+public outcomes may support later credit promotion; parent/project acceptance
+remains with their owners.
 
 ## Reproduction
 
