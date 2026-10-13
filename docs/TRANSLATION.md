@@ -286,11 +286,36 @@ are admitted only through their actual semantic branches.
 `expr.c` scalar/EXISTS/IN lowering uses one VM, linked parent identity and phase,
 conditional Once for uncorrelated producers and rebuild/reset for correlated
 producers. Empty scalar is NULL, EXISTS is INTEGER boolean, and IN preserves
-NULL/empty/negation semantics. The surviving finite borrowed-value IN adaptation
-uses bounded arrays rather than upstream ephemeral Btree: quadratic duplicate
-comparison is disclosed, charged/checkpointed and borrowed Mem released in finally.
-It is not general IN/storage/work parity. See [[card:card-t]] finite disposition
-and [API admission](api.md#current-sql-admission).
+NULL/empty/negation semantics. Linked `compileWideSubquery` IN destinations now
+use explicit packed KeyInfo, SRT_Set MakeRecord/IdxInsert and private BLOBKEY;
+CodeIN probes exact non-NULL keys then traverses records for NULL fallback;
+scalar fallback checks only the first sorted row (expr.c step 6), vector fallback
+continues after definite field mismatches. InSet requires packed cursors: the
+superseded borrowed membership evaluator has been removed, including aggregate
+join-key/projection and table LIMIT callers. Auxiliary compound set cursors remain
+separate consumers, not InSet fallback.
+First/Next includes index interior records; payload snapshots and LHS copies own
+charged scratch across awaits. NULL fallback decodes exactly KeyInfo width with
+RawRecordReader inside the payload callback, rejecting extra/missing fields without
+an unbounded intermediate decoded array. LHS admission conservatively covers owned copy
+plus UTF encoding expansion and numeric text scratch. Packed Set record temporaries
+are dead after IdxInsert and refunded after awaited insertion, including errors;
+non-Set packed callers retain their own register contract. Shared MakeRecord
+admits conservative transient conversion scratch before live affinity/encoding
+mutation, retains it through packing, and refunds it on every exit. Output/input
+overlap rejects before mutation. Immutable replacement retains old and new packed
+charges until publication; this is not native output-buffer reuse/accounting parity. Literal vector-list IN
+also uses packed records, with statement encoding
+installed at cursor admission and explicit packed ClearEphemeral reuse. Other
+scalar/VALUES, aggregate and legacy LIMIT expression destinations now opt into
+packed Set records too. Intermediate compound DISTINCT/set-operator cursors retain
+their own borrowed contracts; they are not membership probes. Exact resource schedules and full native/error
+matrices remain verification gaps, not
+browser necessity or missing-machinery rationale. No general IN/storage/work parity
+is implied. Current attempt and test limitations: [[card:card-m-f-k]]
+[status](record:///status.md?card=card-m-f-k); see also
+[API admission](api.md#current-sql-admission) and
+[native-first packed membership evidence](research/card-m-packed-membership.md).
 
 ## Derived sources, views and CTEs
 

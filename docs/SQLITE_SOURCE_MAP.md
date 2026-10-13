@@ -82,8 +82,14 @@ not universal current failures.
 [Surviving finite adaptations](TRANSLATION.md#surviving-finite-materialization-adaptation)
 are not the same-VM coroutine merge algorithm. [Finite disposition](record:///status.md?card=card-t&v=96)
 and [[card:card-t]] retain bounded evidence and limitations; lack of a native
-resumable stack is not a current platform rationale. IN borrowed arrays preserve
-finite gates and charged cleanup but do not claim general storage/complexity parity.
+resumable stack is not a current platform rationale. Expression InSet now requires
+packed BLOBKEY storage: `select.c:SRT_Set` → shared MakeRecord/IdxInsert destination;
+`expr.c:sqlite3ExprCodeIN` steps 3/6 → exact seek then NULL fallback (scalar first
+row only, vector traversal). `btree.c:First/Next/payload` → private cursor traversal
+and callback-scoped payload. No borrowed membership evaluator remains; unrelated
+DISTINCT/set-operator cursors retain their own contracts. [Packed public evidence](research/card-m-packed-membership.md)
+and [source-control tests](../test/conformance/row-vector/structure.test.mjs) map
+these branches, not general storage/complexity parity.
 
 ## Derived sources, CTE and windows
 
