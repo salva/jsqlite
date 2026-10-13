@@ -1,0 +1,9 @@
+{"sql": "SELECT t.rowid,j.rowid,j._rowid_,j.oid FROM t1 t CROSS JOIN json_each('[10,20]') j WHERE t.rowid<3", "rows": [[["integer", "1"], ["integer", "0"], ["integer", "0"], ["integer", "0"]], [["integer", "1"], ["integer", "1"], ["integer", "1"], ["integer", "1"]], [["integer", "2"], ["integer", "0"], ["integer", "0"], ["integer", "0"]], [["integer", "2"], ["integer", "1"], ["integer", "1"], ["integer", "1"]]]}
+{"sql": "SELECT t.rowid,j.rowid FROM t1 t LEFT JOIN json_each('[]') j ON 1 WHERE t.rowid<3", "rows": [[["integer", "1"], ["null", null]], [["integer", "2"], ["null", null]]]}
+{"sql": "SELECT t.rowid,count(j.rowid) FROM t1 t LEFT JOIN json_each('[]') j ON 1 GROUP BY t.rowid HAVING t.rowid<3", "rows": [[["integer", "1"], ["integer", "0"]], [["integer", "2"], ["integer", "0"]]]}
+{"sql": "SELECT sum(j.rowid),sum(j._rowid_),sum(j.oid) FROM t1 t CROSS JOIN json_each('[10,20]') j", "rows": [[["integer", "31"], ["integer", "31"], ["integer", "31"]]]}
+{"sql": "SELECT j.rowid,count(*) FROM t1 t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid", "rows": [[["integer", "0"], ["integer", "31"]], [["integer", "1"], ["integer", "31"]]]}
+{"sql": "SELECT sum(t.rowid),sum(t._rowid_),sum(t.oid) FROM t1 t CROSS JOIN json_each('[10,20]') j", "rows": [[["integer", "992"], ["integer", "992"], ["integer", "992"]]]}
+{"sql": "SELECT count(j.rowid),sum(j.rowid) FROM t1 t LEFT JOIN json_each('[]') j ON 1", "rows": [[["integer", "0"], ["null", null]]]}
+{"sql": "SELECT count(*) FILTER (WHERE j.rowid=1) FROM t1 t CROSS JOIN json_each('[10,20]') j", "rows": [[["integer", "31"]]]}
+{"sql": "SELECT j._rowid_,count(*) FROM t1 t CROSS JOIN json_each('[10,20]') j GROUP BY j._rowid_ HAVING j.oid=1", "rows": [[["integer", "1"], ["integer", "31"]]]}

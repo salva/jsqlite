@@ -413,7 +413,20 @@ JSON sources expose eight visible fields; hidden json/root are explicit-only and
 retain empty declared types. Resolved direct columns publish virtual-column
 metadata; aliases override, computed names retain exact expression spans. JSON
 row extraction preserves INTEGER/REAL and storage classes through grouping.
-`json_pretty` remains recognized but temporary unsupported. Host extensions and
+
+The bounded physical-left/JSON-right CROSS/INNER/LEFT producer rebinds arguments
+per outer row; LEFT records ON matches before WHERE and clears every visible
+and hidden JSON field for an unmatched row. Rows feed existing AggInfo input
+registers/group sorter, including FILTER and aggregate projections, not a
+parallel evaluator. RIGHT/FULL/NATURAL/USING/reverse correlation remain temporary
+unsupported in this route. Cursor offsets use encoded container header widths
+and retained label encodings; binary input preserves original bounds. COLLATE
+keeps direct-column naming but has null declared type and origins, separating
+select.c naming from columnType production. [Scoped integration evidence](research/card-r-e-mixed-json-verify.md)
+bounds typed public/oracle comparisons and lifecycle schedules; it is not
+exhaustive JSON or virtual-table-planning parity.
+
+`json_pretty` has accepted bounded delivery `f1eb053` (arities 1/2, default/custom indentation, subtype-0 TEXT, cooperative work/output/private-state controls). The incorporated baseline already retains the exact accepted pretty/scanner source from `f1eb053`; this change adds only the reviewed mixed cursor/identity/metadata corrections, with no pretty implementation changes. Host extensions and
 external virtual-table modules remain SPEC exclusions, not an excuse to exclude
 built-in JSON.
 
@@ -425,3 +438,20 @@ optimizer/index proofs and native intermediate scheduling equivalence remain
 visible roadmap work. Historical predictions are verified at the next consuming
 slice. No new implementation, compatibility credit, whole-project completion,
 operator/configuration changes or all-project cleanup gate is authorized here.
+
+### Review27 mixed row identity and delivery state
+
+Mixed physical/JSON AggInfo input now retains separate physical OP_Rowid and
+JSON per-scan identity slots, including grouped sorter/saved rows. JSON identity
+resets to zero on rewind and increments on successful Next; unmatched LEFT
+extension is SQL NULL. rowid/_rowid_/oid are not JSON id/key/offset aliases.
+Direct implicit identity metadata follows select.c:columnType: INTEGER rowid
+origins, or the physical IPK declared name/type. Ordinary recursive aggregate
+input keeps its original layout, without the mixed rowIdentities flag.
+Pinned json.c:jsonEachCursorReset/Next/Rowid, expr.c negative-column lowering and
+select.c accumulator/metadata consumers map to vdbe.ts identity registers and
+AggInfo source/input/group capture. All-encoding IPK/non-IPK native/public
+companions are in json-mixed-rowid-integration.test.mjs;
+[correction evidence](research/card-r-e-review27-correction.md).
+Accepted pretty `f1eb053` bounded implementation is retained from MAIN; no
+pretty source change or breadth claim is part of this mixed correction.

@@ -487,3 +487,34 @@ storage classes and early LIMIT termination.
 qualify these statements. Exact historical run counts and approvals are evidence,
 not API guarantees. [Functional-first beta categories](PLAN.md#functional-first-beta-view)
 do not constitute publication or whole-product acceptance.
+
+### Bounded mixed physical/JSON integration
+
+The bounded physical-left/JSON-right CROSS/INNER/LEFT producer rebinds arguments
+per outer row; LEFT records ON matches before WHERE and clears every visible
+and hidden JSON field for an unmatched row. Rows feed existing AggInfo input
+registers/group sorter, including FILTER and aggregate projections, not a
+parallel evaluator. RIGHT/FULL/NATURAL/USING/reverse correlation remain temporary
+unsupported in this route. Cursor offsets use encoded container header widths
+and retained label encodings; binary input preserves original bounds. COLLATE
+keeps direct-column naming but has null declared type and origins, separating
+select.c naming from columnType production. [Scoped integration evidence](research/card-r-e-mixed-json-verify.md)
+bounds typed public/oracle comparisons and lifecycle schedules; it is not
+exhaustive JSON or virtual-table-planning parity.
+
+### Review27 mixed row identity and delivery state
+
+Mixed physical/JSON AggInfo input now retains separate physical OP_Rowid and
+JSON per-scan identity slots, including grouped sorter/saved rows. JSON identity
+resets to zero on rewind and increments on successful Next; unmatched LEFT
+extension is SQL NULL. rowid/_rowid_/oid are not JSON id/key/offset aliases.
+Direct implicit identity metadata follows select.c:columnType: INTEGER rowid
+origins, or the physical IPK declared name/type. Ordinary recursive aggregate
+input keeps its original layout, without the mixed rowIdentities flag.
+Pinned json.c:jsonEachCursorReset/Next/Rowid, expr.c negative-column lowering and
+select.c accumulator/metadata consumers map to vdbe.ts identity registers and
+AggInfo source/input/group capture. All-encoding IPK/non-IPK native/public
+companions are in json-mixed-rowid-integration.test.mjs;
+[correction evidence](research/card-r-e-review27-correction.md).
+Accepted pretty `f1eb053` bounded implementation is retained from MAIN; no
+pretty source change or breadth claim is part of this mixed correction.
