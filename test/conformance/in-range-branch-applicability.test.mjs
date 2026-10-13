@@ -26,7 +26,10 @@ test('review-v6 original branch dispositions have executable source-mapped cover
   try{
     db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/fixture`));
     for(const c of matrix.cases){
-      if(c.disposition==='unsupported'){
+      // review-v6 remains historical provenance. Vector admission now executes
+      // this tuple case; typed rows are checked without selected-index credit.
+      const admittedTuple=c.dimension==='prepare-unsupported';
+      if(c.disposition==='unsupported'&&!admittedTuple){
         assert.throws(()=>db.prepare(c.sql),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary',`${c.dimension}: atomic temporary unsupported`);
         continue;
       }
@@ -35,7 +38,8 @@ test('review-v6 original branch dispositions have executable source-mapped cover
         const rows=[];while(await st.step()==='row')rows.push(Array.from({length:st.columnCount},(_,i)=>st.column(i)));
         assert.deepEqual(rows,c.expected.map(row=>row.map(decode)),c.dimension);
         const count=privateAccounting(st);
-        if(c.disposition==='selected')assert.ok(count.indexSeeks>0,`${c.dimension}: selected index seek`);
+        if(admittedTuple)assert.deepEqual(Array.from({length:st.columnCount},(_,i)=>st.columnMetadata(i).name),['id']);
+        else if(c.disposition==='selected')assert.ok(count.indexSeeks>0,`${c.dimension}: selected index seek`);
         else assert.equal(count.indexSeeks,0,`${c.dimension}: safe residual traversal, not selected seek`);
       }finally{st.finalize()}
     }

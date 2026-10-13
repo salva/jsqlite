@@ -167,11 +167,15 @@ test('physical linked scalar caller composes shared SELECT production',async()=>
 // c964 demonstrated sorted winner loss on attempted shared handoff. This is
 // production convergence acceptance, not a new claim that fallback rows fail.
 test('linked ordered scalar destination uses shared SELECT sort-tail contract',()=>{
- assert.doesNotMatch(scalarOwner,/expression\.select\.hasOrderBy/,
-  'shared semantic scalar owner still rejects ORDER instead of consuming SELECT sort-tail Mem first-result contract');
+ // A fast unordered dispatch guard is not ORDER rejection. The fallback
+ // must still invoke SELECT with the initialized destination/prepared LIMIT.
+ assert.doesNotMatch(scalarOwner,/if\(expression\.select\.hasOrderBy\)throw/,
+  'shared scalar owner rejects ORDER');
+ assert.match(scalarOwner,/compileInnerTableSelect\(expression\.select,entry\.plan,[^;]+destination:[^;]+sharedLimit:preparedLimit/,
+  'ordered fallback lost shared SELECT destination/prepared scalar limit');
  const physical=source.slice(source.indexOf('  const sharedPhysicalScalar='),source.indexOf('    const saved',source.indexOf('  const sharedPhysicalScalar=')));
- assert.doesNotMatch(physical,/!expression\.select\.hasOrderBy/,
-  'supported physical ordered scalar caller still bypasses shared SELECT destination producer');
+ assert.match(physical,/if\(expression\.kind==='scalar-subquery'[^\n]+\)\{\s+const result=sharedPhysicalScalar\(expression\);/,
+  'physical scalar caller lost unconditional shared scalar destination dispatch');
 });
 
 test('ordered scalar NULL LIMIT preserves saved datatype mismatch',async()=>{
@@ -183,5 +187,78 @@ test('ordered scalar NULL LIMIT preserves saved datatype mismatch',async()=>{
  let statement;try{statement=db.prepare('SELECT a,(SELECT u.a FROM t1 u ORDER BY u.a DESC LIMIT NULL) AS s FROM t1').statement;
  await assert.rejects(async()=>await statement.step(),error=>error.kind==='sqlite'&&(error.sqliteCode===20||error.code===20));
  assert.throws(()=>statement.finalize(),error=>error.kind==='sqlite'&&error.code===20);statement=undefined;
+ }finally{statement?.finalize();db.close();}
+});
+
+test('zero-source scalar LIMIT is normalized once and reset rebind preserves IN admission',async()=>{
+ const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
+ const bytes=fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/subquery-utf8.db`,import.meta.url));
+ const previous=globalThis.fetch;let db;
+ try{globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/scalar-limit-handoff');}finally{globalThis.fetch=previous;}
+ let statement;
+ try{
+  statement=db.prepare('SELECT (SELECT 42 WHERE 1 LIMIT ?1), EXISTS(SELECT 42 LIMIT ?1)').statement;
+  for(const [limit,expected] of [[0.5,[42n,1n]],[-0.5,[42n,1n]],[0,[null,0n]],['0.5',[42n,1n]]]){
+   statement.bind(1,limit);assert.equal(await statement.step(),'row');
+   assert.deepEqual([statement.column(0),statement.column(1)],expected);
+   assert.equal(await statement.step(),'done');statement.reset();
+  }
+  statement.bind(1,null);let saved;
+  await assert.rejects(()=>statement.step(),error=>(saved=error,error.code===20));
+  assert.throws(()=>statement.reset(),error=>error===saved);
+  statement.bind(1,0.5);assert.equal(await statement.step(),'row');assert.equal(statement.column(0),42n);
+  statement.finalize();statement=undefined;
+  statement=db.prepare('SELECT 42 IN (SELECT 42 LIMIT ?1)').statement;statement.bind(1,0.5);
+  await assert.rejects(()=>statement.step(),error=>error.code===20);
+  assert.throws(()=>statement.finalize(),error=>error.code===20);statement=undefined;
+ }finally{statement?.finalize();db.close();}
+});
+
+// expr.c:sqlite3CodeSubselect normalizes Mem LIMIT; select.c sort-tail sends
+// the first ordered row to Mem. Runtime coverage, not a routing-text assertion.
+for(const encoding of ['utf8','utf16le','utf16be'])test(`ordered scalar LIMIT handoff public reset/rebind ${encoding}`,async()=>{
+ const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
+ const bytes=fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/subquery-${encoding}.db`,import.meta.url));
+ const previous=globalThis.fetch;let db;
+ try{globalThis.fetch=async()=>new Response(bytes);db=await open(`https://fixture.invalid/ordered-limit-${encoding}`);}finally{globalThis.fetch=previous;}
+ let statement;
+ try{
+  statement=db.prepare('SELECT a AS outer_value,(SELECT u.a FROM t1 u ORDER BY u.a DESC LIMIT ?1 OFFSET ?2) AS selected FROM t1').statement;
+  for(const [limit,offset,value] of [[0.5,0,7n],[-0.5,1,5n],[0,0,null],['0.5',2,3n],[1,8,null]]){
+   statement.bind(1,limit);statement.bind(2,offset);const rows=[];
+   while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1)]);
+   assert.deepEqual(rows,[[1n,value],[3n,value],[5n,value],[7n,value]]);
+   statement.reset();
+  }
+  statement.bind(1,null);statement.bind(2,0);let saved;
+  await assert.rejects(()=>statement.step(),error=>(saved=error,error.kind==='sqlite'&&error.code===20));
+  assert.throws(()=>statement.reset(),error=>error===saved);
+  statement.bind(1,0.5);assert.equal(await statement.step(),'row');assert.equal(statement.column(1),7n);
+  statement.finalize();statement=undefined;
+ }finally{statement?.finalize();db.close();}
+});
+
+// select.c:computeLimitRegisters jumps on zero before OFFSET MustBeInt.
+// Nonzero scalar LIMIT is X<>0, but OFFSET keeps ordinary integer admission.
+for(const encoding of ['utf8','utf16le','utf16be'])test(`ordered scalar OFFSET admission and zero-limit ordering ${encoding}`,async()=>{
+ const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
+ const bytes=fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/subquery-${encoding}.db`,import.meta.url));
+ const previous=globalThis.fetch;let db;
+ try{globalThis.fetch=async()=>new Response(bytes);db=await open(`https://fixture.invalid/offset-admission-${encoding}`);}finally{globalThis.fetch=previous;}
+ let statement;
+ try{
+  statement=db.prepare('SELECT a,(SELECT u.a FROM t1 u ORDER BY u.a DESC LIMIT ?1 OFFSET ?2) FROM t1').statement;
+  for(const offset of [null,0.5]){
+   statement.bind(1,0);statement.bind(2,offset);const rows=[];
+   while(await statement.step()==='row')rows.push([statement.column(0),statement.column(1)]);
+   assert.deepEqual(rows,[[1n,null],[3n,null],[5n,null],[7n,null]]);statement.reset();
+   statement.bind(1,0.5);let saved;
+   await assert.rejects(()=>statement.step(),error=>(saved=error,error.kind==='sqlite'&&error.code===20));
+   assert.throws(()=>statement.reset(),error=>error===saved);
+   statement.bind(2,-1);const recovered=[];
+   while(await statement.step()==='row')recovered.push([statement.column(0),statement.column(1)]);
+   assert.deepEqual(recovered,[[1n,7n],[3n,7n],[5n,7n],[7n,7n]]);statement.reset();
+  }
+  statement.finalize();statement=undefined;
  }finally{statement?.finalize();db.close();}
 });

@@ -1,0 +1,135 @@
+{
+  "schema": "bounded-subquery-handoff/1",
+  "card": "card-t-c",
+  "assemblyOwner": "card-i",
+  "head": "ca4fd96c2ab4675d6a2ebd231b80770eef79899c",
+  "indexSha256": "66697a69bae92be394e73418f0520c3a088f3d70ed3389dfb4d6ac4da5cb12af",
+  "indexUnchangedFromOriginal": true,
+  "artifacts": {
+    "baseline.patch": {
+      "url": "work:///cards/card-t-c/review33-handoff/baseline.patch",
+      "sha256": "65fbeda577d7dd5a720f1ee2d26ca6deb3bc3e54dfaacb931ae99b3b96e563e0"
+    },
+    "overall.patch": {
+      "url": "work:///cards/card-t-c/review33-handoff/overall.patch",
+      "sha256": "d1b18d1cf95ae305a519e6bab9472a73b7557add6edca1e10aa59593fd994c5c"
+    },
+    "own-delta.patch": {
+      "url": "work:///cards/card-t-c/review33-handoff/own-delta.patch",
+      "sha256": "92ad686f1edf79a3cdc0f34158b409b45a72055ffe4cc44f519bbb2162c0532f"
+    },
+    "hunks.txt": {
+      "url": "work:///cards/card-t-c/review33-handoff/hunks.txt",
+      "sha256": "583e1ea81dfed9384ac96e07f186d0e9b0b0ec8673499511c56b1a8d6d56c611"
+    }
+  },
+  "deltaBasis": "Original HEAD plus captured baseline65fbeda; own delta replayed on baseline reconstruction byte-identical to current sources. Revised overall d1b18d1c and delta92ad686f replace prior613812/9d7a82fd, which remain historical. No select-program delta; atomic validation required baseline dependency.",
+  "hunks": [
+    "--- a/src/internal/resolve.ts",
+    "+++ b/src/internal/resolve.ts",
+    "@@ -277,7 +277,8 @@",
+    "@@ -292,7 +293,12 @@",
+    "@@ -471,6 +477,10 @@",
+    "@@ -479,7 +489,7 @@",
+    "@@ -505,15 +515,36 @@",
+    "@@ -554,8 +585,8 @@",
+    "@@ -860,6 +891,7 @@",
+    "@@ -876,7 +908,7 @@",
+    "@@ -889,7 +921,9 @@",
+    "--- a/src/internal/vdbe.ts",
+    "+++ b/src/internal/vdbe.ts",
+    "@@ -56,8 +56,8 @@",
+    "@@ -65,7 +65,7 @@",
+    "@@ -1962,6 +1962,7 @@",
+    "@@ -2232,7 +2233,8 @@",
+    "@@ -2339,6 +2341,10 @@",
+    "@@ -2346,9 +2352,9 @@",
+    "@@ -2467,20 +2473,23 @@",
+    "@@ -2703,7 +2712,7 @@",
+    "@@ -2726,7 +2735,7 @@",
+    "@@ -2780,12 +2789,16 @@",
+    "@@ -2829,7 +2842,13 @@",
+    "@@ -2854,16 +2873,16 @@",
+    "@@ -2889,7 +2908,7 @@",
+    "@@ -2985,6 +3004,10 @@",
+    "@@ -3785,12 +3808,14 @@",
+    "@@ -3802,7 +3827,7 @@",
+    "@@ -3828,12 +3853,23 @@",
+    "@@ -3846,15 +3882,31 @@",
+    "@@ -3872,7 +3924,8 @@",
+    "@@ -4313,7 +4366,7 @@",
+    "@@ -6439,7 +6492,8 @@",
+    "@@ -6507,7 +6561,7 @@",
+    "@@ -7156,7 +7210,7 @@",
+    "@@ -7505,7 +7559,14 @@",
+    "@@ -8010,7 +8071,7 @@",
+    "--- a/src/internal/select-program.ts",
+    "+++ b/src/internal/select-program.ts",
+    "@@ -1,3 +1,4 @@",
+    "@@ -48,7 +49,18 @@",
+    "@@ -77,7 +89,7 @@"
+  ],
+  "files": {
+    "src/internal/resolve.ts": {
+      "sha256": "c9e8171ca1002ed2bb198bea24035b0dc26123543dd54b2e1b09bbbf803773e4",
+      "bytes": 110564
+    },
+    "src/internal/vdbe.ts": {
+      "sha256": "d15a5550cfc1071a435963d77a6ae11c50fd20829dab1baaf072b58e089a456c",
+      "bytes": 1004741
+    },
+    "src/internal/select-program.ts": {
+      "sha256": "09a6da7ed3af46c9a4ea2c0f490c2ac6da246a21ad607dcc497666778d4ca902",
+      "bytes": 8315
+    },
+    "test/conformance/row-vector/subquery-consumers.test.mjs": {
+      "sha256": "edcfd7bb44839fac9cb8c1bd0e23a0309a13a331389593491fdc13f1a8e70d02",
+      "bytes": 12179
+    },
+    "test/conformance/row-vector/carrier-handoff.test.mjs": {
+      "sha256": "e880cc52bf10c21a5f843324b58575d1291e2121c3b6a6580f01f8991cb953b5",
+      "bytes": 1987
+    },
+    "test/conformance/select-destination-atomic.test.mjs": {
+      "sha256": "c92c2829b59a84a67fc923dcb9614dd44bba591fe908f25a825d86f4c022f246",
+      "bytes": 990
+    },
+    "docs/TRANSLATION.md": {
+      "sha256": "110463ce63423f2d48f73c4a8e1bd39067666d9a8e80260d8d558f1afd0127d9",
+      "bytes": 178185
+    },
+    "docs/SQLITE_SOURCE_MAP.md": {
+      "sha256": "15618eb49a07750b3e3dabcdf56e625a85099c9828ac768525dca00ddd4a70e6",
+      "bytes": 141291
+    },
+    "docs/api.md": {
+      "sha256": "646003abd873253918e4a91a1fddd98f6df1ead35b274d95d145390939c109a1",
+      "bytes": 44345
+    },
+    "docs/reviews/translation-fidelity-2026-09-14.md": {
+      "sha256": "42c9ca2aa909e849e17263609373bf212c2ecec46905e370e6b007dc893d4f07",
+      "bytes": 414113
+    },
+    "docs/research/card-t-shared-subquery-owner-decision.md": {
+      "sha256": "566db5bcedeb15fe957952df425f294298aae8cfafc8ae105a8d37c4701df160",
+      "bytes": 7294
+    },
+    "docs/research/card-t-shared-subquery-owner-history.md": {
+      "sha256": "422a5e5188c23b611d8eb152481955f4208ad4b7168eabe929e4648301371d9d",
+      "bytes": 49251
+    },
+    "test/conformance/row-vector/review33-owners.test.mjs": {
+      "sha256": "9e61f5139badd04d2089a5e01d00bb953696743846d83d55ff1d0830320a9dfc",
+      "bytes": 2234
+    },
+    "test/conformance/row-vector/review33-cases.json": {
+      "sha256": "313cd8731ae7d7e207e0d2428c949b93ac002cc0edf8b86419a282b05afdcd0f",
+      "bytes": 4257
+    }
+  },
+  "include": "All own-delta source hunks form bounded resolver/carrier/caller/lifetime/affinity slice. Include scoped subquery regression additions and new carrier test, current doc corrections and linked preserved history. Atomic destination baseline changes/tests are required dependency. Review33: inner-table Exists EList gate; recursive empty clause context including all nested rows/arms; table IN nested clause callback. No catch/drain/blacklist.",
+  "exclude": "Do not stage whole dirty files or overall.patch. Preserve unrelated preexisting baseline Boolean/Mem/KeyInfo/schema/STAT4/STRICT/bitwise changes and peer index; baseline contains overlapping prior edits. No new ordered/AggInfo/derived/CTE migration or full compatibility credit. Doc file hashes identify full current bytes with peer changes, not whole-path assembly permission.",
+  "evidence": "Review33 original source findings; status1177 RED/native first; current status repair; work:///cards/card-t-c/review33-repair/native-final.log,focused-complete.log,public123-complete.log; prior failures retained.",
+  "checks": "Typecheck and115/115 focused (prior43+72 review33) pass; public123 match123 credit0; native48 repeated captures exact codes/metadata/types/done/errors. Own delta replay compares all source bytes; scoped diffcheck and original index cmp pass.",
+  "review": "record:///review.md?card=card-t&v=33"
+}

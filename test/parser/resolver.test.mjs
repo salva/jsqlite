@@ -627,3 +627,12 @@ test('lookupName records deferred FULL USING ownership outside result EList',asy
  const p=resolve("SELECT 1 FROM a FULL JOIN b USING(same) WHERE same='a'");const use=p.columnUses.find(use=>use.source.table.name==='a'&&use.columnIndex===1);assert.ok(use);
  assert.equal(resolvedExpressionDataType(use.expression,p),7);assert.equal(resolvedExpressionMetadata(use.expression,p).declaredType,null);assert.equal(use.mergedSources.length,2);
 });
+
+// resolve.c vector-size comparison and expr.c scalar/IN consumer ownership.
+test('nested SELECT width follows generated consumer through parentheses',()=>{
+ for(const sql of ['SELECT ((SELECT x,y FROM t2))', 'SELECT abs((SELECT x,y FROM t2))'])
+  assert.throws(()=>resolve(sql),error=>error instanceof NameResolutionError&&error.message==='sub-select returns 2 columns - expected 1');
+ for(const sql of ['SELECT ((SELECT x,y FROM t2))=((SELECT x,y FROM t2))',
+  'SELECT (SELECT x,y FROM t2) IN (SELECT x,y FROM t2)',
+  'SELECT EXISTS(SELECT x,y FROM t2)'])assert.doesNotThrow(()=>resolve(sql));
+});

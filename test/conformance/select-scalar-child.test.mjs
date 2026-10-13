@@ -508,7 +508,7 @@ test('source-permitted derived LIMIT and ORDER move into parent scan with SRT de
 test('nonzero-source derived ORDER transfers into parent without child program relocation',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const caller=text.slice(text.indexOf('export function compileScalarSelect('),text.indexOf('function compileInnerTableSelect('));
- assert.match(caller,/flattenSubquery substitutes transient result columns[^]*?derived\.select\.hasOrderBy\?derived\.select\.orderBy:nested\.orderBy[^]*?return compileSubquery\(\{\.\.\.expression,select:flattened\}\)/);
+ assert.match(caller,/flattenSubquery substitutes transient result columns[^]*?derived\.select\.hasOrderBy\?derived\.select\.orderBy:nested\.orderBy[^]*?return compileSubquery\(\{\.\.\.expression,select:flattened,resolved:undefined\}\)/);
 });
 test('nonaggregate joined child consumes enclosing builder at scan and sorter drain',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');

@@ -1678,3 +1678,94 @@ precede STRICT type validation. See [boundary evidence](research/card-e-h-strict
 Existing shared generated admission/consumers remain bounded:
 full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
 implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).
+
+## Bounded row/vector expression path
+
+Generated vector reductions retain ordered fields for scalar-field comparison.
+Equality/IS combine field NULL outcomes; lexicographic comparisons evaluate later
+fields only after an equal leading pair. Literal vector IN uses shared ephemeral
+KeyInfo/Mem fields and the source step-6 unequal/NULL fallback scan, with charged
+field checkpoints and statement encoding. No host row comparator/Set is used.
+The scan does not claim index optimization. Represented multi-column SELECT/VALUES
+and correlated vector IN use explicit expected-width shared SRT_Set/SRT_Mem
+consumers, contiguous scalar registers, per-field affinity and linked NameContexts.
+Mem/Set destinations validate count, width and affinity-vector consistency before
+emitting any opcode. LIMIT/OFFSET resolve in an empty NameContext (including
+inside a correlated child): column names in those clauses are errors, not outer
+bindings. No-FROM and shared joined linked comparison/IN consumers retain expanded SELECT
+width and original resolved field affinity/collation (including star fields and
+INTEGER rowid/IPK ownership retained without a Lemon expression);
+EXISTS has no projection-width constraint and still resolves every expanded
+result expression. Aggregate EXISTS presence admission likewise does not require
+a projection reduction: its producer consumes row presence, not projected values.
+General resolver scalar1 admission and other specialized
+caller dispatch remain unresolved. Shared expression scalar consumers reject
+expanded SELECT vectors with native `sub-select returns N columns - expected 1`
+diagnostics before invoking the producer; actual comparison-width mismatch and
+ordinary vector misuse retain their separate diagnostic ownership. This is not
+a complete early-resolution guarantee. Scalar SELECT affinity follows its first
+linked expanded result expression per sqlite3ExprAffinity TK_SELECT; EXISTS does
+not inherit affinity. Linked source-bearing scalar children inside no-FROM
+expression producers use the shared table/Mem destination path even at width1,
+forwarding the enclosing physical binding while remapping child-local sources.
+Nested correlated scalar/vector replay retains outer-row and NULL transitions;
+this is not general derived producer admission. Nested compound linked arms
+must have equal expanded result counts even for EXISTS; resolver rejects arm
+mismatch before destination publication using the upstream compound diagnostic,
+prior to consumer scalar/IN arity admission. Packed VALUES row counts are also
+validated (upstream sqlite3MultiValues coroutine or linked SF_Values route);
+later packed row expressions resolve against the linked outer NameContext and
+retain column/nested identities and correlation. Scalar source-free VALUES/compound
+RHS composition binds original row reductions and suppresses Once for linked
+correlation. Direct table-expression VALUES also uses the shared linked destination
+producer; packed row emission retains enclosing owner bindings and scalar IN
+supplies its one original field for affinity/KeyInfo. Scalar InSet consumes the
+first affinity vector entry just as vector membership does; nonconstant packed
+VALUES RHS field semantics use the terminal original EList. Plain source-free
+WHERE IN uses the shared linked Set producer; false/NULL WHERE yields an empty
+set (including false IN/true NOT IN for NULL LHS). Recursive clause SELECTs
+inherit the empty LIMIT/OFFSET NameContext, not the ordinary enclosing sources;
+valid independent children retain their linked plans. The table-expression IN
+clause caller forwards the same nested emitter as scalar callers. SELECT LIMIT/OFFSET counters
+copy evaluated expressions into independent mutable registers (select.c
+computeLimitRegisters), preserving cached scalar child results across correlated
+producer iterations. The no-FROM Set caller forwards clause child emission;
+other producer handoffs remain unproved. Plain joined scalar Mem consumers use
+the shared producer; nested LIMIT/OFFSET child emission retains linked plans and
+mutable OFFSET registers are separate from cached child results. Source-free and inner-table EXISTS
+skip result EList emission/copies (selectInnerLoop SRT_Exists), retaining linked
+resolution and clause/predicate execution; overflow in unused projection is not
+executed; Mem/Set projection and predicate/clause errors remain observable.
+Review33 source-bearing table/correlated/joined/UNION callers and recursive clause
+controls are mapped in the current shared owner decision. Source-free UNION ALL row composition retains the destination and linked
+expression owner, so the same EXISTS exclusion applies to each arm; packed VALUES
+already retains that owner. Ordered,
+distinct, compound, VALUES and aggregate specialized paths are retained.
+Ordered/limited and aggregate/
+window VALUES composition remains unproved. Bounded linked carrier acceptance covers
+ordinary full metadata, correlated NULL/reset transitions and uncorrelated scalar
+single evaluation with finalize/close; it is not general resource instrumentation
+or PRAGMA full_column_names acceptance. This does not propagate scalar SELECT column collation.
+Linked SELECT comparison/IN fields
+retain explicit COLLATE separately from inherited column collation, so right
+explicit BINARY outranks left inherited NOCASE per sqlite3BinaryCompareCollSeq.
+Wide source-bearing unordered,
+nonaggregate UNION ALL Mem/EXISTS/Set consumers compose linked table arms with
+shared LIMIT/OFFSET. Mem/EXISTS normalize to the first qualifying row; Set retains
+the actual child limit or unlimited budget. Other set operators and ordered,
+aggregate or mixed source-free arms remain typed
+temporary before publication; no terminal-arm-only execution is admitted.
+See [shared owner decision](research/card-t-shared-subquery-owner-decision.md).
+The focused vector corpus passes with zero credit; this is not general row-value
+compatibility acceptance. Broader compounds, planner vector optimization and
+unrepresented specialized consumers remain review/backlog boundaries. See
+[repair evidence](research/card-i-b-row-vector-repair.md) for results and gaps.
+
+
+
+Bounded vector integration review, scalar width/linked-source/LIMIT preservation,
+public encoding/reset controls and unwaived external regression inventory: [independent
+evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
+Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
+execution, not selected-index strategy credit. Root stage2 harness rejection of
+empty sqlite_master is stale versus pinned/public behavior, not a vector regression.

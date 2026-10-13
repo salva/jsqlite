@@ -1,9 +1,11 @@
+import {JSQLiteError} from '../index.ts';
 import type {ReprepareContext} from './reprepare.ts';
+import type {MemAffinity} from "./mem.ts";
 import type { BuiltinCollation } from "./comparison.ts";
 // select.c:sqlite3SelectDestInit and selectInnerLoop SRT_Output/SRT_Mem/
 // SRT_Exists. Program construction keeps addresses and register ranges within
 // one prepare; a destination is consumed while emitting, not after publication.
-export type SelectDest = Readonly<{kind:"coroutine";register:number;first:number}>|Readonly<{kind:"ephemeral";cursor:number}>|Readonly<{kind:"output"}>|Readonly<{kind:"sorter";cursor:number; keyCount?:number}>|Readonly<{kind:"mem"|"exists"; register:number; found?:number}>|Readonly<{kind:"set"; cursor:number}>|Readonly<{kind:"aggregate-expression"; register:number; name:"count"|"sum"|"avg"|"total"|"min"|"max"|"group_concat"|"string_agg"; collation:BuiltinCollation; emitArgument?:(first:number,count:number)=>readonly number[]; emitWhere?:(first:number,count:number)=>number; emitFilter?:(first:number,count:number)=>number; distinctCursor?:number; order?:Readonly<{cursor:number; emitKeys:(first:number,count:number)=>readonly number[]; keyStart:number; payload:number}>}>;
+export type SelectDest = Readonly<{kind:"coroutine";register:number;first:number}>|Readonly<{kind:"ephemeral";cursor:number}>|Readonly<{kind:"output"}>|Readonly<{kind:"sorter";cursor:number; keyCount?:number}>|Readonly<{kind:"mem"|"exists"; register:number; found?:number; width?:number}>|Readonly<{kind:"set"; cursor:number; width?:number; affinities?:readonly MemAffinity[]}>|Readonly<{kind:"aggregate-expression"; register:number; name:"count"|"sum"|"avg"|"total"|"min"|"max"|"group_concat"|"string_agg"; collation:BuiltinCollation; emitArgument?:(first:number,count:number)=>readonly number[]; emitWhere?:(first:number,count:number)=>number; emitFilter?:(first:number,count:number)=>number; distinctCursor?:number; order?:Readonly<{cursor:number; emitKeys:(first:number,count:number)=>readonly number[]; keyStart:number; payload:number}>}>;
 // vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn permits an escaped target
 // only when its consecutive Return chain reaches the owning return register.
 // TS has no Noop/Explain opcodes. This is verification, not target rewriting.
@@ -47,7 +49,18 @@ export class SelectProgramBuilder<Op extends {readonly code:string}> {
   finish():readonly Op[]{for(const {at,label,resolve} of this.pending){const pc=this.labels.get(label);if(pc===undefined)throw new Error("unresolved SELECT label");this.ops[at]=resolve(this.ops[at]!,pc);}for(const validate of this.validations)validate(this.ops);return Object.freeze(this.ops);}
 }
 export function emitSelectDestination<Op extends {readonly code:string}>(ops:Op[],dest:SelectDest,first:number,count:number):void {
-  if(count<1)throw new RangeError("empty SELECT destination");
+  // Validate the destination before emitting even its first affinity opcode.
+  // select.c SRT_Set requires nResultCol affinities; SRT_Mem copies one
+  // contiguous nResultCol range. Invalid construction is an internal typed
+  // error, not a partially published program or a public RangeError.
+  const invalid=(message:string):never=>{throw new JSQLiteError('internal',message);};
+  if(!Number.isSafeInteger(count)||count<1)invalid("invalid SELECT destination count");
+  if(dest.kind==="mem"||dest.kind==="set"){
+    const width=dest.width??1;
+    if(!Number.isSafeInteger(width)||width<1)invalid("invalid SELECT destination width");
+    if(count!==width)invalid("SELECT destination width mismatch");
+    if(dest.kind==="set"&&dest.affinities&&(dest.affinities.length!==width||dest.affinities.some(affinity=>!['blob','text','numeric','integer','real','flexnum'].includes(affinity))))invalid("invalid SELECT destination affinity vector");
+  }
   if(dest.kind==="coroutine"){
     for(let i=0;i<count;i++)ops.push({code:"Copy",p1:first+i,p2:dest.first+i} as unknown as Op);
     ops.push({code:"Yield",p1:dest.register,p2:0} as unknown as Op);
@@ -76,7 +89,7 @@ export function emitSelectDestination<Op extends {readonly code:string}>(ops:Op[
     if(skip>=0)(ops[skip] as unknown as {p2:number}).p2=ops.length;
     if(reject>=0)(ops[reject] as unknown as {p2:number}).p2=ops.length;
   }
-  else if(dest.kind==="set"){if(count!==1)throw new RangeError("IN SELECT destination width");ops.push({code:"IdxInsert",p1:dest.cursor,keyStart:first,keyCount:1} as unknown as Op);}
+  else if(dest.kind==="set"){if(dest.affinities)for(let i=0;i<count;i++)ops.push({code:"Affinity",p1:first+i,affinity:dest.affinities[i]} as unknown as Op);ops.push({code:"IdxInsert",p1:dest.cursor,keyStart:first,keyCount:count} as unknown as Op);}
   else if(dest.kind==="exists")ops.push({code:"Integer",p1:1n,p2:dest.register} as unknown as Op);
-  else {if(count!==1)throw new RangeError("scalar SELECT destination width");if(first!==dest.register)ops.push({code:"Copy",p1:first,p2:dest.register} as unknown as Op);if(dest.found!==undefined)ops.push({code:"Integer",p1:1n,p2:dest.found} as unknown as Op);}
+  else {for(let i=0;i<count;i++)if(first+i!==dest.register+i)ops.push({code:"Copy",p1:first+i,p2:dest.register+i} as unknown as Op);if(dest.found!==undefined)ops.push({code:"Integer",p1:1n,p2:dest.found} as unknown as Op);}
 }

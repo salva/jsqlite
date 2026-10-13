@@ -190,6 +190,19 @@ An available declared type may legitimately be the empty string, including hidde
 JSON table columns; do not normalize it to null. Origin fields require the translated equivalent of SQLite column
 metadata support.
 
+For represented linked scalar/vector/EXISTS/IN subqueries, expanded result width
+and original field metadata are retained through the shared producer. EXISTS is
+INTEGER0/1 and does not evaluate an unused projection, but still resolves it;
+scalar empty results are NULL. LIMIT/OFFSET names do not bind local or outer
+columns, including through a nested clause SELECT; independent clause SELECT
+sources remain valid. Represented source-free and ordinary table/joined EXISTS
+producers skip unused projection evaluation, but preserve predicate/clause errors
+and full name resolution. Mem/IN still evaluate their projection. Unsupported unimplemented composition is a typed temporary error before
+statement publication, not a partial terminal-arm result. This bounded contract
+does not promise general ordered/aggregate/window compound composition or PRAGMA
+full_column_names support. See the [current branch and boundary map](research/card-t-shared-subquery-owner-decision.md).
+
+
 `columnType(i)` returns the row cell's **initial** storage class and is stable for
 that row even after typed conversion. This is a deliberate deterministic adaptation:
 `sqlite3_column_type` after a converting C accessor is undefined. `column(i)`
@@ -572,3 +585,11 @@ precede STRICT type validation. See [boundary evidence](research/card-e-h-strict
 Existing shared generated admission/consumers remain bounded:
 full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
 implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).
+
+
+Bounded vector integration review, scalar width/linked-source/LIMIT preservation,
+public encoding/reset controls and unwaived external regression inventory: [independent
+evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
+Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
+execution, not selected-index strategy credit. Root stage2 harness rejection of
+empty sqlite_master is stale versus pinned/public behavior, not a vector regression.

@@ -268,9 +268,19 @@ function resolvedResultColumnName(resolved:ResolvedColumnRef):string{
  return resolved.source.table.columns[index]?.name??'rowid';
 }
 function result(expression:ExprNode,resolved:ResolvedColumnRef|null,name:string,mergedSources:readonly ResolvedColumnRef[]|null=null):ResolvedResult{let resultDescriptor=mergedSources?mergedDescriptor(name,mergedSources):descriptor(name,resolved);if(resolved){const collateAt=expression.tokens.map(token=>token.text.toUpperCase()).lastIndexOf('COLLATE');if(collateAt>=0&&expression.tokens[collateAt+1]){const explicit=identifier(expression.tokens[collateAt+1]!.text),supported=['binary','nocase','rtrim'].find(name=>sqliteIdentifierEqual(name,explicit));if(!supported)throw new NameResolutionError(`no such collation sequence: ${explicit}`);resultDescriptor=Object.freeze({...resultDescriptor,collation:supported});}}return Object.freeze({name,expression,source:mergedSources?null:resolved?.source??null,columnIndex:mergedSources?null:resolved?.columnIndex??null,mergedSources:mergedSources?Object.freeze([...mergedSources]):null,resolution:mergedSources?'coalesce':resolved?'direct':'expression',descriptor:resultDescriptor});}
-function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSource[],aliases:readonly ExprNode[]=[],rejectAliasAggregate=false,rejectAggregateFunctions=false,rejectWindowFunctions=false,selectWindowNames:readonly string[]=[],windowDefinitions:readonly WindowDefinitionNode[]=[],context:NameContext={sources,pNext:null,columnUses:[],nRef:0},resolveNested?:(select:SelectNode)=>void):void{
+// expr.c sqlite3ExprVectorSize: SELECT width or ordered TK_VECTOR fields.
+function reductionWidth(node:ExprReduction):number {
+ if(node.signature==='expr ::= LP select RP'){const child=node.children.find(c=>c.kind==='reduction'&&c.signature.startsWith('select ::='));const select=child?.kind==='reduction'?child.semantic:undefined;return select&&typeof select==='object'&&'result' in select?(select as SelectNode).result.length:1;}
+ if(node.signature==='expr ::= LP nexprlist COMMA expr RP'){
+  const count=(n:ExprReduction):number=>n.signature.startsWith('expr ::=')?1:n.children.reduce((sum,c)=>sum+(c.kind==='reduction'?count(c):0),0);
+  return node.children.reduce((sum,c)=>sum+(c.kind==='reduction'?count(c):0),0);
+ }
+ return 1;
+}
+function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSource[],aliases:readonly ExprNode[]=[],rejectAliasAggregate=false,rejectAggregateFunctions=false,rejectWindowFunctions=false,selectWindowNames:readonly string[]=[],windowDefinitions:readonly WindowDefinitionNode[]=[],context:NameContext={sources,pNext:null,columnUses:[],nRef:0},resolveNested?:(select:SelectNode,expectedWidth?:number|null)=>number):void{
+ const linkedWidths=new Map<ExprReduction,number>();
  const tokens=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):import('./tokenize.ts').SqlToken[]=>node.kind==='terminal'?(node.value?[node.value]:[]):node.children.flatMap(tokens);
- const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{
+ const walk=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>,consumerWidth:number|null=1):void=>{
   if(node.kind==='terminal')return;
   // A generated scalar SELECT owns a new NameContext. Never resolve its leaves
   // in the parent frame (resolveSelectStep descends with pNext instead).
@@ -279,11 +289,16 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
    // NameContext before descending into the SELECT's child NameContext.
    if(node.signature==='expr ::= expr in_op LP select RP'){
     const left=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
-    if(left)walk(left);
+    if(left)walk(left,null);
    }
    const selectReduction=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('select ::='));
    const nested=selectReduction?.semantic;
-   if(nested&&typeof nested==='object'&&'kind' in nested&&nested.kind==='select')resolveNested?.(nested as SelectNode);
+   if(nested&&typeof nested==='object'&&'kind' in nested&&nested.kind==='select'){
+    const left=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+    const expected=node.signature==='expr ::= expr in_op LP select RP'&&left?(linkedWidths.get(left)??reductionWidth(left)):node.signature==='expr ::= EXISTS LP select RP'?null:consumerWidth;
+    const width=resolveNested?.(nested as SelectNode,expected);
+    if(width!==undefined)linkedWidths.set(node,width);
+   }
    return;
   }
   // resolve.c walks only Window.pPartition and Window.pOrderBy here. Frame
@@ -354,7 +369,10 @@ function resolveAgainstSources(expression:ExprNode,sources:readonly ResolvedSour
  // resolve.c. A null direct match has not produced any column provenance.
  if(!match&&aliases.some(item=>item.alias&&sqliteIdentifierEqual(item.alias,identifier(tokens[0]!.text))))throw new NameResolutionError(`no such column: ${identifier(tokens[0]!.text)}`);
  }catch(error){if(!(error instanceof NameResolutionError)||!error.message.startsWith('no such column: '))throw error;const name=identifier(tokens[0]!.text),matches=aliases.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name));if(!matches[0])throw error;if(rejectAliasAggregate){const aggregate=firstAggregateName(matches[0]);if(aggregate)throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);}if(rejectWindowFunctions&&firstWindowName(matches[0]))throw new NameResolutionError(`misuse of aliased window function ${name}`);if(matches[0].reduction)context.aliasUses?.set(node,matches[0].reduction as ExprReduction);resolveAgainstSources(matches[0],sources,[],rejectAliasAggregate,rejectAggregateFunctions,rejectWindowFunctions,selectWindowNames,windowDefinitions,context,resolveNested);}return;}}
-  node.children.forEach(walk);
+  // expr.c codeVectorCompare consumes all fields of a SELECT operand;
+  // scalar callers retain expected1 and EXISTS ignores its unused EList.
+  const vectorComparison=/^expr ::= expr (?:EQ|NE|LT|LE|GT|GE|IS|IS NOT|LT\|GT\|GE\|LE|EQ\|NE) expr$/.test(node.signature);
+  for(const child of node.children)walk(child,node.signature==='expr ::= LP expr RP'?consumerWidth:vectorComparison?null:1);
  };
  if(expression.reduction)walk(expression.reduction);
 }
@@ -462,6 +480,10 @@ function resolvedViewTable(view:ViewNode,schema:ResolutionSchema):TableNode{
  }finally{resolvingViews.delete(view)}
 }
 export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema,outer:NameContext|null=null,cursorBase=0,transientTables:ReadonlyMap<number,TableNode>=new Map()):ResolvedSelect{
+ const limitContext:NameContext={sources:[],pNext:null,columnUses:[],nRef:0};
+ // resolve.c resolveSelectStep resolves LIMIT/OFFSET with an empty context:
+ // neither this SELECT's sources nor an outer correlated frame is visible.
+ for(const expression of [select.limit,select.offset])if(expression)resolveAgainstSources(expression,[],[],false,true,true,[],[],limitContext);
  const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const view=schema.views?.get(sqliteAsciiFold(item.tableName));const table=transientTables.get(cursorOffset)??findSchemaTable(schema,item.tableName)??(view?resolvedViewTable(view,schema):undefined);if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(item.indexedBy!==null&&!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!)))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
  for(let i=1;i<bound.length;i++){const source=bound[i]!,left=bound.slice(0,i);if(source.joinFromLeft.natural){if(source.on||source.using)throw new NameResolutionError('a NATURAL join may not have an ON or USING clause');(source as unknown as {using:readonly string[]}).using=Object.freeze(source.table.columns.filter(column=>left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,column.name)))).map(column=>column.name));}if(source.using)for(const name of source.using){if(!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))||!left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))))throw new NameResolutionError(`cannot join using column ${name} - column not present in both tables`);try{direct({kind:'tokens',tokens:Object.freeze([{kind:'id',text:name,startByte:0,endByte:name.length}])},left);}catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('ambiguous column name:'))throw new NameResolutionError(`ambiguous reference to ${name} in USING()`);throw error;}}}
  const sources=Object.freeze(bound.map(source=>Object.freeze(source)));
@@ -470,7 +492,7 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  let nextCursor=cursorBase+sources.length;
  const lastCursor=(resolved:ResolvedSelect):number=>Math.max(-1,...resolved.sources.map(source=>source.cursorId),...resolved.nested.map(lastCursor));
  const seenNested=new Set<SelectNode>();
- const resolveNested=(child:SelectNode):void=>{if(seenNested.has(child))return;seenNested.add(child);if(child.result.length!==1)throw new NameResolutionError(`sub-select returns ${child.result.length} columns - expected 1`);// select.c:selectExpander installs a derived SrcItem's transient columns
+ const resolveNested=(child:SelectNode,expectedWidth:number|null=1,outerContext:NameContext=context):number=>{if(seenNested.has(child))return nested.find(plan=>plan.source===child)?.result.length??1;seenNested.add(child);// select.c:selectExpander installs a derived SrcItem's transient columns
  // before resolveSelectStep walks the linked child/parent NameContexts. The
  // storage cursor is supplied later by the derived producer, not schema lookup.
  const derived=child.from.derived;
@@ -496,14 +518,36 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  // resolve.c resolves each compound arm in its own SrcList. The parser's
  // compound result carrier is not necessarily the final arm's EList.
  const finalArm=child.hasCompound?child.arms.at(-1):undefined;
+ // parse.y/sqlite3MultiValues packs constant rows in a coroutine or falls
+ // back to SF_Values SELECTs. TS valuesRows retains those row ELists;
+ // both upstream routes validate their widths before consumer admission.
+ for(const arm of child.arms)if(arm.valuesRows?.some(row=>row.length!==arm.result.length))throw new NameResolutionError('all VALUES must have the same number of terms');
  const resolutionSource=finalArm?{...child,result:finalArm.result,from:finalArm.from,where:finalArm.where}:child;
- let resolved=expandAndResolveSelect(resolutionSource,schema,context,nextCursor,childBindings);
+ let resolved=expandAndResolveSelect(resolutionSource,schema,outerContext,nextCursor,childBindings);
+ // Nonconstant VALUES rows fall back to independently resolved SF_Values
+ // ELists upstream. Retain every row's column/nested identity in the packed
+ // carrier even when EXISTS or scalar LIMIT1 will not evaluate that row.
+ for(const arm of child.arms)for(const row of arm.valuesRows?.slice(1)??[]){
+  const single:SelectNode={...child,result:row,from:arm.from,where:arm.where,hasValues:false,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false,arms:Object.freeze([{...arm,result:row,origin:'select',valuesRows:null}])};
+  const rowPlan=expandAndResolveSelect(single,schema,outerContext,nextCursor);
+  nextCursor=Math.max(nextCursor,lastCursor(rowPlan)+1);
+  resolved=Object.freeze({...resolved,columnUses:Object.freeze([...resolved.columnUses,...rowPlan.columnUses]),nested:Object.freeze([...resolved.nested,...rowPlan.nested]),correlated:resolved.correlated||rowPlan.correlated});
+ }
+ // TK_EXISTS consumes presence, not projection fields (select.c SRT_Exists).
+ // Still resolve the full expanded projection for name/error semantics.
  resolved=Object.freeze({...resolved,source:child});
  if(child.hasCompound){
-  const compoundArms=child.arms.map(arm=>{const single:SelectNode={...child,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false,arms:Object.freeze([arm])};const plan=expandAndResolveSelect(single,schema,context,nextCursor);nextCursor=Math.max(nextCursor,lastCursor(plan)+1);return plan;});
+  const compoundArms=child.arms.map(arm=>{const single:SelectNode={...child,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,hasCompound:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false,arms:Object.freeze([arm])};const plan=expandAndResolveSelect(single,schema,outerContext,nextCursor);nextCursor=Math.max(nextCursor,lastCursor(plan)+1);return plan;});
+  for(let i=1;i<compoundArms.length;i++)if(compoundArms[i-1]!.result.length!==compoundArms[i]!.result.length){
+   const arm=child.arms[i]!;
+   throw new NameResolutionError(arm.origin==='values'?'all VALUES must have the same number of terms':`SELECTs to the left and right of ${({ 'union-all':'UNION ALL',union:'UNION',intersect:'INTERSECT',except:'EXCEPT'} as const)[arm.operatorFromPrior as 'union-all'|'union'|'intersect'|'except']} do not have the same number of result columns`);
+  }
   resolved=Object.freeze({...resolved,compoundArms:Object.freeze(compoundArms),correlated:resolved.correlated||compoundArms.some(plan=>plan.correlated)});
  }
- nested.push(resolved);nextCursor=Math.max(nextCursor,lastCursor(resolved)+1);};
+ // resolveSelectStep validates compound structure before expression consumers
+ // apply expr.c scalar/vector arity. Keep producer errors ahead of admission.
+ if(expectedWidth!==null&&resolved.result.length!==expectedWidth)throw new NameResolutionError(`sub-select returns ${resolved.result.length} columns - expected ${expectedWidth}`);
+ nested.push(resolved);nextCursor=Math.max(nextCursor,lastCursor(resolved)+1);return resolved.result.length;};
  const output:ResolvedResult[]=[];
  const windowDefinitions=resolvedWindowDefinitions(select);
  for(let i=0;i<select.windowDefinitions.length;i++){const definition=select.windowDefinitions[i]!;if(definition.frameError)throw new NameResolutionError(definition.frameError);if(definition.baseName){let base:typeof definition|undefined;for(let j=i-1;j>=0;j--){const candidate=select.windowDefinitions[j]!;if(sqliteIdentifierEqual(candidate.name,definition.baseName)){base=candidate;break;}}if(base){if(base.hasFrame)throw new NameResolutionError(`cannot override frame specification of window: ${definition.baseName}`);if(base.partitionBy.length&&definition.partitionBy.length)throw new NameResolutionError(`cannot override PARTITION clause of window: ${definition.baseName}`);if(base.orderBy.length&&definition.orderBy.length)throw new NameResolutionError(`cannot override ORDER BY clause of window: ${definition.baseName}`);}}}
@@ -544,8 +588,8 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   }
   if(groupHasAggregate)throw new NameResolutionError('aggregate functions are not allowed in the GROUP BY clause');
  }
- if(select.limit)resolveAgainstSources(select.limit,[],[],false,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);
- if(select.offset)resolveAgainstSources(select.offset,[],[],false,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);
+ if(select.limit)resolveAgainstSources(select.limit,[],[],false,true,true,select.windowNames,select.windowDefinitions,limitContext,(child,width)=>resolveNested(child,width,limitContext));
+ if(select.offset)resolveAgainstSources(select.offset,[],[],false,true,true,select.windowNames,select.windowDefinitions,limitContext,(child,width)=>resolveNested(child,width,limitContext));
  const orderResultColumns:(number|null)[]=[];
  for(let i=0;i<select.orderBy.length;i++){
   const expression=select.orderBy[i]!.expr,parsed=groupByInteger(expression);
@@ -850,6 +894,7 @@ export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):v
 export interface ResolvedExpressionCarrier {
  readonly reduction:ExprReduction;
  readonly column:ResolvedColumnUse|null;
+ readonly select?:ResolvedSelect;
  readonly children:readonly ResolvedExpressionCarrier[];
 }
 /** Synthetic TK_COLUMN retains logical identity without fabricating SQL text. */
@@ -866,7 +911,7 @@ export function resolvedGeneratedExpressionCarrier(source:ResolvedSource,columnI
  resolveAgainstSources(expression,[source],[],false,true,true,[],[],context);
  return resolvedExpressionCarrier({columnUses:context.columnUses},expression.reduction);
 }
-export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|'aliasUses'>,reduction:ExprReduction):ResolvedExpressionCarrier {
+export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|'aliasUses'> & Partial<Pick<ResolvedSelect,'nested'>>,reduction:ExprReduction):ResolvedExpressionCarrier {
  const uses=new Map(plan.columnUses.map(use=>[use.expression,use]));
  const expressionChildren=(node:LemonValue<SqlToken>):ExprReduction[]=>{
   if(node.kind!=='reduction')return [];
@@ -879,7 +924,9 @@ export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|
   while(node.signature==='expr ::= LP expr RP'){
    const child=expressionChildren(node)[0];if(!child)throw new NameResolutionError('parenthesized expression lost identity');node=child;
   }
-  return Object.freeze({reduction:node,column:uses.get(node)??null,children:Object.freeze(expressionChildren(node).map(build))});
+  const selectNode=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('select ::='));
+  const linked=selectNode?.kind==='reduction'?plan.nested?.find(child=>child.source===selectNode.semantic):undefined;
+  return Object.freeze({reduction:node,column:uses.get(node)??null,...(linked?{select:linked}:{}),children:Object.freeze(expressionChildren(node).map(build))});
  };
  return build(reduction);
 }

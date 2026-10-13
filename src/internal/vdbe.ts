@@ -51,16 +51,22 @@ type Expression =
  | {kind:"column";identifierTokens?:readonly {text:string}[];generated?:Expression;strictGenerated?:{table:string;column:string;type:string};index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
+ | {kind:"vector";fields:Expression[]}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
  | {kind:"cast";value:Expression;affinity:MemAffinity}
  | {kind:"call";name:string;args:Expression[];deferredAffinity?:true}
  | {kind:"aggregate";name:string;args:Expression[];collation:BuiltinCollation;distinct:boolean;filter:Expression|null;orderBy:AggregateOrderTerm[]}
- | {kind:"scalar-subquery";select:SelectNode;exists?:true}
- | {kind:"in-subquery";left:Expression;select:SelectNode;negated:boolean}
+ | {kind:"scalar-subquery";select:SelectNode;exists?:true;resolved?:import('./resolve.ts').ResolvedSelect|undefined}
+ | {kind:"in-subquery";left:Expression;select:SelectNode;negated:boolean;resolved?:import('./resolve.ts').ResolvedSelect|undefined}
  | {kind:"in-list";left:Expression;values:Expression[];negated:boolean}
  | {kind:"between";value:Expression;lower:Expression;upper:Expression;negated:boolean}
- | {kind:"register";index:number}
+ | {kind:"register";index:number;affinity?:MemAffinity;collation?:BuiltinCollation}
  | {kind:"case";operand:Expression|null;pairs:[Expression,Expression][];otherwise:Expression|null};
+
+// expr.c sqlite3ExprVectorSize: scalar consumers remain width one.
+function expressionVectorWidth(value:Expression):number {
+ return value.kind==='vector'?value.fields.length:value.kind==='scalar-subquery'&&!value.exists?(value.resolved?.result.length??value.select.result.length):1;
+}
 
 function compoundOrderExpressionEqual(left:Expression,right:Expression):boolean{
  const unwrap=(value:Expression):Expression=>value.kind==="collate"?unwrap(value.value):value;
@@ -70,6 +76,7 @@ function compoundOrderExpressionEqual(left:Expression,right:Expression):boolean{
   case"variable":return left.spelling===(right as typeof left).spelling;
   case"column":{const r=right as typeof left;const owner=(name:string)=>sqlName(name.split(".").at(-1)!);return sqliteIdentifierEqual(owner(left.name),owner(r.name))&&(left.index<0||r.index<0||left.index===r.index)}
   case"unary":{const r=right as typeof left;return left.op===r.op&&compoundOrderExpressionEqual(left.value,r.value)}
+  case"vector":{const r=right as typeof left;return left.fields.length===r.fields.length&&left.fields.every((field,i)=>compoundOrderExpressionEqual(field,r.fields[i]!))}
   case"binary":{const r=right as typeof left;return left.op===r.op&&compoundOrderExpressionEqual(left.left,r.left)&&compoundOrderExpressionEqual(left.right,r.right)}
   case"cast":{const r=right as typeof left;return left.affinity===r.affinity&&compoundOrderExpressionEqual(left.value,r.value)}
   case"call":{const r=right as typeof left;return left.name===r.name&&left.args.length===r.args.length&&left.args.every((v,i)=>compoundOrderExpressionEqual(v,r.args[i]!))}
@@ -102,6 +109,7 @@ type Op =
   | { readonly code: "CompareGroup"; readonly left:number; readonly right:number; readonly count:number; readonly keyInfo:KeyInfo; readonly jump:number }
   | { readonly code: "WindowRangeTest"; readonly bigNull?:boolean; readonly candidate:number; readonly current:number; readonly offset?:number; readonly mode:"end-current"|"end-following"|"end-unbounded"|"start-unbounded"|"start-current"|"start-preceding"|"start-following"; readonly descending:boolean; readonly collation:BuiltinCollation; readonly jump:number }
   | { readonly code: "CollSeq"; readonly collation:BuiltinCollation }
+  | { readonly code: "ElseEq"; readonly p1:number; readonly jump:number }
   | { readonly code: "ShortCircuit"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly jump:number }
   | { readonly code: "Boolean"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "NotNull"; readonly p1:number; readonly p2:number; readonly jump:number }
@@ -133,12 +141,12 @@ type Op =
   | { readonly code: "PriorityShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
   | { readonly code: "FifoInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "FifoShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
-  | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo; readonly p4KeyInfo?:KeyInfo; readonly insertionOrder?:boolean }
+  | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo; readonly p4KeyInfo?:KeyInfo; readonly insertionOrder?:boolean; readonly statementEncoding?:boolean }
   | { readonly code: "MakeRecord"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4Affinity?:readonly MemAffinity[] }
   | { readonly code: "NewRowid"; readonly p1:number; readonly p2:number }
   | { readonly code: "Insert"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "Found" | "NotFound"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
-  | { readonly code: "InSet"; readonly p1:number; readonly key:number; readonly output:number; readonly affinity:MemAffinity; readonly negated:boolean }
+  | { readonly code: "InSet"; readonly p1:number; readonly key:number; readonly output:number; readonly affinity:MemAffinity; readonly negated:boolean; readonly count?:number; readonly affinities?:readonly MemAffinity[] }
   | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly p2?:number; readonly useSeekResult?:boolean; readonly replace?:boolean }
   | { readonly code: "SetDelete"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "SetRetainIntersection"; readonly p1:number; readonly p2:number }
@@ -1954,6 +1962,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
       // An alias carrier owns the substituted result reduction, not the ID.
       if(value.kind==='column'&&!carrier.column&&carrier.reduction.signature!=='expr ::= ID')value=expressionFromReduction(carrier.reduction as Reduction);
       const children=carrier.children;
+      if((value.kind==='scalar-subquery'||value.kind==='in-subquery')&&carrier.select)value={...value,select:carrier.select.source,resolved:carrier.select};
       const child=(index:number):ResolvedExpressionCarrier=>{const found=children[index];if(!found)throw new JSQLiteError('internal','resolved joined scalar expression child lost identity');return found;};
       if(value.kind==='column'){
         if(preserveScalarLeaves&&value.cursor!==undefined&&!binding)return value;
@@ -1985,6 +1994,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
       }
       if(value.kind==='unary'&&value.op==='NOT'&&carrier.reduction.signature.startsWith('expr ::= expr likeop '))return {...value,value:bindResolvedExpression(value.value,carrier,cursorFor,preserveScalarLeaves,binding,generatedBusy)};
       if(value.kind==='unary'||value.kind==='cast'||value.kind==='collate')return {...value,value:bindResolvedExpression(value.value,child(0),cursorFor,preserveScalarLeaves,binding,generatedBusy)};
+      if(value.kind==='vector')return {...value,fields:value.fields.map((field,index)=>bindResolvedExpression(field,child(index),cursorFor,preserveScalarLeaves,binding,generatedBusy))};
       if(value.kind==='binary'){
         // TK_ISNULL/TK_NOTNULL owns only pLeft; the representation's NULL
         // right value is generated, not a resolved second operand.
@@ -2055,6 +2065,7 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
  if(sig==="expr ::= ID|INDEXED|JOIN_KW"){const keyword=sqliteAsciiFold(t[0]!.text);if(['current_date','current_time','current_timestamp'].includes(keyword))return{kind:"call",name:keyword,args:[]};}
  if(sig.startsWith("term ::=")||sig==="expr ::= term"||sig==="expr ::= VARIABLE"){const x=t[0]!;const keyword=sqliteAsciiFold(x.text);if(['current_date','current_time','current_timestamp'].includes(keyword))return{kind:"call",name:keyword,args:[]};if(x.kind==="integer"){const v=BigInt(x.text);return{kind:"literal",value:v<(1n<<63n)?v:Number(x.text)}}if(x.kind==="float")return{kind:"literal",value:Number(x.text)};if(x.kind==="string")return{kind:"literal",value:decodeString(x.text)};if(x.kind==="blob")return{kind:"literal",value:Uint8Array.from(x.text.slice(2,-1).match(/../g)?.map(y=>parseInt(y,16))??[])};if(x.text.toUpperCase()==="NULL")return{kind:"literal",value:null}}
  if(sig==="expr ::= VARIABLE")return{kind:"variable",spelling:t[0]!.text};
+ if(sig==="expr ::= LP nexprlist COMMA expr RP")return {kind:"vector",fields:all.map(expressionFromReduction)};
  if(sig==="expr ::= LP expr RP")return expressionFromReduction(all[0]!);
  // whereexpr.c canonicalizes IS [NOT] NULL to TK_ISNULL/TK_NOTNULL;
  // preserve the owning unary production when consuming analyzed terms.
@@ -2222,6 +2233,8 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   if(expression.kind==="variable") { if(!parameters)throw new JSQLiteError("internal","missing parameter builder");const spelling=expression.spelling;let index:number;if(spelling==="?")index=parameters.maximum+1;else if(spelling[0]==="?")index=Number(spelling.slice(1));else index=parameters.named.get(spelling)??parameters.maximum+1;if(!Number.isSafeInteger(index)||index<1||index>32766)throw new JSQLiteError("sqlite","variable number must be between ?1 and ?32766",{code:1});if(spelling!=="?"&&!parameters.named.has(spelling))parameters.named.set(spelling,index);while(parameters.names.length<index)parameters.names.push(null);if(spelling!=="?"&&parameters.names[index-1]===null)parameters.names[index-1]=spelling;parameters.maximum=Math.max(parameters.maximum,index);const r=allocate();ops.push({code:"Variable",p1:index,p2:r});return r; }
   if(expression.kind==="literal") { const r=allocate(),v=expression.value;if(v===null)ops.push({code:"Null",p2:r});else if(typeof v==="bigint")ops.push({code:"Integer",p1:v,p2:r});else if(typeof v==="number")ops.push({code:"Real",p1:v,p2:r});else if(typeof v==="string")ops.push({code:"String",p1:v,p2:r});else ops.push({code:"Blob",p1:v,p2:r});return r; }
   if(expression.kind==="scalar-subquery") {
+    const width=expressionVectorWidth(expression);
+    if(!expression.exists&&width!==1)throw new JSQLiteError("sqlite",`sub-select returns ${width} columns - expected 1`,{code:1});
     if(compileSubquery)return compileSubquery(expression);
     // expr.c:sqlite3CodeSubselect initializes SRT_Mem to NULL and replaces it
     // from only the first row. This initial route admits the finite no-FROM
@@ -2262,6 +2275,23 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     const negated=allocate();ops.push({code:"Not",p1:result,p2:negated});return negated;
   }
   if(expression.kind==="in-list") {
+    if(expression.left.kind==="vector") {
+      // parse.y turns a literal row RHS into a VALUES producer. Materialize
+      // its ordered fields in the shared ephemeral KeyInfo destination; do not
+      // reuse scalar INDEX_NOOP (it cannot decide vector NULL fallbacks).
+      const fields=expression.left.fields,width=fields.length,result=allocate(),cursor=-1000000-result;
+      for(const row of expression.values)if(row.kind!=="vector"||row.fields.length!==width)
+        throw new JSQLiteError("sqlite",`sub-select returns ${row.kind==="vector"?row.fields.length:1} columns - expected ${width}`,{code:1});
+      const affinities=fields.map(field=>expressionAffinity(field)??"blob" as MemAffinity);
+      const firstRow=expression.values[0];
+      ops.push({code:"OpenEphemeral",p1:cursor,statementEncoding:true,keyInfo:new KeyInfo({encoding:"utf-8",totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,firstRow?.kind==="vector"?firstRow.fields[i]!:field)}))})});
+      const rowStart=allocate();for(let i=1;i<width;i++)allocate();
+      for(const row of expression.values){if(row.kind!=="vector")continue;row.fields.forEach((field,i)=>{const value=emit(field);ops.push({code:"Copy",p1:value,p2:rowStart+i},{code:"Affinity",p1:rowStart+i,affinity:affinities[i]!});});ops.push({code:"IdxInsert",p1:cursor,keyStart:rowStart,keyCount:width});}
+      const key=allocate();for(let i=1;i<width;i++)allocate();
+      fields.forEach((field,i)=>{const value=emit(field);ops.push({code:"Copy",p1:value,p2:key+i});});
+      ops.push({code:"InSet",p1:cursor,key,output:result,affinity:"blob",affinities,count:width,negated:expression.negated},{code:"ClearEphemeral",p1:cursor});
+      return result;
+    }
     // sqlite3ExprCodeIN's INDEX_NOOP path compares from left to right.  Compile
     // the chain into registers so a hit jumps over later (possibly erroring)
     // RHS terms while misses retain SQL's false/NULL distinction.
@@ -2308,7 +2338,54 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
   if(expression.kind==="unary") { if(expression.op==="-"&&expression.value.kind==="literal"&&typeof expression.value.value==="number"){const r=allocate();ops.push({code:"Real",p1:-expression.value.value,p2:r});return r}const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
+  if(expression.kind==="vector")throw new JSQLiteError("sqlite","row value misused",{code:1});
   if(expression.kind==="binary") {
+    if(expressionVectorWidth(expression.left)>1||expressionVectorWidth(expression.right)>1) {
+      if(!['=','==','!=','<>','<','>','<=','>=','IS','IS NOT'].includes(expression.op)){
+        const operand=expressionVectorWidth(expression.left)>1?expression.left:expression.right;
+        throw new JSQLiteError('sqlite',operand.kind==='scalar-subquery'?`sub-select returns ${expressionVectorWidth(operand)} columns - expected 1`:'row value misused',{code:1});
+      }
+      // expr.c codeVectorCompare: fields are scalar Mem values, not a new
+      // storage class. Compare in order, retaining NULL until a later definite
+      // mismatch. Ordering continues only on equal non-NULL fields (ElseEq).
+      // codeVectorCompare checks widths before generating either child.
+      if(expressionVectorWidth(expression.left)!==expressionVectorWidth(expression.right))
+        throw new JSQLiteError('sqlite','row value misused',{code:1});
+      const vectorOperand=(value:Expression):Expression=>{
+      if(value.kind==='scalar-subquery'&&!value.exists&&expressionVectorWidth(value)>1){
+        if(!compileSubquery)throw new JSQLiteError('unsupported','vector SELECT destination is not implemented',{unsupportedClassification:'temporary'});
+        const first=compileSubquery(value);const fields=value.resolved?.result??value.select.result.map(expression=>({expression}));return {kind:'vector',fields:fields.map((item,i)=>{const node=item.expression.reduction;const tree=!value.resolved&&node?expressionFromReduction(node):undefined;const column=value.resolved?resolvedResultColumn(value.resolved.result[i]!):undefined;const affinity=value.resolved?(node?resolvedExpressionAffinity(node,value.resolved):(value.resolved.result[i]!.columnIndex===-1?'integer':column?.affinity)):tree?expressionAffinity(tree):undefined,collation=value.resolved?(node?resolvedExpressionCollation(node,value.resolved):column?.collation):tree?expressionCollation(tree):undefined;const field:Expression={kind:'register',index:first+i,...(affinity?{affinity}:{}),...(collation?{collation:sqliteAsciiFold(collation) as BuiltinCollation}:{})};const explicit=node?explicitCollation(expressionFromReduction(node)):undefined;return explicit?{kind:'collate',value:field,collation:explicit}:field;})};
+      }
+      return value;
+    };
+    const left=vectorOperand(expression.left),right=vectorOperand(expression.right);
+      if(left.kind!=="vector"||right.kind!=="vector"||left.fields.length!==right.fields.length||
+         !["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(expression.op))
+        throw new JSQLiteError("sqlite","row value misused",{code:1});
+      const result=allocate(),done:number[]=[],equality=["=","==","!=","<>","IS","IS NOT"].includes(expression.op),
+        negated=["!=","<>","IS NOT"].includes(expression.op),nullEqual=expression.op==="IS"||expression.op==="IS NOT";
+      ops.push({code:"Integer",p1:1n,p2:result});
+      for(let i=0;i<left.fields.length;i++) {
+        const l=left.fields[i]!,r=right.fields[i]!,a=emit(l),b=emit(r),field=allocate(),
+          affinity=comparisonAffinity(expressionAffinity(l),expressionAffinity(r)),collation=binaryCollation(l,r);
+        const compare=(op:string,target:number)=>ops.push({code:"Binary",op,p1:a,p2:b,p3:target,collation,...(affinity?{affinity}:{})});
+        if(equality) {
+          compare(nullEqual?"IS":"=",field);
+          ops.push({code:"Boolean",kind:"and",p1:result,p2:field,p3:result});
+          done.push(ops.length);ops.push({code:"ShortCircuit",kind:"and",p1:result,p2:result,jump:0});
+        } else {
+          compare(i===left.fields.length-1?expression.op:expression.op.startsWith("<")?"<":">",result);
+          if(i<left.fields.length-1) {
+            compare("=",field);
+            ops.push({code:"ElseEq",p1:field,jump:ops.length+2});
+            done.push(ops.length);ops.push({code:"Goto",p2:0});
+          }
+        }
+      }
+      for(const address of done){const op=ops[address]!;if(op.code==="Goto")(op as {p2:number}).p2=ops.length;else (op as {jump:number}).jump=ops.length;}
+      if(negated)ops.push({code:"Not",p1:result,p2:result});
+      return result;
+    }
     const left=emit(expression.left);
     // expr.c sqlite3ExprIfTrue/sqlite3ExprIfFalse can omit the RHS when a
     // literal left operand decides AND/OR during code generation. Projection
@@ -2396,20 +2473,23 @@ function computeScalarLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>num
  const ifZero=ops.length;ops.push({code:'IfNot',p1:count,p2:0});return {count,ifZero};
 }
 
-function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder,scalarDestination=false):LimitRegisters|undefined {
+function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,parameters:ParameterBuilder,scalarDestination=false,subquery?:(expression:SubqueryExpression)=>number):LimitRegisters|undefined {
  if(!select.limit)return undefined;
  // select.c:computeLimitRegisters emits OP_Goto for an integer literal zero
  // (or OP_IfNot for an evaluated LIMIT) before compiling the OFFSET expression.
  // expr.c normalizes the SELECT owned by Mem/Exists, not IN or a retained
  // derived producer feeding a post-producer predicate. Reuse its semantic owner
  // before OFFSET admission; count/combined/capacity still belong to this SELECT.
- const scalar=scalarDestination?computeScalarLimitRegisters(select,ops,allocate,parameters):undefined;
- const count=scalar?.count??compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters);
+ const scalar=scalarDestination?computeScalarLimitRegisters(select,ops,allocate,parameters,subquery):undefined;
+ const value=scalar?.count??compileExpressionTree(expressionFromReduction(select.limit.reduction!),ops,allocate,parameters,subquery);
+ // select.c owns iLimit separately from the expression result. A cached
+ // scalar subquery register must not become the decremented row counter.
+ const count=scalar?.count??allocate();if(!scalar)ops.push({code:'Copy',p1:value,p2:count});
  let ifZero:number;
  if(scalar)ifZero=scalar.ifZero;
  else {ops.push({code:"MustBeInt",p1:count});ifZero=ops.length;ops.push({code:"IfNot",p1:count,p2:0});}
  let offset:number|undefined;
- if(select.offset){offset=compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters);ops.push({code:"MustBeInt",p1:offset});}
+ if(select.offset){const value=compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters,subquery);offset=allocate();ops.push({code:'Copy',p1:value,p2:offset},{code:"MustBeInt",p1:offset});}
  const combined=allocate();if(offset===undefined){ops.push({code:"Copy",p1:count,p2:combined});}else ops.push({code:"OffsetLimit",p1:count,p2:combined,p3:offset});
  const capacity=allocate();ops.push({code:"Copy",p1:combined,p2:capacity});
  return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
@@ -2460,7 +2540,7 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  if(joinedDerived){const derived=select.from.derived!.select;joinedNames=derived.result.map(expression=>expression.alias??expressionName(expression));joinedStart=selectProgramBuilder.range(derived.result.length);derived.result.forEach((expression,index)=>{const value=compileExpression(expression,ops,allocate,parameters);ops.push({code:"Copy",p1:value.register,p2:joinedStart!+index});});}
  const current=selectProgramBuilder.range(width);const loop=ops.length,breakLabel=selectProgramBuilder.label();selectProgramBuilder.jump(breakLabel,order.length?{code:"PriorityShift",p1:queue,p2:current,count:width,emptyJump:0}:{code:"FifoShift",p1:queue,p2:current,count:width,emptyJump:0},(op,pc)=>({...op,emptyJump:pc}));
  let offsetSkip:number|undefined;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
- const bindOutput=(tree:Expression):Expression=>{if(tree.kind==="column"){const parts=tree.name.split(".").map(sqlName),qualifier=parts.length>1?parts.at(-2):undefined,name=parts.at(-1)!;if(joinedDerived&&qualifier&&sqliteIdentifierEqual(qualifier,select.from.items[1]!.alias??select.from.items[1]!.tableName)){const index=joinedNames.findIndex(candidate=>sqliteIdentifierEqual(candidate,name));if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:joinedStart!+index};}return bind(tree,current);}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bindOutput(tree.value)};if(tree.kind==="binary")return{...tree,left:bindOutput(tree.left),right:bindOutput(tree.right)};if(tree.kind==="call")return{...tree,args:tree.args.map(bindOutput)};if(tree.kind==="case")return{...tree,operand:tree.operand?bindOutput(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bindOutput(a),bindOutput(b)]),otherwise:tree.otherwise?bindOutput(tree.otherwise):null};return tree};
+ const bindOutput=(tree:Expression):Expression=>{if(tree.kind==="column"){const parts=tree.name.split(".").map(sqlName),qualifier=parts.length>1?parts.at(-2):undefined,name=parts.at(-1)!;if(joinedDerived&&qualifier&&sqliteIdentifierEqual(qualifier,select.from.items[1]!.alias??select.from.items[1]!.tableName)){const index=joinedNames.findIndex(candidate=>sqliteIdentifierEqual(candidate,name));if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:joinedStart!+index};}return bind(tree,current);}if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bindOutput(tree.value)};if(tree.kind==="vector")return {...tree,fields:tree.fields.map(bindOutput)};if(tree.kind==="binary")return{...tree,left:bindOutput(tree.left),right:bindOutput(tree.right)};if(tree.kind==="call")return{...tree,args:tree.args.map(bindOutput)};if(tree.kind==="case")return{...tree,operand:tree.operand?bindOutput(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bindOutput(a),bindOutput(b)]),otherwise:tree.otherwise?bindOutput(tree.otherwise):null};return tree};
  let consumerSkip:number|undefined;if(joinedDerived&&select.from.items[1]!.on?.reduction){const predicate=compileExpressionTree(bindOutput(expressionFromReduction(select.from.items[1]!.on!.reduction!)),ops,allocate,parameters);consumerSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
  let consumerOffsetSkip:number|undefined;if(consumerLimit?.offset!==undefined){consumerOffsetSkip=ops.length;ops.push({code:"IfPos",p1:consumerLimit.offset,p2:0,p3:1});}
  const outputWidth=producerOnly?width:select.result.length,output=selectProgramBuilder.range(outputWidth);if(producerOnly){for(let index=0;index<width;index++)ops.push({code:"Copy",p1:current+index,p2:output+index});}else select.result.forEach((expression,index)=>{if(!expression.reduction)throw new JSQLiteError("internal","recursive result lost expression");const value=compileExpressionTree(bindOutput(expressionFromReduction(expression.reduction)),ops,allocate,parameters);ops.push({code:"Copy",p1:value,p2:output+index});});emitSelectDestination(ops,shared?.destination??{kind:"output"},output,outputWidth);
@@ -2569,7 +2649,7 @@ export function compileMultipleRecursiveCtes(select:SelectNode,encoding:Database
  if(!shared)ops.push({code:'Halt'});return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(select.result.map(expression=>Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
 }
 
-export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER, owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;emitRow:(first:number,count:number)=>void;destination?:SelectDest}): Program {
+export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER, owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;emitRow:(first:number,count:number)=>void;destination?:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;linkedPlan?:ReturnType<typeof expandAndResolveSelect>;expressionBinding?:ResolvedExpressionBinding}): Program {
   // select.c applies sqlite3WindowRewrite to every SELECT after name/function
   // resolution, including a SELECT without a FROM clause. Public prepare passes
   // the schema here, so resolve before scalar lowering can misclassify the owner.
@@ -2632,7 +2712,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     for(const arm of select.arms)for(const expressions of arm.valuesRows??[arm.result]){
       const rowSelect={...select,result:expressions,from:arm.from,where:arm.where,hasCompound:false,hasValues:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,arms:Object.freeze([{...arm,result:expressions,origin:'select' as const,valuesRows:null}])};
       if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
-      compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder:compoundBuilder,parameters,emitRow:(first,count)=>{
+      compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{...owner,builder:compoundBuilder,parameters,emitRow:(first,count)=>{
         const skip=limit?.offset!==undefined?ops.length:-1;if(skip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
         if(owner)owner.emitRow(first,count);else emitSelectDestination(ops,{kind:'output'},first,count);
         if(limit){haltJumps.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}
@@ -2655,7 +2735,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     for(const row of rows){
       const rowSelect={...select,result:row,hasValues:false,arms:Object.freeze([{...arm!,result:row,origin:'select' as const,valuesRows:null}])};
       if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}}
-      compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow:owner?.emitRow??((first,count)=>emitSelectDestination(ops,{kind:'output'},first,count))});
+      compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{...owner,builder,parameters,emitRow:owner?.emitRow??((first,count)=>emitSelectDestination(ops,{kind:'output'},first,count))});
     }
     if(!owner)ops.push({code:'Halt'});
     return Object.freeze({... (database?{database,maxRows}:{}),ops:owner?ops:Object.freeze(ops),registers:builder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(rows[0].map((_,index)=>Object.freeze({name:`column${index+1}`,declaredType:null,database:null,table:null,origin:null})))});
@@ -2666,7 +2746,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   // select.c columnTypeImpl owns TK_SELECT provenance independently of the
   // chosen WHERE/destination lowering route. Resolve the enclosing metadata
   // relationship before shared scalar children can change physical code paths.
-  let scalarResolved:ReturnType<typeof expandAndResolveSelect>|undefined;
+  let scalarResolved:ReturnType<typeof expandAndResolveSelect>|undefined=owner?.linkedPlan;
   if(schema){
     try{scalarResolved=expandAndResolveSelect(select,schema)}
     catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
@@ -2696,6 +2776,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       }
       const children=descendantExprs(node);
       if(value.kind==='collate'||value.kind==='cast'||value.kind==='unary')visit(value.value,children[0] as Reduction);
+      else if(value.kind==='vector')value.fields.forEach((field,index)=>visit(field,children[index] as Reduction));
       else if(value.kind==='binary'){visit(value.left,children[0] as Reduction);visit(value.right,children[1] as Reduction);}
       else if(value.kind==='call'){
         // expressionFromReduction obtains call arguments from exprlist, in order.
@@ -2708,7 +2789,32 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     visit(tree,reduction);
     return tree;
   };
-  const compileSubquery=(expression:SubqueryExpression):number=>{
+  const enclosingBinding=owner?.expressionBinding;
+  const compileSubquery=(incoming:SubqueryExpression):number=>{
+    // The resolver's expanded SrcList and transient Table belong to the same
+    // SELECT. Never pair its linked columns with the earlier flattened carrier.
+    const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
+    // select.c selectExpander leaves view/derived transient Tables to their
+    // producer. A linked SrcList alone does not establish a physical btree.
+    // A zero-source linked SELECT must also keep its plan/binding: nested
+    // correlated children cannot fall back to the legacy unbound expression
+    // path. The empty source list satisfies physical-source admission vacuously.
+    if(expression.resolved&&!expression.select.from.derived&&
+       expression.resolved.sources.every(source=>source.table.rootPage>0)&&
+       !expression.select.hasSubquery&&!expression.select.hasOrderBy&&
+       !expression.select.hasCompound&&!expression.select.hasValues&&
+       !expression.select.hasDistinct&&!expression.select.hasGroupBy&&
+       !expression.select.hasHaving&&!selectHasAggregate(expression.select)&&
+       !selectHasWindow(expression.select)&&database){
+      return compileWideSubquery(expression,expression.resolved,selectProgramBuilder,resultOps,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},enclosingBinding,compileSubquery);
+    }
+    if(expression.resolved?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1){
+      let plan:ReturnType<typeof expandAndResolveSelect>|undefined=expression.resolved??scalarResolved?.nested.find(child=>child.source===expression.select);
+      if(schema)try{plan=expandAndResolveSelect(expression.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+      if(!database)throw new JSQLiteError('internal','wide SELECT requires database');
+      return compileWideSubquery(expression,plan,selectProgramBuilder,resultOps,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},enclosingBinding,compileSubquery);
+    }
+
     if(expression.select.result.length!==1)throw new JSQLiteError("sqlite",`sub-select returns ${expression.select.result.length} columns - expected 1`,{code:1});
     // select.c:multiSelectValues / multiSelect UNION ALL emit each constant row,
     // sharing the outer Parse/Vdbe and the destination from expr.c.
@@ -2750,7 +2856,13 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           resultOps.push({code:"OpenEphemeral",p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
         }else resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
         // expr.c:sqlite3CodeSubselect evaluates the non-correlated RHS once.
-        const once=allocate(),onceAt=resultOps.length;resultOps.push({code:"Once",p1:once,p2:0});
+        const correlated=expression.resolved?.correlated??false;
+        const once=correlated?undefined:allocate(),onceAt=once===undefined?-1:resultOps.length;if(once!==undefined)resultOps.push({code:"Once",p1:once,p2:0});
+        const rowTree=(row:readonly ExprNode[]):Expression=>{
+          const reduction=row[0]!.reduction!,tree=expressionFromReduction(reduction);
+          if(reduction.kind!=='reduction')throw new JSQLiteError('internal','VALUES field lost expression reduction');
+          return expression.resolved&&enclosingBinding?bindResolvedExpression(tree,resolvedExpressionCarrier(expression.resolved,reduction),ref=>ref.cursorId,true,enclosingBinding):tree;
+        };
         const limit=nested.limit?computeLimitRegisters(nested,resultOps,allocate,parameters):undefined;
         const exits:number[]=[],skips:number[]=[],setStops:number[]=[];
         const drainSet=()=>{
@@ -2775,16 +2887,16 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           const operator=arm.operatorFromPrior;
           for(const row of arm.origin==="values"?arm.valuesRows!:[arm.result]){
           if(setOperators&&armIndex<=lastSet){
-            const value=compileExpressionTree(expressionFromReduction(row[0]!.reduction!),resultOps,allocate,parameters,compileSubquery);
+            const value=compileExpressionTree(rowTree(row),resultOps,allocate,parameters,compileSubquery);
             if(armIndex===0||operator==="union"||operator==="union-all")resultOps.push({code:"IdxInsert",p1:setResultCursor,keyStart:value,keyCount:1,replace:true});
             else if(operator==="except")resultOps.push({code:"SetDelete",p1:setResultCursor,keyStart:value,keyCount:1});
             else resultOps.push({code:"IdxInsert",p1:auxCursor,keyStart:value,keyCount:1,replace:true});
             continue;
           }
-          if(ordered){const value=compileExpressionTree(expressionFromReduction(row[0]!.reduction!),resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"SorterInsert",p1:sorter,keyStart:value,keyCount:1,payload:value,payloadCount:1});continue;}
+          if(ordered){const value=compileExpressionTree(rowTree(row),resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"SorterInsert",p1:sorter,keyStart:value,keyCount:1,payload:value,payloadCount:1});continue;}
           if(limit?.offset!==undefined){const at=resultOps.length;resultOps.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});skips.push(at);}
           if(expression.kind==="scalar-subquery"&&expression.exists)emitSelectDestination(resultOps,{kind:"exists",register:destination},destination,1);
-          else {const value=compileExpressionTree(expressionFromReduction(row[0]!.reduction!),resultOps,allocate,parameters,compileSubquery);emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor}:{kind:"mem",register:destination},value,1);}
+          else {const value=compileExpressionTree(rowTree(row),resultOps,allocate,parameters,compileSubquery);emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor}:{kind:"mem",register:destination},value,1);}
           if(!isIn||limit){exits.push(resultOps.length);resultOps.push(!isIn?{code:"Goto",p2:0}:{code:"DecrJumpZero",p1:limit!.count,p2:0});}
           if(skips.length)(resultOps[skips.pop()!] as {p2:number}).p2=resultOps.length;
           }
@@ -2810,7 +2922,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         for(const at of setStops)(resultOps[at] as {p2:number}).p2=end;
         for(const at of exits)(resultOps[at] as {p2:number}).p2=end;
         if(limit)(resultOps[limit.ifZero] as {p2:number}).p2=end;
-        (resultOps[onceAt] as {p2:number}).p2=end;
+        if(onceAt>=0)(resultOps[onceAt] as {p2:number}).p2=end;
         if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"InSet",p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(rows[0]![0]!.reduction!)),negated:expression.negated});}
         return destination;
       }
@@ -2866,7 +2978,9 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       // select.c:computeLimitRegisters guards result production, not cursor
       // construction or the outer IN probe. Compile into this parent Vdbe.
       if(expression.kind==="scalar-subquery")resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
-      const childLimit=nested.limit&&expression.kind==="scalar-subquery"?computeLimitRegisters(nested,resultOps,allocate,parameters):undefined;
+      // expr.c rewrites Mem/Exists LIMIT X to numeric X<>0 before
+      // SELECT integer admission. IN retains the original row-count LIMIT.
+      const childLimit=nested.limit&&expression.kind==="scalar-subquery"?computeLimitRegisters(nested,resultOps,allocate,parameters,true,compileSubquery):undefined;
       if(expression.kind==="in-subquery"){
         // expr.c:sqlite3CodeSubselect constructs SRT_Set in the enclosing
         // Parse/Vdbe, then sqlite3ExprCodeIN probes the set. This no-FROM
@@ -2906,6 +3020,10 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(whereSkip>=0)(resultOps[whereSkip] as {p2:number}).p2=resultOps.length;
       if(childLimit)(resultOps[childLimit.ifZero] as {p2:number}).p2=resultOps.length;
       return destination;
+    }
+    if(!schema&&database&&scalarResolved){
+      const linked=expression.resolved??scalarResolved.nested.find(child=>child.source===expression.select);
+      if(linked)return compileWideSubquery(expression,linked,selectProgramBuilder,resultOps,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},enclosingBinding);
     }
     if(!schema||!database)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     // select.c:multiSelect TK_ALL calls sqlite3Select per arm with the same
@@ -2982,7 +3100,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         // substitute the view-visible columns before entering the same
         // enclosing-builder direct scan used by ordinary scalar children.
         const flattened=flattenImmutableView(nested,view);
-        return compileSubquery({...expression,select:flattened});
+        return compileSubquery({...expression,select:flattened,resolved:undefined});
       }
     }
     // Retained producer predicates run after producer LIMIT, not in this direct child.
@@ -3040,7 +3158,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           const index=parts.length<=2&&(parts.length===1||sqliteIdentifierEqual(parts[0]!,alias))?names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!)):-1;
           return index>=0?{kind:"register",index:sourceRegisters[index]!}:tree;
         }
-        if(tree.kind==="binary")return{...tree,left:bind(tree.left),right:bind(tree.right)};
+        if(tree.kind==="vector")return {...tree,fields:tree.fields.map(bind)};if(tree.kind==="binary")return{...tree,left:bind(tree.left),right:bind(tree.right)};
         if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return{...tree,value:bind(tree.value)};
         if(tree.kind==="call")return{...tree,args:tree.args.map(bind)};
         return tree;
@@ -3156,7 +3274,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         return Object.freeze({...term,expr:derived.select.hasOrderBy?term.expr:substituteViewExpression(term.expr,columns,qualifier)});
       }));
       const flattened=Object.freeze({...nested,result,where,orderBy,from:derived.select.from,limit:derived.select.limit??nested.limit,offset:derived.select.offset??nested.offset,hasLimit:derived.select.hasLimit||nested.hasLimit,hasOrderBy:orderBy.length>0,hasSubquery:nested.hasSubquery||derived.select.hasSubquery});
-      return compileSubquery({...expression,select:flattened});
+      return compileSubquery({...expression,select:flattened,resolved:undefined});
     }
     if(derived&&derived.index===0&&nested.from.items.length===1&&derived.select.from.items.length===1&&
        derived.select.hasLimit&&nested.where&&!nested.hasLimit&&!nested.offset&&!nested.hasOrderBy&&
@@ -3206,7 +3324,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       }));
       const lowered=Object.freeze({...nested,result,where:derived.select.where,from:derived.select.from,orderBy,hasOrderBy:orderBy.length>0,limit:derived.select.limit,offset:derived.select.offset,hasLimit:true});
       postProducerPredicates.set(lowered,predicate);
-      return compileSubquery({...expression,select:lowered});
+      return compileSubquery({...expression,select:lowered,resolved:undefined});
     }
     // A retained compound SrcItem is not a persistent schema table. Until
     // this scalar destination composes its producer, reject before lookup.
@@ -3704,14 +3822,22 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   // OFFSET before entering the result-production path, so LIMIT 0 skips even
   // failing or work-heavy result expressions while an invalid OFFSET still
   // fails before that zero-row jump.
-  const expressions = select.result.map(expression => compileExpression(expression, resultOps, allocate, parameters, compileSubquery));
+  const bindScalar=(expression:ExprNode):Expression=>{
+    const tree=expressionFromReduction(expression.reduction!);
+    return scalarResolved?bindResolvedExpression(tree,resolvedExpressionCarrier(scalarResolved,expression.reduction as Reduction),source=>source.cursorId,true,owner?.expressionBinding):tree;
+  };
+  // selectInnerLoop does not evaluate the result EList for SRT_Exists.
+  // Resolution has already checked these expressions; presence alone is emitted.
+  const expressions = owner?.destination?.kind==='exists'?select.result.map(expression=>({register:0,name:expression.alias??expressionName(expression)})):select.result.map(expression => scalarResolved&&expression.reduction?{register:compileExpressionTree(bindScalar(expression),resultOps,allocate,parameters,compileSubquery),name:expression.alias??expressionName(expression)}:compileExpression(expression, resultOps, allocate, parameters, compileSubquery));
   const bodyExit=ops.length;ops.push({code:"Goto",p2:0});
   (ops[scalarSetup] as {p2:number}).p2=ops.length;
-  const limit=computeLimitRegisters(select,ops,allocate,parameters);
+  // The enclosing expr.c scalar producer may already have installed X<>0
+  // and OFFSET registers. Do not admit the original LIMIT a second time.
+  const limit=owner?.sharedLimit??(owner?.scalarPrepared?undefined:computeLimitRegisters(select,ops,allocate,parameters,false,compileSubquery));
   let whereSkip=-1;
   if(select.where){
     if(!select.where.reduction)throw new JSQLiteError('unsupported','scalar WHERE expression is not implemented',{unsupportedClassification:'temporary'});
-    const predicate=compileExpressionTree(expressionFromReduction(select.where.reduction),ops,allocate,parameters,compileSubquery,true);
+    const predicate=compileExpressionTree(bindScalar(select.where),ops,allocate,parameters,compileSubquery,true);
     whereSkip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});
   }
   ops.push({code:"Goto",p2:scalarBody});
@@ -3719,7 +3845,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   // where.c:6945 zero-FROM ordinary SELECT is WHERE_DISTINCT_UNIQUE.
   // select.c:codeDistinct does not filter a sole candidate; ALL remains ALL.
   const resultStart = selectProgramBuilder.range(expressions.length);
-  expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
+  if(owner?.destination?.kind!=='exists')expressions.forEach((expression, index) => ops.push({ code: "Copy", p1: expression.register, p2: resultStart + index }));
   const offsetSkip=limit?.offset===undefined?undefined:ops.length;
   if(limit?.offset!==undefined)ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});
   if(owner)owner.emitRow(resultStart,expressions.length);else emitSelectDestination(ops,{kind:"output"},resultStart,expressions.length);
@@ -3742,11 +3868,83 @@ function resolvedResultKeyTerms(plan:ReturnType<typeof expandAndResolveSelect>):
  });
 }
 
+// Expected-width SRT_Set/SRT_Mem consumer. Child SELECT still owns row
+// production, WHERE, ordering, and limits on the enclosing Parse builder.
+function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeof expandAndResolveSelect>|undefined,builder:SelectProgramBuilder<Op>,ops:Op[],parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},binding?:ResolvedExpressionBinding,compileLeft?:(expression:SubqueryExpression)=>number):number {
+ const linkedPlan=expression.resolved??plan;
+ plan=linkedPlan;
+ // Table compound producers require arm composition; a single table loop
+ // would silently execute only the terminal arm. Do not publish that program.
+ const tableCompound=expression.select.hasCompound&&expression.select.arms.some(arm=>arm.from.items.length);
+ if(tableCompound&&(expression.select.hasOrderBy||!plan?.compoundArms||expression.select.arms.some((arm,i)=>i>0&&arm.operatorFromPrior!=='union-all')||plan.compoundArms.some(arm=>!arm.sources.length||arm.source.hasDistinct||arm.source.hasGroupBy||arm.source.hasHaving||selectHasAggregate(arm.source)||arm.result.length!==plan!.result.length)))throw new JSQLiteError('unsupported','wide compound table subquery composition is not implemented',{unsupportedClassification:'temporary'});
+ const selected=plan?{...expression.select,result:plan.result.map(item=>item.expression)}:expression.select;
+ const isIn=expression.kind==='in-subquery',isExists=expression.kind==='scalar-subquery'&&expression.exists,width=isIn?expressionVectorWidth(expression.left):selected.result.length;
+ if(!isExists&&selected.result.length!==width)throw new JSQLiteError('sqlite',`sub-select returns ${selected.result.length} columns - expected ${width}`,{code:1});
+ if(!plan&&!expression.select.hasValues&&expression.select.from.items.length)throw new JSQLiteError('internal','wide SELECT lost linked plan');
+ const leftSelect=isIn&&expression.left.kind==='scalar-subquery'&&!expression.left.exists?expression.left:undefined;
+ const semanticField=(item:ExprNode,linked:ReturnType<typeof expandAndResolveSelect>|undefined,index:number):Expression=>{
+  if(linked){const column=resolvedResultColumn(linked.result[index]!);const node=item.reduction;const affinity=node?resolvedExpressionAffinity(node,linked):linked.result[index]!.columnIndex===-1?'integer':column?.affinity,collation=node?resolvedExpressionCollation(node,linked):column?.collation;const field:Expression={kind:'register',index:0,...(affinity?{affinity}:{}),...(collation?{collation:sqliteAsciiFold(collation) as BuiltinCollation}:{})};const explicit=node?explicitCollation(expressionFromReduction(node)):undefined;return explicit?{kind:'collate',value:field,collation:explicit}:field;}
+  if(!item.reduction)throw new JSQLiteError('unsupported','SELECT field semantics require linked result',{unsupportedClassification:'temporary'});
+  return expressionFromReduction(item.reduction);
+ };
+ const fields=isIn&&expression.left.kind==='vector'?expression.left.fields:leftSelect?(leftSelect.resolved?.result.map(item=>item.expression)??leftSelect.select.result).map((item,i)=>semanticField(item,leftSelect.resolved,i)):isIn?[expression.left]:[],right=(expression.select.hasValues?expression.select.arms.at(-1)?.valuesRows?.at(-1)??selected.result:selected.result).map((item,i)=>semanticField(item,plan,i));
+ const affinities=fields.map((field,i)=>comparisonAffinity(expressionAffinity(field),right[i]?expressionAffinity(right[i]!):undefined));
+ const result=builder.range(isIn||isExists?1:width),cursor=isIn?builder.cursor():-1,once=plan?.correlated?undefined:builder.register(),onceAt=once===undefined?-1:ops.length;
+ if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
+ if(isIn)ops.push({code:'OpenEphemeral',p1:cursor,keyInfo:new KeyInfo({encoding:environment.database.encoding,totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,right[i]??field)}))})});
+ else if(isExists)ops.push({code:'Integer',p1:0n,p2:result});
+ else for(let i=0;i<width;i++)ops.push({code:'Null',p2:result+i});
+ const dest:SelectDest=isIn?{kind:'set',cursor,width,affinities}:isExists?{kind:'exists',register:result}:{kind:'mem',register:result,width};
+ const local=new Map(plan?.sources.map(ref=>[ref,builder.cursor()])??[]),cursorFor=(ref:ResolvedSource)=>local.get(ref)??ref.cursorId;
+ const childBinding:ResolvedExpressionBinding|undefined=binding?{policy:binding.policy,location:ref=>local.has(ref.source)?{kind:'cursor',cursor:cursorFor(ref.source)}:binding.location(ref,0)}:undefined;
+ const owner={builder,ops,parameters,destination:dest,cursorFor,...(childBinding?{expressionBinding:childBinding}:{})};
+ // Scalar SELECTs install LIMIT 1, vector IN retains its own child LIMIT.
+ const child=selected;
+ const compileClause=(expression:SubqueryExpression)=>compileWideSubquery(expression,expression.resolved??plan?.nested.find(nested=>nested.source===expression.select),builder,ops,parameters,environment,childBinding);
+ let preparedLimit:LimitRegisters|undefined;
+ if(!isIn){
+  const scalar=computeScalarLimitRegisters(child,ops,()=>builder.register(),parameters,compileClause),count=scalar?.count??builder.register();if(!scalar)ops.push({code:'Integer',p1:1n,p2:count});
+  const ifZero=scalar?.ifZero??ops.length;if(!scalar)ops.push({code:'IfNot',p1:count,p2:0});
+  let offset:number|undefined;if(child.offset){const value=compileExpressionTree(expressionFromReduction(child.offset.reduction!),ops,()=>builder.register(),parameters,compileClause);offset=builder.register();ops.push({code:'Copy',p1:value,p2:offset},{code:'MustBeInt',p1:offset});}
+  const combined=builder.register(),capacity=builder.register();ops.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});preparedLimit={count,ifZero,combined,capacity,...(offset===undefined?{}:{offset})};
+ }
+ if(isIn&&tableCompound)preparedLimit=computeLimitRegisters(child,ops,()=>builder.register(),parameters);
+ const compoundStops:number[]=[];
+ const preparedOwner={...owner,...(preparedLimit?{scalarPrepared:true,sharedLimit:preparedLimit}:{})};
+ if(tableCompound){
+  // multiSelect TK_ALL passes the same destination and limit to pPrior and
+  // skips the right arm when the left exhausted the scalar row budget.
+  for(const armPlan of plan!.compoundArms!){
+   const arm={...armPlan.source,limit:null,offset:null,hasLimit:false};
+   const armLocal=new Map(armPlan.sources.map(ref=>[ref,builder.cursor()]));
+   const armCursor=(ref:ResolvedSource)=>armLocal.get(ref)??ref.cursorId;
+   const armBinding:ResolvedExpressionBinding|undefined=binding?{policy:binding.policy,location:ref=>armLocal.has(ref.source)?{kind:'cursor',cursor:armCursor(ref.source)}:binding.location(ref,0)}:undefined;
+   compileInnerTableSelect(arm,armPlan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{...preparedOwner,cursorFor:armCursor,...(armBinding?{expressionBinding:armBinding}:{})});
+   if(preparedLimit){const stop=ops.length;ops.push({code:'IfNot',p1:preparedLimit.count,p2:0});compoundStops.push(stop);}
+  }
+  for(const stop of compoundStops)(ops[stop] as {p2:number}).p2=ops.length;
+ }
+ else if(!child.from.items.length){
+  const stops:number[]=[];
+  compileScalarSelect(child,environment.database.encoding,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,environment.schema,environment.database,environment.maxRows,{builder,parameters,destination:dest,...(preparedLimit?{sharedLimit:preparedLimit,scalarPrepared:true}:{}),...(plan?{linkedPlan:plan}:{}),...(childBinding?{expressionBinding:childBinding}:{}),emitRow:(first,count)=>{emitSelectDestination(ops,dest,first,count);if(!isIn){stops.push(ops.length);ops.push({code:'Goto',p2:0});}}});
+  for(const stop of stops)(ops[stop] as {p2:number}).p2=ops.length;
+ }
+ else if(selectHasAggregate(child)||child.hasGroupBy)compileAggregateSelect(child,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{...preparedOwner,...(plan?{linkedPlan:plan}:{})});
+ else compileInnerTableSelect(child,plan!,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,preparedOwner);
+ if(preparedLimit)(ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;
+ if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
+ if(isIn){const leftFirst=leftSelect?compileLeft?compileLeft(leftSelect):compileWideSubquery(leftSelect,undefined,builder,ops,parameters,environment,binding):undefined;const key=builder.range(width);fields.forEach((field,i)=>{const value=leftFirst===undefined?compileExpressionTree(field,ops,()=>builder.register(),parameters):leftFirst+i;ops.push({code:'Copy',p1:value,p2:key+i});});ops.push({code:'InSet',p1:cursor,key,output:result,affinity:'blob',affinities,count:width,negated:expression.negated});}
+ return result;
+}
+
 function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding):(expression:SubqueryExpression)=>number {
   const ops=builder.ops,allocate=()=>builder.register();
   const nestedPlans=new Map<SelectNode,{plan:ReturnType<typeof expandAndResolveSelect>;cursor:number}>();
   const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:builder.cursor()});rememberNested(child);}};rememberNested(expanded);
-  const compileJoinSubquery=(expression:SubqueryExpression):number=>{
+  const compileJoinSubquery=(incoming:SubqueryExpression):number=>{
+    const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
+    if(expression.kind==='scalar-subquery'&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
+    if((expression.resolved??nestedPlans.get(expression.select)?.plan)?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if(expression.select.result.length!==1)throw new JSQLiteError('sqlite',`sub-select returns ${expression.select.result.length} columns - expected 1`,{code:1});
     const entry=nestedPlans.get(expression.select),item=expression.select.result[0];
     if(!entry||!item?.reduction||expression.kind==='in-subquery'||expression.select.hasValues)throw new JSQLiteError('unsupported','this scalar subquery shape is not implemented',{unsupportedClassification:'temporary'});
@@ -4187,7 +4385,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const expression=bindResolvedExpression({kind:'column',name:column<0?'rowid':source.table.columns[column]!.name,index:column},carrier,cursorFor,true,{policy:'scalar',location:ref=>({kind:'cursor',...columnAccess(ref.source,ref.columnIndex)})});
     const value=compileExpressionTree(expression,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:target});
   };
-  for(const term of whereTerms)if(!termIsCoded(term)){const where=compilePredicate(term.expression);if(where!==undefined){jumps.push({at:where,level:expanded.sources.length-1});codedWhere.add(term.id);}}if(!owner?.consumeRow)expanded.result.forEach((result,index)=>{if(owner?.expressionBinding){if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}else if(result.resolution==='coalesce'&&result.mergedSources!.every(ref=>!ref.source.table.withoutRowid)){const refs=result.mergedSources!;const ends:number[]=[];for(const ref of refs){const value=allocate();emitResultColumn(ref.source,ref.columnIndex,value);const at=ops.length;ops.push({code:'NotNull',p1:value,p2:resultStart+index,jump:0});ends.push(at);}ops.push({code:'Null',p2:resultStart+index});for(const at of ends)(ops[at] as {jump:number}).jump=ops.length;}else if(result.source&&!result.source.table.withoutRowid&&result.columnIndex!==null){const value=allocate();emitResultColumn(result.source,result.columnIndex,value);ops.push({code:'Copy',p1:value,p2:resultStart+index});}else{if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}});
+  for(const term of whereTerms)if(!termIsCoded(term)){const where=compilePredicate(term.expression);if(where!==undefined){jumps.push({at:where,level:expanded.sources.length-1});codedWhere.add(term.id);}}if(!owner?.consumeRow&&owner?.destination?.kind!=='exists')expanded.result.forEach((result,index)=>{if(owner?.expressionBinding&&result.expression.reduction){if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}else if(result.resolution==='coalesce'&&result.mergedSources!.every(ref=>!ref.source.table.withoutRowid)){const refs=result.mergedSources!;const ends:number[]=[];for(const ref of refs){const value=allocate();emitResultColumn(ref.source,ref.columnIndex,value);const at=ops.length;ops.push({code:'NotNull',p1:value,p2:resultStart+index,jump:0});ends.push(at);}ops.push({code:'Null',p2:resultStart+index});for(const at of ends)(ops[at] as {jump:number}).jump=ops.length;}else if(result.source&&!result.source.table.withoutRowid&&result.columnIndex!==null){const value=allocate();emitResultColumn(result.source,result.columnIndex,value);ops.push({code:'Copy',p1:value,p2:resultStart+index});}else{if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}});
   // selectInnerLoop's LIMIT break belongs to this producer, including the
   // unmatched RIGHT invocation below. Resolve producer exits together; a zero
   // address must never escape into the enclosing scalar/compound program.
@@ -5834,7 +6032,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         return {kind:"register",index:rowStart+index};
       }
       if(tree.kind==="unary")return{...tree,value:bindColumns(tree.value)};
-      if(tree.kind==="binary")return{...tree,left:bindColumns(tree.left),right:bindColumns(tree.right)};
+      if(tree.kind==="vector")return {...tree,fields:tree.fields.map(bindColumns)};if(tree.kind==="binary")return{...tree,left:bindColumns(tree.left),right:bindColumns(tree.right)};
       if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:bindColumns(tree.value)};
       if(tree.kind==="call")return{...tree,args:tree.args.map(bindColumns)};
       if(tree.kind==="aggregate")return{...tree,args:tree.args.map(bindColumns),filter:tree.filter&&bindColumns(tree.filter),orderBy:tree.orderBy.map(term=>({...term,expression:bindColumns(term.expression)}))};
@@ -5849,7 +6047,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if(select.hasGroupBy&&groupTrees.length&&groupedOutput&&!select.hasOrderBy){
       const sorter=1,keyCount=groupTrees.length,keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:keyCount,keyFieldCount:keyCount,terms:groupTrees.map(group=>({collation:collation(group)}))}),states=groupedEntries.map(entry=>entry?allocate():0),sorted=registers+1;registers+=keyCount+JSON_TABLE_COLUMNS.length;const saved=registers+1;registers+=keyCount;ops.push({code:"SorterOpen",p1:sorter,keyInfo});const rewind=ops.length;ops.push({code:"JsonTableRewind",p1:0,input,...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,p2:0});const loop=ops.length;let skip:number|null=null;if(select.where?.reduction){const predicate=compileExpressionTree(bindColumns(expressionFromReduction(select.where.reduction)),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}const keys=groupTrees.map(group=>compileExpressionTree(group,ops,allocate,parameters)),record=registers+1;registers+=keyCount+JSON_TABLE_COLUMNS.length;keys.forEach((key,index)=>ops.push({code:"Copy",p1:key,p2:record+index}));for(let i=0;i<JSON_TABLE_COLUMNS.length;i++)ops.push({code:"Copy",p1:rowStart+i,p2:record+keyCount+i});ops.push({code:"SorterInsert",p1:sorter,keyStart:record,keyCount,payload:record,payloadCount:keyCount+JSON_TABLE_COLUMNS.length});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:"JsonTableNext",p1:0,rowStart,p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:sorted,count:keyCount+JSON_TABLE_COLUMNS.length});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});
       const havingTree=select.having?.reduction?bindColumns(expressionFromReduction(select.having.reduction)):null;
-      const finalized=(tree:Expression):Expression=>{if(tree.kind==="aggregate"){const index=groupedEntries.findIndex(entry=>entry!==null&&entry.name===tree.name&&entry.args.length===tree.args.length&&entry.args.every((arg,i)=>sameExpression(arg,tree.args[i]!)));if(index<0)throw new JSQLiteError("unsupported",`this ${jsonTableName} HAVING aggregate is not projected`,{unsupportedClassification:"temporary"});return{kind:"register",index:states[index]!};}if(tree.kind==="unary")return{...tree,value:finalized(tree.value)};if(tree.kind==="binary")return{...tree,left:finalized(tree.left),right:finalized(tree.right)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:finalized(tree.value)};if(tree.kind==="call")return{...tree,args:tree.args.map(finalized)};return tree;};
+      const finalized=(tree:Expression):Expression=>{if(tree.kind==="aggregate"){const index=groupedEntries.findIndex(entry=>entry!==null&&entry.name===tree.name&&entry.args.length===tree.args.length&&entry.args.every((arg,i)=>sameExpression(arg,tree.args[i]!)));if(index<0)throw new JSQLiteError("unsupported",`this ${jsonTableName} HAVING aggregate is not projected`,{unsupportedClassification:"temporary"});return{kind:"register",index:states[index]!};}if(tree.kind==="unary")return{...tree,value:finalized(tree.value)};if(tree.kind==="vector")return {...tree,fields:tree.fields.map(finalized)};if(tree.kind==="binary")return{...tree,left:finalized(tree.left),right:finalized(tree.right)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:finalized(tree.value)};if(tree.kind==="call")return{...tree,args:tree.args.map(finalized)};return tree;};
       const emitSteps=()=>groupedEntries.forEach((entry,index)=>{if(entry){const args=entry.args.map(arg=>{const rebound=arg.kind==="register"?{kind:"register",index:sorted+keyCount+(arg.index-rowStart)} as Expression:arg;return compileExpressionTree(rebound,ops,allocate,parameters)});ops.push({code:"AggStep",name:entry.name,args,p2:states[index]!,collation:entry.collation});}}),emitGroup=()=>{groupedEntries.forEach((entry,index)=>{if(entry)ops.push({code:"AggFinal",name:entry.name,p1:states[index]!})});let reject:number|null=null;if(havingTree){const test=compileExpressionTree(finalized(havingTree),ops,allocate,parameters);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const out=registers+1;for(let i=0;i<resultTrees.length;i++){registers++;const tree=resultTrees[i]!,source=tree.kind==="aggregate"?states[i]!:saved+groupTrees.findIndex(group=>group.kind==="register"&&tree.kind==="register"&&group.index===tree.index);ops.push({code:"Copy",p1:source,p2:out+i});}emitSelectDestination(ops,shared?.destination??{kind:"output"},out,resultTrees.length);if(reject!==null)(ops[reject] as {p2:number}).p2=ops.length;};
       const step=ops.length;emitSteps();const advance=ops.length;ops.push({code:"SorterNext",p1:sorter,p2:0},{code:"Goto",p2:0});const nextRow=ops.length;(ops[advance] as {p2:number}).p2=nextRow;ops.push({code:"SorterData",p1:sorter,p2:sorted,count:keyCount+JSON_TABLE_COLUMNS.length});const compare=ops.length;ops.push({code:"CompareGroup",left:sorted,right:saved,count:keyCount,keyInfo,jump:step});emitGroup();ops.push({code:"AggReset",registers:states.filter(Boolean)});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});ops.push({code:"Goto",p2:step});const finish=ops.length;(ops[advance+1] as {p2:number}).p2=finish;emitGroup();const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:jsonTableName,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
     }
@@ -6055,7 +6253,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         }
         e.index=selectedPhysical&&!selectedNeedsTableLookup?storageColumn(e.index):tableStorageColumn(e.index);e.cursor=0;return e;
       }
-      if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="in-list"){e.left=assign(e.left);e.values=e.values.map(assign)}else if(e.kind==="between"){e.value=assign(e.value);e.lower=assign(e.lower);e.upper=assign(e.upper)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
+      if(e.kind==="vector")e.fields=e.fields.map(assign);else if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="in-list"){e.left=assign(e.left);e.values=e.values.map(assign)}else if(e.kind==="between"){e.value=assign(e.value);e.lower=assign(e.lower);e.upper=assign(e.upper)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
     };
     return assign(input);
   };
@@ -6313,6 +6511,8 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   })};
   const sharedPhysicalScalar=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding);
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
+    if(expression.select.hasValues||expression.kind==='in-subquery'&&!expression.select.from.items.length&&!expression.select.hasCompound&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select)&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!expression.select.hasOrderBy)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
+    if((expression.resolved??scalarPlans.get(expression.select))?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
     if(!nested||!item?.reduction||((expression.kind!=='scalar-subquery')&&(nested.sources.length>1||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving))||(expression.select.hasCompound&&expression.kind!=='scalar-subquery')||expression.select.hasValues||(expression.select.offset&&expression.kind!=='scalar-subquery'))throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     const derived=expression.select.from.derived;
@@ -6380,7 +6580,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // otherwise caps scalar/EXISTS at one row). Initialize SRT_Mem/Exists
     // before the guard, then skip child scan and result disposal entirely.
     // This cursor-local guard is part of the parent Vdbe, not a child Program.
-    const childLimit=isIn?computeLimitRegisters(expression.select,ops,()=>builder.register(),parameters):computeScalarLimitRegisters(expression.select,ops,()=>builder.register(),parameters,compileExpressionSubquery);
+    const childLimit=isIn?computeLimitRegisters(expression.select,ops,()=>builder.register(),parameters,false,compileExpressionSubquery):computeScalarLimitRegisters(expression.select,ops,()=>builder.register(),parameters,compileExpressionSubquery);
     const sourceCursor=nestedReadCursors.get(source)??source.cursorId;
     const rewind=ops.length;ops.push({code:"Rewind",p1:sourceCursor,p2:0});const loop=ops.length;let skip:number|undefined;
     if(expression.select.where?.reduction){const predicate=compileExpressionTree(bindResolvedExpression(expressionFromReduction(expression.select.where.reduction),resolvedExpressionCarrier(nested,expression.select.where.reduction as Reduction),cursorFor,true),ops,()=>builder.register(),parameters,compileExpressionSubquery);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
@@ -6487,6 +6687,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
 function sameExpression(a:Expression,b:Expression):boolean {
  if(a.kind!==b.kind)return false;
  switch(a.kind){
+  case "vector": {const x=b as typeof a;return a.fields.length===x.fields.length&&a.fields.every((field,i)=>sameExpression(field,x.fields[i]!));}
   case "variable": return a.spelling===(b as typeof a).spelling;
   case "literal": return typeof a.value===typeof (b as typeof a).value&&String(a.value)===String((b as typeof a).value);
   case "column": return sqliteIdentifierEqual(a.name,(b as typeof a).name);
@@ -7028,7 +7229,7 @@ const outputStart=selectProgramBuilder.range(select.result.length);
    // expr.c:sqlite3CodeSubselect(SRT_Exists) emits correlated loops in the
    // parent VDBE. Inner cursors are disjoint; linked outer references retain
    // the aggregate consumer's source/sorter/saved phase, not an exhausted cursor.
-   if(!item?.reduction||nested.from.items.length<1||nested.from.items.some((source,index)=>index>0&&(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.cross))||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.hasOrderBy||nested.hasCompound||nested.hasValues)throw new JSQLiteError('unsupported','this aggregate EXISTS subquery shape is not implemented',{unsupportedClassification:'temporary'});
+   if(nested.from.items.length<1||nested.from.items.some((source,index)=>index>0&&(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.cross))||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.hasOrderBy||nested.hasCompound||nested.hasValues)throw new JSQLiteError('unsupported','this aggregate EXISTS subquery shape is not implemented',{unsupportedClassification:'temporary'});
    const sources=nested.from.items.map(source=>{const name=sqlName(source.tableName),table=schema?.findTable(name);if(!table)throw new JSQLiteError('sqlite',`no such table: ${name}`,{code:1});if(table.withoutRowid)throw new JSQLiteError('unsupported','this table storage shape is not implemented',{unsupportedClassification:'temporary'});return{source,table,cursor:aggregateSubqueryCursor()};});
    const nestedPlan=aggregatePlan.nested.find(plan=>plan.source===nested);
    if(!nestedPlan)throw new JSQLiteError('internal','aggregate EXISTS lost linked select context');
@@ -7377,7 +7578,14 @@ const outputStart=selectProgramBuilder.range(select.result.length);
 
 
 function truth(m:Mem):boolean|null{if(m.initialStorageClass==="null")return null;return booleanValue(m,0)===1}
-const expressionAffinity=(x:Expression):MemAffinity|undefined=>x.kind==="call"&&x.deferredAffinity?expressionAffinity(x.args[0]!):x.kind==="column"?x.affinity:x.kind==="cast"?x.affinity:x.kind==="collate"?expressionAffinity(x.value):undefined;
+const expressionAffinity=(x:Expression):MemAffinity|undefined=>{
+ if(x.kind==='scalar-subquery'&&!x.exists){
+  const item=x.resolved?.result[0],node=item?.expression.reduction??x.select.result[0]?.reduction;
+  if(x.resolved&&item)return node?resolvedExpressionAffinity(node,x.resolved):item.columnIndex===-1?'integer':resolvedResultColumn(item)?.affinity;
+  return node?expressionAffinity(expressionFromReduction(node)):undefined;
+ }
+ return x.kind==="call"&&x.deferredAffinity?expressionAffinity(x.args[0]!):x.kind==="column"||x.kind==="register"?x.affinity:x.kind==="cast"?x.affinity:x.kind==="collate"?expressionAffinity(x.value):undefined;
+};
 // expr.c:sqlite3ExprCollSeq follows CAST/unary-plus and propagates EP_Collate
 // through expression children (including function argument lists), choosing the
 // first collated child in source order. Keep undefined distinct from BINARY so
@@ -7397,7 +7605,7 @@ function comparisonAffinity(a:MemAffinity|undefined,b:MemAffinity|undefined):Mem
 const expressionCollation=(x:Expression):BuiltinCollation|undefined=>{
  if(x.kind==='call'&&x.deferredAffinity)return expressionCollation(x.args[0]!);
  if(x.kind==='collate')return x.collation;
- if(x.kind==='mem'||x.kind==='column')return x.collation;
+ if(x.kind==='mem'||x.kind==='column'||x.kind==='register')return x.collation;
  if(x.kind==='cast'||x.kind==='unary'&&x.op==='+')return expressionCollation(x.value);
  return explicitCollation(x);
 };
@@ -7511,6 +7719,7 @@ function concatenateMem(left:Mem,right:Mem,encoding:DatabaseEncoding,maxBytes=Nu
  out.setText(result,encoding,{maxLength:maxBytes});return out;
 }
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
+ if(e.kind==="vector")throw new JSQLiteError("sqlite","row value misused",{code:1});
  const out=new Mem();if(e.kind==="register"||e.kind==="aggregate"||e.kind==="scalar-subquery"||e.kind==="in-subquery"||e.kind==="in-list"||e.kind==="between")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
@@ -7785,7 +7994,7 @@ export class VdbeStatement implements Statement {
               catch(error){try{arena.close()}catch{}throw error}
               break;
             }
-            this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.keyInfo,this.#program.privateStateLimits,this.#privateBytes,op.insertionOrder));break;}
+            this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.statementEncoding?new KeyInfo({...op.keyInfo,encoding:this.#program.encoding}):op.keyInfo,this.#program.privateStateLimits,this.#privateBytes,op.insertionOrder));break;}
           case "MakeRecord": {
             const values=this.#registers.slice(op.p1,op.p1+op.p2);
             // vdbe.c OP_MakeRecord applies P4 to the live input registers,
@@ -7864,7 +8073,24 @@ export class VdbeStatement implements Statement {
             // expr.c:sqlite3ExprCodeIN four-state scalar result: empty is false
             // even for NULL LHS; otherwise match, RHS NULL, and ordinary miss
             // remain distinct. Membership stays on EphemeralIndexCursor KeyInfo.
-            const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,out=this.#registers[op.output]!,key=new Mem();key.copyFrom(this.#registers[op.key]!);key.applyAffinity(op.affinity,this.#program.database!.encoding);
+            if(op.count!==undefined&&op.count>1){
+              // expr.c step 6: Rewind, field Ne (NULL falls through), Next.
+              // Any definite mismatch defeats NULL in that candidate row.
+              const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,out=this.#registers[op.output]!,control=this.#privateControl(options,limit,started),keys:Mem[]=[];
+              try{
+                for(let i=0;i<op.count;i++){const key=new Mem();keys.push(key);key.copyFrom(this.#registers[op.key+i]!);key.applyAffinity(op.affinities?.[i]??op.affinity,this.#program.encoding);}
+                let unknown=false,match=false;
+                cursor.rewindBeforeFirst();
+                while(cursor.next()){
+                  let rowNull=false,different=false;const row=cursor.data();
+                  for(let i=0;i<op.count;i++){await control.checkpoint(1);const a=keys[i]!,b=row[i]!;if(a.initialStorageClass==="null"||b.initialStorageClass==="null")rowNull=true;else if(compareMem(a,b,cursor.keyInfo.terms[i]?.collation)!==0){different=true;break;}}
+                  if(!different){if(!rowNull){match=true;break;}unknown=true;}
+                }
+                if(match)out.setInt64(op.negated?0n:1n);else if(unknown)out.setNull();else out.setInt64(op.negated?1n:0n);
+              }finally{for(const key of keys)key.release();}
+              break;
+            }
+            const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,out=this.#registers[op.output]!,key=new Mem();key.copyFrom(this.#registers[op.key]!);key.applyAffinity(op.affinities?.[0]??op.affinity,this.#program.database!.encoding);
             if(cursor.size===0)out.setInt64(op.negated?1n:0n);
             else if(key.initialStorageClass==="null")out.setNull();
             else if(await cursor.found([key],this.#privateControl(options,limit,started)))out.setInt64(op.negated?0n:1n);
@@ -8074,6 +8300,7 @@ export class VdbeStatement implements Statement {
  const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:(units:number)=>this.#privateControl(options,limit,started).checkpoint(units),charge:control.charge,check:control.check,checkSize:control.checkSize};
  this.#registers[op.p2]!.moveFrom(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)));
  }else this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
+          case "ElseEq": {if(truth(this.#registers[op.p1]!)===true)this.#pc=op.jump;break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}
           case "NotNull": if(this.#registers[op.p1]!.initialStorageClass!=="null"){this.#registers[op.p2]!.copyFrom(this.#registers[op.p1]!);this.#pc=op.jump}break;

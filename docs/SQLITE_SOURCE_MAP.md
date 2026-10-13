@@ -1161,3 +1161,63 @@ precede STRICT type validation. See [boundary evidence](research/card-e-h-strict
 Existing shared generated admission/consumers remain bounded:
 full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
 implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).
+
+## Bounded vector field consumer
+
+- `parse.y:1333` TK_VECTOR → `vdbe.ts:expressionFromReduction` ordered fields.
+- `expr.c:697–785 codeVectorCompare`, `vdbe.c:OP_ElseEq` → scalar-field
+  comparison lowering/explicit equality continuation in `vdbe.ts`.
+- `expr.c:sqlite3ExprCodeIN` step 6 Rewind/Ne/Next → literal vector RHS shared
+  EphemeralIndexCursor/KeyInfo insertion and InSet field fallback scan;
+  statement encoding and Mem affinity/collation, no host comparator/Set.
+- Tests: `test/conformance/row-vector/public.mjs`, `lifecycle.test.mjs`;
+  [partial evidence and remaining expected-width producer gap](research/card-i-b-row-vector-repair.md).
+- `select.c:SRT_Set/SRT_Mem`, `expr.c:sqlite3CodeSubselect` → explicit width
+  shared destination emission (`select-program.ts`) and `compileWideSubquery`;
+- `resolve.c:resolveSelectStep` LIMIT/OFFSET empty NameContext →
+  `resolve.ts:expandAndResolveSelect` pre-source clause validation;
+  `row-vector/subquery-consumers.test.mjs` exact name errors/repeated prepare.
+  Destination atomic validation → `select-destination-atomic.test.mjs`;
+  [current bounded owner decision](research/card-t-shared-subquery-owner-decision.md).
+  `resolve.ts` checks IN width after star expansion and preserves linked child
+  NameContext; scalar consumer still rejects naked multi-column SELECT.
+  Represented SELECT/VALUES vector IN passes focused corpus; vector index
+  optimization and broader compositions remain backlog.
+
+
+## Bounded linked subquery owner/caller mapping
+
+- `resolve.c:resolveSelectStep/resolveExprStep` → `resolve.ts` context-specific
+  nested width, expanded star/compound/VALUES validation and recursively empty
+  clause context (1909–1917 before ordinary pOuterNC1977);
+  `resolvedExpressionCarrier` → original linked nested plans/field ownership.
+- `expr.c:sqlite3CodeSubselect`, vector/IN field consumers → `vdbe.ts`
+  linked scalar/vector/EXISTS/IN binding and `compileWideSubquery`; shared Mem NULL/
+  first-row, Boolean Exists, correlation/Once and original affinities/collations.
+- `select.c:selectInnerLoop` SRT_Mem/Set/Exists → `select-program.ts` atomic
+  destination validation and `compileScalarSelect`/`compileInnerTableSelect`
+  projection-independent EXISTS (1202/1412); table/join/correlated/UNION callers.
+  `computeLimitRegisters2535–2566` → separate mutable clause registers and nested
+  emitter forwarding at table-expression IN caller;
+  `multiSelect TK_ALL` → shared owner forwarding in source-free recursion and
+  linked unordered nonaggregate table-arm composition.
+- Tests: row-vector/subquery-consumers, carrier-handoff, lifecycle, public.mjs;
+  select-destination-atomic and row-width-real-metadata. Retained specialized
+  branches, exclusions and exact assembly evidence:
+  [current owner map](research/card-t-shared-subquery-owner-decision.md).
+  These mappings certify the bounded carrier, not general derived/CTE/window/
+  ordered-AggInfo composition or vector index optimization.
+
+Review33 R1/R2 native-first matrix: `row-vector/review33-owners.test.mjs`,
+`review33-cases.json`; exact errors/recovery, presence vs Mem/Set/predicate overflow,
+valid independent nested clauses, metadata/reset/close. Evidence and refreshed
+dirty-baseline-relative artifacts: current owner decision/card status.
+
+
+
+Bounded vector integration review, scalar width/linked-source/LIMIT preservation,
+public encoding/reset controls and unwaived external regression inventory: [independent
+evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
+Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
+execution, not selected-index strategy credit. Root stage2 harness rejection of
+empty sqlite_master is stale versus pinned/public behavior, not a vector regression.
