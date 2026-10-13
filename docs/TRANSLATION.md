@@ -132,8 +132,12 @@ Schema loading reads immutable `sqlite_schema` internally and parses definitions
 into table/column/index/view descriptors. Declared affinity, collation, INTEGER
 PRIMARY KEY identity, ordinary index fields, expression/partial predicates and
 WITHOUT ROWID primary layout are distinct facts. A generic PRIMARY KEY is not a
-rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Internal schema discovery
-is not a public schema-introspection API or write-time constraint enforcement.
+rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Ordinary public SELECT from
+`main.sqlite_schema`/`sqlite_master` is supported through physical root-page1 and
+the same SELECT pipeline, with the bounded metadata/alias/composition rules in
+[the catalog API contract](api.md#immutable-catalog-select). Internal graph
+construction is not a host graph-registration/introspection-extension API and does
+not authorize writes or write-time constraint enforcement.
 
 ## Parsing, resolution and SELECT construction
 
@@ -215,9 +219,13 @@ structural expression and then admitted source expression precedence; complete
 collation/direction/NULL flags reach the consumer. Equal complete ORDER keys have
 no public deterministic-order guarantee.
 
-LIMIT/OFFSET lowering uses VM registers, not host statement fields. A single
-SELECT coerces both before a zero-limit bypass; compounds coerce LIMIT first and
-zero bypasses OFFSET and producers. Negative LIMIT is unlimited and negative
+LIMIT/OFFSET lowering uses VM registers, not host statement fields. LIMIT is
+coerced first; zero bypasses OFFSET evaluation/coercion and row production in
+represented ordinary and compound SELECTs. `SELECT 1 LIMIT 0 OFFSET 'x'` and
+`SELECT 1 LIMIT 0 OFFSET NULL` finish DONE, not datatype mismatch. Nonzero LIMIT
+then evaluates/coerces OFFSET. Scalar/EXISTS destinations retain their SELECT-owned
+normalization. [Source/native adjudication and correction provenance](research/card-u-rule-correction/README.md).
+Negative LIMIT is unlimited and negative
 OFFSET is zero. Ordered positive LIMIT bounds retention to LIMIT+OFFSET.
 
 Structured VALUES compiles each retained row, validates every arm width, and

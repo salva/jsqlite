@@ -1,0 +1,41 @@
+{
+  "head": "d9d945cbf9454456a4a80a11e728091b6408ac9c",
+  "captures": [
+    {
+      "path": "docs/TRANSLATION.md",
+      "state": "head",
+      "archive": "head-TRANSLATION.md",
+      "sha256": "fedcaf873de9976966f5b89f0eb62d6df4b9db81aeb7423e5aa535b313144289"
+    },
+    {
+      "path": "docs/TRANSLATION.md",
+      "state": "index",
+      "archive": "index-TRANSLATION.md",
+      "sha256": "8003a9fa3a7fb4eb26836fce18c83751a43b3178f841ed4d481e3cb5a99caf2d"
+    },
+    {
+      "path": "docs/TRANSLATION.md",
+      "state": "work",
+      "archive": "work-TRANSLATION.md",
+      "sha256": "fedcaf873de9976966f5b89f0eb62d6df4b9db81aeb7423e5aa535b313144289"
+    },
+    {
+      "path": "docs/PLAN.md",
+      "state": "head",
+      "archive": "head-PLAN.md",
+      "sha256": "02f229168a7c510f95303b40fb2ec9c385bdbe319bbd55f7c88b02b212fd57e4"
+    },
+    {
+      "path": "docs/PLAN.md",
+      "state": "index",
+      "archive": "index-PLAN.md",
+      "sha256": "5a582d8fa3c0e00ea8ef6d35084e827f92e8044df42052663274329dcaa10b47"
+    },
+    {
+      "path": "docs/PLAN.md",
+      "state": "work",
+      "archive": "work-PLAN.md",
+      "sha256": "02f229168a7c510f95303b40fb2ec9c385bdbe319bbd55f7c88b02b212fd57e4"
+    }
+  ]
+}

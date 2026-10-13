@@ -1,0 +1,86 @@
+diff --git a/docs/PLAN.md b/docs/PLAN.md
+index adf412eb..d3e8283f 100644
+--- a/docs/PLAN.md
++++ b/docs/PLAN.md
+@@ -24,21 +24,30 @@ inventory.
+ ## Functional-first beta view
+ 
+ This is a development prioritization view, **not publication or a compatibility
+-certificate**. Four categories keep functional breadth ahead of optimization:
+-
+-1. **Committed represented functionality:** immutable database/public lifecycle,
+-   represented SELECT/join/compound/aggregate/subquery/CTE/window/function/JSON
+-   routes, bounded generated and STRICT reads, vector expressions and selected
+-   WITHOUT ROWID consumers. Admission is semantic and composition-specific.
+-2. **In-scope functional gaps:** unrepresented compositions, broader semantic
+-   walker/NC_GenCol coverage, generic indexed-expression and virtual-table routes,
+-   and remaining read-only SQL. These are temporary unsupported, not exclusions.
+-3. **Optimization and fidelity gaps:** broader planner/STAT4/vector index choices,
+-   storage/VM migrations and materialized-route parity. Do not turn absent
+-   optimization into a claim that represented functional execution is absent.
+-4. **Delivery and evidence:** installed-artifact/browser/native comparisons and
+-   independent bounded acceptance remain revision-specific. Local beta is not
+-   registry publication, all-browser certification or whole-product completion.
++certificate**. The owner's four categories separate functional priority from
++required foundations and optimization:
++
++1. **Common functional gaps:** frequently needed unrepresented read-only SQL and
++   compositions, including common schema/expression/SELECT consumers. Temporary
++   unsupported is backlog, not a product exclusion.
++2. **Required performance/safety foundations:** source-owned storage and VM
++   semantics, bounded memory/work, cancellation/responsiveness, cleanup and
++   algorithmic foundations needed for safe usable execution. Required storage/VM
++   fidelity is not optional optimization or waived by matching sample rows.
++3. **Deferred optimization-only work:** additional plan/cost choices and fast
++   paths where the represented semantic route already works safely. Broader
++   planner/STAT4/vector strategy coverage belongs here only when genuinely an
++   optimization, not when needed for semantics or the required foundations.
++4. **Rare functional breadth:** less common in-scope SQL forms and compositions,
++   broader semantic walkers and other uncommon read-only consumers. These remain
++   functional obligations under SPEC, not permanent exclusions.
++
++Represented committed functionality (including bounded generated/STRICT/vector/
++WITHOUT ROWID consumers) and revision-specific installed/browser/native evidence
++are separate context, not substitutes for these four work categories. Admission
++remains semantic and composition-specific; local beta is not registry publication,
++all-browser certification or whole-product completion. [Correction provenance](research/card-u-rule-correction/README.md)
++retains the superseded category wording without making it current authority.
+ 
+ Current contracts are in [api.md](api.md) and [TRANSLATION.md](TRANSLATION.md).
+ Exact historical candidate identities and peer proposals are preserved in
+diff --git a/docs/TRANSLATION.md b/docs/TRANSLATION.md
+index cdab74d7..879ca843 100644
+--- a/docs/TRANSLATION.md
++++ b/docs/TRANSLATION.md
+@@ -132,8 +132,12 @@ Schema loading reads immutable `sqlite_schema` internally and parses definitions
+ into table/column/index/view descriptors. Declared affinity, collation, INTEGER
+ PRIMARY KEY identity, ordinary index fields, expression/partial predicates and
+ WITHOUT ROWID primary layout are distinct facts. A generic PRIMARY KEY is not a
+-rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Internal schema discovery
+-is not a public schema-introspection API or write-time constraint enforcement.
++rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Ordinary public SELECT from
++`main.sqlite_schema`/`sqlite_master` is supported through physical root-page1 and
++the same SELECT pipeline, with the bounded metadata/alias/composition rules in
++[the catalog API contract](api.md#immutable-catalog-select). Internal graph
++construction is not a host graph-registration/introspection-extension API and does
++not authorize writes or write-time constraint enforcement.
+ 
+ ## Parsing, resolution and SELECT construction
+ 
+@@ -215,9 +219,13 @@ structural expression and then admitted source expression precedence; complete
+ collation/direction/NULL flags reach the consumer. Equal complete ORDER keys have
+ no public deterministic-order guarantee.
+ 
+-LIMIT/OFFSET lowering uses VM registers, not host statement fields. A single
+-SELECT coerces both before a zero-limit bypass; compounds coerce LIMIT first and
+-zero bypasses OFFSET and producers. Negative LIMIT is unlimited and negative
++LIMIT/OFFSET lowering uses VM registers, not host statement fields. LIMIT is
++coerced first; zero bypasses OFFSET evaluation/coercion and row production in
++represented ordinary and compound SELECTs. `SELECT 1 LIMIT 0 OFFSET 'x'` and
++`SELECT 1 LIMIT 0 OFFSET NULL` finish DONE, not datatype mismatch. Nonzero LIMIT
++then evaluates/coerces OFFSET. Scalar/EXISTS destinations retain their SELECT-owned
++normalization. [Source/native adjudication and correction provenance](research/card-u-rule-correction/README.md).
++Negative LIMIT is unlimited and negative
+ OFFSET is zero. Ordered positive LIMIT bounds retention to LIMIT+OFFSET.
+ 
+ Structured VALUES compiles each retained row, validates every arm width, and

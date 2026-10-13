@@ -24,21 +24,30 @@ inventory.
 ## Functional-first beta view
 
 This is a development prioritization view, **not publication or a compatibility
-certificate**. Four categories keep functional breadth ahead of optimization:
+certificate**. The owner's four categories separate functional priority from
+required foundations and optimization:
 
-1. **Committed represented functionality:** immutable database/public lifecycle,
-   represented SELECT/join/compound/aggregate/subquery/CTE/window/function/JSON
-   routes, bounded generated and STRICT reads, vector expressions and selected
-   WITHOUT ROWID consumers. Admission is semantic and composition-specific.
-2. **In-scope functional gaps:** unrepresented compositions, broader semantic
-   walker/NC_GenCol coverage, generic indexed-expression and virtual-table routes,
-   and remaining read-only SQL. These are temporary unsupported, not exclusions.
-3. **Optimization and fidelity gaps:** broader planner/STAT4/vector index choices,
-   storage/VM migrations and materialized-route parity. Do not turn absent
-   optimization into a claim that represented functional execution is absent.
-4. **Delivery and evidence:** installed-artifact/browser/native comparisons and
-   independent bounded acceptance remain revision-specific. Local beta is not
-   registry publication, all-browser certification or whole-product completion.
+1. **Common functional gaps:** frequently needed unrepresented read-only SQL and
+   compositions, including common schema/expression/SELECT consumers. Temporary
+   unsupported is backlog, not a product exclusion.
+2. **Required performance/safety foundations:** source-owned storage and VM
+   semantics, bounded memory/work, cancellation/responsiveness, cleanup and
+   algorithmic foundations needed for safe usable execution. Required storage/VM
+   fidelity is not optional optimization or waived by matching sample rows.
+3. **Deferred optimization-only work:** additional plan/cost choices and fast
+   paths where the represented semantic route already works safely. Broader
+   planner/STAT4/vector strategy coverage belongs here only when genuinely an
+   optimization, not when needed for semantics or the required foundations.
+4. **Rare functional breadth:** less common in-scope SQL forms and compositions,
+   broader semantic walkers and other uncommon read-only consumers. These remain
+   functional obligations under SPEC, not permanent exclusions.
+
+Represented committed functionality (including bounded generated/STRICT/vector/
+WITHOUT ROWID consumers) and revision-specific installed/browser/native evidence
+are separate context, not substitutes for these four work categories. Admission
+remains semantic and composition-specific; local beta is not registry publication,
+all-browser certification or whole-product completion. [Correction provenance](research/card-u-rule-correction/README.md)
+retains the superseded category wording without making it current authority.
 
 Current contracts are in [api.md](api.md) and [TRANSLATION.md](TRANSLATION.md).
 Exact historical candidate identities and peer proposals are preserved in
