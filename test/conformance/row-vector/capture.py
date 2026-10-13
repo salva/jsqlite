@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import ctypes as C,json,pathlib,struct,sys,os
 root=pathlib.Path(__file__).resolve().parents[3];spec=json.load(open(root/'test/conformance/row-vector/spec.json'));L=C.CDLL(sys.argv[1]);P=C.c_void_p
-sigs=[('sqlite3_sourceid',[],C.c_char_p),('sqlite3_open',[C.c_char_p,C.POINTER(P)],C.c_int),('sqlite3_close',[P],C.c_int),('sqlite3_exec',[P,C.c_char_p,P,P,C.POINTER(C.c_char_p)],C.c_int),('sqlite3_prepare_v2',[P,C.c_char_p,C.c_int,C.POINTER(P),C.POINTER(C.c_char_p)],C.c_int),('sqlite3_bind_int64',[P,C.c_int,C.c_longlong],C.c_int),('sqlite3_step',[P],C.c_int),('sqlite3_reset',[P],C.c_int),('sqlite3_finalize',[P],C.c_int),('sqlite3_errmsg',[P],C.c_char_p),('sqlite3_column_count',[P],C.c_int),('sqlite3_column_name',[P,C.c_int],C.c_char_p),('sqlite3_column_type',[P,C.c_int],C.c_int),('sqlite3_column_int64',[P,C.c_int],C.c_longlong),('sqlite3_column_double',[P,C.c_int],C.c_double),('sqlite3_column_text',[P,C.c_int],P),('sqlite3_column_blob',[P,C.c_int],P),('sqlite3_column_bytes',[P,C.c_int],C.c_int)]
+sigs=[('sqlite3_sourceid',[],C.c_char_p),('sqlite3_open',[C.c_char_p,C.POINTER(P)],C.c_int),('sqlite3_close',[P],C.c_int),('sqlite3_exec',[P,C.c_char_p,P,P,C.POINTER(C.c_char_p)],C.c_int),('sqlite3_prepare_v2',[P,C.c_char_p,C.c_int,C.POINTER(P),C.POINTER(C.c_char_p)],C.c_int),('sqlite3_bind_int64',[P,C.c_int,C.c_longlong],C.c_int),('sqlite3_step',[P],C.c_int),('sqlite3_reset',[P],C.c_int),('sqlite3_finalize',[P],C.c_int),('sqlite3_extended_errcode',[P],C.c_int),('sqlite3_errmsg',[P],C.c_char_p),('sqlite3_column_count',[P],C.c_int),('sqlite3_column_name',[P,C.c_int],C.c_char_p),('sqlite3_column_type',[P,C.c_int],C.c_int),('sqlite3_column_int64',[P,C.c_int],C.c_longlong),('sqlite3_column_double',[P,C.c_int],C.c_double),('sqlite3_column_text',[P,C.c_int],P),('sqlite3_column_blob',[P,C.c_int],P),('sqlite3_column_bytes',[P,C.c_int],C.c_int)]
+for field in ['decltype','database_name','table_name','origin_name']:sigs.append(('sqlite3_column_'+field,[P,C.c_int],C.c_char_p))
 for n,a,r in sigs:f=getattr(L,n);f.argtypes=a;f.restype=r
 assert L.sqlite3_sourceid().decode()==spec['sourceId']
 def cell(s,i):
@@ -19,12 +20,18 @@ def init(enc,path):
  d=P();assert L.sqlite3_open(os.fsencode(path),C.byref(d))==0;x(d,"PRAGMA encoding='%s'"%enc);[x(d,q) for q in spec['setup']];return d
 def run(d,c):
  s=P();tail=C.c_char_p();rc=L.sqlite3_prepare_v2(d,c['sql'].encode(),-1,C.byref(s),C.byref(tail))
- if rc:return{'error':{'phase':'prepare','code':rc,'message':L.sqlite3_errmsg(d).decode()}}
+ if rc:return{'error':{'phase':'prepare','code':rc,'extendedCode':L.sqlite3_extended_errcode(d),'message':L.sqlite3_errmsg(d).decode()}}
  for i,v in enumerate(c.get('bindings',[]),1):assert L.sqlite3_bind_int64(s,i,v)==0
  cols=[L.sqlite3_column_name(s,i).decode() for i in range(L.sqlite3_column_count(s))];rows=[]
+ metadata=[]
+ for i,name in enumerate(cols):
+  m={'name':name}
+  for key,field in [('declaredType','decltype'),('database','database_name'),('table','table_name'),('origin','origin_name')]:
+   value=getattr(L,'sqlite3_column_'+field)(s,i);m[key]=value.decode() if value else None
+  metadata.append(m)
  while (rc:=L.sqlite3_step(s))==100:rows.append([cell(s,i) for i in range(len(cols))])
- out={'columns':cols,'rows':rows} if rc==101 else {'columns':cols,'error':{'phase':'step','code':rc,'message':L.sqlite3_errmsg(d).decode()}}
- reset=L.sqlite3_reset(s);L.sqlite3_finalize(s);out['resetCode']=reset;return out
+ out={'columns':cols,'rows':rows} if rc==101 else {'columns':cols,'error':{'phase':'step','code':rc,'extendedCode':L.sqlite3_extended_errcode(d),'message':L.sqlite3_errmsg(d).decode()}}
+ reset=L.sqlite3_reset(s);L.sqlite3_finalize(s);out['resetCode']=reset;out['metadata']=metadata;return out
 out={'schema':'jsqlite-row-vector/1','sourceId':spec['sourceId'],'credit':0,'encodings':{}}
 outdir=root/'test/fixtures/row-vector';outdir.mkdir(parents=True,exist_ok=True)
 for key,enc in [('utf8','UTF-8'),('utf16le','UTF-16le'),('utf16be','UTF-16be')]:

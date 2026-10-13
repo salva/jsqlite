@@ -23,7 +23,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`vector independent slic
   ]){
    const st=db.prepare(sql).statement;try{assert.equal(await st.step(),'row');assert.equal(st.column(0),expected);assert.equal(await st.step(),'done');st.reset();assert.equal(await st.step(),'row');assert.equal(st.column(0),expected)}finally{st.finalize()}
   }
-  assert.throws(()=>db.prepare('SELECT (SELECT 1,2)'),e=>e.kind==='sqlite'&&e.code===1&&e.message==='row value misused');
+  assert.throws(()=>db.prepare('SELECT (SELECT 1,2)'),e=>e.kind==='sqlite'&&e.code===1&&e.message==='sub-select returns 2 columns - expected 1');
   const member=db.prepare('SELECT (?1,?2) IN ((1,NULL),(2,3),(2,3)) AS hit').statement;
   try{
    for(const [values,expected] of [[[1n,9n],null],[[2n,3n],1n],[[4n,null],0n]]){
@@ -72,4 +72,25 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`vector live controls an
    assert.equal(await st.step(),'row');assert.deepEqual([st.column(0),st.column(1)],[1n,1n]);st.finalize();
   }
  }finally{db?.closeDeferred();await new Promise(resolve=>server.close(resolve));}
+});
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`vector private bytes and held-yield admission ${encoding}`,async()=>{
+ const body=fs.readFileSync(new URL(`../../fixtures/row-vector/pairs-${encoding}.db`,import.meta.url));
+ const server=http.createServer((_q,r)=>r.end(body));await new Promise(r=>server.listen(0,'127.0.0.1',r));let db;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/`),{limits:{maxPrivateBytes:1}});
+  const st=db.prepare('SELECT (1,2) IN ((1,2),(3,4))').statement;let saved;
+  try{await st.step()}catch(e){saved=e}assert.equal(saved?.kind,'limit');
+  await assert.rejects(st.step(),e=>e===saved);assert.throws(()=>st.reset(),e=>e===saved);st.finalize();
+  const ok=db.prepare('SELECT (1,2)=(1,2)').statement;assert.equal(await ok.step(),'row');ok.finalize();db.closeDeferred();
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/`));
+  const held=db.prepare('SELECT (hex(?1),2)=(hex(?1),2)').statement;held.bind(1,'x'.repeat(1024*1024));
+  const sibling=db.prepare('SELECT 1').statement,abort=new AbortController();
+  const pending=held.step({signal:abort.signal});
+  await new Promise(resolve=>setTimeout(resolve,0));
+  await assert.rejects(sibling.step(),e=>e.kind==='misuse');
+  abort.abort();let first;try{await pending}catch(e){first=e}assert.equal(first?.kind,'cancelled');
+  assert.throws(()=>held.reset(),e=>e===first);held.finalize();
+  assert.equal(await sibling.step(),'row');assert.equal(sibling.column(0),1n);sibling.finalize();
+ }finally{db?.closeDeferred();await new Promise(r=>server.close(r));}
 });

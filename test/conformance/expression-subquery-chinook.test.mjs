@@ -1,3 +1,4 @@
+import {chinookFixture} from '../chinook-fixture.mjs';
 import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -7,8 +8,7 @@ import test from 'node:test';
 import {openFixture} from './public-api-adapter.mjs';
 
 const expectedDigest='7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15';
-const fixture=process.env.CHINOOK_DB;
-if(!fixture)throw new Error('CHINOOK_DB is required');
+const fixture=await chinookFixture();
 const body=fs.readFileSync(fixture);
 assert.equal(crypto.createHash('sha256').update(body).digest('hex'),expectedDigest,'public Chinook fixture digest');
 

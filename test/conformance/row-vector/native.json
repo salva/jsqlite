@@ -22,7 +22,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) == (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -40,7 +49,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) == (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -59,7 +77,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) == (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -78,7 +105,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) != (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -96,7 +132,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) != (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -115,7 +160,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) != (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -134,7 +188,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) IS (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -153,7 +216,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) IS (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -172,7 +244,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) IS (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -191,7 +272,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) IS NOT (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -210,7 +300,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) IS NOT (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -229,7 +328,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) IS NOT (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -248,7 +356,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) < (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -267,7 +384,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) > (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -286,7 +412,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) <= (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -305,7 +440,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) >= (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -329,7 +473,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2) IN ((1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,2) NOT IN ((3,4),(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -348,7 +508,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2) IN (VALUES(1,2),(1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -375,7 +544,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL) IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(9,NULL) IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,NULL) NOT IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -399,7 +591,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,2) IN (SELECT a,b FROM pairs WHERE 0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(NULL,2) NOT IN (SELECT a,b FROM pairs WHERE 0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -468,7 +676,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "(a,b)=('1','alpha')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(a,b) IN (SELECT a,b FROM pairs)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -492,7 +723,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,'a' COLLATE NOCASE)=(1,'A')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,'a' COLLATE BINARY)=(1,'A' COLLATE NOCASE)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -521,7 +768,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1.0)=(1.0,1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,'1')=(1,1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,x'00')<(1,x'01')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -540,7 +810,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(0,abs(-9223372036854775808)) < (1,0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -554,9 +833,19 @@
             "error": {
               "phase": "step",
               "code": 1,
+              "extendedCode": 1,
               "message": "integer overflow"
             },
-            "resetCode": 1
+            "resetCode": 1,
+            "metadata": [
+              {
+                "name": "(1,abs(-9223372036854775808)) < (1,0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -567,6 +856,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "row value misused"
             }
           }
@@ -579,6 +869,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "sub-select returns 1 columns - expected 2"
             }
           }
@@ -591,6 +882,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "row value misused"
             }
           }
@@ -656,7 +948,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              }
+            ]
           }
         },
         {
@@ -709,7 +1017,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<=p.id)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -728,7 +1052,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,'Alpha')=(SELECT a,b FROM pairs WHERE id=1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -759,7 +1092,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              }
+            ]
           }
         },
         {
@@ -845,7 +1187,37 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "a=1",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "CASE WHEN a BETWEEN 1 AND 2 THEN a ELSE 0 END",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "a IN(1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -913,7 +1285,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "a",
+                "declaredType": "NUMERIC",
+                "database": "main",
+                "table": "pairs",
+                "origin": "a"
+              },
+              {
+                "name": "b",
+                "declaredType": "TEXT",
+                "database": "main",
+                "table": "pairs",
+                "origin": "b"
+              },
+              {
+                "name": "sum",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -940,7 +1335,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(?1,?2)=(1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(?1,?2) IN(VALUES(1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -959,7 +1370,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(2,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -978,7 +1398,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(3,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -996,7 +1425,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1015,7 +1453,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,0) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1033,7 +1480,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,4) NOT IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1052,7 +1508,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,0) NOT IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         }
       ]
@@ -1076,7 +1541,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) == (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1094,7 +1568,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) == (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1113,7 +1596,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) == (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1132,7 +1624,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) != (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1150,7 +1651,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) != (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1169,7 +1679,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) != (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1188,7 +1707,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) IS (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1207,7 +1735,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) IS (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1226,7 +1763,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) IS (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1245,7 +1791,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) IS NOT (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1264,7 +1819,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) IS NOT (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1283,7 +1847,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) IS NOT (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1302,7 +1875,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) < (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1321,7 +1903,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) > (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1340,7 +1931,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) <= (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1359,7 +1959,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) >= (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1383,7 +1992,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2) IN ((1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,2) NOT IN ((3,4),(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1402,7 +2027,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2) IN (VALUES(1,2),(1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1429,7 +2063,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL) IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(9,NULL) IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,NULL) NOT IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1453,7 +2110,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,2) IN (SELECT a,b FROM pairs WHERE 0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(NULL,2) NOT IN (SELECT a,b FROM pairs WHERE 0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1522,7 +2195,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "(a,b)=('1','alpha')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(a,b) IN (SELECT a,b FROM pairs)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1546,7 +2242,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,'a' COLLATE NOCASE)=(1,'A')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,'a' COLLATE BINARY)=(1,'A' COLLATE NOCASE)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1575,7 +2287,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1.0)=(1.0,1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,'1')=(1,1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,x'00')<(1,x'01')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1594,7 +2329,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(0,abs(-9223372036854775808)) < (1,0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1608,9 +2352,19 @@
             "error": {
               "phase": "step",
               "code": 1,
+              "extendedCode": 1,
               "message": "integer overflow"
             },
-            "resetCode": 1
+            "resetCode": 1,
+            "metadata": [
+              {
+                "name": "(1,abs(-9223372036854775808)) < (1,0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1621,6 +2375,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "row value misused"
             }
           }
@@ -1633,6 +2388,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "sub-select returns 1 columns - expected 2"
             }
           }
@@ -1645,6 +2401,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "row value misused"
             }
           }
@@ -1710,7 +2467,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              }
+            ]
           }
         },
         {
@@ -1763,7 +2536,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<=p.id)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1782,7 +2571,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,'Alpha')=(SELECT a,b FROM pairs WHERE id=1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1813,7 +2611,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              }
+            ]
           }
         },
         {
@@ -1899,7 +2706,37 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "a=1",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "CASE WHEN a BETWEEN 1 AND 2 THEN a ELSE 0 END",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "a IN(1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1967,7 +2804,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "a",
+                "declaredType": "NUMERIC",
+                "database": "main",
+                "table": "pairs",
+                "origin": "a"
+              },
+              {
+                "name": "b",
+                "declaredType": "TEXT",
+                "database": "main",
+                "table": "pairs",
+                "origin": "b"
+              },
+              {
+                "name": "sum",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -1994,7 +2854,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(?1,?2)=(1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(?1,?2) IN(VALUES(1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2013,7 +2889,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(2,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2032,7 +2917,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(3,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2050,7 +2944,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2069,7 +2972,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,0) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2087,7 +2999,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,4) NOT IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2106,7 +3027,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,0) NOT IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         }
       ]
@@ -2130,7 +3060,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) == (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2148,7 +3087,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) == (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2167,7 +3115,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) == (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2186,7 +3143,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) != (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2204,7 +3170,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) != (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2223,7 +3198,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) != (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2242,7 +3226,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) IS (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2261,7 +3254,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) IS (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2280,7 +3282,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) IS (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2299,7 +3310,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,3) IS NOT (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2318,7 +3338,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2,NULL) IS NOT (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2337,7 +3366,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL,1) IS NOT (1,1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2356,7 +3394,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) < (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2375,7 +3422,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) > (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2394,7 +3450,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) <= (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2413,7 +3478,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1,3) >= (1,2,3)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2437,7 +3511,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2) IN ((1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,2) NOT IN ((3,4),(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2456,7 +3546,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,2) IN (VALUES(1,2),(1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2483,7 +3582,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,NULL) IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(9,NULL) IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,NULL) NOT IN (VALUES(1,2))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2507,7 +3629,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,2) IN (SELECT a,b FROM pairs WHERE 0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(NULL,2) NOT IN (SELECT a,b FROM pairs WHERE 0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2576,7 +3714,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "(a,b)=('1','alpha')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(a,b) IN (SELECT a,b FROM pairs)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2600,7 +3761,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,'a' COLLATE NOCASE)=(1,'A')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,'a' COLLATE BINARY)=(1,'A' COLLATE NOCASE)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2629,7 +3806,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,1.0)=(1.0,1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,'1')=(1,1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(1,x'00')<(1,x'01')",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2648,7 +3848,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(0,abs(-9223372036854775808)) < (1,0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2662,9 +3871,19 @@
             "error": {
               "phase": "step",
               "code": 1,
+              "extendedCode": 1,
               "message": "integer overflow"
             },
-            "resetCode": 1
+            "resetCode": 1,
+            "metadata": [
+              {
+                "name": "(1,abs(-9223372036854775808)) < (1,0)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2675,6 +3894,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "row value misused"
             }
           }
@@ -2687,6 +3907,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "sub-select returns 1 columns - expected 2"
             }
           }
@@ -2699,6 +3920,7 @@
             "error": {
               "phase": "prepare",
               "code": 1,
+              "extendedCode": 1,
               "message": "row value misused"
             }
           }
@@ -2764,7 +3986,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              }
+            ]
           }
         },
         {
@@ -2817,7 +4055,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<=p.id)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2836,7 +4090,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(1,'Alpha')=(SELECT a,b FROM pairs WHERE id=1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -2867,7 +4130,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              }
+            ]
           }
         },
         {
@@ -2953,7 +4225,37 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "database": "main",
+                "table": "pairs",
+                "origin": "id"
+              },
+              {
+                "name": "a=1",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "CASE WHEN a BETWEEN 1 AND 2 THEN a ELSE 0 END",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "a IN(1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3021,7 +4323,30 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "a",
+                "declaredType": "NUMERIC",
+                "database": "main",
+                "table": "pairs",
+                "origin": "a"
+              },
+              {
+                "name": "b",
+                "declaredType": "TEXT",
+                "database": "main",
+                "table": "pairs",
+                "origin": "b"
+              },
+              {
+                "name": "sum",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3048,7 +4373,23 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(?1,?2)=(1,2)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              },
+              {
+                "name": "(?1,?2) IN(VALUES(1,2),(3,4))",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3067,7 +4408,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(2,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3086,7 +4436,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(3,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3104,7 +4463,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,4) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3123,7 +4491,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,0) IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3141,7 +4518,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,4) NOT IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         },
         {
@@ -3160,7 +4546,16 @@
                 }
               ]
             ],
-            "resetCode": 0
+            "resetCode": 0,
+            "metadata": [
+              {
+                "name": "(NULL,0) NOT IN(SELECT * FROM t1)",
+                "declaredType": null,
+                "database": null,
+                "table": null,
+                "origin": null
+              }
+            ]
           }
         }
       ]
