@@ -20,7 +20,7 @@ import { lowerOrdinaryCtes } from "./cte.ts";
 import { windowRangeTest, arithmeticBinary, bitwiseBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, compareRecordKey, KeyInfo, UnpackedRecordKey, unpackRecordKey, type BuiltinCollation } from "./comparison.ts";
 import { EphemeralIndexCursor, FifoCursor, PriorityQueueCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
-import { decodeRecord, RecordFormatError } from "./record.ts";
+import { decodeRecord, RawRecordReader, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type IndexCursor, type TableCursor, type TableScanCursor } from "./btree.ts";
 import type { PhysicalIndex, SchemaGraph, TableNode, ViewNode } from "./schema.ts";
 import type { DatabaseEncoding } from "./record.ts";
@@ -147,7 +147,7 @@ type Op =
   | { readonly code: "Insert"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "Found" | "NotFound"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly jump:number }
   | { readonly code: "InSet"; readonly p1:number; readonly key:number; readonly output:number; readonly affinity:MemAffinity; readonly negated:boolean; readonly count?:number; readonly affinities?:readonly MemAffinity[] }
-  | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly p2?:number; readonly useSeekResult?:boolean; readonly replace?:boolean }
+  | { readonly code: "IdxInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number; readonly p2?:number; readonly useSeekResult?:boolean; readonly consumeRecord?:boolean; readonly replace?:boolean }
   | { readonly code: "SetDelete"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "SetRetainIntersection"; readonly p1:number; readonly p2:number }
   | { readonly code: "ClearEphemeral"; readonly p1:number }
@@ -1888,6 +1888,17 @@ export function compileWindowSelectLowering(
 export function programOpcodeNames(program:Program):readonly string[]{return Object.freeze(program.ops.map(op=>op.code));}
 /** Test/review projection of register ownership; values and function internals remain private. */
 export function programRegisterFacts(program:Program):readonly Readonly<{index:number;code:string;p1?:number;p2?:number;p3?:number}>[]{return Object.freeze(program.ops.map((op,index)=>Object.freeze({index,code:op.code,...("p1" in op&&typeof op.p1==="number"?{p1:op.p1}:{}) ,...("p2" in op&&typeof op.p2==="number"?{p2:op.p2}:{}) ,...("p3" in op&&typeof op.p3==="number"?{p3:op.p3}:{})})));}
+/** Source-control projection: membership cursors must have packed-only producers.
+ * Exposes no record values or execution state. */
+export function programMembershipStorage(program:Program):readonly Readonly<{cursor:number;packed:boolean}>[]{
+  return Object.freeze(program.ops.filter(op=>op.code==='InSet').map(op=>{
+    const cursor=op.p1;
+    const opens=program.ops.filter(other=>other.code==='OpenEphemeral'&&other.p1===cursor);
+    const inserts=program.ops.filter(other=>other.code==='IdxInsert'&&other.p1===cursor);
+    const packed=opens.length>0&&opens.every(other=>other.code==='OpenEphemeral'&&(other.p4KeyInfo!==undefined||inserts.some(insert=>insert.code==='IdxInsert'&&insert.p2!==undefined)))&&inserts.every(insert=>insert.code==='IdxInsert'&&insert.p2!==undefined);
+    return Object.freeze({cursor,packed});
+  }));
+}
 export function programControlTargets(program:Program):readonly Readonly<{index:number;code:string;target:number;targetCode:string|undefined}>[]{
   return Object.freeze(program.ops.flatMap((op,index)=>{
     const target=op.code==="IfPos"||op.code==="DecrJumpZero"||op.code==="Once"||op.code==="Gosub"||op.code==="InitCoroutine"||op.code==="Yield"||op.code==="EndCoroutine"?op.p2:undefined;
@@ -2284,9 +2295,11 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
         throw new JSQLiteError("sqlite",`sub-select returns ${row.kind==="vector"?row.fields.length:1} columns - expected ${width}`,{code:1});
       const affinities=fields.map(field=>expressionAffinity(field)??"blob" as MemAffinity);
       const firstRow=expression.values[0];
-      ops.push({code:"OpenEphemeral",p1:cursor,statementEncoding:true,keyInfo:new KeyInfo({encoding:"utf-8",totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,firstRow?.kind==="vector"?firstRow.fields[i]!:field)}))})});
+      const info=new KeyInfo({encoding:"utf-8",totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,firstRow?.kind==="vector"?firstRow.fields[i]!:field)}))});
+      ops.push({code:"OpenEphemeral",p1:cursor,statementEncoding:true,keyInfo:info,p4KeyInfo:info});
       const rowStart=allocate();for(let i=1;i<width;i++)allocate();
-      for(const row of expression.values){if(row.kind!=="vector")continue;row.fields.forEach((field,i)=>{const value=emit(field);ops.push({code:"Copy",p1:value,p2:rowStart+i},{code:"Affinity",p1:rowStart+i,affinity:affinities[i]!});});ops.push({code:"IdxInsert",p1:cursor,keyStart:rowStart,keyCount:width});}
+      const packed=allocate();
+      for(const row of expression.values){if(row.kind!=="vector")continue;row.fields.forEach((field,i)=>{const value=emit(field);ops.push({code:"Copy",p1:value,p2:rowStart+i},{code:"Affinity",p1:rowStart+i,affinity:affinities[i]!});});ops.push({code:"MakeRecord",p1:rowStart,p2:width,p3:packed},{code:"IdxInsert",p1:cursor,p2:packed,keyStart:rowStart,keyCount:width,consumeRecord:true});}
       const key=allocate();for(let i=1;i<width;i++)allocate();
       fields.forEach((field,i)=>{const value=emit(field);ops.push({code:"Copy",p1:value,p2:key+i});});
       ops.push({code:"InSet",p1:cursor,key,output:result,affinity:"blob",affinities,count:width,negated:expression.negated},{code:"ClearEphemeral",p1:cursor});
@@ -2872,7 +2885,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           if(ordered){resultOps.push({code:"SorterInsert",p1:sorter,keyStart:value,keyCount:1,payload:value,payloadCount:1});resultOps.push({code:"EphemeralNext",p1:setResultCursor,p2:rewind+1});(resultOps[rewind] as {p2:number}).p2=resultOps.length;return;}
           let skip=-1;
           if(limit?.offset!==undefined){skip=resultOps.length;resultOps.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
-          emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
+          emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
           const stop=resultOps.length;
           if(!isIn)resultOps.push({code:"Goto",p2:0});
           else if(limit)resultOps.push({code:"DecrJumpZero",p1:limit.count,p2:0});
@@ -2896,7 +2909,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           if(ordered){const value=compileExpressionTree(rowTree(row),resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"SorterInsert",p1:sorter,keyStart:value,keyCount:1,payload:value,payloadCount:1});continue;}
           if(limit?.offset!==undefined){const at=resultOps.length;resultOps.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});skips.push(at);}
           if(expression.kind==="scalar-subquery"&&expression.exists)emitSelectDestination(resultOps,{kind:"exists",register:destination},destination,1);
-          else {const value=compileExpressionTree(rowTree(row),resultOps,allocate,parameters,compileSubquery);emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor}:{kind:"mem",register:destination},value,1);}
+          else {const value=compileExpressionTree(rowTree(row),resultOps,allocate,parameters,compileSubquery);emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:{kind:"mem",register:destination},value,1);}
           if(!isIn||limit){exits.push(resultOps.length);resultOps.push(!isIn?{code:"Goto",p2:0}:{code:"DecrJumpZero",p1:limit!.count,p2:0});}
           if(skips.length)(resultOps[skips.pop()!] as {p2:number}).p2=resultOps.length;
           }
@@ -2908,7 +2921,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           const value=allocate();resultOps.push({code:"SorterData",p1:sorter,p2:value,count:1});
           let skip=-1;
           if(limit?.offset!==undefined){skip=resultOps.length;resultOps.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
-          emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
+          emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
           const stop=resultOps.length;
           if(!isIn)resultOps.push({code:"Goto",p2:0});
           else if(limit)resultOps.push({code:"DecrJumpZero",p1:limit.count,p2:0});
@@ -2937,7 +2950,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       else resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
       const once=allocate(),onceAt=resultOps.length;
       resultOps.push({code:"Once",p1:once,p2:0});
-      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
+      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
       (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"InSet",p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
       return destination;
@@ -2955,7 +2968,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       else resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
       const once=allocate(),onceAt=resultOps.length;
       resultOps.push({code:"Once",p1:once,p2:0});
-      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
+      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
       (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"InSet",p1:cursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
       return destination;
@@ -3000,7 +3013,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         let offsetSkip=-1;
         if(setLimit?.offset!==undefined){offsetSkip=resultOps.length;resultOps.push({code:"IfPos",p1:setLimit.offset,p2:0,p3:1});}
         const value=compileExpressionTree(rhs,resultOps,allocate,parameters,compileSubquery);
-        emitSelectDestination(resultOps,{kind:"set",cursor},value,1);
+        emitSelectDestination(resultOps,{kind:"set",cursor,packedRegister:allocate()},value,1);
         if(offsetSkip>=0)(resultOps[offsetSkip] as {p2:number}).p2=resultOps.length;
         if(whereSkip>=0)(resultOps[whereSkip] as {p2:number}).p2=resultOps.length;
         if(setLimit)(resultOps[setLimit.ifZero] as {p2:number}).p2=resultOps.length;
@@ -3065,14 +3078,14 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
             whereSkip=resultOps.length;resultOps.push({code:'IfNot',p1:predicate,p2:0});
           }
           const value=compileExpressionTree(bindCorrelated(part,expressionFromReduction(item.reduction!),item.reduction as Reduction),resultOps,allocate,parameters,compileSubquery);
-          emitSelectDestination(resultOps,isIn?{kind:'set',cursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found},value,1);
+          emitSelectDestination(resultOps,isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found},value,1);
           if(whereSkip>=0)(resultOps[whereSkip] as {p2:number}).p2=resultOps.length;
         }else{
           let expanded:ReturnType<typeof expandAndResolveSelect>;
           try{expanded=expandAndResolveSelect(part,schema,null,selectProgramBuilder.cursors)}
           catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
           compileInnerTableSelect(part,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,
-            {builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:'set',cursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found}});
+            {builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found}});
         }
       }
       const end=resultOps.length;
@@ -3128,7 +3141,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           resultOps.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});
           childLimit={count,ifZero,combined,capacity,...(offset===undefined?{}:{offset})};
         }
-        compileInnerTableSelect(nested,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:'set',cursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},scalarPrepared:true,...(childLimit?{sharedLimit:childLimit}:{})});
+        compileInnerTableSelect(nested,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},scalarPrepared:true,...(childLimit?{sharedLimit:childLimit}:{})});
         (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
         if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:cursor,key:left,output:destination,affinity:comparisonAffinity(expressionAffinity(expression.left),plan.result[0]!.descriptor.affinity??expressionAffinity(expressionFromReduction(nested.result[0]!.reduction!))),negated:expression.negated});}
         return destination;
@@ -3213,7 +3226,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           }
           if(outerLimit?.offset!==undefined){outerOffsetSkip=resultOps.length;resultOps.push({code:"IfPos",p1:outerLimit.offset,p2:0,p3:1});}
           const value=compileExpressionTree(outerTree,resultOps,allocate,parameters,compileSubquery);
-          emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
+          emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
           const end=resultOps.length;
           if(whereSkip>=0)(resultOps[whereSkip] as {p2:number}).p2=end;
           if(outerWhereSkip>=0)(resultOps[outerWhereSkip] as {p2:number}).p2=end;
@@ -3506,7 +3519,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           const value=allocate();
           const projected=distinctValue>=0?distinctValue:compileExpressionTree(resultTree,resultOps,allocate,parameters,compileSubquery);
           resultOps.push({code:"Copy",p1:projected,p2:value});
-          if(isIn)emitSelectDestination(resultOps,{kind:"set",cursor:setCursor},value,1);
+          if(isIn)emitSelectDestination(resultOps,{kind:"set",cursor:setCursor,packedRegister:allocate()},value,1);
           else emitSelectDestination(resultOps,{kind:"mem",register:destination},value,1);
         }
         const stop=resultOps.length;
@@ -3554,7 +3567,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
             const test=compileExpressionTree(fromPayload(postTree),resultOps,allocate,parameters,compileSubquery,true);
             sortedPostSkip=resultOps.length;resultOps.push({code:'IfNot',p1:test,p2:0});
           }
-          if(isIn)emitSelectDestination(resultOps,{kind:"set",cursor:setCursor},value,1);
+          if(isIn)emitSelectDestination(resultOps,{kind:"set",cursor:setCursor,packedRegister:allocate()},value,1);
           else emitSelectDestination(resultOps,expression.kind==="scalar-subquery"&&expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination},value,1);
           const stopSorted=resultOps.length;
           // expr.c:sqlite3CodeSubselect caps SRT_Mem/SRT_Exists at one
@@ -3709,7 +3722,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         resultOps.push({code:'AggFinal',p1:accumulator,name:aggregate.name});
         const offsetSkip=outerLimit?.offset===undefined?-1:resultOps.length;
         if(outerLimit?.offset!==undefined)resultOps.push({code:'IfPos',p1:outerLimit.offset,p2:0,p3:1});
-        emitSelectDestination(resultOps,isIn?{kind:'set',cursor:setCursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},accumulator,1);
+        emitSelectDestination(resultOps,isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},accumulator,1);
         const end=resultOps.length;
         if(outerLimit)(resultOps[outerLimit.ifZero] as {p2:number}).p2=end;
         if(offsetSkip>=0)(resultOps[offsetSkip] as {p2:number}).p2=end;
@@ -3728,7 +3741,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       else resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
       const once=allocate(),onceAt=resultOps.length;
       resultOps.push({code:"Once",p1:once,p2:0});
-      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
+      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
       (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"InSet",p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
       return destination;
@@ -3743,7 +3756,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       else resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
       const once=allocate(),onceAt=resultOps.length;
       resultOps.push({code:"Once",p1:once,p2:0});
-      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
+      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
       (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"InSet",p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
       return destination;
@@ -3760,7 +3773,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(isIn)resultOps.push({code:'OpenEphemeral',p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
       else resultOps.push(expression.exists?{code:'Integer',p1:0n,p2:destination}:{code:'Null',p2:destination});
       const once=allocate(),onceAt=resultOps.length;resultOps.push({code:'Once',p1:once,p2:0});
-      compileInnerTableSelect(nested,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:'set',cursor:setCursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination}});
+      compileInnerTableSelect(nested,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination}});
       (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
       if(!isIn&&!expression.exists)subqueryColumns.set(nested,{name:expanded.result[0]!.name,declaredType:expanded.result[0]!.descriptor.declaredType,database:expanded.result[0]!.descriptor.database,table:expanded.result[0]!.descriptor.table,origin:expanded.result[0]!.descriptor.origin});
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
@@ -3788,7 +3801,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(isIn)resultOps.push({code:'OpenEphemeral',p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
       else resultOps.push(expression.exists?{code:'Integer',p1:0n,p2:destination}:{code:'Null',p2:destination});
       const once=allocate(),onceAt=resultOps.length;resultOps.push({code:'Once',p1:once,p2:0});
-      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:'set',cursor:setCursor}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination}});
+      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination}});
       (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
       if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
       return destination;
@@ -3891,10 +3904,10 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
  const affinities=fields.map((field,i)=>comparisonAffinity(expressionAffinity(field),right[i]?expressionAffinity(right[i]!):undefined));
  const result=builder.range(isIn||isExists?1:width),cursor=isIn?builder.cursor():-1,once=plan?.correlated?undefined:builder.register(),onceAt=once===undefined?-1:ops.length;
  if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
- if(isIn)ops.push({code:'OpenEphemeral',p1:cursor,keyInfo:new KeyInfo({encoding:environment.database.encoding,totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,right[i]??field)}))})});
+ if(isIn){const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,right[i]??field)}))});ops.push({code:'OpenEphemeral',p1:cursor,keyInfo:info,p4KeyInfo:info});}
  else if(isExists)ops.push({code:'Integer',p1:0n,p2:result});
  else for(let i=0;i<width;i++)ops.push({code:'Null',p2:result+i});
- const dest:SelectDest=isIn?{kind:'set',cursor,width,affinities}:isExists?{kind:'exists',register:result}:{kind:'mem',register:result,width};
+ const dest:SelectDest=isIn?{kind:'set',cursor,width,affinities,packedRegister:builder.register()}:isExists?{kind:'exists',register:result}:{kind:'mem',register:result,width};
  const local=new Map(plan?.sources.map(ref=>[ref,builder.cursor()])??[]),cursorFor=(ref:ResolvedSource)=>local.get(ref)??ref.cursorId;
  const childBinding:ResolvedExpressionBinding|undefined=binding?{policy:binding.policy,location:ref=>local.has(ref.source)?{kind:'cursor',cursor:cursorFor(ref.source)}:binding.location(ref,0)}:undefined;
  const owner={builder,ops,parameters,destination:dest,cursorFor,...(childBinding?{expressionBinding:childBinding}:{})};
@@ -3943,7 +3956,7 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
   const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:builder.cursor()});rememberNested(child);}};rememberNested(expanded);
   const compileJoinSubquery=(incoming:SubqueryExpression):number=>{
     const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
-    if(expression.kind==='scalar-subquery'&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
+    if((expression.kind==='scalar-subquery'||expression.kind==='in-subquery'&&!expression.select.hasLimit)&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if((expression.resolved??nestedPlans.get(expression.select)?.plan)?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if(expression.select.result.length!==1)throw new JSQLiteError('sqlite',`sub-select returns ${expression.select.result.length} columns - expected 1`,{code:1});
     const entry=nestedPlans.get(expression.select),item=expression.select.result[0];
@@ -6518,6 +6531,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   })};
   const sharedPhysicalScalar=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding);
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
+    if(expression.kind==='in-subquery'&&!expression.select.hasLimit&&!expression.select.from.derived&&!expression.select.hasCompound&&!expression.select.hasValues&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select))return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     if(expression.select.hasValues||expression.kind==='in-subquery'&&!expression.select.from.items.length&&!expression.select.hasCompound&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select)&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!expression.select.hasOrderBy)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     if((expression.resolved??scalarPlans.get(expression.select))?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
@@ -6592,7 +6606,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const rewind=ops.length;ops.push({code:"Rewind",p1:sourceCursor,p2:0});const loop=ops.length;let skip:number|undefined;
     if(expression.select.where?.reduction){const predicate=compileExpressionTree(bindResolvedExpression(expressionFromReduction(expression.select.where.reduction),resolvedExpressionCarrier(nested,expression.select.where.reduction as Reduction),cursorFor,true),ops,()=>builder.register(),parameters,compileExpressionSubquery);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     let done=-1, setLimitExit=-1;
-    if(isIn){const value=compileExpressionTree(aggregate,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"IdxInsert",p1:cursor,keyStart:value,keyCount:1});if(childLimit){setLimitExit=ops.length;ops.push({code:"DecrJumpZero",p1:childLimit.count,p2:0});}}
+    if(isIn){const value=compileExpressionTree(aggregate,ops,()=>builder.register(),parameters,compileExpressionSubquery);emitSelectDestination(ops,{kind:"set",cursor,packedRegister:builder.register()},value,1);if(childLimit){setLimitExit=ops.length;ops.push({code:"DecrJumpZero",p1:childLimit.count,p2:0});}}
     else if(expression.exists){ops.push({code:"Integer",p1:1n,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
     else if(aggregate.kind==="aggregate"){const args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,()=>builder.register(),parameters,compileExpressionSubquery));ops.push({code:"AggStep",name:aggregate.name,args,p2:result,collation:aggregate.collation});}
     else {const value=compileExpressionTree(aggregate,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:value,p2:result});done=ops.length;ops.push({code:"Goto",p2:0});}
@@ -7272,27 +7286,25 @@ const outputStart=selectProgramBuilder.range(select.result.length);
       ops.push({code:'OpenEphemeral',p1:joinSet,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:binaryCollation(leftJoin,rightJoin)}]})},{code:'OpenRead',p1:sources[1]!.table.rootPage,p2:sources[1]!.cursor});
       const rightRewind=ops.length;ops.push({code:'Rewind',p1:sources[1]!.cursor,p2:0});
       const rightLoop=ops.length,rightKey=compileExpressionTree(rightJoin,ops,allocate,parameters,compileAggregateSubquery);
-      ops.push({code:'IdxInsert',p1:joinSet,keyStart:rightKey,keyCount:1},{code:'Next',p1:sources[1]!.cursor,p2:rightLoop});
+      emitSelectDestination(ops,{kind:'set',cursor:joinSet,packedRegister:allocate()},rightKey,1);ops.push({code:'Next',p1:sources[1]!.cursor,p2:rightLoop});
       (ops[rightRewind] as {p2:number}).p2=ops.length;
-      ops.push({code:'EphemeralSort',p1:joinSet});
       ops.push({code:'OpenRead',p1:sources[0]!.table.rootPage,p2:sources[0]!.cursor});
       const leftRewind=ops.length;ops.push({code:'Rewind',p1:sources[0]!.cursor,p2:0});
       const leftLoop=ops.length,leftKey=compileExpressionTree(leftJoin,ops,allocate,parameters,compileAggregateSubquery);
       ops.push({code:'InSet',p1:joinSet,key:leftKey,output:joinResult,affinity:expressionAffinity(leftJoin)??'numeric',negated:false});
       const reject=ops.length;ops.push({code:'IfNot',p1:joinResult,p2:0});
       const key=compileExpressionTree(local,ops,allocate,parameters,compileAggregateSubquery);
-      ops.push({code:'IdxInsert',p1:set,keyStart:key,keyCount:1});
+      emitSelectDestination(ops,{kind:'set',cursor:set,packedRegister:allocate()},key,1);
       const next=ops.length;ops.push({code:'Next',p1:sources[0]!.cursor,p2:leftLoop});
       (ops[leftRewind] as {p2:number}).p2=ops.length;(ops[reject] as {p2:number}).p2=next;
     }else{
       for(const source of sources)ops.push({code:'OpenRead',p1:source.table.rootPage,p2:source.cursor});
       const rewinds:number[]=[],bodies:number[]=[],rejects:{at:number;level:number}[]=[];
       for(let level=0;level<sources.length;level++){const source=sources[level]!;rewinds[level]=ops.length;ops.push({code:'Rewind',p1:source.cursor,p2:0});bodies[level]=ops.length;if(source.source.on?.reduction){const test=compileExpressionTree(bind(source.source.on.reduction),ops,allocate,parameters,compileAggregateSubquery);const at=ops.length;ops.push({code:'IfNot',p1:test,p2:0});rejects.push({at,level});}}
-      const key=compileExpressionTree(local,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'IdxInsert',p1:set,keyStart:key,keyCount:1});
+      const key=compileExpressionTree(local,ops,allocate,parameters,compileAggregateSubquery);emitSelectDestination(ops,{kind:'set',cursor:set,packedRegister:allocate()},key,1);
       const nextAt:number[]=[];for(let level=sources.length-1;level>=0;level--){nextAt[level]=ops.length;ops.push({code:'Next',p1:sources[level]!.cursor,p2:bodies[level]!});}
       const end=ops.length;for(let level=0;level<sources.length;level++)(ops[rewinds[level]!] as {p2:number}).p2=level===0?end:nextAt[level-1]!;for(const reject of rejects)(ops[reject.at] as {p2:number}).p2=nextAt[reject.level]!;
     }
-    ops.push({code:'EphemeralSort',p1:set});
     const end=ops.length;(ops[onceAt] as {p2:number}).p2=end;
     const probe=compileExpressionTree(outer,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'InSet',p1:set,key:probe,output:result,affinity:expressionAffinity(local)??'numeric',negated:false});return result;
    }
@@ -7321,7 +7333,7 @@ const outputStart=selectProgramBuilder.range(select.result.length);
    const result=allocate(),once=nestedPlan.correlated?undefined:allocate(),set=aggregateSubqueryCursor(),onceAt=once===undefined?-1:ops.length;
    if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
    // expr.c sqlite3CodeRhsOfIN: correlated RHS rebuilds the set per invocation.
-   ops.push({code:'OpenEphemeral',p1:set,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});const childLimit=computeLimitRegisters(nested,ops,allocate,parameters);ops.push({code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length,cell=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);const offsetSkip=childLimit?.offset===undefined?-1:ops.length;if(childLimit?.offset!==undefined)ops.push({code:'IfPos',p1:childLimit.offset,p2:0,p3:1});emitSelectDestination(ops,{kind:'set',cursor:set},cell,1);const limitStop=childLimit===undefined?-1:ops.length;if(childLimit)ops.push({code:'DecrJumpZero',p1:childLimit.count,p2:0});const next=ops.length;ops.push({code:'Next',p1:cursor,p2:loop});const end=ops.length;if(childLimit){(ops[childLimit.ifZero] as {p2:number}).p2=end;(ops[limitStop] as {p2:number}).p2=end;}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=end;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=end;const left=compileExpressionTree(expression.left,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'InSet',p1:set,key:left,output:result,affinity:expressionAffinity(value)??'numeric',negated:expression.negated});return result;
+   ops.push({code:'OpenEphemeral',p1:set,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});const childLimit=computeLimitRegisters(nested,ops,allocate,parameters);ops.push({code:'OpenRead',p1:sourceTable.rootPage,p2:cursor});const rewind=ops.length;ops.push({code:'Rewind',p1:cursor,p2:0});const loop=ops.length,cell=compileExpressionTree(value,ops,allocate,parameters,compileAggregateSubquery);const offsetSkip=childLimit?.offset===undefined?-1:ops.length;if(childLimit?.offset!==undefined)ops.push({code:'IfPos',p1:childLimit.offset,p2:0,p3:1});emitSelectDestination(ops,{kind:'set',cursor:set,packedRegister:allocate()},cell,1);const limitStop=childLimit===undefined?-1:ops.length;if(childLimit)ops.push({code:'DecrJumpZero',p1:childLimit.count,p2:0});const next=ops.length;ops.push({code:'Next',p1:cursor,p2:loop});const end=ops.length;if(childLimit){(ops[childLimit.ifZero] as {p2:number}).p2=end;(ops[limitStop] as {p2:number}).p2=end;}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=next;(ops[rewind] as {p2:number}).p2=end;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=end;const left=compileExpressionTree(expression.left,ops,allocate,parameters,compileAggregateSubquery);ops.push({code:'InSet',p1:set,key:left,output:result,affinity:expressionAffinity(value)??'numeric',negated:expression.negated});return result;
   }
   if(expression.exists)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
   if(!item?.reduction||nested.result.length!==1||nested.from.items.length!==1||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.hasCompound||nested.hasValues||nested.offset)throw new JSQLiteError('unsupported','this aggregate expression subquery shape is not implemented',{unsupportedClassification:'temporary'});
@@ -7981,12 +7993,13 @@ export class VdbeStatement implements Statement {
           case "FifoInsert": await (this.#privateCursors.get(op.p1) as FifoCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "FifoShift": {const values=(this.#privateCursors.get(op.p1) as FifoCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
           case "OpenEphemeral": {
-            // Explicit consuming seam. Legacy ephemeral readers/iterators are not
-            // silently replaced: the private primitive has no Next/Prev contract.
+            // Explicit consuming seam. Legacy auxiliary readers retain their
+            // own contract; packed membership owns BLOBKEY First/Next traversal.
             const typed=op.p4KeyInfo!==undefined||this.#program.ops.some(i=>i.code==='IdxInsert'&&i.p1===op.p1&&i.p2!==undefined);
             if(typed){
               const old=this.#privateKeys.get(op.p1),control=this.#privateControl(options,limit,started);
-              const info=op.p4KeyInfo??op.keyInfo;
+              const declared=op.p4KeyInfo??op.keyInfo;
+              const info=op.statementEncoding?new KeyInfo({...declared,encoding:this.#program.encoding}):declared;
               // vdbe.c OpenEphemeral requires KeyInfo.enc == ENC(db).
               // Validate the caller invariant before reuse or acquiring an arena:
               // a malformed program must not clear an existing owner first.
@@ -8004,21 +8017,35 @@ export class VdbeStatement implements Statement {
             this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.statementEncoding?new KeyInfo({...op.keyInfo,encoding:this.#program.encoding}):op.keyInfo,this.#program.privateStateLimits,this.#privateBytes,op.insertionOrder));break;}
           case "MakeRecord": {
             const values=this.#registers.slice(op.p1,op.p1+op.p2);
+            if(op.p3>=op.p1&&op.p3<op.p1+op.p2)throw new JSQLiteError('internal','MakeRecord output overlaps inputs');
+            if(op.p4Affinity&&op.p4Affinity.length>values.length)throw new JSQLiteError('internal','MakeRecord affinity exceeds input range');
+            const control=this.#privateControl(options,limit,started);
+            // JS conversion allocates a new buffer before replacing the live
+            // Mem. Admit that transient UTF/numeric text expansion before mutation.
+            let conversion=64;
+            for(const value of values){const d=value.diagnostic();conversion+=d.byteLength*4+(d.numeric?128:0);}
+            await control.checkpoint(0);
+            this.#privateBytes.reserve(conversion);
+            try{
             // vdbe.c OP_MakeRecord applies P4 to the live input registers,
             // before sizing/serialization; REAL affinity retains IntReal.
             if(op.p4Affinity){
-              if(op.p4Affinity.length>values.length)throw new JSQLiteError('internal','MakeRecord affinity exceeds input range');
               for(let i=0;i<op.p4Affinity.length;i++){
                 const affinity=op.p4Affinity[i]!,value=values[i]!;
                 value.applyAffinity(affinity,this.#program.encoding);
                 if(affinity==='real'&&value.initialStorageClass==='integer')value.setIntReal(value.integerValue());
               }
             }
+            // vdbe.c MakeRecord consumes text in ENC(db), including literal
+            // producers whose Mem originally carries UTF-8.
+            for(const value of values)if(value.initialStorageClass==='text')value.changeEncoding(this.#program.encoding);
             const charge=recordSize(values)+64;
-            await this.#privateControl(options,limit,started).checkpoint(charge);
+            await control.checkpoint(charge);
             this.#privateBytes.reserve(charge);
             try{const packed=packRecord(values,this.#program.encoding),old=this.#packedRecords.get(op.p3);this.#packedRecords.set(op.p3,{packed,charge});if(old)this.#privateBytes.release(old.charge)}
-            catch(error){this.#privateBytes.release(charge);throw error}break;
+            catch(error){this.#privateBytes.release(charge);throw error}
+            }finally{this.#privateBytes.release(conversion);}
+            break;
           }
           case "NewRowid": this.#registers[op.p2]!.setInt64((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).newRowid());break;
           case "Insert": {
@@ -8077,44 +8104,78 @@ export class VdbeStatement implements Statement {
             break;
           }
           case "InSet": {
-            // expr.c:sqlite3ExprCodeIN four-state scalar result: empty is false
-            // even for NULL LHS; otherwise match, RHS NULL, and ordinary miss
-            // remain distinct. Membership stays on EphemeralIndexCursor KeyInfo.
-            if(op.count!==undefined&&op.count>1){
-              // expr.c step 6: Rewind, field Ne (NULL falls through), Next.
-              // Any definite mismatch defeats NULL in that candidate row.
-              const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,out=this.#registers[op.output]!,control=this.#privateControl(options,limit,started),keys:Mem[]=[];
+            const packedCursor=this.#privateKeys.get(op.p1);
+            if(packedCursor){
+              const control=this.#privateControl(options,limit,started),out=this.#registers[op.output]!,width=op.count??1,keys:Mem[]=[];
+              let scratch=0,keyCharge=0;
               try{
-                for(let i=0;i<op.count;i++){const key=new Mem();keys.push(key);key.copyFrom(this.#registers[op.key+i]!);key.applyAffinity(op.affinities?.[i]??op.affinity,this.#program.encoding);}
-                let unknown=false,match=false;
-                cursor.rewindBeforeFirst();
-                while(cursor.next()){
-                  let rowNull=false,different=false;const row=cursor.data();
-                  for(let i=0;i<op.count;i++){await control.checkpoint(1);const a=keys[i]!,b=row[i]!;if(a.initialStorageClass==="null"||b.initialStorageClass==="null")rowNull=true;else if(compareMem(a,b,cursor.keyInfo.terms[i]?.collation)!==0){different=true;break;}}
-                  if(!different){if(!rowNull){match=true;break;}unknown=true;}
+                // Own and admit the LHS snapshot before any awaited cursor work.
+                // Four source bytes cover owned copy plus worst UTF encoding
+                // expansion; numeric-to-text affinity needs bounded ASCII scratch.
+                let bytes=0;
+                for(let i=0;i<width;i++){const d=this.#registers[op.key+i]!.diagnostic();bytes+=d.byteLength*4+(d.numeric?128:0);}
+                control.snapshotCheckpoint?.(0);
+                this.#privateBytes.reserve(128+width*128+bytes);keyCharge=128+width*128+bytes;
+                for(let i=0;i<width;i++){
+                  const key=new Mem();keys.push(key);key.copyFromSnapshot(this.#registers[op.key+i]!,units=>control.snapshotCheckpoint?.(units));key.applyAffinity(op.affinities?.[i]??op.affinity,this.#program.encoding);
                 }
-                if(match)out.setInt64(op.negated?0n:1n);else if(unknown)out.setNull();else out.setInt64(op.negated?1n:0n);
-              }finally{for(const key of keys)key.release();}
+                // CodeIN: empty RHS precedes NULL LHS; an exact non-NULL
+                // probe precedes the field-wise NULL fallback scan.
+                if(!await packedCursor.first(control)){out.setInt64(op.negated?1n:0n);break;}
+                if(keys.every(key=>key.initialStorageClass!=='null')){
+                  const probe=new UnpackedRecordKey(keys,0,'seek',packedCursor.info);
+                  // The unpacked view borrows keys; outer finally owns them.
+                  if(await packedCursor.seek(probe,control)){out.setInt64(op.negated?0n:1n);break;}
+                  await packedCursor.first(control);
+                }
+                let unknown=false;
+                do{
+                  const candidate=await packedCursor.cursor.withPayload(control,async bytes=>{
+                    scratch=128+width*128+bytes.length;this.#privateBytes.reserve(scratch);
+                    const values:Mem[]=[];
+                    try{
+                      // KeyInfo bounds metadata admission. Borrow payload bytes
+                      // only inside this callback, with no unbounded decoded array.
+                      const reader=new RawRecordReader(bytes,this.#program.encoding);
+                      for(let i=0;i<width;i++){
+                        const raw=reader.next();
+                        if(raw===null)throw new JSQLiteError('internal','IN packed record width mismatch');
+                        values.push(memFromRawRecord(raw,this.#borrow));
+                      }
+                      if(reader.next()!==null)throw new JSQLiteError('internal','IN packed record width mismatch');
+                      let nullable=false;
+                      for(let i=0;i<width;i++){
+                        await control.checkpoint(1);const a=keys[i]!,b=values[i]!;
+                        if(a.initialStorageClass==='null'||b.initialStorageClass==='null')nullable=true;
+                        else if(compareMem(a,b,packedCursor.info.terms[i]?.collation)!==0)return false;
+                      }
+                      return nullable;
+                    }finally{for(const value of values)value.release();this.#privateBytes.release(scratch);scratch=0;}
+                  });
+                  if(candidate){unknown=true;break;}
+                  // expr.c step 6: scalar NULLs sort first, so a definite
+                  // first-row mismatch proves no NULL anywhere in the RHS.
+                  if(width===1)break;
+                }while(await packedCursor.next(control));
+                if(unknown)out.setNull();else out.setInt64(op.negated?1n:0n);
+              }finally{for(const key of keys)key.release();if(keyCharge)this.#privateBytes.release(keyCharge);}
               break;
             }
-            const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,out=this.#registers[op.output]!,key=new Mem();key.copyFrom(this.#registers[op.key]!);key.applyAffinity(op.affinities?.[0]??op.affinity,this.#program.database!.encoding);
-            if(cursor.size===0)out.setInt64(op.negated?1n:0n);
-            else if(key.initialStorageClass==="null")out.setNull();
-            else if(await cursor.found([key],this.#privateControl(options,limit,started)))out.setInt64(op.negated?0n:1n);
-            else if(cursor.hasNullKey())out.setNull();
-            else out.setInt64(op.negated?1n:0n);
-            key.release();break;
+            throw new JSQLiteError('internal','InSet requires packed KeyInfo cursor');
           }
+
           case "IdxInsert": {
             const typed=this.#privateKeys.get(op.p1);
             if(typed){const record=op.p2===undefined?undefined:this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError('internal','private IdxInsert requires packed MakeRecord P2');
               // No trusted token is exported by the primitive. USESEEKRESULT
               // therefore requests its accepted packed reseek, never scalar loc.
-              await typed.insert(record.packed,this.#privateControl(options,limit,started));break}
+              try{await typed.insert(record.packed,this.#privateControl(options,limit,started));}
+              finally{if(op.consumeRecord){this.#packedRecords.delete(op.p2!);this.#privateBytes.release(record.charge);}}
+              break}
             const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),control=this.#privateControl(options,limit,started);if(op.replace)await cursor.replace(key,control);else await cursor.insert(key,control);break;}
           case "SetDelete": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).remove(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "SetRetainIntersection": {const control=this.#privateControl(options,limit,started);await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).retainFoundIn(this.#privateCursors.get(op.p2) as EphemeralIndexCursor,control);break;}
-          case "ClearEphemeral": (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).clear();break;
+          case "ClearEphemeral": {const packed=this.#privateKeys.get(op.p1);if(packed)await packed.reuse(this.#privateControl(options,limit,started));else (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).clear();break;}
           case "ClearSorter": (this.#privateCursors.get(op.p1) as SorterCursor).clear();break;
           case "EphemeralSort": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).sort(this.#privateControl(options,limit,started));break;
           case "EphemeralRewind": if(!(this.#privateCursors.get(op.p1) as EphemeralIndexCursor).first())this.#pc=op.p2;break;

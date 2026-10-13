@@ -21,3 +21,12 @@ test('MakeRecord integer widths, header fixed point and encoding/zero blob paylo
     try{const bytes=packRecord([text,blob],encoding);assert.equal(bytes.length,recordSize([text,blob]));const decoded=decodeRecord(bytes,encoding);assert.equal(decoded.values[0].storageClass,'text');assert.deepEqual(Array.from(decoded.values[1].bytes),[255,0,0,0])}finally{text.release();blob.release()}
   }
 });
+
+test('MakeRecord conversion allowance is admitted through packing and refunded on failure',async()=>{
+ const {VdbeStatement}=await import('../../src/internal/vdbe.ts');
+ for(const encoding of ['utf-16le','utf-16be'])for(const maxBytes of [147,148]){
+  const st=new VdbeStatement({encoding,registers:2,parameters:[],columns:[],maxWorkUnits:10000,maxResultBytes:1000,privateStateLimits:{maxEntries:4,maxKeyBytes:1000,maxBytes},ops:[{code:'String',p1:'abc',p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},{code:'Halt'}]},()=>{},()=>()=>{},()=>{});
+  if(maxBytes===147){let first;try{await st.step();assert.fail('overlap allowance must reject')}catch(error){first=error;assert.equal(error.kind,'limit')};assert.throws(()=>st.finalize(),error=>error===first)}
+  else{assert.equal(await st.step(),'done');st.finalize()}
+ }
+});

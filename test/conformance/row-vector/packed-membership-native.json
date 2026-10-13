@@ -1,0 +1,2324 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "encodings": {
+    "utf8": [
+      {
+        "sql": "SELECT p.id,p.a IN (SELECT q.a FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,p.a NOT IN (SELECT q.a FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(p.a,p.b) NOT IN (SELECT q.a,q.b FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT NULL IN (SELECT a FROM pairs WHERE 0) AS hit,NULL NOT IN (SELECT a FROM pairs WHERE 0) AS miss",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "miss",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT '1' IN (SELECT a FROM pairs) AS hit,'alpha' IN (SELECT b FROM pairs) AS folded",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "folded",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT x'00ff' IN (VALUES(x'00ff'),(NULL)) AS hit,x'00fe' NOT IN (VALUES(x'00ff'),(NULL)) AS miss",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "miss",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT 1.0 IN (VALUES(1),(2.0)) AS hit, (1,2) IN ((9,NULL),(1,2)) AS vector",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "vector",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(SELECT q.b FROM pairs q WHERE q.id=p.id) AS scalar,p.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a) AS hit,EXISTS(SELECT q.a FROM pairs q WHERE q.id=p.id) AS present FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "scalar",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "pairs",
+            "origin": "b"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "present",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "utf16le": [
+      {
+        "sql": "SELECT p.id,p.a IN (SELECT q.a FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,p.a NOT IN (SELECT q.a FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(p.a,p.b) NOT IN (SELECT q.a,q.b FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT NULL IN (SELECT a FROM pairs WHERE 0) AS hit,NULL NOT IN (SELECT a FROM pairs WHERE 0) AS miss",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "miss",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT '1' IN (SELECT a FROM pairs) AS hit,'alpha' IN (SELECT b FROM pairs) AS folded",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "folded",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT x'00ff' IN (VALUES(x'00ff'),(NULL)) AS hit,x'00fe' NOT IN (VALUES(x'00ff'),(NULL)) AS miss",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "miss",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT 1.0 IN (VALUES(1),(2.0)) AS hit, (1,2) IN ((9,NULL),(1,2)) AS vector",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "vector",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(SELECT q.b FROM pairs q WHERE q.id=p.id) AS scalar,p.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a) AS hit,EXISTS(SELECT q.a FROM pairs q WHERE q.id=p.id) AS present FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "scalar",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "pairs",
+            "origin": "b"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "present",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      }
+    ],
+    "utf16be": [
+      {
+        "sql": "SELECT p.id,p.a IN (SELECT q.a FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,p.a NOT IN (SELECT q.a FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(p.a,p.b) IN (SELECT q.a,q.b FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(p.a,p.b) NOT IN (SELECT q.a,q.b FROM pairs q WHERE q.id<p.id) AS hit FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT NULL IN (SELECT a FROM pairs WHERE 0) AS hit,NULL NOT IN (SELECT a FROM pairs WHERE 0) AS miss",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "miss",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT '1' IN (SELECT a FROM pairs) AS hit,'alpha' IN (SELECT b FROM pairs) AS folded",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "folded",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT x'00ff' IN (VALUES(x'00ff'),(NULL)) AS hit,x'00fe' NOT IN (VALUES(x'00ff'),(NULL)) AS miss",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "miss",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT 1.0 IN (VALUES(1),(2.0)) AS hit, (1,2) IN ((9,NULL),(1,2)) AS vector",
+        "columns": [
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "vector",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      },
+      {
+        "sql": "SELECT p.id,(SELECT q.b FROM pairs q WHERE q.id=p.id) AS scalar,p.a IN (SELECT q.a FROM pairs q WHERE q.a=p.a) AS hit,EXISTS(SELECT q.a FROM pairs q WHERE q.id=p.id) AS present FROM pairs p ORDER BY p.id",
+        "columns": [
+          {
+            "name": "id",
+            "declaredType": "INTEGER",
+            "database": "main",
+            "table": "pairs",
+            "origin": "id"
+          },
+          {
+            "name": "scalar",
+            "declaredType": "TEXT",
+            "database": "main",
+            "table": "pairs",
+            "origin": "b"
+          },
+          {
+            "name": "hit",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          },
+          {
+            "name": "present",
+            "declaredType": null,
+            "database": null,
+            "table": null,
+            "origin": null
+          }
+        ],
+        "runs": [
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "416c706861"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "62657461"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "utf8Hex": "414c504841"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  }
+}

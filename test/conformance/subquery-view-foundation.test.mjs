@@ -187,8 +187,8 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} IN-s
   try{
     db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),{limits:contract.limits});
     statement=db.prepare(contract.sql).statement;
-    await assert.rejects(async()=>{while(await statement.step()==='row'){}},error=>error.kind===contract.expect.errorKind&&error.message==='ephemeral index exceeds total byte limit');
-    assert.throws(()=>statement.finalize(),error=>error.kind===contract.expect.errorKind&&error.message==='ephemeral index exceeds total byte limit','finalize preserves the execution error after private-state cleanup');
+    await assert.rejects(async()=>{while(await statement.step()==='row'){}},error=>error.kind===contract.expect.errorKind&&error.message==='private state exceeds total byte limit');
+    assert.throws(()=>statement.finalize(),error=>error.kind===contract.expect.errorKind&&error.message==='private state exceeds total byte limit','finalize preserves the execution error after private-state cleanup');
     statement=undefined;
     await scalarAdmission(db);
   }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}

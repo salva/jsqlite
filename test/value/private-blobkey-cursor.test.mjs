@@ -324,3 +324,73 @@ test('seek resets stale errCode before target snapshot failure and preserves cal
  const {arena,budget,cursor}=await open();arena.installPage(2,fixture([10,20,30]));await seek(cursor,20);const k=key(30);k.errCode=11;k.eqSeen=true;const primary=new Error('target snapshot reset');
  try{await assert.rejects(cursor.indexMoveto(k,{snapshotCheckpoint(){throw primary},async checkpoint(){}}),e=>e===primary);assert.equal(k.errCode,0);assert.equal(k.eqSeen,true);assert.equal(cursor.position.state,'VALID');assert.equal(cursor.position.index,1);assert.equal((await cursor.indexMoveto(k,control)).res,0);assert.equal(k.errCode,0);assert.equal(k.eqSeen,true)}finally{k.release();cursor.close();arena.close();assert.equal(budget.usedBytes,0)}
 });
+
+test('First/Next visits index interior records and resets empty/EOF positions',async()=>{
+ const {arena,cursor:c,budget}=await open();
+ arena.installPage(2,fixture([20,40],[3,4,5]));
+ arena.installPage(3,fixture([10,15]));arena.installPage(4,fixture([25,30]));arena.installPage(5,fixture([45,50]));
+ const read=()=>c.withPayload(control,bytes=>Array.from(bytes));
+ for(let run=0;run<2;run++){
+  const values=[];if(await c.first(control))do{values.push((await read())[2])}while(await c.next(control));
+  assert.deepEqual(values,[10,15,20,25,30,40,45,50]);
+  assert.equal(await c.next(control),false);
+  await assert.rejects(read(),/unpositioned/);
+ }
+ c.close();arena.close();assert.equal(budget.usedBytes,0);
+});
+
+test('scan controls release path after failure and permit a fresh First',async()=>{
+ const {arena,cursor:c}=await open();arena.installPage(2,fixture([20],[3,4]));arena.installPage(3,fixture([10]));arena.installPage(4,fixture([30]));
+ let units=0;const fail={async checkpoint(){if(++units===2)throw new Error('scan interrupted')}};
+ await assert.rejects(c.first(fail),/scan interrupted/);
+ assert.equal(await c.first(control),true);assert.equal(await c.next(control),true);
+ assert.equal((await c.withPayload(control,b=>Array.from(b)))[2],20);
+ await assert.rejects(c.withPayload(control,()=>{throw new Error('consumer failed')}),/consumer failed/);
+ assert.equal(await c.next(control),true);assert.equal(await c.next(control),false);
+ c.close();arena.close();
+});
+
+test('scan payload overflow owns snapshot through callback and preserves cancellation over release',async()=>{
+ let enabled=false;const primary=new Error('payload cancelled'),cleanup=new Error('raw release');
+ const {arena,cursor:c,budget}=await open((event,p)=>{if(enabled&&event==='release'&&p===3)throw cleanup});
+ arena.installPage(2,overflowFixture(3));const ov=new Uint8Array(4096);ov.fill(7,4,1515);arena.installPage(3,ov);
+ assert.equal(await c.first(control),true);const base=budget.usedBytes;
+ let held;
+ await c.withPayload(control,bytes=>{assert.equal(bytes.length,2000);assert.equal(bytes[1999],7);held=budget.usedBytes;});
+ assert.ok(held>base);const after=budget.usedBytes;assert.equal(after,base+64); // retained raw access metadata
+ enabled=true;
+ await assert.rejects(c.withPayload({async checkpoint(units){if(units===1511)throw primary}},()=>{}),e=>e===primary);
+ assert.equal(arena.referenceCount(3),0);assert.equal(budget.usedBytes,after+64); // second raw descriptor retained until arena close
+ enabled=false;assert.equal(await c.next(control),false);c.close();arena.close();assert.equal(budget.usedBytes,0);
+});
+
+test('Next restores saved key and consumes signed SKIPNEXT in scan direction',async()=>{
+ for(const replacement of [[10,20,30],[10,25,30],[10,15],[]]){
+  const {arena,cursor:c,budget}=await open();
+  try{arena.installPage(2,fixture([10,20,30]));await seek(c,20);await c.saveCursorPosition(control);
+   arena.installPage(2,fixture(replacement));
+   const has=await c.next(control);
+   const expected=replacement.includes(20)?30:replacement.includes(25)?25:null;
+   assert.equal(has,expected!==null);
+   if(has)assert.equal(await c.withPayload(control,b=>b[2]),expected);
+   assert.equal(await c.next(control),expected===25);
+  }finally{c.close();arena.close();assert.equal(budget.usedBytes,0)}
+ }
+});
+
+test('First abandons saved position',async()=>{
+ const {arena,cursor:c,budget}=await open();
+ try{arena.installPage(2,fixture([10,20,30]));await seek(c,20);await c.saveCursorPosition(control);
+  assert.equal(await c.first(control),true);assert.equal(await c.withPayload(control,b=>b[2]),10);
+ }finally{c.close();arena.close();assert.equal(budget.usedBytes,0)}
+});
+test('FAULT First/Next preserve terminal primary without control work',async()=>{
+ const primary=new Error('clear faults scan');let armed=false;
+ const {arena,cursor:c,budget}=await open(event=>{if(armed&&event==='release')throw primary});
+ try{arena.installPage(2,fixture([10,20,30]));
+  armed=true;await assert.rejects(arena.clearTable(control),e=>e===primary);
+  assert.equal(c.position.state,'FAULT');
+  const forbidden={async checkpoint(){throw new Error('fault must precede work')}};
+  await assert.rejects(c.first(forbidden),e=>e===primary);await assert.rejects(c.next(forbidden),e=>e===primary);
+ }finally{armed=false;c.close();arena.close();assert.equal(budget.usedBytes,0)}
+});

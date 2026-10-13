@@ -29,6 +29,14 @@ export class PrivateKeyVmCursor {
     this.cacheStale=true;
     return exists;
   }
+  async first(control:PrivateStateControl):Promise<boolean>{
+    const positioned=await this.cursor.first(control);
+    this.nullRow=!positioned;this.cacheStale=true;this.deferredMoveto=false;return positioned;
+  }
+  async next(control:PrivateStateControl):Promise<boolean>{
+    const positioned=await this.cursor.next(control);
+    this.nullRow=!positioned;this.cacheStale=true;return positioned;
+  }
   async insert(packed:Uint8Array,control:PrivateStateControl):Promise<void>{
     // Primitive packed reseek is the accepted bounded USESEEKRESULT fallback.
     // Cache invalidation follows BtreeInsert return even when rc is an error.

@@ -1572,6 +1572,83 @@ export class PrivateBlobkeyCursor {
 
     }finally{key?.release();life.invalidate();if(charge)this.#arena.releaseScratch(charge);this.#token=null;ops.end(t)}
   }
+  // btree.c sqlite3BtreeFirst/moveToLeftmost/btreeNext. Index interior
+  // cells are records, not merely separators: ascend to the parent slot.
+  async #scanChild(slot:number,control:PrivateStateControl):Promise<void>{
+    const parent=this.#current!,page=parent.page;
+    if(this.#parents.length>=19)throw new PrivateBlobkeyFormatError("private index depth exceeded");
+    await control.checkpoint(1);
+    const child=slot===page.nCell?page.rightChild():page.leftChild(slot);
+    const grow=this.#parents.length===this.#parentCapacity;
+    if(grow)this.#arena.reserveScratch(PRIVATE_PARENT_SLOT_CHARGE);
+    try{this.#parents.push({lease:parent,slot})}catch(error){if(grow)this.#arena.releaseScratch(PRIVATE_PARENT_SLOT_CHARGE);throw error}
+    if(grow)this.#parentCapacity++;
+    let acquired:PrivatePageLease|null=null;
+    try{
+      acquired=operations.get(this.#arena)!.acquire(this.#token!,child);
+      if(acquired.page.nCell<1)throw new PrivateBlobkeyFormatError("empty child private page");
+      this.#current=acquired;this.#index=0;
+    }catch(error){if(acquired)acquired.release();this.#current=this.#parents.pop()!.lease;throw error}
+  }
+  async #leftmost(control:PrivateStateControl):Promise<void>{
+    while(!this.#current!.page.leaf)await this.#scanChild(0,control);
+  }
+  async first(control:PrivateStateControl):Promise<boolean>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{
+      await control.checkpoint(1);this.#root();
+      if(this.#state==="INVALID")return false;
+      await this.#leftmost(control);return true;
+    }catch(error){this.#state="INVALID";this.#releasePath();throw error}
+    finally{this.#token=null;ops.end(t)}
+  }
+  async next(control:PrivateStateControl):Promise<boolean>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    if(this.#state==="FAULT")throw this.#error;
+    if(this.#state==="REQUIRESEEK")await this.restoreCursorPosition(control);
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{
+      await control.checkpoint(1);this.#overflowValid=false;
+      if(this.#state==="INVALID")return false;
+      if(this.#state==="SKIPNEXT"){this.#state="VALID";if(this.#skipNext>0)return true;}
+      this.#index++;
+      const page=this.#current!.page;
+      if(!page.leaf){await this.#scanChild(this.#index,control);await this.#leftmost(control);return true;}
+      while(this.#index>=this.#current!.page.nCell){
+        if(!this.#parents.length){this.#state="INVALID";return false;}
+        this.#current!.release();const parent=this.#parents.pop()!;
+        this.#current=parent.lease;this.#index=parent.slot;
+      }
+      return true;
+    }catch(error){this.#state="INVALID";this.#releasePath();throw error}
+    finally{this.#token=null;ops.end(t)}
+  }
+  /** accessPayload snapshot: callback cannot retain a page borrow across moves.
+   * Scratch is charged until the consumer returns, including awaited work. */
+  async withPayload<T>(control:PrivateStateControl,consume:(bytes:Uint8Array)=>Promise<T>|T):Promise<T>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    if(this.#state==="FAULT")throw this.#error;
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    let charge=0;
+    try{
+      if(this.#state!=="VALID"&&this.#state!=="SKIPNEXT")throw new Error("private payload on unpositioned cursor");
+      const page=this.#current!.page,cell=page.parseCell(this.#index);
+      if(cell.nPayload>this.#limits.maxKeyBytes)throw new PrivateStateLimitError("private payload exceeds byte limit");
+      this.#arena.allocationCheckpoint(page.pgno);this.#arena.reserveScratch(cell.nPayload+64);charge=cell.nPayload+64;
+      const bytes=new Uint8Array(cell.nPayload);
+      await control.checkpoint(cell.nLocal);bytes.set(page.bytes.subarray(cell.payloadOffset,cell.payloadOffset+cell.nLocal));
+      let written=cell.nLocal,next=cell.overflowOffset===null?0:get4(page.bytes,cell.overflowOffset);
+      while(written<cell.nPayload){
+        await control.checkpoint(0);const lease=ops.raw(t,next);
+        let primary:unknown;
+        try{const amount=Math.min(4092,cell.nPayload-written);await control.checkpoint(amount);bytes.set(lease.bytes.subarray(4,4+amount),written);written+=amount;if(written<cell.nPayload)next=get4(lease.bytes,0)}
+        catch(error){primary=error;throw error}
+        finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
+      }
+      return await consume(bytes);
+    }finally{if(charge)this.#arena.releaseScratch(charge);this.#token=null;ops.end(t)}
+  }
   async indexMoveto(key:UnpackedRecordKey,control:PrivateStateControl):Promise<PrivateIndexMovetoResult>{
     if(this.#closed)throw new Error("private index cursor closed");
     const t=operations.get(this.#arena)!.begin();this.#token=t;
