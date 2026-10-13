@@ -8102,10 +8102,11 @@ export class VdbeStatement implements Statement {
             if(op.p3>=op.p1&&op.p3<op.p1+op.p2)throw new JSQLiteError('internal','MakeRecord output overlaps inputs');
             if(op.p4Affinity&&op.p4Affinity.length>values.length)throw new JSQLiteError('internal','MakeRecord affinity exceeds input range');
             const control=this.#privateControl(options,limit,started);
-            // JS conversion allocates a new buffer before replacing the live
-            // Mem. Admit that transient UTF/numeric text expansion before mutation.
-            let conversion=64;
-            for(const value of values){const d=value.diagnostic();conversion+=d.byteLength*4+(d.numeric?128:0);}
+            // Predict only actual Mem conversion branches, before mutation.
+            // Keep admitted scratch through packing (old/new overlap); no
+            // allowance for INTEGER/NULL/BLOB or already-encoded TEXT no-ops.
+            let conversion=0;
+            for(let i=0;i<values.length;i++)conversion+=values[i]!.recordConversionBytes(op.p4Affinity?.[i],this.#program.encoding);
             await control.checkpoint(0);
             this.#privateBytes.reserve(conversion);
             try{

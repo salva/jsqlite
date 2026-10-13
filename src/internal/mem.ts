@@ -486,6 +486,27 @@ export class Mem {
     this.#generation.invalidate();
     this.#bytes = { kind: "text", bytes, encoding, terminated: true, ownership: "owned", zeroTail: 0 };
   }
+  /** MakeRecord's transient conversion admission, predicted without mutation.
+   * vdbe.c applies affinity before serialization. JS numeric scanners build a
+   * code-unit array; stringify/UTF translation allocate before replacing bytes.
+   * No allocation occurs for NULL/BLOB, numeric-to-numeric, or same-encoding
+   * TEXT without numeric affinity. This is logical scratch, not native heap.
+   */
+  recordConversionBytes(affinity: MemAffinity | undefined, encoding: DatabaseEncoding): number {
+    if (this.#manifest === "null") return 0;
+    const text = this.#bytes?.kind === "text" ? this.#checkedBytes() : null;
+    if (affinity === "text" && this.#numeric !== null && text === null) {
+      // Canonical int64/REAL spelling and optional UTF-16 translation coexist.
+      return 128;
+    }
+    if (text !== null && affinity !== undefined && affinity !== "text" && affinity !== "blob" && this.#numeric === null) {
+      // Includes nonnumeric text: the scanners allocate before deciding that
+      // affinity leaves MEM_Str unchanged. It may then need UTF translation.
+      return 64 + text.bytes.byteLength * 4;
+    }
+    if (text !== null && text.encoding !== encoding) return 64 + text.bytes.byteLength * 4;
+    return 0;
+  }
   applyAffinity(affinity: MemAffinity, encoding: DatabaseEncoding): void {
     if (affinity === "blob" || this.#manifest === "null") return;
     if (affinity === "text") {
