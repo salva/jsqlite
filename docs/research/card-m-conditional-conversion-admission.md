@@ -71,3 +71,33 @@ No full current/exact225/Chromium48 approval or fresh execution claimed. This
 handoff provides coherent exact source hunks and successful owner reproducer;
 root/w must coordinate larger reruns and reconcile their regression-only failure
 companion without converting the approved359 success assertion to rejection.
+
+## Parent R1 guide consolidation
+
+Parent immutable [reviewv28](record:///review.md?card=card-m&v=28) accepts the
+mechanism while requesting only current-guide coherence; independent bounded
+[statusv161](record:///status.md?card=card-m-f-d&v=161) remains qualified by its
+unchanged-input reuse and separately counted archived23 controls. Replaced the
+worktree guide's stale owning-engine-review paragraph with delivered45bbacf0 /
+evidencec51719d4, bounded approval, historical w failure provenance and pending
+root/w225/full-current/Chromium48/obsolete-companion reconciliation. Parent prior
+bounded acceptance retained; no runtime rerun or whole-lane closure inferred.
+
+HEAD guide lacked the stale peer paragraph (it existed only in worktree), so
+initial exact HEAD/work common-text assembly assertion failed before any edit
+(proc-d2a53e6cde1d). Corrected separate-index delivery inserts the consolidated
+current paragraph at HEAD's identical preceding packed-overlap anchor and replaces
+only stale worktree text. Unrelated guide PRAGMA/JSON/window differences and peer
+staged inversions remain untouched; no reintroduction of the stale paragraph.
+Source map current Mem prediction mapping and audit packed-owner statements
+inspected for consistency, no changes needed. Historical w handoff unmodified.
+
+proc-8376446299c4 executable-input1331-path manifest before/after identical,
+SHA256 `8b75fc43ab81b3992b92842a1f6e8f667e911e93c8f2ceefdbccf57cb1e62a03`;
+real index byte-identical. Manifest includes tracked/untracked current src/test/
+reference plus package/lock/tsconfig and absent deleted entries. Include only
+current guide admission paragraph and this research appendix; exclude all runtime,
+tests, reference, peer docs/source map/audit and historical evidence. Detailed
+include/exclude, manifests, actual status/index snapshots and exact HEAD guide
+assembly in card `guide-rone` work. No implementation change: prior bounded
+verification remains revision-bound; correcting prose requires no runtime rerun.

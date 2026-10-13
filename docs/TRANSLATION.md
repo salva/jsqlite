@@ -319,7 +319,16 @@ non-Set packed callers retain their own register contract. Shared MakeRecord
 admits conservative transient conversion scratch before live affinity/encoding
 mutation, retains it through packing, and refunds it on every exit. Output/input
 overlap rejects before mutation. Immutable replacement retains old and new packed
-charges until publication; this is not native output-buffer reuse/accounting parity. Literal vector-list IN
+charges until publication; this is not native output-buffer reuse/accounting parity.
+Conditional conversion admission is delivered in45bbacf0, with evidencec51719d4
+and [bounded independent approval](record:///status.md?card=card-m-f-d&v=161);
+[parent review](record:///review.md?card=card-m&v=28) retains the mechanism's
+technical acceptance, not whole-lane closure. The
+[28a admission/peak handoff](research/card-w-conversion-admission-handoff.md)
+is historical failure provenance: its no-conversion concurrent charge is corrected,
+not a pending owning-engine decision or a reason for cap inflation. Root/w
+exact225, full-current and Chromium48 verification plus obsolete rejection-companion
+reconciliation remain separate cross-owner obligations. Literal vector-list IN
 also uses packed records, with statement encoding
 installed at cursor admission and explicit packed ClearEphemeral reuse. Other
 scalar/VALUES, aggregate and legacy LIMIT expression destinations now opt into
