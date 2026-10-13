@@ -1,5 +1,10 @@
 # SQLite source map
 
+### Read-only metadata PRAGMA (bounded consumers)
+
+Pinned `parse.y:1714–1721` → `parse.ts:productionAction` PRAGMA semantic ownership → `index.ts:prepare` admission → `pragma.ts:compilePragma` → normal `VdbeStatement`. `pragma.c:PragTyp_TABLE_INFO/INDEX_LIST/INDEX_INFO/FOREIGN_KEY_LIST/DATABASE_LIST` and `vdbeaux.c:sqlite3VdbeMultiLoad` map to catalog traversal and literal register loads/ResultRow. `build.c:sqlite3AddColumn` standard types, `sqlite3AddDefaultValue` and `malloc.c:sqlite3DbSpanDup` map to stored-DDL type/default-span producers. Generated `pragma.h`/`mkpragmatab.tcl` supplies result column names. `parse.y:plus_num` → numeric PRAGMA argument terminal; `build.c:sqlite3CreateIndex` linked order/azColl spelling and `convertToWithoutRowidTable` layout → schema Index/layout (folded lookup plus retained metadata name) → index metadata; [argument/collation regression evidence](research/card-e-n-pragma-red/argument-collation-repair.md); `sqlite3CreateForeignKey` pNextFrom prepending → reversed schema declaration-order FK consumption. `pragmaLocate`/`mkpragmatab.tcl` → pinned `pragma-names.ts` distinguishes unknown no-op from known untranslated forms; explicit-temp initialization → connection temp-residency state. Btree/Pager memory filename → empty snapshot filename (not acquisition URL). `db-public.mjs` and `memory-db.py` cover Db rows/residency and no-ops. `index-public.mjs` compares index/FK paths with independent pinned `index-native.json`. [Native/public repair evidence and remaining forms](research/card-e-n-pragma-red/REPAIR.md).
+
+
 Current upstream → TypeScript → test/evidence navigation. The source root is
 `reference/sqlite/sqlite-src-3530400/`, pinned by
 [manifest](../reference/sqlite/manifest.json). [Translation guide](TRANSLATION.md)

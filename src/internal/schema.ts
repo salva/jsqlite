@@ -101,7 +101,7 @@ export function sqliteLogEst(value:bigint):number {
 }
 export interface PhysicalIndexField { readonly role:"declared"|"primary-key-suffix"|"stored-column"|"rowid-tail"; readonly column:ColumnNode|null; readonly expression:ExprNode|null; readonly collation:BuiltinCollation; readonly descending:boolean; readonly nullsLarge:false }
 /** Source record ownership independent of executable CollSeq/KeyInfo. */
-export interface PhysicalIndexLayout { readonly fields:readonly (Omit<PhysicalIndexField,"collation"> & {readonly collation:string})[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly primaryKeyFields:readonly number[] }
+export interface PhysicalIndexLayout { readonly fields:readonly (Omit<PhysicalIndexField,"collation"> & {readonly collation:string; readonly collationName?:string})[]; readonly declaredFieldCount:number; readonly rowidField:number; readonly primaryKeyFields:readonly number[] }
 export interface PhysicalIndex { readonly index:IndexNode; readonly fields:readonly PhysicalIndexField[]; readonly declaredFieldCount:number; readonly rowidField:number; /** Exact secondary-record field ordinal for each primary KeyInfo term, in PK order. */ readonly primaryKeyFields:readonly number[]; readonly keyInfo:KeyInfo }
 /** build.c sqlite3TableColumnToStorage. VIRTUAL columns are absent from
  * records but occupy the register-cache tail after all nonvirtual columns. */
@@ -692,9 +692,10 @@ function builtinCollation(name:string|null):BuiltinCollation|null {
 export function physicalIndexLayout(index:IndexNode):PhysicalIndexLayout {
   const fields:Array<PhysicalIndexLayout["fields"][number]>=[];
   for(const term of index.terms){
-    const collation=sqliteAsciiFold(term.collation??term.column?.collation??"binary");
+    const collationName=term.collation??term.column?.collation??"BINARY";
+    const collation=sqliteAsciiFold(collationName);
     if((!term.column&&!term.expression)||term.nulls!==null)throw new SchemaUnsupportedError("index record fields are not represented");
-    fields.push(Object.freeze({role:"declared",column:term.column,expression:term.expression,collation,descending:term.descending,nullsLarge:false}));
+    fields.push(Object.freeze({role:"declared",column:term.column,expression:term.expression,collation,collationName,descending:term.descending,nullsLarge:false}));
   }
   if(index.table.withoutRowid){
     const isPrimary=index.origin==="primary-key";
@@ -702,7 +703,7 @@ export function physicalIndexLayout(index:IndexNode):PhysicalIndexLayout {
     if(isPrimary){
       // build.c:convertToWithoutRowidTable makes the PK b-tree the table and
       // appends every non-key column to its record in declared-column order.
-      for(const column of index.table.columns)if(!fields.some(field=>field.column===column))fields.push(Object.freeze({role:"stored-column",column,expression:null,collation:"binary",descending:false,nullsLarge:false}));
+      for(const column of index.table.columns)if(!fields.some(field=>field.column===column))fields.push(Object.freeze({role:"stored-column",column,expression:null,collation:"binary",collationName:"BINARY",descending:false,nullsLarge:false}));
     }else{
       // build.c:isDupColumn/convertToWithoutRowidTable replace the rowid tail
       // with each PK term not already represented by the same column and
@@ -715,10 +716,11 @@ export function physicalIndexLayout(index:IndexNode):PhysicalIndexLayout {
       // persisted schemas take the exact terms above.
       const primaryKeyTerms=index.table.primaryKeyTerms??Object.freeze(index.table.primaryKey.map(column=>Object.freeze({column,expression:null,expressionSql:null,descending:false,collation:column.collation,nulls:null}) as IndexTerm));
       for(const term of primaryKeyTerms){
-        const collation=sqliteAsciiFold(term.collation??term.column?.collation??"binary");
+        const collationName=term.collation??term.column?.collation??"BINARY";
+        const collation=sqliteAsciiFold(collationName);
         if(!term.column||term.expression||term.nulls!==null)throw new SchemaUnsupportedError("primary-key record fields are not represented");
         if(fields.some(field=>field.column===term.column&&field.collation===collation))continue;
-        fields.push(Object.freeze({role:"primary-key-suffix",column:term.column,expression:null,collation,descending:term.descending,nullsLarge:false}));
+        fields.push(Object.freeze({role:"primary-key-suffix",column:term.column,expression:null,collation,collationName,descending:term.descending,nullsLarge:false}));
       }
       // wherecode.c:2171-2185 maps every primary-key component from the
       // selected secondary record. Declared and auxiliary fields need not be
@@ -736,7 +738,7 @@ export function physicalIndexLayout(index:IndexNode):PhysicalIndexLayout {
     }
     return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:-1,primaryKeyFields});
   }
-  fields.push(Object.freeze({role:"rowid-tail",column:null,expression:null,collation:"binary",descending:false,nullsLarge:false}));
+  fields.push(Object.freeze({role:"rowid-tail",column:null,expression:null,collation:"binary",collationName:"BINARY",descending:false,nullsLarge:false}));
   return Object.freeze({index,fields:Object.freeze(fields),declaredFieldCount:index.terms.length,rowidField:index.terms.length,primaryKeyFields:Object.freeze([])});
 }
 

@@ -71,7 +71,8 @@ export interface SchemaTriggerDeclaration {
  readonly when:ExprNode|null; readonly steps:readonly SchemaTriggerStep[];
 }
 export type SchemaDdlNode={readonly trigger:SchemaTriggerDeclaration|null;readonly kind:"create-table"|"create-index"|"create-view"|"create-trigger";readonly name:string|null;readonly tokens:readonly SqlToken[];readonly columns:readonly SchemaColumnDeclaration[];readonly checks:readonly SchemaCheckDeclaration[];readonly foreignKeys:readonly SchemaForeignKeyDeclaration[];readonly viewColumns:readonly string[];readonly strict:boolean;readonly withoutRowid:boolean;readonly indexTerms:readonly SchemaIndexTermDeclaration[];readonly implicitConstraints:readonly {readonly primary:boolean;readonly onError:string;readonly terms:readonly SchemaIndexTermDeclaration[]}[];readonly tableUniqueTerms:readonly (readonly SchemaIndexTermDeclaration[])[];readonly tableName:string|null;readonly select:SelectNode|null;readonly indexWhere:ExprNode|null;readonly tableAsSelect:SelectNode|null;readonly primaryKey:readonly string[];readonly primaryKeyTerms:readonly SchemaIndexTermDeclaration[];readonly indexUnique:boolean};
-export type ParsedStatement=SelectNode|SchemaDdlNode;
+export type PragmaNode=Readonly<{kind:"pragma";name:string;database:string|null;argument:string|null}>;
+export type ParsedStatement=SelectNode|SchemaDdlNode|PragmaNode;
 export interface ParseResult{readonly statement:ParsedStatement|null;readonly tailOffset:number;readonly tailCodeUnit:number;readonly lemon:LemonTrace<SqlToken>|null}
 export class SqlParseError extends Error{}
 export class SqlUnsupportedError extends Error{}
@@ -104,13 +105,14 @@ function exactSource(tokens:readonly SqlToken[],sqlBytes:Uint8Array):string|unde
  * undoubled closing quote; it does not reconstruct or normalize type tokens. */
 function declaredTypeSource(tokens:readonly SqlToken[],sqlBytes:Uint8Array):string|null{
  const source=exactSource(tokens,sqlBytes);if(source===undefined)return null;
- const first=source[0];if(!first||!['"',"'",'`','['].includes(first))return source;
+ const canonical=(value:string)=>["ANY","BLOB","INT","INTEGER","REAL","TEXT"].find(type=>type.toLowerCase()===value.toLowerCase())??value;
+ const first=source[0];if(!first||!['"',"'",'`','['].includes(first))return canonical(source);
  const quote=first==='['?']':first;let result='';
  for(let i=1;i<source.length;i++){
   if(source[i]===quote){if(source[i+1]!==quote)break;i++;}
   result+=source[i];
  }
- return result;
+ return canonical(result);
 }
 function find(v:LemonValue<SqlToken>|undefined,p:(s:string)=>boolean):LemonValue<SqlToken>|undefined{
  const stack=v?[v]:[];while(stack.length){const node=stack.pop()!;if(node.kind!=="reduction")continue;if(p(node.signature))return node;for(let i=node.children.length-1;i>=0;i--)stack.push(node.children[i]!);}
@@ -120,11 +122,18 @@ function findAll(v:LemonValue<SqlToken>|undefined,p:(s:string)=>boolean,out:Lemo
 }
 function direct(v:LemonValue<SqlToken>,prefix:string):LemonValue<SqlToken>|undefined{if(v.kind==="terminal")return;for(const child of v.children)if(child.kind==="reduction"&&child.signature.startsWith(prefix))return child;}
 function sqlIdentifier(token:SqlToken|undefined):string{if(!token)throw new SqlParseError("generated schema name is missing");const value=token.text;if(value[0]==="["&&value.at(-1)==="]")return value.slice(1,-1);if((value[0]==='"'||value[0]==="`")&&value.at(-1)===value[0])return value.slice(1,-1).replaceAll(value[0]+value[0],value[0]);return value;}
+// parse.y DEFAULT owns the TK_SPAN passed to build.c sqlite3AddDefaultValue.
+// Parentheses delimit the span but interior whitespace/comments are preserved.
+function defaultSpan(constraint:LemonValue<SqlToken>,bytes:Uint8Array):string{
+ const tokens=leaves(constraint).slice(1),first=tokens[0]!,last=tokens.at(-1)!;
+ const parenthesized=first.text==="("&&last.text===")";
+ return new TextDecoder().decode(bytes.subarray(parenthesized?first.endByte:first.startByte,parenthesized?last.startByte:last.endByte)).replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, "");
+}
 function ddlColumns(root:LemonValue<SqlToken>,sqlBytes:Uint8Array):readonly SchemaColumnDeclaration[]{
  const entries=findAll(root,s=>s.startsWith("columnlist ::=")&&s.includes("columnname carglist")).map(declaration=>{
   const column=direct(declaration,"columnname ::="),args=direct(declaration,"carglist ::=");if(!column||!args)throw new SqlParseError("generated column action is incomplete");
   const nameNode=direct(column,"nm ::="),typeNode=direct(column,"typetoken ::="),nameToken=leaves(nameNode)[0],rawTypeTokens=leaves(typeNode),generatedAt=rawTypeTokens.findIndex(token=>token.text.toUpperCase()==="GENERATED"),typeTokens=generatedAt<0?rawTypeTokens:rawTypeTokens.slice(0,generatedAt),constraints=findAll(args,s=>s.startsWith("ccons ::="));
-  const expression=(prefix:string):ExprNode|null=>{const constraint=constraints.find(c=>c.kind==="reduction"&&c.signature.startsWith(prefix));if(!constraint)return null;const expr=find(constraint,s=>s.startsWith("expr ::="));if(expr)return{kind:"tokens",tokens:leaves(expr),reduction:expr};const tokens=leaves(constraint).slice(1);if(tokens[0]?.text==="("&&tokens.at(-1)?.text===")")tokens.splice(tokens.length-1,1),tokens.splice(0,1);if(!tokens.length)throw new SqlParseError("generated column expression is missing");return{kind:"tokens",tokens};};
+  const expression=(prefix:string):ExprNode|null=>{const constraint=constraints.find(c=>c.kind==="reduction"&&c.signature.startsWith(prefix));if(!constraint)return null;const expr=find(constraint,s=>s.startsWith("expr ::="));if(expr){const tokens=leaves(expr);return{kind:"tokens",tokens,reduction:expr,sourceText:prefix==="ccons ::= DEFAULT"?defaultSpan(constraint,sqlBytes):exactSource(tokens,sqlBytes)!};}const tokens=leaves(constraint).slice(1);if(tokens[0]?.text==="("&&tokens.at(-1)?.text===")")tokens.splice(tokens.length-1,1),tokens.splice(0,1);if(!tokens.length)throw new SqlParseError("generated column expression is missing");return{kind:"tokens",tokens,sourceText:prefix==="ccons ::= DEFAULT"?defaultSpan(constraint,sqlBytes):exactSource(tokens,sqlBytes)!};};
   const has=(prefix:string)=>constraints.some(c=>c.kind==="reduction"&&c.signature.startsWith(prefix));
   const collate=constraints.find(c=>c.kind==="reduction"&&c.signature.startsWith("ccons ::= COLLATE"));
   const generated=constraints.find(c=>c.kind==="reduction"&&(c.signature.startsWith("ccons ::= GENERATED")||c.signature.startsWith("ccons ::= AS generated")));
@@ -406,6 +415,15 @@ function productionAction(signature:string,children:readonly LemonValue<SqlToken
   const recursive=signature.includes(" RECURSIVE "),listIndex=recursive?2:1,selectIndex=recursive?3:2,ctes=semanticOf<readonly CteNode[]>(children[listIndex],"WITH list"),seen=new Set<string>();
   for(const cte of ctes){const key=cte.name.replace(/[A-Z]/g,c=>c.toLowerCase());if(seen.has(key))throw new SqlParseError(`duplicate WITH table name: ${cte.name}`);seen.add(key);}
   return deepFreeze(selectAction(semanticOf<SelectSemantic>(children[selectIndex],"select"),leaves(root),sqlBytes,Object.freeze({recursive,ctes})));
+ }
+ // parse.y cmd PRAGMA owns names/argument, not an Expr or parameter.
+ if(signature.startsWith("cmd ::= PRAGMA ")){
+  const dequote=(token:SqlToken):string=>token.text[0]==="'"?token.text.slice(1,-1).replaceAll("''","'"):sqlIdentifier(token);
+  const first=leaves(children[1])[0]!,second=leaves(children[2]).at(-1);
+  // parse.y plus_num returns the number terminal, not the PLUS leaf.
+  const value=children[4]?leaves(children[4]):[];
+  return Object.freeze({kind:"pragma",name:dequote(second??first),database:second?dequote(first):null,
+   argument:value.length?(signature.includes("minus_num")?"-"+value.filter(t=>t.text!=="-").map(t=>t.text).join(""):dequote(value.find(t=>t.text!=="+")!)):null} satisfies PragmaNode);
  }
  if(signature.startsWith("cmd ::= select"))return semanticOf<SelectNode>(children[0],"cmd select");
  if(signature.startsWith("cmd ::= create_table")||signature.startsWith("cmd ::= createkw uniqueflag INDEX")||signature.startsWith("cmd ::= createkw temp VIEW")||signature.startsWith("cmd ::= createkw trigger_decl")){

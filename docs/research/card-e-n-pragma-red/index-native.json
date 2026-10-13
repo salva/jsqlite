@@ -1,0 +1,5837 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "image": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-index/UTF-8.db",
+      "cases": [
+        {
+          "sql": "PRAGMA table_info(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA main.table_info = \"t\"",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info('missing')",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA table_info",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA no_such_read_metadata",
+          "prepareCode": 0,
+          "names": [],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA temp.table_info(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA absent.table_info(t)",
+          "prepareCode": 1,
+          "error": "unknown database absent"
+        },
+        {
+          "sql": "PRAGMA table_info(?)",
+          "prepareCode": 1,
+          "error": "near \"?\": syntax error"
+        },
+        {
+          "sql": "PRAGMA table_info(t); SELECT 1",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": " SELECT 1",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "ix_expr"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "ix_partial"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "ix"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(ix)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(ix)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA foreign_key_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "SET NULL"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA database_list",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "file"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "main"
+              },
+              {
+                "type": 3,
+                "value": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-index/UTF-8.db"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "temp"
+              },
+              {
+                "type": 3,
+                "value": ""
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(\"q weird\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "dup"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "1 +  2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a'quote"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "+3"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "minus"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "-2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "last"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x'00'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(\"q weird\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "dup"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "1 +  2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a'quote"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "+3"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "minus"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "-2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "gen"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "last"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x'00'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info('w')",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(sqlite_schema)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "type"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "name"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "tbl_name"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "rootpage"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "sql"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(w)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "wi"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "sqlite_autoindex_w_1"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "pk"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(w)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(w)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(wi)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(ix_expr)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "-2"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(ix_expr)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "-2"
+              },
+              {
+                "type": 5,
+                "value": null
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA foreign_key_list(f)",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "y"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "RESTRICT"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "x"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 3,
+                "value": "CASCADE"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(missing)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA index_info(missing)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA temp.index_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA foreign_key_list",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA index_info",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA main.index_xinfo = \"ix\"",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "image": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-index/UTF-16le.db",
+      "cases": [
+        {
+          "sql": "PRAGMA table_info(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA main.table_info = \"t\"",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info('missing')",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA table_info",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA no_such_read_metadata",
+          "prepareCode": 0,
+          "names": [],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA temp.table_info(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA absent.table_info(t)",
+          "prepareCode": 1,
+          "error": "unknown database absent"
+        },
+        {
+          "sql": "PRAGMA table_info(?)",
+          "prepareCode": 1,
+          "error": "near \"?\": syntax error"
+        },
+        {
+          "sql": "PRAGMA table_info(t); SELECT 1",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": " SELECT 1",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "ix_expr"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "ix_partial"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "ix"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(ix)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(ix)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA foreign_key_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "SET NULL"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA database_list",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "file"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "main"
+              },
+              {
+                "type": 3,
+                "value": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-index/UTF-16le.db"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "temp"
+              },
+              {
+                "type": 3,
+                "value": ""
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(\"q weird\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "dup"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "1 +  2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a'quote"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "+3"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "minus"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "-2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "last"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x'00'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(\"q weird\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "dup"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "1 +  2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a'quote"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "+3"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "minus"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "-2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "gen"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "last"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x'00'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info('w')",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(sqlite_schema)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "type"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "name"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "tbl_name"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "rootpage"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "sql"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(w)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "wi"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "sqlite_autoindex_w_1"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "pk"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(w)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(w)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(wi)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(ix_expr)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "-2"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(ix_expr)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "-2"
+              },
+              {
+                "type": 5,
+                "value": null
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA foreign_key_list(f)",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "y"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "RESTRICT"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "x"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 3,
+                "value": "CASCADE"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(missing)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA index_info(missing)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA temp.index_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA foreign_key_list",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA index_info",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA main.index_xinfo = \"ix\"",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "image": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-index/UTF-16be.db",
+      "cases": [
+        {
+          "sql": "PRAGMA table_info(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "v"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "s"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA main.table_info = \"t\"",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info('missing')",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA table_info",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA no_such_read_metadata",
+          "prepareCode": 0,
+          "names": [],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA temp.table_info(t)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA absent.table_info(t)",
+          "prepareCode": 1,
+          "error": "unknown database absent"
+        },
+        {
+          "sql": "PRAGMA table_info(?)",
+          "prepareCode": 1,
+          "error": "near \"?\": syntax error"
+        },
+        {
+          "sql": "PRAGMA table_info(t); SELECT 1",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": " SELECT 1",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "INTEGER"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "'X'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "ix_expr"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "ix_partial"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "ix"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(ix)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(ix)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA foreign_key_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "SET NULL"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA database_list",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "file"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "main"
+              },
+              {
+                "type": 3,
+                "value": "/work/jsqlite2/.saivage/work/cards/card-e-n/pragma-index/UTF-16be.db"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "temp"
+              },
+              {
+                "type": 3,
+                "value": ""
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(\"q weird\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "dup"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "1 +  2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a'quote"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "+3"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "minus"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "-2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "last"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x'00'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_xinfo(\"q weird\")",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk",
+            "hidden"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "dup"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "1 +  2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a'quote"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "+3"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "minus"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "-2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "gen"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "last"
+              },
+              {
+                "type": 3,
+                "value": "BLOB"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "x'00'"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info('w')",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA table_info(sqlite_schema)",
+          "prepareCode": 0,
+          "names": [
+            "cid",
+            "name",
+            "type",
+            "notnull",
+            "dflt_value",
+            "pk"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "type"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "name"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 3,
+                "value": "tbl_name"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "3"
+              },
+              {
+                "type": 3,
+                "value": "rootpage"
+              },
+              {
+                "type": 3,
+                "value": "INT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "sql"
+              },
+              {
+                "type": 3,
+                "value": "TEXT"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(w)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "wi"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "c"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "sqlite_autoindex_w_1"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "pk"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(w)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(w)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(wi)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "b"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_xinfo(ix_expr)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "-2"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_info(ix_expr)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "-2"
+              },
+              {
+                "type": 5,
+                "value": null
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA foreign_key_list(f)",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "y"
+              },
+              {
+                "type": 3,
+                "value": "id"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "RESTRICT"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "parent"
+              },
+              {
+                "type": 3,
+                "value": "x"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 3,
+                "value": "CASCADE"
+              },
+              {
+                "type": 3,
+                "value": "NO ACTION"
+              },
+              {
+                "type": 3,
+                "value": "NONE"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "PRAGMA index_list(missing)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA index_info(missing)",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA temp.index_list(t)",
+          "prepareCode": 0,
+          "names": [
+            "seq",
+            "name",
+            "unique",
+            "origin",
+            "partial"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA foreign_key_list",
+          "prepareCode": 0,
+          "names": [
+            "id",
+            "seq",
+            "table",
+            "from",
+            "to",
+            "on_update",
+            "on_delete",
+            "match"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA index_info",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name"
+          ],
+          "tail": "",
+          "rows": []
+        },
+        {
+          "sql": "PRAGMA main.index_xinfo = \"ix\"",
+          "prepareCode": 0,
+          "names": [
+            "seqno",
+            "cid",
+            "name",
+            "desc",
+            "coll",
+            "key"
+          ],
+          "tail": "",
+          "rows": [
+            [
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "a"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 3,
+                "value": "nocase"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "1"
+              },
+              {
+                "type": 1,
+                "value": "4"
+              },
+              {
+                "type": 3,
+                "value": "p"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": 1,
+                "value": "2"
+              },
+              {
+                "type": 1,
+                "value": "-1"
+              },
+              {
+                "type": 5,
+                "value": null
+              },
+              {
+                "type": 1,
+                "value": "0"
+              },
+              {
+                "type": 3,
+                "value": "BINARY"
+              },
+              {
+                "type": 1,
+                "value": "0"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

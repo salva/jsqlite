@@ -1,6 +1,8 @@
 import { ImmutableStorage, StorageLimitError, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
 import { aggregateShapeSupported, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
+import { compilePragma, pragmaNeedsSchema } from "./internal/pragma.ts";
+import type {Program} from "./internal/vdbe.ts";
 import { compileSelect } from "./internal/select-compiler.ts";
 import { rejectBareBuiltinWindowFunctions } from "./internal/resolve.ts";
 import { SchemaFormatError, loadSchemaGraph, sourceFreeSchemaGraph } from "./internal/schema.ts";
@@ -94,6 +96,9 @@ interface PrepareLimits {
 }
 
 class OpenConnection implements Connection, StorageOwnerCarrier {
+  // Db.pBt residency for the immutable memory snapshot. No filesystem/VFS
+  // filename is exposed by Fetch acquisition (pager.c memory filename = '').
+  #pragmaTempOpen = false;
   #source: ImmutableStorage | null;
   #state: "open" | "zombie" | "closed" = "open";
   readonly #limits: PrepareLimits;
@@ -158,45 +163,75 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
       if (parsed.statement === null) {
         return { statement: null, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
       }
-      if (parsed.statement.kind !== "select") {
+      if (parsed.statement.kind !== "select" && parsed.statement.kind !== "pragma") {
         failure("unsupported", "mutating SQL and schema changes are not supported", { unsupportedClassification: "permanent" });
+      }
+      // sqlite3Pragma resolves schema and opens explicit temp before registry lookup.
+      if(parsed.statement.kind==="pragma"){
+        const database=parsed.statement.database?.replace(/[A-Z]/g,char=>char.toLowerCase());
+        if(database!==undefined&&database!=="main"&&database!=="temp")failure("sqlite",`unknown database ${parsed.statement.database}`,{code:1});
+        if(database==="temp")this.#pragmaTempOpen=true;
       }
       // Load immutable schema before admission so persisted view SELECTs are
       // reachable, then reject the complete graph before a compiler can create
       // or publish a Program.
       let schemaWork=0;
-      const schema = !selectGraphNeedsSchema(parsed.statement)?sourceFreeSchemaGraph(this):loadSchemaGraph(this,{check:(_phase,units)=>{
+      const schema = (parsed.statement.kind==="select"&&!selectGraphNeedsSchema(parsed.statement)||parsed.statement.kind==="pragma"&&!pragmaNeedsSchema(parsed.statement))?sourceFreeSchemaGraph(this):loadSchemaGraph(this,{check:(_phase,units)=>{
         if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
         if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
         schemaWork+=units;if(schemaWork>parserWork)failure("limit","schema construction work exceeded");
       }});
-      const recursiveOwner = recursiveCteOwner(parsed.statement);
-      const selected = recursiveOwner===null ? (lowerOrdinaryCtes(parsed.statement) ?? parsed.statement) : parsed.statement;
-      try{rejectBareBuiltinWindowFunctions(selected)}catch(error){if(error instanceof Error)failure("sqlite",error.message,{code:1});throw error;}
-      if(selectHasWindow(selected)) rejectDistinctWindowFunctions(selected);
-      if (recursiveOwner===null && selectGraphContainsWith(selected, schema)) {
-        failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
-      }
-      const aggregate = recursiveOwner===null&&(selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving);
-      const jsonTableAggregate = aggregate&&selected.from.items.length===1&&
-        ["json_each","json_tree","jsonb_each","jsonb_tree"].includes(selected.from.items[0]!.tableName.toLowerCase());
-      // window.c:sqlite3WindowRewrite performs its own aggregate analysis and
-      // ORDER BY misuse validation before mutating the SELECT. Do not let the
-      // ordinary aggregate-shape admission gate bypass that phase.
-      const window = recursiveOwner===null&&selectHasWindow(selected);
-      if(aggregate&&!window&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
       const recursiveEncoding = this.#source!.encoding === 1 ? "utf-8" : this.#source!.encoding === 2 ? "utf-16le" : "utf-16be";
       let constructionWork=0;
-      const program = compileSelect(
-        selected, schema, btreeFromConnection(this, this.#btreeLimits), recursiveEncoding,
-        this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes,
-        this.#limits.privateStateLimits, recursiveOwner !== null,
-        () => {
-          if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
-          if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
-          if(++constructionWork>parserWork)failure("limit","statement construction work limit exceeded");
-        },
-      );
+      const checkConstruction=()=>{
+        if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
+        if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
+        if(++constructionWork>parserWork)failure("limit","statement construction work limit exceeded");
+      };
+      let program:Program;
+      let recompile:((bindings:Parameters<NonNullable<ConstructorParameters<typeof VdbeStatement>[4]>>[0],check:()=>void)=>Program)|undefined;
+      if(parsed.statement.kind==="pragma"){
+        checkConstruction();
+        program=compilePragma(parsed.statement,schema,this.#maxRows,this.#limits.maxWorkUnits,this.#limits.maxResultBytes,this.#limits.privateStateLimits,checkConstruction,[{sequence:0,name:"main",file:""},...(this.#pragmaTempOpen?[{sequence:1,name:"temp",file:""}]:[])]);
+      }else{
+        const recursiveOwner = recursiveCteOwner(parsed.statement);
+        const selected = recursiveOwner===null ? (lowerOrdinaryCtes(parsed.statement) ?? parsed.statement) : parsed.statement;
+        try{rejectBareBuiltinWindowFunctions(selected)}catch(error){if(error instanceof Error)failure("sqlite",error.message,{code:1});throw error;}
+        if(selectHasWindow(selected)) rejectDistinctWindowFunctions(selected);
+        if (recursiveOwner===null && selectGraphContainsWith(selected, schema)) {
+          failure("unsupported", "common table expressions are not implemented", { unsupportedClassification: "temporary" });
+        }
+        const aggregate = recursiveOwner===null&&(selectHasAggregate(selected)||selected.hasGroupBy||selected.hasHaving);
+        const jsonTableAggregate = aggregate&&selected.from.items.length===1&&
+          ["json_each","json_tree","jsonb_each","jsonb_tree"].includes(selected.from.items[0]!.tableName.toLowerCase());
+        // window.c:sqlite3WindowRewrite performs its own aggregate analysis and
+        // ORDER BY misuse validation before mutating the SELECT. Do not let the
+        // ordinary aggregate-shape admission gate bypass that phase.
+        const window = recursiveOwner===null&&selectHasWindow(selected);
+        if(aggregate&&!window&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
+        program = compileSelect(
+          selected, schema, btreeFromConnection(this, this.#btreeLimits), recursiveEncoding,
+          this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes,
+          this.#limits.privateStateLimits, recursiveOwner !== null,
+          () => {
+            if(options?.signal?.aborted)failure("cancelled","statement construction was cancelled",{cause:options.signal.reason});
+            if(options?.timeoutMs!==undefined&&prepareNow()-prepareStarted>=options.timeoutMs)failure("timeout","statement construction deadline exceeded");
+            if(++constructionWork>parserWork)failure("limit","statement construction work limit exceeded");
+          },
+        );
+        recompile = (bindings,check) => {
+          // prepare.c:sqlite3Reprepare: saved SQL is parsed again, with the old
+          // typed bindings visible only to sample-value extraction. No public
+          // handle is registered until the original prepare, or during retry.
+          check();
+          const reparsed=parseSql(sql,{maxWorkUnits:Math.max(1024,this.#limits.maxWorkUnits)});
+          if(reparsed.statement?.kind!=="select")failure("internal","saved SQL no longer produces SELECT");
+          const reselected=recursiveOwner===null?(lowerOrdinaryCtes(reparsed.statement)??reparsed.statement):reparsed.statement;
+          const replacement=compileSelect(reselected,schema,btreeFromConnection(this,this.#btreeLimits),recursiveEncoding,
+            this.#maxRows,this.#limits.maxWorkUnits,this.#limits.maxResultBytes,this.#limits.privateStateLimits,recursiveOwner!==null,check,bindings);
+          return this.#dateTimeEnvironment?{...replacement,dateTimeEnvironment:this.#dateTimeEnvironment}:replacement;
+        };
+      }
       let statement!: VdbeStatement;
       const executionProgram=this.#dateTimeEnvironment?{...program,dateTimeEnvironment:this.#dateTimeEnvironment}:program;
       statement = new VdbeStatement(executionProgram,
@@ -213,18 +248,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
           const source = this.#source;
           if (source !== null) this.#finishClose(source);
         }
-      }, (bindings,check) => {
-        // prepare.c:sqlite3Reprepare: saved SQL is parsed again, with the old
-        // typed bindings visible only to sample-value extraction. No public
-        // handle is registered until the original prepare, or during retry.
-        check();
-        const reparsed=parseSql(sql,{maxWorkUnits:Math.max(1024,this.#limits.maxWorkUnits)});
-        if(reparsed.statement?.kind!=="select")failure("internal","saved SQL no longer produces SELECT");
-        const reselected=recursiveOwner===null?(lowerOrdinaryCtes(reparsed.statement)??reparsed.statement):reparsed.statement;
-        const replacement=compileSelect(reselected,schema,btreeFromConnection(this,this.#btreeLimits),recursiveEncoding,
-          this.#maxRows,this.#limits.maxWorkUnits,this.#limits.maxResultBytes,this.#limits.privateStateLimits,recursiveOwner!==null,check,bindings);
-        return this.#dateTimeEnvironment?{...replacement,dateTimeEnvironment:this.#dateTimeEnvironment}:replacement;
-      });
+      }, recompile);
       this.#statements.add(statement);
       return { statement, tailOffset: parsed.tailOffset, tail: sql.slice(parsed.tailCodeUnit) };
     } catch (error) {

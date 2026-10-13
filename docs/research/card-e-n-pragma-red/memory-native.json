@@ -1,0 +1,31 @@
+[
+  {
+    "sql": "PRAGMA database_list",
+    "rows": [
+      [
+        "0",
+        "main",
+        ""
+      ]
+    ]
+  },
+  {
+    "sql": "PRAGMA temp.no_such_read_metadata",
+    "rows": []
+  },
+  {
+    "sql": "PRAGMA database_list",
+    "rows": [
+      [
+        "0",
+        "main",
+        ""
+      ],
+      [
+        "1",
+        "temp",
+        ""
+      ]
+    ]
+  }
+]
