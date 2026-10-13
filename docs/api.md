@@ -487,3 +487,17 @@ storage classes and early LIMIT termination.
 qualify these statements. Exact historical run counts and approvals are evidence,
 not API guarantees. [Functional-first beta categories](PLAN.md#functional-first-beta-view)
 do not constitute publication or whole-product acceptance.
+
+### Bounded mixed physical/JSON integration
+
+The bounded physical-left/JSON-right CROSS/INNER/LEFT producer rebinds arguments
+per outer row; LEFT records ON matches before WHERE and clears every visible
+and hidden JSON field for an unmatched row. Rows feed existing AggInfo input
+registers/group sorter, including FILTER and aggregate projections, not a
+parallel evaluator. RIGHT/FULL/NATURAL/USING/reverse correlation remain temporary
+unsupported in this route. Cursor offsets use encoded container header widths
+and retained label encodings; binary input preserves original bounds. COLLATE
+keeps direct-column naming but has null declared type and origins, separating
+select.c naming from columnType production. [Scoped integration evidence](research/card-r-e-mixed-json-verify.md)
+bounds typed public/oracle comparisons and lifecycle schedules; it is not
+exhaustive JSON or virtual-table-planning parity.

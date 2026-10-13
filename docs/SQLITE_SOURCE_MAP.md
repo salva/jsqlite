@@ -169,3 +169,17 @@ Current [guide](TRANSLATION.md) and [API](api.md) own admission. The
 [reconciliation archive](research/card-u-reconciliation/README.md) preserves
 superseded map additions and exact run attribution without making them current
 contract authority.
+
+### Mixed physical/JSON input and metadata
+
+`where.c:sqlite3WhereEnd` ON-match/null-extension → mixed
+`vdbe.ts:compileTableSelectProducer`; `select.c` aggregate production → existing
+`compileAggregateSelect` input-register/AggInfo seam with SELECT-private
+`SchemaGraph.withTransientTable`. `json.c:jsonBlobChangePayloadSize/jsonEachColumn`
+→ `json.ts:openJsonTableCursor` offsets; `select.c:columnType` versus column names
+→ `jsonResultMetadata` COLLATE naming without origins.
+`json-physical-left-red.test.mjs` and `json-mixed-integration.test.mjs` supply
+public typed, metadata/error/reset evidence across three encodings;
+[repair provenance](research/card-r-d-physical-json-repair.md),
+[verification bounds](research/card-r-e-mixed-json-verify.md).
+No host registration or generalized virtual-table planner credit.
