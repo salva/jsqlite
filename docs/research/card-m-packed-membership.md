@@ -120,3 +120,24 @@ Final chained proc-8e366c2d5bfa (waited terminal) typecheck715/715 expanded priv
 BLOBKEY and VM plus expression routes/matrix/Chinook tests; existing public123/123
 mismatch0 zero credit; hygiene pass. Selected owner mutation interruption tests are
 included, but global error-schedule/native allocation parity remains unclaimed.
+
+## Scoped integration
+
+Delivery commits070cc695 and7a8185ac commit accumulated packed expression source,
+control/native-public tests and current guide/map ownership sections. Initial
+`commit --only` rejected untracked test paths(proc-68643ae1af9f) without commit;
+explicit scoped add then commit succeeded(proc-9072ccaa5dfc). Index entry comparison
+showed only the13 selected delivery paths changed. Documentation used a separate
+purpose-named index to commit only expression hunks; equivalent hunks applied to
+real index preserve unrelated staged deletions/edits. Unrelated PRAGMA guide/map
+changes and broader mutable audit edits remain untouched, not implicitly approved.
+
+Final after integration proc-cbc3084cf31c waited terminal: chained hygiene,
+typecheck715/715 focused expanded suites andpublic123/123 mismatch0 zero credit.
+Selected runtime/test paths have no HEAD-to-work delta. Existing correlated Once,
+linked bindings, scalar metadata/composition foundation evidence remains applicable:
+no such producers changed after validation. No remaining reproduced lowering gap
+in this admitted slice is known. Deferred/excluded forms, broader conformance/docs
+breadth and unrelated staged peer work are not closure claims. Conservative scratch
+and immutable packed peak are bounded documented tradeoffs, not missing lowering
+machinery or native byte-for-byte resource parity.
