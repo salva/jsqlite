@@ -2608,7 +2608,7 @@ export function compileRecursiveAggregateSelect(select:SelectNode,schema:SchemaG
  // belong to the aggregate, after queue exhaustion/finalization respectively.
  compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,Number.MAX_SAFE_INTEGER,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first}});
  ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
- const input={first,rowIdentities:true,emit:(consume:()=>void)=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
+ const input={first,emit:(consume:()=>void)=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
  const program=compileAggregateSelect(select,transient,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,linkedPlan,input,destination:shared?.destination??{kind:'output'}});
  if(!shared)ops.push({code:'Halt'});
  return Object.freeze({...program,ops:shared?ops:builder.finish(),registers:builder.registers,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name})))});
