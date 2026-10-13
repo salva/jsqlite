@@ -1,0 +1,2244 @@
+--- index/README.md
++++ current/README.md
+@@ -14,6 +14,10 @@
+ is not full read-only SQLite compatibility or whole-project completion. Native
+ SQLite is development-only, never the runtime backend.
+ 
++[Functional-first beta categories](docs/PLAN.md#functional-first-beta-view) distinguish
++committed functionality from gaps, optimization and delivery evidence; beta is not
++publication.
++
+ [Current translation guidance](docs/TRANSLATION.md), [public API](docs/api.md),
+ [source map](docs/SQLITE_SOURCE_MAP.md), [oracle setup](docs/oracle.md), and
+ [conformance evidence](docs/CONFORMANCE.md) are available. Technical choices remain
+--- index/docs/PLAN.md
++++ current/docs/PLAN.md
+@@ -20,67 +20,30 @@
+ The root Planner directs goals and sequencing, not an exhaustive leaf-task
+ inventory.
+ 
+-## Current sequence: private local versioned alpha, then residual breadth
+ 
+-Independent [resumed evidence](research/card-v-alpha-resumed-diagnosis.md) binds
+-runtime `2f1545c`: core238/additional352 and installed alpha.3 browser/package
+-checks pass. Later finite adversarial/reuse, indexed throughput, real credential/
+-CORS and 8.5MB overflow coverage pass without runtime changes. Original blockers
+-are discharged for this identity; old failures retain their source provenance.
+-[Independent alpha.4 acceptance](research/card-v-alpha-four-acceptance.md) now
+-binds installed private-local delivery to release source `1984a9a`, runtime
+-`2f1545c`, and tarball `d5949e25…`: package13, Chromium current38 and separate
+-historical-gap2, installed demo, credentials/CORS and affected42 pass. The earlier
+-core238/additional352 evidence is reused only for byte-identical runtime inputs.
+-This is finite private-local readiness, not publication, global compatibility,
+-arbitrary compositions, performance or other-browser certification. Residual
+-read-only breadth remains product backlog under unchanged SPEC; the subsequent
+-independent postcandidate review does not impose a circular wait here.
+-
+-Owner-authorized [future LOCAL alpha readiness at b131](research/card-v-new-alpha-b131-readiness.md)
+-is separate from immutable alpha.4 acceptance: coherent accepted source lineage,
+-independently verified w227/native3, fresh isolated offline package closure72files/
+-35JS and focused23 pass. Original query now supplied: independent pinned native
+-10typed rows/all metadata match installed-tarball Chromium Fetch across three
+-reset/reexecutions with actual task responsiveness measurements and fresh browser
+-controls/security. **Alpha.5 candidate packaging** proceeds through the original a/c workflow:
+-[current package evidence](research/card-v-a-alpha-five.md) identifies the explicit
+-release source/artifact. Installed demo/browser and independent finite acceptance
+-follow; source readiness is not artifact acceptance. Historical timing settings unavailable, no causal speedup ratio.
+-Named historical sorter fixture red→current pass retained; unspecified concern
+-unverified, not claimed fixed or a new blocker.
+-
+-Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
+-LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
+-SPEC is unchanged. This is not a registry/public repository release, external
+-distribution, full SQLite compatibility certificate, or numerical coverage claim.
+-Integration ownership [[card:card-v-d]] reuses the retained [[card:card-w]]
+-runner/reproduction tooling; w's immutable dependency on v is not a reason to
+-wait for w, activate it, or clone its work.
+-
+-1. Publish a finite proposed advertised-core/temporary-gap/permanent-exclusion
+-   contract derived from current semantic owners, API, source map and mutable
+-   audit. [Private alpha stabilization](research/card-v-private-alpha.md) owns
+-   the candidate/evidence matrix and current blockers. Historical browser38/gap2
+-   and integration225 results are provenance, not candidate certification.
+-2. Stabilize a fresh exact committed-source checkout against pinned SQLite3.53.4
+-   with reference/fixture identity, typed rows/metadata/errors and lifecycle;
+-   realistic joins/aggregates/subqueries/CTEs/windows/common functions, indexes,
+-   overflow, all encodings and schema admission including common STAT4 files;
+-   malicious inputs, cleanup/reuse, execution/acquisition/prepare controls and
+-   realistic bounded termination/performance. No skips, weakened expectations or
+-   inflated watchdogs. Semantic defects go through Planner to original owners,
+-   not an integration evaluator refactor. Settled JSON r v24/f1eb053 focused53/53
+-   is retained; no optional JSON breadth is a prerequisite.
+-3. Once blockers are resolved in exact committed source, coordinate the candidate
+-   source/evidence manifest with original package [[card:card-v-a]] and demo
+-   [[card:card-v-c]] owners. They produce a private local versioned artifact and
+-   coherent examples. Reverify the actual artifact against that source; a source
+-   pass does not certify an as-yet unbuilt versioned package.
+-4. Return to progressive residual breadth under unchanged SPEC after bounded
+-   private-alpha acceptance. Material observable-guarantee tradeoffs require
+-   owner escalation; ordinary technical choices remain project-owned. Preserve
+-   unrelated dirty/staged work and operator-owned configuration.
++## Functional-first beta view
++
++This is a development prioritization view, **not publication or a compatibility
++certificate**. Four categories keep functional breadth ahead of optimization:
++
++1. **Committed represented functionality:** immutable database/public lifecycle,
++   represented SELECT/join/compound/aggregate/subquery/CTE/window/function/JSON
++   routes, bounded generated and STRICT reads, vector expressions and selected
++   WITHOUT ROWID consumers. Admission is semantic and composition-specific.
++2. **In-scope functional gaps:** unrepresented compositions, broader semantic
++   walker/NC_GenCol coverage, generic indexed-expression and virtual-table routes,
++   and remaining read-only SQL. These are temporary unsupported, not exclusions.
++3. **Optimization and fidelity gaps:** broader planner/STAT4/vector index choices,
++   storage/VM migrations and materialized-route parity. Do not turn absent
++   optimization into a claim that represented functional execution is absent.
++4. **Delivery and evidence:** installed-artifact/browser/native comparisons and
++   independent bounded acceptance remain revision-specific. Local beta is not
++   registry publication, all-browser certification or whole-product completion.
++
++Current contracts are in [api.md](api.md) and [TRANSLATION.md](TRANSLATION.md).
++Exact historical candidate identities and peer proposals are preserved in
++[reconciliation evidence](research/card-u-reconciliation/README.md), not promoted
++from dirty working bytes. Root owns subsequent roadmap and delivery decisions.
+ 
+ ## Stage 0: Pin And Orient
+ 
+--- index/docs/TRANSLATION.md
++++ current/docs/TRANSLATION.md
+@@ -2,6 +2,8 @@
+ 
+ ## Authority and current use
+ 
++Current committed boundary and dirty-proposal separation: [reconciliation](research/card-u-reconciliation/README.md). The [functional-first beta view](PLAN.md#functional-first-beta-view) separates represented functionality, functional gaps, optimization and delivery evidence.
++
+ [SPEC](SPEC.md) owns product scope; [PLAN](PLAN.md) owns sequencing. This is the
+ current engineering entrypoint, not a compatibility certificate or a new gate on
+ bounded work. The source is SQLite 3.53.4 pinned by the
+@@ -75,11 +77,6 @@
+ - `Vdbe`, `Mem` → immutable published operations and mutable statement VM state.
+   INTEGER is signed int64 BigInt; REAL remains double even when integral. NULL,
+   TEXT, BLOB, subtype, cached conversions and ownership are distinct state.
+-  Logical declared-REAL column extraction emits Column then RealAffinity;
+-  joined direct/coalesced results share that owner before Copy/NotNull. Rowid
+-  remains separate, and raw record/index decoding is unchanged. See [native
+-  caller evidence](research/card-s-f-or/real-projection-native.json) and
+-  [[card:card-s-f-c]] integration diagnosis/status (mixed root is not candidate acceptance).
+   Borrowed record/page values must not outlive their owner; copied public BLOBs
+   must not expose mutable internal buffers.
+ - `KeyInfo`, `UnpackedRecord` → typed full-key descriptors and record values.
+@@ -103,11 +100,6 @@
+ query interpreter. Failure retains the primary error and releases private state
+ in the owning cleanup path. `reset()` clears execution/current row and private
+ state while preserving bindings; `finalize()` is terminal; close owns children.
+-Mem detaches dynamic ownership before TS cleanup callbacks; reset/finalize finish
+-register releases and state transitions before reporting the saved primary error
+-(or the first cleanup diagnostic when no primary exists). Synthetic RowSet
+-collision/reset-reuse evidence is [bounded separately](research/card-s-f-or/verification.md#rowset-cleanup-collision-repair);
+-this does not establish exhaustive caller cleanup parity.
+ Cancellation, timeout, work/row/result/private limits remain mandatory across
+ physical, coroutine and materialized producers. Exact C work-count, intermediate
+ error and suspension parity is not established merely by matching final rows.
+@@ -115,6 +107,19 @@
+ 
+ ## Immutable storage and schema
+ 
++Committed generated STORED/VIRTUAL definitions resolve in the immutable SELF TABLE
++owner before publication (`build.c:sqlite3EndTable`,
++`resolve.c:sqlite3ResolveSelfReference`). Logical binding selects STORED physical
++layout or expands VIRTUAL dependencies with per-source BUSY/finally lifetime;
++NullRow and aggregate/saved-register ownership precede expansion. Selected
++covering generated reads use logical index fields, not dependency ordinals.
++STRICT metadata validates INT/INTEGER/REAL/TEXT/BLOB/ANY in declaration order
++after PK errors; ANY has BLOB affinity, unlike ordinary ANY. VIRTUAL STRICT
++reads consume single-column TypeCheck. This is read semantics, not write
++validation. Retained triggers do not execute writes. Full NC_GenCol/walker/lazy
++schema and generic index-expression parity remain unclaimed. [Committed schema,
++generated and STRICT evidence](research/card-u-reconciliation/README.md#committed-functional-scope).
++
+ `pager.c`, `btree.c`, `vdbeaux.c`, `vdbemem.c` and `utf.c` own acquisition,
+ page traversal, record decoding and text conversion. TS owners are `storage.ts`,
+ `btree.ts`, `record.ts`, `utf.ts`, `schema.ts`. The read-only adaptation holds
+@@ -127,19 +132,8 @@
+ into table/column/index/view descriptors. Declared affinity, collation, INTEGER
+ PRIMARY KEY identity, ordinary index fields, expression/partial predicates and
+ WITHOUT ROWID primary layout are distinct facts. A generic PRIMARY KEY is not a
+-rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Public immutable `main.sqlite_schema`/`sqlite_master` SELECT uses the same
+-root-page1 storage and ordinary resolver/compiler/VM route. A synthetic legacy
+-schema Table supplies five declared columns, not fabricated catalog rows; physical
+-rowids, implicit indexes and NULL SQL remain visible. Preferred/legacy names share
+-Table identity for column lookup; explicit aliases hide both. Qualified `*` uses
+-canonical Table/alias names (unlike column-name equivalence), as upstream does.
+-Internal graph objects remain persisted declarations only. This is not a
+-registration API, write-time constraint enforcement or PRAGMA mutation support.
+-Aggregate IN/scalar consumers share this lookup too. Aggregate arguments invoke
+-the linked subquery producer; bare IN operands retain accumulator output rather
+-than rereading an exhausted cursor. Nested SELECT aggregates resolve in their own
+-NameContext. Existing unsupported compositions remain temporary; evidence and boundaries are
+-in [public catalog evidence](research/card-e-m-public-catalog.md).
++rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Internal schema discovery
++is not a public schema-introspection API or write-time constraint enforcement.
+ 
+ ## Parsing, resolution and SELECT construction
+ 
+@@ -170,178 +164,29 @@
+ 
+ ## WHERE, joins and physical indexes
+ 
+-Selected rowid multi-index OR has bounded delivered runtime execution in
+-ordinary single-table and represented inner-join callers: selected arms replan
+-into shared-builder RowSetTest/Gosub/Return continuations, with full residual
+-truth and existing ORDER sorters. This is not exhaustive optimizer compatibility
+-or C-cost parity; WR union, unrepresented nullable outer-join selection, and broader
+-cleanup/liveness proofs remain outside the demonstrated boundary. See
+-[delivery evidence](research/card-s-f-or/verification.md#isolated-delivery-candidate-and-browser-movement).
+-`where-plan.ts` owns tagged immutable clause-owned
+-OR/AND info, original residual terms, stable term references and indexable masks.
+-OR clauses have no outer; AND clauses refer to the enclosing clause. Constraint
+-lookup walks local then outer clauses, while residuals/OR discovery stay local.
+-`orArmClause` supplies AND clauses or a source-matching one-term temporary clause
+-with enclosing outer; stored commutations remain separate entries.
+-
+-`whereexpr.c:exprAnalyzeOrTerm/whereCombineDisjuncts` own masks, copied/commuted
+-terms, two-way necessary combines and OR-to-IN production. Virtual IN retains the
+-original OR residual and goes through existing IN admission. Comparison uses
+-resolved operands, produced parser flags/opcodes, affinity/collation and join
+-origin, not SQL-text matching. Expression equivalence/alias, constant production
+-and all recursive flags remain bounded; this is not exhaustive ExprCompare or
+-expression-index admission fidelity. `scanWhereTerms` models the 11-slot
+-local/outer equivalence scan and reverse EQ/IS exclusion; transitive scan results
+-retain original term/RHS and explicit seek target. Ordinary transitive lowering,
+-rowid IN, SELECT-IN multiplicity and full RIGHT/LTORJ proof remain incomplete.
+-
+-`where-or-cost.ts` owns the mutable three-slot prereq/run/output set. Insertion
+-uses stored first-match replacement/discard, minimum nOut on replacement, and the
+-pinned surprising smallest-rRun full-slot comparison, not generic Pareto pruning.
+-Move copies active slots without aliasing. Arm products preserve order, union
+-prerequisites and LogEstAdd; zero-cost arms abandon their parent. Publication is
+-immutable `kind:"multi-or"`, original `orInfo`, capability:null, setup0/sort0,
+-run+1/output estimate and no captured physical branch choice. Lowering must
+-replan physical arms from these clauses, preserving binding/seek provenance.
+-
+-Selected cost production is bounded to rowid persistent-index/equality/range/AND/
+-nested alternatives. WR union, forced-index OR, NOT INDEXED and unsafe nullable
+-or RIGHT/FULL selected joins retain ordinary fallback/forced-index contracts;
+-scans are not selected OR. Single-table Case5 lowering replans owned
+-arms into shared-builder seeks and RowSetTest/Gosub/Return, testing remaining
+-arm truth after exact selected-constraint consumption and retaining untested
+-enclosing parent truth, with the existing ORDER sorter. Nested selected arms recursively
+-consume their actual selected plan with independent RowSet/return registers and
+-the shared construction frontier; no ordinary-only filtering remains. Represented
+-inner callers now use per-level RowSet/Gosub continuations with initialization
+-per outer row. Both actual callers test remaining arm residuals only when
+-prereqAll is positioned, retaining independent enclosing conjuncts and full
+-untested parent truth; unready OR atoms are deferred intact.
+-Invocation-local `branchConsumedTerms` follows disableTerm ready/child accounting;
+-no whole-arm indexed-operand replay. Ordinary driveable commuted children consume their original parent at zero remaining children; owned arm handoff retains both identities. Nullable LEFT ON remains conservative. [Commutation evidence](research/card-s-f-or/commuted-child.md). Admission owns affinity/collation equivalence;
+-non-admitted/lossy/slice terms remain truth. [Branch-owner evidence](research/card-s-f-or/branch-consumption.md). The ordinary
+-caller retains untested parent truth until downstream sources are ready; fully
+-tested parents are omitted after arm truth (Case5 disableTerm ownership). See [readiness evidence](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
+-Correlated arm replanning retains the
+-actual already-positioned outer mask; unready prerequisites remain excluded.
+-Single-table Case5 retains a common physical index only when every selected
+-leaf arm agrees; nested/non-index/different arms invalidate it. WhereEnd rewrites
+-covered common-body table Column and Rowid reads to that retained cursor, leaving uncovered
+-reads and existing deferred table positioning intact. Remaining arm truth is tested before
+-deduplication; fully tested parents omit repeated common-body truth, while untested
+-parents retain their complete residual. This is not an index-only execution claim. Index Rowid
+-uses the integer tail cached during physical positioning; no separate index
+-movement is introduced. Represented-inner levels likewise share an owned arm index
+-cursor and publish common physical identity for level-bounded Column/Rowid rewrite;
+-nested/non-index/different arms invalidate it. Invocation-local tested identities
+-are consumed by both ordinary final residuals and outer constraints; independent
+-conjuncts and untested parents retain their residuals. See
+-[tested-parent ownership evidence](research/card-s-f-or/tested-parent-owner.md).
+-See [single-table evidence](research/card-s-f-or/verification.md#common-index-covering-column-repair)
+-and [inner-level evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+-Prepared scalar consumers bind the owned constraint expression before extracting
+-its RHS, preserving outer NameContext identity; rowid equality/end operands
+-are compiled directly after that binding, never re-resolved without the carrier.
+-Reverse rowid scans use a lower end check (forward scans use an upper check),
+-matching Case3's pStart/pEnd swap. [Correlated bound evidence](research/card-s-f-or/verification.md#correlated-rowid-bound-caller-repair).
+-Zero-FROM scalar result metadata consumes the resolved linked child expression,
+-not metadata accumulated incidentally by a chosen runtime branch. TK_SELECT
+-inherits first-child type/origin independently of empty results or physical
+-selection; NameResolutionError is translated at the caller before emission.
+-Nested retained single-source derived producers install transient columns before
+-child name resolution for ordinary as well as compound output. Immutable schema
+-views likewise expose transient column names linked to their stored resolved
+-producer, with circular/width checks and exception-safe expansion state. This
+-metadata handoff does not correct producer LIMIT/filter ordering. Aggregate WHERE resolution retains aggregate admission after result/GROUP classification; unbound aggregate ownership errors remain codegen-owned ([evidence](research/card-s-f-or/verification.md#aggregate-where-error-phase-ownership)).
+-[Metadata evidence](research/card-s-f-or/verification.md#scalar-metadata-caller-ownership).
+-Simple persistent rowid children
+-of zero-FROM SELECT use the same selected shared-builder WHERE lowerer and
+-normalized first-row destination; ordering remains sorter-owned. See
+-[scalar caller evidence](research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair). Ordinary selected index continuations distinguish
+-rowid-table PRIMARY KEY indexes from WITHOUT ROWID table storage: table-backed
+-reads receive deferred rowid positioning even when the index origin is primary-key.
+-[Positioning evidence](research/card-s-f-or/verification.md#rowid-primary-index-positioning-repair).
+-Runtime arm scope is separate from cost exploration: Case5 factors only
+-original indexable enclosing terms, excluding virtual, nullable-ON and
+-subquery-bearing expressions. Both direct and AND arms retain owned terms;
+-fully tested selected parents omit repeated common-body truth; parents with
+-unready arm terms retain their residual. Other enclosing conjuncts remain
+-independent residuals. Represented terms have no
+-coded/slice state and row-value slices are not admitted. See
+-[focused factoring evidence](research/card-s-f-or/verification.md#runtime-factored-constraint-exclusion-repair).
+-Represented IN-list arms use shared RHS iterator registers with inside-out
+-restart, NULL/duplicate suppression and full arm truth; scalar equality NULL
+-exits the arm while range/scan exhaustion advances its IN probe.
+-Factored-AND and full caller cleanup equivalence remain nonexhaustive; the
+-delivered runtime boundary and focused acceptance below are not whole-goal approval. Selected planning and arm replanning
+-now consume the enclosing builder construction frontier. The bounded public
+-reproducer passes with tagged native binding classes and full repeated-arm
+-execution roots; see [consumer evidence](research/card-s-f-or/verification.md). Internal
+-`rowset.ts` translates chunk/list/forest batch algorithms; Mem owns its destructor
+-and VM RowSetTest implements first-batch test bypass and final-batch insert bypass.
+-Logical charges are 64-byte owner and 1016-byte/42-entry retained chunks (including
+-forest links/merged duplicates), not JS heap measurements. Async checkpoints bound
+-primitive work. Native/internal RowSet checks and selected single-table/inner
+-public checks pass within the demonstrated boundary; broader resource/cleanup
+-proofs remain incomplete. Earlier plan-only handoffs and red lowering/work
+-assertions are historical reproducer stages, not current failures. Current
+-focused511/typecheck and separate browser/public evidence, reviewer test overlays
+-and pending integration/goal acceptance are attributed in [[card:card-s-f-c]]
+-status and [consumer evidence](research/card-s-f-or/verification.md).
+-
+-Detailed source comparisons, parser/scanner limitations and revision inventories
+-are preserved in [prelowering evidence](research/card-s-f-b-prelowering-detail.md)
+-and [[card:card-s-f-b]] status; [native proposal evidence](research/card-s-f-or.md)
+-is independently captured, not a current implementation oracle for every branch.
++ON hit/match recording precedes ready non-ON WHERE constraints and downstream
++positioning, including null/unmatched continuations. Nested SELECT dependencies
++retain enclosing-source readiness. Selected rowid OR uses source-owned arms and
++private dedup; selected persistent WR OR uses typed physical PK dedup.
++Parameter-sensitive represented STAT4 programs retain bindings through bounded
++reprepare; vectors/function/subquery costing probes and general plan parity are
++not established. [Retained reprepare evidence](research/card-h-b-reprepare/README.md).
+ 
+ `whereexpr.c`, `where.c`, `wherecode.c` produce terms, candidate loops, paths and
+ loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
+ `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
+ LogEst estimates retain dependency and join-barrier ownership. The represented
+-solver uses ordered candidate insertion and unsorted bounded slots with separate
+-setup/run/output and total/unsorted costs (where.c2744–2939,5835ff), not generic
+-Pareto pruning. Source/sort identities are separate; budget is builder-owned.
+-Candidate exploration is suspended at each immutable proposal and inserted
+-immediately, rather than building an eager capability list. Early stops close
+-suspended recursive/index/rowid iterators; `planWhere` retains the per-source increment
+-and later-source continuation (where.c3284,3580ff,4966,5025ff). Private small-budget
+-production checks observe both leaf construction and later-index access stopping.
+-**Cost-mode completion:** copied builders share mutable construction budget,
+-not their per-call `completion.done` carrier. Successful insertion consuming the
+-last unit returns OK; attempted insertion at zero clears its set and returns DONE,
+-before nLTerm admission. Scan OK-at-zero continues to sPk/index safety; DONE
+-stops before admission. Persistent and sPk frames save their own insertion rc,
+-execute permitted child recursion even after own DONE, ignore child return at the
+-pinned boundary, restore own rc, then stop their own scan on own DONE. Upper-only
+-frames stop on their own failed insert. Thrown errors unwind, not become DONE.
+-
+-Returned OK may have empty costs after ignored child DONE. AddOr successful
+-zero-arm failure continues later parents, but actual arm DONE stops discovery.
+-Completed last-arm sums attempt publication even at zero; publication DONE clears
+-the caller set. Exploration is suspended rather than an eager inventory;
+-suspended scanners close on stop/error, while completed capability frames can
+-finish naturally. Ordinary budget/per-source continuation is retained. Nested
+-budget evidence must count outer-clause proposals, not visible SQL arms alone.
+-Full recursive flags/restoration and admission remain unproved; focused tests do
+-not establish general optimizer or native cost parity (status attempts134–149).
+-
+-Ordinary comma/CROSS/INNER/LEFT routes and represented repeated RIGHT/FULL
+-barriers execute at the documented gates. The single-barrier milestone is
+-historical; repeated execution in [[card:card-k-h-b]] awaits independent goal
+-acceptance, not a multiple-barrier prepare gate. ON belongs to match testing
+-before downstream/WHERE; normal loops close in reverse and unmatched drains run
+-forward with independent per-level exact match/return ownership. WITHOUT ROWID
+-RIGHT/FULL composite keys and the ordered physical-derived composition remain
+-atomic temporary unsupported; declined aggregate/correlation neighbors are not
+-universally admitted. USING/NATURAL projection and metadata retain resolver
+-semantic ownership. See the API and current h-b checkpoints for bounded evidence.
++solver uses the upstream bounded path-choice shape; it is not full optimizer
++coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
++
++Ordinary comma/CROSS/INNER/LEFT and represented repeated/mixed rowid RIGHT/FULL
++barriers are admitted at the documented gates. ON belongs to match testing; LEFT null extension precedes
++WHERE. RIGHT/FULL has separate unmatched-row tracking/drain. WITHOUT ROWID RIGHT/FULL match tracking remains temporary unsupported; arbitrary
++aggregate/correlation compositions are not implied. USING/NATURAL projection and metadata must
++retain the semantic source selected by the resolver.
+ 
+ Selected index routes include represented rowid/ordinary, covering, expression,
+-partial and WITHOUT ROWID access. Canonical NOTNULL is unary in the resolved
+-carrier: its generated TS NULL operand has no second column-use identity. Schema
+-and analyzed predicates compare that same opcode for exact partial residual
+-omission; implication does not authorize omitting a different conjunct. See
+-[canonical-null repair evidence](research/card-s-f-or/verification.md#canonical-null-consumer-repair). Eligibility/proof precedes consumption: collation,
++partial and WITHOUT ROWID access. Eligibility/proof precedes consumption: collation,
+ affinity, real IPK identity, predicate implication, dependency and complete ORDER
+ terms/NULL flags cannot be inferred from a helper's successful example. Conservative
+ typed sorting remains for unproved nondefault-NULL ordering; no native BIGNULL
+@@ -351,13 +196,14 @@
+ DeferredSeek target invalidates the base-row cache. Preserve accepted selected
+ WHERE evidence, without general optimizer or plan-identity credit.
+ 
+-Caller descriptors resolve scalar output provenance before destination lowering,
+-including derived/view transient metadata. Aggregate-result WHERE retains
+-NC_AllowAgg; missing AggInfo errors remain codegen-owned. Rowid arm operands
+-retain bound identity and reverse traversal swaps start/end bounds. Joined end comparisons
+-exhaust the owning level (IN restart, synthetic-null/RIGHT return, then outer
+-continuation); they never bypass outer OR Gosub bodies through a SELECT-wide exit. See
+-[scoped caller and native transition evidence](research/card-s-f-or/scoped-closure.md).
++### Optional STAT4 loading and selectivity consumers
++
++Immutable schema loading retains represented sqlite_stat4 samples and selected
++bounded costing consumers. Reprepare expiry uses the native low-slot/shared-high
++mask shape and preserves bindings on failure/reset. Vectors/function/subquery
++probes and general skipscan/range selectivity coverage remain gaps; finite sample
++costing is not arbitrary native plan parity. [Consumer review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
++and [reprepare evidence](research/card-h-b-reprepare/README.md).
+ 
+ ## ORDER, DISTINCT, compounds and VALUES
+ 
+@@ -370,8 +216,8 @@
+ no public deterministic-order guarantee.
+ 
+ LIMIT/OFFSET lowering uses VM registers, not host statement fields. A single
+-SELECT coerces LIMIT first; zero bypasses OFFSET evaluation/coercion and
+-producers, as do compounds. Negative LIMIT is unlimited and negative
++SELECT coerces both before a zero-limit bypass; compounds coerce LIMIT first and
++zero bypasses OFFSET and producers. Negative LIMIT is unlimited and negative
+ OFFSET is zero. Ordered positive LIMIT bounds retention to LIMIT+OFFSET.
+ 
+ Structured VALUES compiles each retained row, validates every arm width, and
+@@ -380,12 +226,6 @@
+ scalar/set and table/CTE/aggregate compound branches use shared destinations,
+ including same-VM coroutine merge where implemented.
+ 
+-Index prefix seeks must retain physical boundary bias through interior descent:
+-GE descends before equal separators; LE descends after equal separators. Equal
+-interior records are not unique prefix matches. Leaf and parent fallback retain
+-exactness and positioned movement; no eager index union. Source/default_rc and
+-native multi-page regression evidence: [prefix seek repair](research/card-s-f-or/verification.md#multi-page-prefix-seek-boundary-repair).
+-
+ ### Surviving finite materialization adaptation
+ 
+ Some finite scalar/VALUES ordered UNION ALL and finite literal-parent set routes
+@@ -413,6 +253,13 @@
+ 
+ ## Aggregates and expression subqueries
+ 
++Committed vectors preserve field width, typed comparison/NULL ownership and
++multi-column IN destinations; scalar consumers remain width one. This is not
++vector index-strategy completeness. See `expr.c:sqlite3ExprVectorSize`,
++`sqlite3ExprCodeIN` and the [vector review](research/card-i-c-row-vector-review.md).
++Generated dependency BUSY ownership flows through CASE/BETWEEN/IN-list and
++aggregate argument/filter/order edges, not only binary expression children.
++
+ `select.c:updateAccumulator`, aggregate code generation, `resolve.c` aggregate
+ analysis and `func.c` callbacks own grouped/ungrouped state. Shared Mem operations
+ in `vdbe.ts` consume grouping keys, direct/sorter/saved column phases, aggregate
+@@ -453,6 +300,21 @@
+ 
+ ## Windows and private storage
+ 
++Current registered bounded frame paths retain pending input/end-peer ownership,
++independent current/start/end positions, EOF-before-inverse and deletion before
++Next. RANGE offsets use typed Mem int64/overflow and storage-class/collation
++comparison, PRECEDING precompare and BIGNULL before DESC, not Number coercion.
++Generated sort copies retain sourceExpression identity for resolution while copy
++owns integer-to-NULL adaptation. Compatible cache-required value/EXCLUDE routes
++remain retained; other schedules are not certified. Exact allocation witnesses
++are logical accounting evidence, not universal native minima. [Owner correction](research/card-s-i/window-owner-correction.md).
++
++Explicit packed KeyInfo selects the private BLOBKEY arena; MakeRecord owns its
++serialized snapshot, Insert/balance consumes it, and selected persistent WR
++Case5 consumers deduplicate physical PK keys after residual tests. Legacy
++iterator/IN/window consumers are not wholesale migrated. [Selected consuming
++boundary](research/card-s-i/source-owner-comparison.md) and [acceptance matrix](research/card-s-i/acceptance-matrix.md).
++
+ `window.c:sqlite3WindowRewrite`, `sqlite3WindowCodeInit`,
+ `sqlite3WindowCodeStep`, `windowCacheFrame` and frame helpers own rewriting,
+ partition/order keys, input coroutine, buffer duplicates and endpoint scheduling.
+@@ -493,19 +355,7 @@
+ retain empty declared types. Resolved direct columns publish virtual-column
+ metadata; aliases override, computed names retain exact expression spans. JSON
+ row extraction preserves INTEGER/REAL and storage classes through grouping.
+-`json_pretty` executes at arities 1/2 with default/custom indentation and ordinary
+-subtype-0 TEXT. Its ordered shared document representation retains scalar/label
+-TEXT/TEXTJ/TEXT5 scalar and label spelling through JSONB composition. Shared
+-parser/string-render generators let pretty suspend at character/node checkpoints;
+-variable-width escape/comment scans charge consumed-position thresholds rather
+-than index alignment, including strict string reclassification. Chunked append
+-checks output bytes before encoding and yields through Function
+-execution. A statement-owned conservative logical arena reserves parse/lexical,
+-indent and output retention before growth and releases it in finally on every
+-completion. This is a logical private-byte bound, not native/JS heap measurement;
+-large source conversion is preflight-charged before browser Mem decoding. Strict shared JSONB validation is retained (malformed JSONB can
+-be rejected more eagerly than upstream's permissive renderer). Evidence and
+-remaining admission/path census: [pretty slice](research/card-r-f/README.md). Host extensions and
++`json_pretty` remains recognized but temporary unsupported. Host extensions and
+ external virtual-table modules remain SPEC exclusions, not an excuse to exclude
+ built-in JSON.
+ 
+@@ -517,857 +367,3 @@
+ visible roadmap work. Historical predictions are verified at the next consuming
+ slice. No new implementation, compatibility credit, whole-project completion,
+ operator/configuration changes or all-project cleanup gate is authorized here.
+-
+-### Retained derived hidden ORDER key (2026-10-03)
+-
+-The single-source coroutine consumer now binds an admitted column ORDER key in
+-its complete producer EList, independently of visible projection. As in pinned
+-`resolve.c:resolveOrderGroupBy`, parent aliases/ordinals first map through parent
+-EList; qualified/unqualified source columns map through transient source names.
+-`select.c:flattenSubquery` restriction (11) retains both ORDER owners;
+-`fromClauseTermCanBeCoroutine` (1a), tag 0482 and SRT_Coroutine retain producer
+-LIMIT before consumer sorting. No replacement algorithm or materialization is
+-introduced. Existing one-key column consumer boundaries remain.
+-
+-Foundation regressions exercise hidden/reordered/qualified/alias/ordinal keys,
+-two SorterOpen operations and coroutine controls. Reservation instrumentation
+-observes one execution budget crossing 150 bytes while child/parent sorters are
+-live; 300 succeeds, 150 fails on step, saved reset error and cleanup restore
+-admission. These are implementation logical bytes, not native allocation parity.
+-
+-### Nullable selected equality RHS (bounded repair)
+-Pinned `wherecode.c:codeAllEqualityTerms` (976–980) sends nullable `=` RHS
+-straight to the level's `addrBrk`, before affinity/seek; `IS`/`IS NULL` keep
+-NULL searchable and IN skips NULL in its own iterator. Both ordinary and joined
+-selected-index lowering now distinguish equality-null exit from range-start
+-`addrNxt`: equality bypasses all remaining IN probes, while joined LEFT still
+-passes through its unmatched-row continuation. Conservatively emitting a guard
+-for a statically nonnullable equality adds a no-op, not a comparison change.
+-`candidate-lifecycle-public.test.mjs` uses frozen manifest-pinned native controls
+-captured before consuming test edits: six encoding/stat snapshots, persistent
+-alternatives, dependency/LEFT, typed values/metadata/reset/rebind/errors. Controls
+-were captured after product implementation, not retroactive native-FIRST.
+-
+-Row-width proposal revision [[card:card-s-e-a]] (2026-10-04, not implementation):
+-analysisLoader assigns nonpartial globally matched index count to argv[0] named
+-table, not index.table; post-load defaults may floor table-only count to99.
+-GetInt32 unsigned hex remains admitted at sz boundary. Revised native-first
+-120 snapshots and237 production/public assertions are recorded in the decision
+-note; TS baseline9/237 passes is not fidelity credit. Planner assessment pending.
+-
+-Row-width acceptance correction (proposal only): pinned wherePathSolver feeds
+-prior rUnsort, including each no-sort round's -2 bias, into the next extension.
+-The row-width note and real joined path-bias control distinguish total51/unsorted49
+-from erroneous52/50. No runtime change or compatibility credit.
+-
+-### Immutable schema estimates — repair checkpoint, not acceptance (2026-10-04)
+-[[card:card-s-e-b]] uses schema-local mutable construction, default/load/post-load
+-and final freeze; numeric column/table/index LogEst estimates have one owner.
+-PhysicalIndex fields supply index width, not JS bytes or declared key count.
+-Pinned build.c AddColumn/AffinityType/estimateTableWidth/estimateIndexWidth and
+-analyze.c analysisLoader/decodeIntArray own estimates. Callback conversion uses
+-shared Mem/DB encoding and UTF-8 NUL termination; globally matched indexes and
+-named tables remain distinct owners. Ninth checkpoint retains converted UTF8
+-callback bytes rather than READ_UTF8 Unicode before hash lookup/token scanning:
+-overlong e083a9 must not alias valid c3a9 schema name. Mem performs encoding
+-conversion; byte-key maps use canonical schema UTF8 and ASCII-only fold. Native
+-exec callback hex and three-encoding typed/reset regression bound this evidence;
+-Thirteenth checkpoint direct pinned column_text byte oracle covers both UTF16
+-endians: final unpaired surrogate emits three UTF8 bytes under default build,
+-not replacement. Shared Mem now uses utf.c direct read/write conversion rather
+-than Unicode-string re-encoding for UTF16→UTF8; odd-byte and following-unit
+-branches tested (12 cases). Fourteenth checkpoint encoded stat1 caller fixtures now bound malformed
+-surrogate table names (ignored byte hash) and high surrogate plus following
+-space in unknown token: conversion consumes the space, so sz=8 stays within
+-ignored token and physical width remains default, while unordered is retained.
+-Two native callback-hex/EQP snapshots and public typed/reset checks pass;
+-full invalid stat1 matrix remains open. Fifth checkpoint removes an incorrect
+-WITHOUT ROWID restriction on analysisLoader's equal-name PrimaryKeyIndex
+-lookup (analyze.c1611/build.c1069). Persistent UNIQUE indexes retain distinct
+-origin so equal table/index name does not target them. Encoded BLOB/NUL callback
+-fixtures prove bounded rowid-text-PK versus UNIQUE ownership and public seeks;
+-complex autoindex numbering/constraint-merging is not certified. Tenth checkpoint
+-preserves ordered PRIMARY/UNIQUE grammar actions and build.c4330–4380 merge:
+-equal column/collation sequences retain first direction, promote PK origin and
+-do not consume another implicit ordinal. Native-first rowid UNIQUE-before-PK
+-plus duplicate DESC UNIQUE fixtures bind widths/physical access/typed reset;
+-Eleventh checkpoint shares ordered implicit definitions for rowid and WR:
+-WR primary uses its retained ordinal (not always1), and automatic UNIQUE rows
+-use ordinary secondary PhysicalIndex/PK suffix publication. Native-first WR
+-UNIQUE-before-PK plus duplicate UNIQUE fixture binds primary ordinal2, secondary
+-widths/PK mapping and noncovering typed reset all encodings. Conflict policies,
+-Twelfth checkpoint feeds the merged primary definition into WR compaction and
+-storageKey before publication, retaining the first equivalent UNIQUE direction
+-when later PK promotes origin (build.c4330–4380). Native-first all-encoding
+-UNIQUE(a DESC)→PK(a ASC) fixture binds covering seeks/reset and primary width;
+-supplemental native index_xinfo confirms DESC. Conflict policies/full census
+-remain open. Fifteenth checkpoint independently captures rowid equivalent
+-UNIQUE(a DESC)→PK(a ASC) promotion: native index_xinfo DESC, noncovering typed
+-rows/reset and physical width27 pass all encodings without runtime edits.
+-Constructor census locates persistent schema, derived resolve, VDBE view/CTE/
+-VALUES/derived table owners; defaults are explicit, but conflict onError grammar
+-is not retained by implicit definitions and REPLACE linkage remains unverified.
+-Sixteenth checkpoint retains implicit onError grammar/default identity, merges
+-explicit/default before PK promotion and translates build.c exit_create_index
+-first-REPLACE bubbling to list tail. Native-first three-encoding index_list
+-fixtures reproduce wrong [3,2,1] versus [3,1,2]; exact source linkage now passes
+-with typed noncovering reset. Conflict inheritance/error branch implementation
+-Seventeenth checkpoint independent default UNIQUEa→REPLACE PK promotion
+-with another REPLACEb exposes final-policy replay loss: native list1/2, old2/1.
+-Implicit producer now executes prepend/cleanup at every grammar action including
+-merge/promotion and publishes that source list position before stat load/freeze.
+-Three encoded native index_list/typed reset fixtures pass; explicit conflicting
+-Eighteenth checkpoint WR+APPDEF promoted REPLACE list fixture passes existing
+-publication all encodings. Independent conflicting explicit IGNORE/REPLACE
+-writable-schema snapshots expose public raw SchemaFormatError lacking native
+-CORRUPT11/name context. Owning merge adds prepare.c corruptSchema object context;
+-public prepare translates SchemaFormatError to sqlite11/cause, repeated prepare
+-fails without schema publication. Native message/code all encodings pass.
+-Nineteenth checkpoint removes post-estimate implicit-slot sorting: automatic
+-schema rows construct first, retained grammar linkage materializes before any
+-APPDEF row, then APPDEF insertions run source cleanup on actual list. This
+-matches init-busy/table-grammar ownership in build.c4485/exit_create_index;
+-physical identity and progressive estimates stay single-owner. Conflict suite
+-13/13 plus WR explicit coverage passes; broader constructor closure unclaimed.
+-Twentieth checkpoint isolates nine ordinary case families across all120 original
+-snapshots so early joined failures cannot hide REAL/WR/expression/NULL/reset/
+-rebind-clear/column-name assertions:1080/1080 pass on unchanged native expected
+-semantics. Nine private production plan/compile checks bind setup0, range output,
+-seek+width-ratio/table-lookup LogEst costs and actual tc roots covering versus
+-noncovering; no joined/full-origin-metadata or universal optimizer credit.
+-Twenty-first independent pinned-native fixtures (three encodings49,152 bytes)
+-close direct-column origin metadata and REAL-constrained noncover public gap:
+-all five ColumnMetadata fields, INTEGER/REAL storage classes, numeric values,
+-NULL clear, rebind and reset-retained pass3/3 without runtime changes. This is
+-bounded direct-column metadata, not aliases/expressions/join metadata closure.
+-Twenty-second constructor census exposes WR INTEGER PRIMARY KEY: AddPrimaryKey
+-initially creates rowid-alias identity, then convertToWithoutRowidTable2385–2411
+-creates persistent primary only after other grammar indexes. Implicit producer
+-now delays this action (inline DESC excluded, table PK DESC alias retained), so
+-native ordinal/root/stat ownership holds. Three-encoding native-first fixtures
+-reproduce unpublished index rowLogEst crash; repair19/19 focused/typecheck0.
+-No rowLogEst fallback added: correct physical primary identity feeds defaults.
+-Twenty-third independent WR controls bind inline DESC (immediate PK), table
+-DESC (delayed PK), UNIQUE(a)→delayed PK merge retaining first ASC direction.
+-Nine encoded snapshots184,320 bytes pass before further refactor; shared
+-AddPrimaryKey identity producer now supplies rowid alias publication and WR
+-delay, removing duplicate grammar identity inference. Focused15/15,typecheck0.
+-Constructor census still incomplete; these are native index-order/root/typed
+-reset checks, not all metadata/control branches.
+-Twenty-fourth census corrects SELECT transient placeholders: select.c2246
+-zero-allocates columns,2376 leaves szEst unused,2432 publishes szTabRow1.
+-Resolver nested compound and VDBE derived/CTE synthetic owners now use column0/
+-table1 instead of fabricated1/16, preserving nonphysical root0/no-index fence.
+-Source-derived nested resolver regression3/3; no planner fidelity credit for
+-unused transient column estimates.
+-Checkpoint25 reviewable ownership/control inventory is
+-`docs/research/card-s-e-estimate-census.md`: persistent/default/load/freeze,
+-transient owners, actual cost/lowering consumers and mixed-hunk review gates.
+-Fresh complementary candidate/stat/WR/order/resources94/94 on unchanged runtime;
+-original123 failures and constructor/error/resource/metadata gaps remain.
+-Checkpoint26 fresh missing matrix80 nodes74/6; selected/offpath corruption,
+-RHS limits and connection reuse pass, but two-slot joined IN crashes6/6 at
+-InListValue integer iteration register. Identical current tests on isolated
+-HEAD source6/6 pass: new checkout regression, not preexisting join attribution.
+-Advanced page-local/offpath/resource name-selected checks8/8. Next isolate
+-width/path selection versus lowering/register lifetime; no SELECT workaround.
+-Checkpoint27 trace: outer covering scan permits x.a NULL, first RHS exhausts
+-before second iterator initializes. LEFT synthetic body then re-enters IN
+-restart with uninitialized register. where.c7627 IfNotOpen prevents analogous
+-unopened cursor advance; register-set adaptation now fences synthetic null
+-continuation past physical/IN advances, reset per outer row. Selected45/45;
+-fresh affected144143/1 and width14101287/123 retain unrelated unresolved reds.
+-Checkpoint28 independent read-only native retained reset/clear/rebind captures
+-six existing encoded before/after fixtures184,320 bytes (no new DB bytes),
+-empty-second/NULL-first and matched bindings. Public6/6 (retained replay too);
+-isolated pre-guard source0/6 crash confirms regression coverage, not samples.
+-Checkpoint29 VDBE review isolation11 owned hunks27/12 versus2 peer bitwise
+-hunks2/2, both reverse-check; no staging/review approval. Fresh width1416
+-1293/123,affected/resource229228/1,typecheck0; original failures unwaived.
+-Checkpoint30 native declared controls20 columns ×3 encodings36,864 new
+-fixture bytes cover hex signed boundary/overlong zeros/invalid suffix/CHAR scan
+-versus immediate BLOB pointer and INT precedence; full direct metadata/rows/
+-reset3/3. Internal widths source-derived, not native internal estimates.
+-Checkpoint31 raw ff/c183 schema-SQL BLOB→TEXT controls36,864 bytes:
+-UTF8 accepts quoted malformed declared prefix,width5 source-derived; UTF16
+-CAST retains UTF8 bytes interpreted as UTF16, native/TS CORRUPT11 twice.
+-This is encoding-mismatch schema rejection, not malformed UTF16 type closure.
+-Checkpoint32 correctly encoded malformed UTF16 schema high-surrogate +X
+-consumption controls2 fixtures24,576 bytes: independently native UTF8 metadata
+-hex matches TS all5 direct fields,typed TEXT/reset,width5 source-derived.
+-Fresh declared suites8/8. Not complete malformed-byte/metadata coverage.
+-Checkpoint33 independent-review handoff docs/research/card-s-e-implementation-review.md
+-summarizes owning paths/adaptation/open dispositions. Fresh width14241301/123,
+-resource229228/1; no independent review/staging/acceptance claimed.
+-Checkpoint34 missing joined families isolated preserving original JS-number
+-bindings: current36011/349 vs HEAD0/360; INTEGER diagnostic current360/360
+-vs HEAD135/225. Current failures join120,path-bias120,rowid109; no waiver.
+-SeekRowid vdbe.c5495 copy+NUMERIC lossless conversion absent in TS6902,
+-root semantic owner remains separate. Diagnostic INTEGER variant not shipped.
+-Checkpoint35 independent pinned exact no-ORDER tie query9 controls all tb;
+-TS plan/chosen OpenIndex/public rows/reset9/9. where.c2744 insertion discards
+-equal candidate before5818 width tie. Original3 contradictory assertions
+-remain unchanged pending parent review; no reranking workaround.
+-Checkpoint36 independent native reverse-outer LEFT two-IN continuation
+-8 binding sets×6 snapshots: unmatched→matched→unmatched/reset6/6,zero skips.
+-184,320 existing bytes reused,no runtime changes/no universal join credit.
+-Checkpoint37 joined WR native3 nonempty controls retained; current/HEAD0/3
+-both reject at preexisting compileInnerTableSelect storage-shape fence3376,
+-so no joined physical-mapping execution credit. Do not remove fence without
+-coherent SELECT lowering. Ordinary WR repair unaffected; expectations red.
+-Checkpoint38 persistent publication identity/freeze120/120 over original
+-snapshots: cached graph stable, accessor is index owner,physical backlinks,
+-readonly maps and attempted estimate mutation. Source-derived invariant tests,
+-not oracle public compatibility/full cleanup or transient constructor proof.
+-Checkpoint39 failed stat1 load fresh errors/no graph publication6/6 and
+-existing public repeated-prepare corruption6/6. Defaults/post-load ordering
+-compared analyze.c1988; strict malformed-record rejection is existing policy,
+-not native corruption equivalence. STAT4 path not newly verified.
+-Checkpoint40 fresh width1928:1453/475 (original123+isolated349+WR3),zero
+-skips/cancels; affected129:128/1 reverse-sorter; standalone typecheck0.
+-Updated review handoff contains classified residuals,no waiver/acceptance.
+-Checkpoint41 exact joined reverse-order native SORT0 forced/SORT1 scan
+-all encodings; TS rows/reset/sorter parity6/6. where.c5273 ONEROW skips
+-singleton x ordering; original sorter>=3 assertion retained for review,
+-not product regression workaround or universal order proof.
+-Checkpoint43 where.c3037 residual output adjustment now runs after physical
+-costing/before insertion for actual loops,skips used/virtual/unavailable terms,
+-heuristic equality clamp. Source tests8/8,native cost branches3/3 after
+-correcting owned stale internal output expectations,native rows unchanged.
+-truthProb/HIGHTRUTH/LIKE/self-cull flags remain unrepresented,not full port.
+-Sixth checkpoint
+-translates build.c2417/isDupColumn WR primary-key compaction before physical
+-layout/default/stat1 publication: same column+collation retains first direction;
+-distinct collations remain distinct fields. Seventh checkpoint publishes build.c
+-sqlite3AddPrimaryKey identity once: inline INTEGER PRIMARY KEY DESC is not an
+-alias, but table PRIMARY KEY(id DESC) is. Width/autoindex/resolver/WHERE/VDBE
+-consume that identity, with explicit null on transient tables. Older private mocks
+-alone retain a compatibility fallback. Native-first three-encoding fixtures bind
+-both syntax paths and typed rows/reset. Native-first duplicate WR fixtures
+-bound width, stat vector and secondary-key ordinal/public lookup evidence.
+-Eighth checkpoint distinct-collation WR noncovering native fixtures exposed
+-expr.c4462 table-column mapping omitted after a valid secondary PK seek.
+-Ordinary lowering now maps table cursor columns through the physical primary
+-index while covering columns remain mapped through chosen secondary; includes
+-residual expressions and direct projection. Joined lowering remains uncertified.
+-Unknown stat1 tails are ignored, noskipscan
+-consumed by default stat1-supported skipped-prefix admission: hasStat1, !noSkipScan and duplicate LogEst>=42, with leading nullable positional slots. NULL slots represent skipped key ordinals, not SQL NULL terms. Unordered stat1 indexes may supply equality proposals but never physical ORDER BY credit (where.c5289). Default public companions now validate compiled skipped-prefix ordinary/joined/recursive-OR and WR paths against pinned native rows, columns, bindings/reset and strict cursor restarts, bounded evidence, not whole optimizer compatibility ([evidence](research/card-s-g/IMPLEMENTATION.md)); optional STAT4 samples are not consumed. Source low-multiplier unfavorable stat1 literal-IN proposals now carry IN_SEEKSCAN by default, with shared GE-only lowering and joined invocation invalidation tested against native-first ordinary/joined companions through public execution. Explicit-disabled control retains IN as residual on valid prefixes; default skipped-prefix lowering uses the shared strict physical-prefix restart owner. Normal IN earlyout/SeekHit/SeekEq fidelity remains open. Default ordinary index frames now share source insertion/recursive-return feedback with skip/OR; ordinary scalar transitive whereScanNext now feeds the same admission/lowering owners, preserving original RHS orientation/ready masks and residuals, with native-first public join/LEFT/NULL evidence; borrowed IN remains unadmitted (same evidence). Represented column NOTNULL now produces a linked virtual GT-NULL range (excluding rowid/IPK and outer-ON), with VNULL selectivity and source start/end NULL-guard exemption in ordinary/joined/OR consumers. Shared zero-constraint positioning emits Rewind/Last rather than an invalid empty seek; when constraints equal nSkip, initial/restart Column already positions the cursor and no suffix re-seek is emitted (wherecode2026). Joined/OR consumers retain positional prefix metadata independently of the positioning opcode; recursive OR arms receive no ORDER BY (wherecode2431), so outer DESC sorts results without reversing arm cursors; normal NULL end bounds exit before comparison; native-first NULL/caller companions cover the current bounded path. Unrepresented EXISTS transformation, borrowed IN, and full cost/order/resource matrix closure remain implementation gaps, not algorithm exceptions (same evidence). WHERE uses
+-explicit BigInt conversions and consumes immutable width/cost capabilities;
+-synthetic IPK width3 is not a persistent index. DDL type token spans preserve
+-immediate BLOB dimensions rather than inserting spaces. Fourth checkpoint
+-adds build.c1584/util.c299 complete type-span dequoting before metadata and
+-AffinityType; quoted CHAR/BLOB unsigned hex/overflow/doubled-quote fixtures
+-independently captured before the repair pass3/3 across encodings, including
+-complete direct-column origin metadata and typed row/reset checks. This closes
+-that bounded declared-type gap, not all metadata or invalid-byte coverage.
+-
+-where.c5273 skips ordering disruption for WHERE_ONEROW; represented actual IPK
+-equality prefixes now retain unknown joined ordering until a later capability
+-can prove it. Statistical nOut0 alone is not uniqueness. where.c5961–5995 keeps
+-prior unsorted recurrence and biases unsorted (including unknown), not total.
+-Runtime240 remains117 pass/123 fail; early joins conceal additional ordinary
+-failures, so do not attribute all public gaps exclusively to joins. A separate
+-ordinary diagnostic is11/120; rowid JS-number bindings fail (shared Mem correctly
+-represents numbers as REAL). Pinned vdbe.c5495 OP_SeekRowid numerically coerces a
+-copy without changing the operand; current TS rejects non-INTEGER outright,
+-unchanged from HEAD. A diagnostic using BigInt instead passes120/120 rowid cases,
+-not a waiver or acceptance. Root semantic-owner disposition is needed.
+-Fresh pinned native chooses tb for three preserved auxiliary no-ORDER tie
+-assertions demanding ta; captured ORDER query still chooses ta. Expectations
+-remain unchanged pending parent disposition. Independent reverse-join native
+-sort count is0 (NOT INDEXED control1), contradicting the preserved peer sorter
+-expectation. Supplemental source-based cost/order tests pass; affected170 is
+-169 pass/1 fail, not acceptance or universal compatibility.
+-where.c3533/3552/4050/4239/4258–4278 now feed IS NULL estimates, range clamp
+-ordering, full-scan ORDER usefulness, and covered-prefix table-lookup reduction.
+-These branch repairs are unreviewed; truthProb, invalid-byte callback parity,
+-expanded declared hex/full metadata and complete WR mapping/census remain gaps.
+-
+-Checkpoint44 expr.c2899 EP_IntValue syntax recursion replaces token-joined
+-residual literal check; parentheses/unary signs recurse,only positive signed32
+-INTEGER leaves qualify (not runtime hex64/folding). Source19/19. Fresh
+-width1951:1476/475 and affected/resources178:177/1,zero skips/cancels.
+-
+-Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+-where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
+-No missing admitted shared-state consumer; no mutable clause workaround.
+-SELFCULL consumer6606 Bloom generation unsupported,not width cost.
+-Fresh selected55/55,WR/residual complement43/43,stat/STAT4 boundary36/36;
+-44 changed-runtime width1951:1476/475 and resources178:177/1 reused.
+-
+-Checkpoint46 current constructor census: transient result tables column0/table1/
+-rows200 (select.c2376/2432/2464) now consistently freeze completed metadata at
+-publication via schema freezeTransientTable; not persistent default/stat1 pass.
+-See refreshed estimate census and implementation handoff; independent review pending.
+-
+-Checkpoint47 transient publication regression targets real withTransientTable:
+-3/3 current versus isolated freeze-call removal0/3; broad publication200/200,
+-typecheck0,width1956:1481/475,resources49/49,affected170:168/2 (sorter assertion,
+-missing r2-native artifact). No new runtime edits; independent review pending.
+-
+-Checkpoint48 transient guard-before-freeze/repeated-identity controls pass;
+-publication/WR/STAT4/corruption159/159. Persistent PhysicalIndex-null fallback
+-width1 flagged as open source ownership branch (build.c2236 versus schema574);
+-unsupported access does not automatically justify fabricated width estimates.
+-
+-Checkpoint49 real unknown-collation index reproduces fabricated width (3/3 red).
+-Pinned native ordinary q scan succeeds with A in all encodings; forced qi returns
+-SQLITE_ERROR/no query solution. Tried whole-schema rejection,then reverted:
+-that blocks legitimate table scan and is not a coherent source-faithful policy.
+-Need structural field ownership separate from executable built-in KeyInfo;
+-no width1 fallback or global rejection credit. Final tests retain expected
+-structural width LogEst(108) (CHAR100=26 plus rowid1),still0/3. No runtime change
+-retained this checkpoint; missing four Chinook tests remain unwaived.
+-
+-Checkpoint50 replaces fabricated nullable-physical width with shared immutable
+-PhysicalIndexLayout owner; executable built-in KeyInfo uses same fields/PK
+-mapping only when collations available (build.c2236,5653–5700). Unknown collation
+-preserves structural width and ordinary table read,declines index access;
+-no competing statistics or host callback support. Review pending.
+-
+-Checkpoint51 native WR unknown-CollSeq exact index_xinfo records agree with
+-shared layout fields: PK a custom DESC,b,c; same-collation suffix dedups a;
+-different-collation suffix repeats a custom DESC and maps PK [1,2]. Three
+-encodings frozen metadata/source widths pass3/3; independent native ordinary
+-WR read and forced secondary reads fail prepare1,TS rejects too (not exact
+-code/message parity). New36,864 fixture bytes; no WR executable access credit.
+-Fresh complement156:153/3 includes existing joined-WR storage fence failures,
+-not new owner regressions. Checkpoint50 width/affected evidence reused runtime
+-unchanged; independent review/root/parent/native-input gaps remain unwaived.
+-
+-Checkpoint52 unknown-CollSeq caller now preserves native SQLite error1 rather
+-than temporary unsupported: forced unavailable index => no query solution;
+-unforced WR unavailable primary storage => no such collation sequence.
+-Owning btreeLoops uses retained layout names; existing capability gating/cost
+-ordering unchanged. build.c5653–5700/where.c6169 branches; six encoding controls
+-assert exact public kind/code/extendedCode/message/null classification across
+-repeated prepares,stable graph and immediate close. First harness syntax error
+-corrected;final6/6. Fresh affected173:170/3 existing joined-WR fence only.
+-
+-Post-runtime row-width acceptance correction (not runtime repair): exact auxiliary
+-no-ORDER tie SQL selects tb after width-free whereLoopFindLesser dominance;
+-ORDER BY a retains sort identities and discriminates width in solver comparison.
+-Native controls captured after implementation, before revised acceptance execution;
+-not retroactive native-FIRST. See row-width decision note. Root public failures
+-and peer reverse-sorter assertion remain unwaived.
+-
+-
+-### Revision 2026-10-04 — bounded numeric seek / LEFT continuation supersession
+-
+-This revision supersedes **only** the earlier absent NUMERIC-copy claims in the
+-row-width checkpoints (including checkpoint34 and audit2026-10-04d), not their
+-historical reds or pending e/root qualifications. See
+-[causal repair/evidence note](research/seek-rowid-numeric-repair.md).
+-Commits `4fa06e2441b978406cbd285b34ff4e6a25868ebc` and
+-`5713c0f68bfb733ecb4e527fc74841394066ceac` correct these bounded owners:
+-
+-- Pinned `vdbe.c:5495 OP_SeekRowid` copies the input Mem and applies NUMERIC
+-  affinity before integer gating/cursor access, preserving original binding
+-  payload/type. `vdbemem.c:sqlite3VdbeIntegerAffinity` uses the **exact bigint
+-  slot for IntReal**, including both signed64 endpoints and values above2^53.
+-  Existing REAL instead uses double-to-integer roundtrip equality and **strict
+-  signed64 endpoint exclusion**. This is distinct from the narrower
+-  `sqlite3RealSameAsInt` text-numericization rule; it is not a text shortcut.
+-- `where.c:sqlite3WhereEnd` distinguishes continuation, advancement and LEFT
+-  synthetic-null re-entry. TS `nextAt` enters LEFT null-pass / RIGHT Return
+-  guards; `advanceAt` identifies the actual singleton Goto or movement opcode.
+-  Singleton target patching now uses advanceAt, not an offset into nextAt.
+-  ON matching remains before null extension; WHERE remains after positioning.
+-- `where.c:wherePathSatisfiesOrderBy` /5273 WHERE_ONEROW supports only the bounded
+-  represented proof: **FINAL ordered producer after exact rowid-equality
+-  singleton predecessors**. Statistical nOut0 is not uniqueness. Outer ordering
+-  before later fanout is NEVER promoted by this proof. Other joined paths retain
+-  zero global order; this is not general multi-source ordering acceptance.
+-
+-Fresh strict singular-public ordinary execution on the disclosed peer-dirty
+-runtime completed **69/69** cases across UTF8/UTF16LE/UTF16BE, exact rows/errors
+-and every exact/min/max private bound, with no prepare waiver or increased limit.
+-Earlier63/69 with six LEFT limits and66/69 with three sorter minima remain
+-historical failures, causally repaired rather than waived. Primitive IntReal
+-coverage is not a claim of a public IntReal producer. No public API change.
+-Runtime commit/tree and fresh five-fix delivery evidence are in current executor
+-status for [[card:card-s-b-a-a-b-a-a-a]]. Native fixtures/pin evidence are not TS
+-execution credit. Shared dirty work is NOT a clean export; e aggregate1962/1490/472,
+-cFAILED, joined-WR and broader historical reds remain unwaived/separately owned.
+-
+-### Joined WITHOUT ROWID repair — 2026-10-04
+-
+-Checkpoint37 above is historical red evidence, now superseded for the bounded
+-comma/CROSS/INNER/LEFT persistent producer by [[card:card-s-c-b-a]]. Joined
+-admission, OpenIndex, movement and expression payload remapping now consume the
+-existing immutable primary descriptor/KeyInfo; semantic declared column affinity
+-and metadata remain separate from physical ordinal. `expr.c:sqlite3ExprCodeGetColumnOfTable`
+-(4462) owns this remap. `build.c:convertToWithoutRowidTable` owns BLOBKEY/PK layout;
+-`wherecode.c` 2170–2186 owns covering omission versus secondary PK extraction.
+-Primary selected access never treats the primary record as a secondary rowid tail.
+-Uncovered secondary reads use the established DeferredIndexSeek at each loop
+-start before predicates/projection; movement returns to that positioning point.
+-Covering WR reads omit the primary lookup. Ordinary direct projection remains
+-unchanged (including its INTEGER/REAL behavior); expression emission now honors
+-its existing payloadIndex carrier rather than silently ignoring that field.
+-WR RIGHT/FULL match tracking is still atomically unsupported: its existing
+-Rowid/one-field match key is not a composite PK implementation.
+-
+-Pinned read-only `capture-without-rowid-joined.py` records typed rows and
+-reset/rebind/finalize, plus all five metadata fields and actual EQP/cursor
+-controls for the original/forced duplicate-PK fixture queries (not every later
+-required-primary query). Native corruption/finalize controls were obtained
+-before runtime edits; native resource-budget controls were not. Work-limit
+-assertions below are TS contract evidence, not native budget equivalence. The
+-original three-encoding reproducer remains unchanged. Added public tests cover
+-secondary/primary root isolation, sticky corruption/finalize, LEFT miss/reset,
+-work limits, and required-primary lookup across rebind. Native EQP may use a
+-covering secondary even for WR NOT INDEXED; TS is not claiming identical plans.
+-Conservative joined needed-column accounting can require primary lookup where
+-native proves covering: correctness evidence is not a full optimizer claim.
+-
+-Delivery follow-through: lookup capture now obtains EQP/program per exact
+-row-run binding (2.5/1/NULL/2.5). Post-runtime native progress-interrupt and
+-length-limit reset/recovery controls are explicitly labeled, not native-FIRST
+-or equivalent to TS work budgets. Source comparison confirms where.c4035's WR
+-index chain bypasses the rowid NOT INDEXED secondary suppression at4055; TS's
+-primary-only NOT INDEXED candidate policy is conservatively narrower, not exact
+-native plan parity. Owner-relative source payload, prerequisite hashes and
+-handoff are in `docs/research/joined-wr-delivery/README.md`; overlapping owner
+-reconciliation/integration remains outstanding.
+-
+-
+-### Joined column-location correction (2026-10-04)
+-The semantic location contract now distinguishes `physicalColumnIndex` (table
+-primary/secondary storage ordinal) from aggregate `payloadIndex`/iAgg bookkeeping.
+-Joined columnAccess produces the former; binding replaces any prior physical
+-location when rebinding, and expression emission consumes only that location.
+-Logical transient indices and aggregate registers retain their own owners.
+-Pinned expr.c:sqlite3ExprCodeGetColumnOfTable4462 maps table storage;
+-TK_AGG_COLUMN4995–5015 uses accumulator/sorter locations first, and select.c
+-AggInfo production owns those locations. vdbe.c OP_Column reads the already
+-chosen cursor record ordinal, not a universal semantic-to-physical conversion.
+-This repairs the source-only45/68 cross-layer regression without reverting real
+-WR collation-aware mapping. Exact corrected candidate tests: discriminator68/68,
+-broad910/910,joined/shared184/184. Historical24/30 credit, wider fences and
+-post-runtime/native-FIRST shortfall remain unchanged; no B4-cause claim.
+-
+-### Current bounded width evidence closure — 2026-10-04
+-
+-Actual integrated source is `644cbcd827a2fbdf3a14407210941e38ac945a01`
+-(tree `7669377f99ead8c9bed67c52695cfa549863fa2d`), not the historical
+-mixed ACK candidate. Joined owner correction uses dedicated `physicalColumnIndex`
+-for storage; `payloadIndex`/iAgg remains logical aggregate state. Old checkpoints
+-and their failures remain chronological evidence, not current acceptance claims.
+-Independent [[card:card-s-e-c]] / [[card:card-s-e-d]] support bounded original
+-width and tested lifecycle on exact source plus inventoried297 evidence paths.
+-The coherent generator→case JSON→fixture/test corpus is promoted by
+-[[card:card-s-e-b]]; scope, hashes, fresh export checks and reuse are in
+-[width evidence delivery](research/card-s-e-b-evidence-delivery.md). Fresh exact
+-export original240/240, closure2034/2034 and read-only pinned120 snapshot equality
+-are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
+-reset/admission on reviewed source; sole causation is not proved and cancelled
+-baselines supply no causal credit. Native-FIRST chronology is unchanged.
+-Historical checkpoint only (superseded for skip-scan production): STAT4 sample estimates were unimplemented and noSkipScan was unconsumed outside the internal opt-in producer; advanced24/30, analyzeC0/24 and the then-current fences describe that revision, not current admission. Current bounded admission and remaining obligations are in [WHERE, joins, and physical indexes](#where-joins-and-physical-indexes) and the [skip-scan coverage contract](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review). Detailed checkpoint evidence remains in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+-
+-
+-### Current bounded infix caller repair — card-p-b-c (2026-10-04)
+-
+-Pinned `parse.y:1363–1383` creates LIKE/GLOB function lists as RHS pattern,
+-LHS candidate, optional ESCAPE. Syntax reduction children remain LHS/RHS/ESCAPE.
+-`vdbe.ts:bindResolvedExpression` and joined `resolveTree` now use the same
+-infix child permutation in every applicable caller policy, not only windows;
+-infix NOT binds its synthesized unary child against the same infix carrier.
+-Explicit function-call children remain unchanged. No patternCompare algorithm,
+-function breadth, fixture, or expected-count change was needed.
+-
+-Fresh source-ID-pinned C API on actual UTF-8/UTF-16LE/UTF-16BE users files
+-confirms Alice/Bob/Cara LIKE results 1/0/1 and filtered count 2. Public infix
+-aggregate/join/NOT/ESCAPE and explicit-call controls now agree. Executable evidence:
+-`ordinary-scalars-pattern-native.test.py` (36 INTEGER checks),
+-`run-ordinary-scalars-pattern-ts.mjs` (5 observations, 24 boundaries,
+-90 discriminators, 33 compositions, 9 lifecycle cases). Detailed chronology and
+-commands: `docs/research/card-p-b-c-pattern-count-diagnosis.md`.
+-The 50 active ordinary non-pattern registry rows / 0 absent count is unchanged;
+-this caller repair is not new aggregate/window or excluded-family support.
+-Original broad exit1 1539/1543 four reds are not universally dispositioned by
+-this focused repair. C4 and direct REAL/expression-subquery regressions remain
+-retained; no global cleanliness or universal acceptance claim.
+-
+-### Expression safety-budget fixture repair (2026-10-04)
+-
+-`run-expression-bounded-ts.mjs` pins the current `SELECT hex(?1)` inventory
+-for 1024 ASCII bytes: seven executed VM operations through ROW (three setup/body
+-Gotos, Variable, Function, Copy, ResultRow), four started 256-byte input chunks,
+-four hex traversal chunks, and eight output-copy chunks =23 units. The original
+-`f1a5b3b` inventory was four operations plus the same sixteen chunk units =20;
+-shared SELECT setup/body routing introduced by `48bf18c8` added three charged
+-jumps. The old 19/20 assertion was therefore stale, not evidence of removed
+-checkpoints. The repaired 22/23 boundary also checks saved error identity,
+-reset/rebind/reuse and the exact TEXT payload. No default, limit or runtime owner
+-is changed, and routing is not exempted from accounting.
+-
+-Pinned `src/vdbe.c` increments `nVmStep` before opcode dispatch (including
+-`OP_Goto`, whose jump path also checks interruption); `src/func.c:hexFunc`
+-converts input bytes into two uppercase output digits per byte. Browser chunk
+-charges/yields are an adaptation, not native VM-step parity. A source-ID-checked
+-native prepare/bind/step probe independently verified TEXT/2048 bytes, exact
+-payload, progress interruption (9), reset (9), and subsequent successful reuse.
+-Native progress control is not an asynchronous JS cancellation proof. This
+-finite repair retains the API's implementation-defined safety-counter contract;
+-unit inventories may change with source-shaped lowering and must be justified,
+-not silently raised to make a failing test pass. The runner separately exercises
+-actual yielded cancellation, injected deadlines, output limits and all three
+-fixture encodings. Historical unrelated conformance reds are not cleared here.
+-
+-### Revision 2026-10-04 — exact ORDER/LIMIT expression-subquery adjudication
+-
+-[[card:card-m-f-j]] independently source-ID-checked SQLite 3.53.4 before
+-changing the historical ORDER/LIMIT prepare-only assertions. The exact compound
+-query returns INTEGER 0, the bare derived query returns INTEGER 0 natively but
+-remains a truthful TS temporary unsupported boundary, and the exact unordered
+-scalar query returns INTEGER 31 (not 0). All three have full origin metadata
+-`x / INT / main / t1 / x`. The test now executes compound/scalar routes through
+-singular Fetch in UTF-8/16le/16be, compares independently captured metadata/typed
+-rows, and checks reset, inner-empty/NULL/LIMIT 0, ordered OFFSET, outer LIMIT 0/
+-OFFSET, partial-step reset, finalize/restored admission, and deferred close.
+-No runtime admission change or relational credit is inferred.
+-
+-Pinned `expr.c:sqlite3CodeSubselect` lines 3933–3958 rewrite existing scalar
+-LIMIT X to X<>0 (numeric comparison) before `select.c:computeLimitRegisters`.
+-A new discriminator exposes a genuine remaining divergence: scalar child
+-`LIMIT 'x'` natively returns INTEGER 31, while TS reports step-time code 20.
+-The generic table child of `compileScalarSelect` still calls ordinary
+-`computeLimitRegisters` (around `vdbe.ts:2908`) instead of the existing scalar
+-normalization owner; IN must retain ordinary LIMIT, and OFFSET/error ordering
+-must remain source-shaped. This is reported to the runtime ownership chain, not
+-patched by weakening the expectation or broadening derived admission.
+-Native capture/validator: `order-limit-subquery-native.py`; fixtures have the
+-same insertion order as the digest-pinned expr-relational image. Current scoped
+-suite is 9/10, including a deliberately red exact-source discriminator; selected
+-all-encoding promoted destinations are 3/3. Historical combined 1539/1543 remains
+-nonpassing and has not been rerun by this slice.
+-
+-### Revision 2026-10-04 — scalar LIMIT normalization repair
+-
+-[[card:card-m-f-j]] repairs the preceding concrete discriminator, not the
+-unmatched derived admission boundary. The generic table child now selects the
+-existing `computeScalarLimitRegisters` owner for Mem/Exists before the ordinary
+-OFFSET/combined-capacity computation. Pinned `expr.c:sqlite3CodeSubselect`
+-3933–3958 normalizes X<>0 with numeric affinity; `select.c:computeLimitRegisters`
+-then checks zero before admitting OFFSET. IN retains ordinary row-count LIMIT;
+-a retained producer feeding a post-producer predicate likewise retains its own
+-LIMIT instead of treating it as the consuming scalar destination. Destination
+-initialization, Once, scan position, first-result exit, sorter capacity and
+-error cleanup remain owned by the same parent VDBE.
+-
+-The native capture now has 51 assertions across three encodings. Added controls
+-include text LIMIT with OFFSET, zero LIMIT skipping invalid OFFSET, NULL LIMIT
+-error, invalid OFFSET error, IN text LIMIT error, outer text LIMIT error and
+-EXISTS text LIMIT. Full metadata, step/reset/finalize error phases and rows are
+-compared through public Fetch. The formerly red exact text-LIMIT discriminator
+-and all-encoding controls pass; earlier 9/10 evidence remains historical, not a
+-current pass claim. No conformance accounting credit or public shape expansion.
+-
+-Repair verification: exact ORDER/LIMIT suite 10/10; relevant combined six-file
+-regression 238/238 (includes compound, subquery foundation/routes/compositions
+-and aggregate public execution); aggregate manifest 39 native / 34/34 admitted;
+-subquery manifest 46 native, 19 allocated and 15/15 companions; pinned 51-case
+-recapture, ORDER manifest 2/2, typecheck and diff check pass. This relevant combined
+-run is not the historical broad 1543-test suite and does not supersede its red
+-1539/1543 outcome. Peer dirty runtime/test/research files remain uncommitted.
+-
+-### Routed alias readiness and joined EXISTS membership (card-t-d, 2026-10-05)
+-
+-Pinned `resolve.c:642–702 resolveAlias` substitutes an already-resolved result
+-expression after source lookup fails. `whereexpr.c:1827–1863 ExprUsage` then walks
+-that substituted tree. TS retains alias identity in `ResolvedSelect.aliasUses`:
+-`where-plan.ts columnUse` now follows that identity for direct-column admission,
+-and `prereq` includes the substituted expression's sources. Previously syntax-only
+-containment omitted those sources and allowed an ON predicate to read an unopened
+-join input. Joined lowering/binding were already substituting the expression;
+-this repairs their readiness contract, not SQL spelling or VM Column behavior.
+-Root-owned WHERE algorithms otherwise remain intact.
+-
+-The independent Chinook B4 gap was measured progressing through linear typed
+-membership (over 700k comparison units inside the unchanged 8s watchdog), not
+-proven deadlock. Retained aggregate equality-EXISTS lowering materializes typed
+-join/correlation key sets once. It now emits `EphemeralSort` before their probes;
+-`EphemeralIndexCursor.found` narrows sorted intervals with KeyInfo comparisons,
+-matching `vdbe.c:5368–5438 Found` → `btree.c:sqlite3BtreeIndexMoveto`'s ordered
+-search. Shared sorted-state is invalidated on append; duplicates share this fact,
+-not positions. Unsorted/window insertion-order membership remains linear. Sort
+-publishes only after success; membership changes no scan position. VM continues
+-to own PC, budgets, real host yields, cancellation, cleanup and reset.
+-
+-Browser adaptation remains sorted flat arrays/merge sort rather than native
+-paged ephemeral Btree; this avoids a second mutable page allocator while retaining
+-KeyInfo/NULL/INTEGER/REAL equality and ordered interval search. No native page,
+-work-count, or error-timing equality is claimed. Existing specialized semijoin is
+-retained, not a new general correlated-SELECT evaluator. Primitive regression
+-covers descending/NULL keys, logarithmic comparisons, OpenDup shared invalidation,
+-and checkpoint failure; public pinned-native-before alias/B4 captures and original
+-public reset/admission tests pass. See
+-[repair evidence](research/card-t-d-routed-alias-b4-repair.md) for exact commands,
+-hashes, failed expanded checks and remaining integration gaps. Historical B4
+-width credit is input-specific, not current universal completion certification.
+-
+-### In-progress repeated barrier lowering — [[card:card-k-h-b]]
+-
+-Working-tree implementation replaces SELECT-global matcher state with independent
+-WhereLevel membership cursor/key/return/body bounds (whereInt.h45–110,
+-wherecode.c2740ff). Reverse normal closures precede forward drains; earlier drains
+-execute later match recording. Exact Found/IdxInsert uses existing shared private
+-storage; optional Bloom is omitted, not substituted membership. LEFT continuation
+-flags must be initialized before any callable interior even if an empty outer
+-scan skips that level. Original window input now calls the same resolved WHERE
+-producer and yields with positioned cursors; lifted bindings/framing stay intact.
+-USING production in RIGHT chains coalesces prior members (select.c583ff), and FULL
+-name resolution accumulates merged provenance (resolve.c402ff).
+-
+-This is **not accepted admission expansion**: focused full-full/window tests pass
+-6/6. The subsequent grouped aggregate input now uses the shared WHERE producer;
+-its local rewind patching must not run when that producer owns loops. Parser
+-SrcList-only flattening is restricted to identity projections regardless of inner
+-source count: expression projections retain their EList for select.c:substExpr
+-(3797–3898). join8-3030 previously lost coalesce(h,0) before outer WHERE; retaining
+-that semantic owner repairs the UTF8 assertion. FULL merged names also cannot
+-be indexed as their first column: resolve.c775 produces TK_FUNCTION and
+-whereexpr.c1085 admits TK_COLUMN; prerequisite masks include every merged member.
+-All-encoding upstream verification is in progress. Existing one-barrier API boundary remains the last
+-accepted contract pending coherent completion, budget measurements, source review
+-and documentation synchronization. Do not treat removal of the working-tree gate
+-or selected passing tests as whole-tranche compatibility credit.
+-
+-Latest all-encoding implementation run: 87/90 pass, not acceptance. All 60 native
+-supplemental admission assertions and 18 controls pass; adapted join8-3010/3020/
+-3030 pass in all three encodings. join8-3040 now rejects at retained derived
+-composition: identity-only parser retention exposed the ordinary nonaggregate
+-SELECT producer's narrower flattening contract (one inner source, unlike the
+-aggregate-parent path). This is a regression from the earlier eager-splice route,
+-not missing native evidence; do not relax the source-based assertion. Next repair
+-must expand the transient EList/star through resolved producer substitution before
+-ordinary joined WHERE lowering, preserving metadata and nested lexical ownership.
+-Nonzero simultaneous budget measurement and full nested-return review remain open.
+-
+-Follow-up working-tree evidence: ordinary derived flattening now substitutes a
+-multi-source explicit EList and expands outer `*`/qualified `*` from that EList
+-before SrcList splice (select.c selectExpander then flattenSubquery/substExpr).
+-Producer stars remain retained, rather than guessed from base tables. Adapted
+-join8-3040 passes all encodings; the complete selected matrix now passes90/90.
+-Separate authored nonzero shared-budget test measures aggregate/match logical
+-byte high-water225 UTF8 and224 UTF16LE/BE: one-byte-below fails sticky, exact
+-boundary succeeds twice after reset, and connection reuse succeeds. Instrumented
+-owning budget observes index reservations before the first sorter reservation
+-with nonzero live bytes; no native page allocation equivalence is claimed.
+-These are internal checks, not final tranche acceptance. Nested resolved-target
+-review, remaining admission tests/contracts, full regression and explicit-path
+-commits remain outstanding.
+-
+-Resolved-target follow-up (working, not accepted): SelectProgramBuilder now runs
+-registered verification after all enclosing pending labels resolve at finish.
+-RIGHT interior checks reject normalScanEnd escapes and accept owning Return
+-chains; explicit producer stop opcode identities distinguish scalar/LIMIT breaks
+-from arbitrary Goto-to-halt. NoJumpsOutsideSubrtn remains debug verification, not
+-jump rewriting. Selected native/control81/81 and adjacent14/14 pass. Repeated
+-contracts now execute unconditionally (96/96 before stop-identity tightening);
+-WITHOUT ROWID composite boundary stays atomic. Actual task-yield control probes
+-pass3/3 after replacing an unreliable 1ms pre-yield deadline with a deliberately
+-150ms-delayed real scheduler yield and100ms deadline. Broad integration229 files
+-has220 completed successes and9 failures, not green. Follow-up aggregate flatten
+-classification now excludes aggregate producers (select.c sqlite3Select only
+-flattens nonaggregate producers); a transient-window metadata collation guard
+-removed one crash but affinity still dereferences a generated star's absent
+-reduction. Correct source-column metadata ownership remains required. Existing
+-structural admission assertions and30s repeated-suite watchdog also need coherent
+-updates. No final API/admission claim follows these intermediate checks.
+-
+-
+-### card-k-h-b follow-up: metadata owner repair (working tree, not final acceptance)
+-Expanded-star transient results have resolved source-column identity but may lack
+-a parser Expr reduction. Metadata now takes affinity/datatype masks from that
+-identity, retaining the Expr path and compound conflict/CAST branches. CTE star
+-names use expanded result metadata; CTE and ordinary derived descriptors retain
+-the resolved producer for declared-type provenance. This follows pinned
+-select.c:2340–2416 sqlite3SubqueryColumnTypes, not a token reconstruction.
+-The prior collation-only hypothesis was insufficient: affinity still crashed,
+-then CTE naming crashed, then declared type INT differed from native INTEGER.
+-Those observed failures motivated fixing the owning descriptor and its callers.
+-
+-Fresh unconditional repeated-right-full is 99/99 (190978ms), including native
+-ordered typed rows/all five metadata fields across three encodings, adapted
+-upstream assertions and shared live-budget/yield controls. The inherited native
+-corpus was reused, not newly captured. The earlier integration result220/229
+-and its30s repeated-suite watchdog remain failures, not waived by this separate
+-run. Adjacent combined run122/123: sole obsolete aggregate scan structural
+-assertion; corrected to test actual RIGHT exclusion, then owner suite21/21.
+-Endpoint compile fixture now supplies table nRowLogEst required by the shared
+-WHERE planner; it is not a substitute runtime database. Source predicate
+-assertion tests shared resolved input producer, not the superseded raw walker.
+-Final source schedule audit, full regression/browser snapshot, public admission
+-synchronization and reviewed explicit-path commits remain outstanding.
+-
+-
+-### card-k-h-b scheduling and mixed merged-name follow-up (not final acceptance)
+-Test teardown now uses existing closeTestServer after connection cleanup. This
+-alone was insufficient: twelve adapted256-row upstream queries still take
+-approximately150s sequentially. Parallel twelve-query group passed100/100 but
+-took35s (above unchanged30s watchdog). Split by encoding into three discoverable
+-test files, four concurrent independent connections each; shared prototype and
+-timer probes stay sequential in repeated-right-full. No SQL/expected rows removed.
+-Focused integration four components completed within watchdog; combined102/102
+-then111/111 with nine new native-FIRST mixed USING cases.
+-
+-Pinned resolve.c449–464 resets pFJMatch on a RIGHT USING successor. TS retained
+-the earlier FULL coalesce graph, causing FULL-RIGHT metadata mismatch in all
+-three encodings (six of nine new cases passed). Clear mergedSources on that
+-RIGHT branch; nine of nine now pass ordered typed rows and all metadata fields.
+-New frozen corpus repeated-merged-using.json SHA256
+-3eff93ea3700f866dfd319ffc4148de5e227a06a88ea435cb3513b642ee0c89b;
+-captured independently with pinned shared library before new TS assertions.
+-RIGHT-FULL and FULL-LEFT retain their appropriate graph.
+-Fresh built browser current38/38 and gap2/2 pass before this last resolver change;
+-therefore they are intermediate snapshot evidence, not final latest-tree credit.
+-Full integration reruns and final source review/contract/commit work remain open.
+-
+-### card-k-h-b current runtime evidence (review/delivery pending)
+-Repeated ordinary-rowid barriers and original-window joined input now execute
+-through shared per-level WHERE ownership. API admission text follows actual
+-runtime; this is not final independent fidelity acceptance. Fresh integration
+-232/232 components with input_drift=[] and original six public reproducers6/6;
+-mixed USING native/public9/9. Existing source/fixture hashes, unsuccessful
+-scheduling hypotheses, controls and residual source-review obligations are in
+-[focused runtime progress](research/card-k-h-b-runtime/progress.md). Three
+-encoding-split upstream wrappers preserve all12 adapted assertions within the
+-unchanged30s watchdog; zero exact unadapted upstream ports remains disclosed.
+-WITHOUT ROWID RIGHT/FULL keys and declined compositions retain typed boundaries.
+-Final owning Return/stop/NullRow/caller review and explicit-path commits pending.
+-
+-
+-### card-k-h-b continuation checkpoint (working tree, review pending)
+-Native-FIRST continuation corpus adds21 discriminators (seven x three encodings):
+-LIMIT0, unmatched-drain OFFSET, scalar/EXISTS stops, compound LIMIT, downstream
+-LEFT selected-index IN, and RHS selected-index unmatched drain. Public consumers
+-compare ordered typed duplicate rows and all five metadata fields, repeat after
+-reset/clearBindings, and reuse the connection. Independent pinned recapture
+-compares byte-identically; no expected values were revised to fit TypeScript.
+-
+-The settled-target verifier now shares `reachesOwningReturn`: consecutive Return
+-opcodes must reach the owning register, with invalid/unsettled targets rejected.
+-Pinned vdbeaux.c995–1068 is debug verification, not runtime jump rewriting; TS
+-has no Noop/Explain opcodes. Producer-stop identities and coroutine/Gosub
+-boundaries remain distinct. Source reread confirms wherecode.c2740–end records
+-ON matches before interior/downstream WHERE, where.c WhereEnd closes reverse
+-and drains forward, and selected RHS indexes must be invalidated before drain.
+-Original window input uses physical cursor bindings across Yield; retained
+-register producers are not claimed covered by this input-edge change.
+-
+-Fresh helper-tree evidence: focused122/122 plus typecheck; original gap6/6;
+-integration232/232 components, all three prerequisites exit0, input_drift=[];
+-build and Chromium current38+gap2=40/40. Exact commands/artifacts/hashes are in
+-`docs/research/card-k-h-b-runtime/{progress.md,hashes.json}`. These are internal
+-checks, not parent independent acceptance or complete owning-path fidelity
+-approval. Explicit-path/hunk commit review remains pending; inherited bitwise
+-changes in vdbe.ts/run-advanced-index must not be staged as this card's work.
+-
+-
+-### card-k-h-b continuation caller checkpoint — 2026-10-05 (post-v24)
+-Bounded caller review found an admitted ordinary-derived projection metadata
+-error: native-FIRST `derived-filter-admitted` returned column names k/v while
+-TS returned qualified j.k/j.v in all three encodings (0/3 public contracts).
+-`flattenOrdinaryDerived` now preserves the resolved transient column name before
+-producer substitution, as select.c sqlite3GenerateColumnNames/substExpr do;
+-explicit AS names remain authoritative. Aggregate lowerResult now distinguishes
+-only the generated FULL USING coalesce column leaf from parsed function calls,
+-instead of skipping recursion for arbitrary calls with carrier children.
+-
+-Continuation corpus now has 33 native captures (11 x3), independently recaptured
+-byte-identically. Public checks are 30 admitted typed-row/all-five-metadata/reset
+-contracts plus three honest temporary-unsupported checks: ordered physical-derived
+-filter remains an existing declined route, not native-success TS credit. The
+-new un-ordered filter is admitted and passes. Do not infer universal derived ORDER
+-or aggregate/correlation admission. This extends, not replaces, the 21-case history.
+-Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typecheck
+-pass. Complete delivery review/explicit own-hunk commits remain pending; internal
+-checks are not independent parent acceptance. Exact evidence is in
+-`docs/research/card-k-h-b-runtime/progress.md` and hashes.json.
+-
+-### card-k-h-b R4 unmatched residual scan (2026-10-05)
+-The forward drain now translates wherecode.c2842–end: prior table/index NULL state, prior+RHS readiness, LTORJ suppression, base-term boundary and ON exclusion, followed by the same resolved one-source WHERE producer with cleared join flags. Selected scan positioning precedes exact Found/Gosub; deepest WHERE remains the final row filter, not the unmatched scan owner. whereexpr.c1885 preserves all base terms before appended virtual children (IDs remapped). Scalar IN binding recursively consumes resolved operands rather than leaving the RHS column unbound. Represented row values have no TERM_SLICE/WO_ROWVAL path; this is not generalized vector admission. Bloom omission remains optional-negative acceleration only. See [R4 evidence](research/card-k-h-b-runtime/r4.md).
+-
+-### R5 nested SELECT readiness
+-The shared WHERE prerequisite owner now follows only SELECT-bearing expression identities into the resolved graph (whereexpr.c:exprSelectUsage997–1023, ExprUsageFull1827–1863). Result/GROUP/ORDER/WHERE/HAVING/ON and compound/intermediate owners contribute enclosing-source bits; child-local and unrelated nested owners do not. Alias and merged-source carriers retain identity. This corrects all existing prerequisite consumers, including unmatched residual readiness, without optimizer expansion. Synthesized scalar LIMIT1 guards now close at their owning producer end as explicit LIMIT guards already do. Native-FIRST/public/control evidence is in research/card-k-h-b-runtime/r5.md; joined IN SELECT remains atomic temporary unsupported. Independent goal acceptance pending.
+-
+-### Outer-join WHERE continuation ownership
+-`wherecode.c:code_outer_join_constraints` → joined SELECT lowering keeps invocation-local coded base-term state, ready enclosing-source masks and LTORJ suppression. Hit/exact match recording precedes constraint emission; RIGHT BeginSubrtn entry and LEFT synthetic-null re-entry both include constraints. Failure targets the owning level continuation/Return, not deepest positioning or pre-hit movement. Only uncoded WHERE terms reach the final body; ON and virtual terms remain separate. Unmatched scans retain their independent residual WHERE invocation. Native/control/closure evidence: [R6](research/card-k-h-b-runtime/r6.md). No optimizer expansion, Return-validator exception or native work-count parity; independent parent acceptance pending. The index-planner LEFT WHERE safety fixture counts ON once and two base terms on each matched/synthetic-null body entry (five residual checks); these private counts are not native allocator or VM-step parity. Fixture/source-assertion repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
+-
+-## Optional STAT4 file admission
+-
+-`analyze.c:sqlite3AnalysisLoad` (1942–2028) loads stat1/default estimates
+-independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
+-owner follows the non-STAT4 branch: publish ordinary `sqlite_stat4` metadata,
+-load supported stat1, and do not read optional sample payloads for estimates.
+-Presence of samples alone is not an unsupported-file error. Ordinary schema,
+-record and type validation remains in force on consumed paths. This provides
+-file/query admission, not native STAT4 selectivity or cost/plan parity; sample
+-optimization remains progressive work, not a permanent exclusion.
+-
+-Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
+-`test/conformance/private-alpha-stat4-admission.test.mjs`,
+-`stat4-enabled-boundary.test.mjs`, and `stat-record-boundary.test.mjs`.
+-Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
+-Revision-bound repair evidence: [[card:card-e-h]] status and
+-[admission evidence](research/card-e-h-stat4-admission.md).
+-
+-
+-### WHERE integration preservation contracts
+-
+-Full-index alternatives precede constrained recursion under where.c4233–4295 eligibility, including prerequisite-free WR storage access when equalities depend on later cursors. Partial-key GE comparisons use vdbe4943–4952 default_rc+1; comparator-zero instrumentation is not prefix equality. Physical positioning and subsequent equality filtering retain the native contract. Statement construction binds one realm-available clock (Performance, otherwise Date) for deadline checks. [Focused repair evidence](research/card-s-g/IMPLEMENTATION.md#integration-preservation-repair-b-2026-10-07) is workspace evidence, not committed integration acceptance. Full-index insertion DONE belongs to the index loop, not an ignored recursive child. Empty constraint recursion does not produce a second full scan; full-index admission remains owned by AddBtree. Private recursive controls invoke the same internal AddBtreeIndex capability/cost/insertion owners; whole-AddBtree companions retain forced/covering full-scan admission and its debit/DONE. Own DONE closes the suspended constraint scanner; ignored child DONE retains parent return. [d9 control reconciliation](research/card-s-g/IMPLEMENTATION.md#d9-source-owner-controls-reconciled-2026-10-08) provides focused workspace evidence, not committed integration acceptance.
+-
+-### Bounded scalar caller ownership
+-
+-`select.c:pushDownWhereTerms` restriction (3) → retained derived post-producer
+-predicate and independent producer LIMIT in `vdbe.ts`; the direct ordinary child
+-caller cannot bypass this state. `expr.c:sqlite3CompareAffinity` → ordinary child
+-InSet consumes resolved RHS EList affinity. `resolve.c:resolveSelectStep` pPrior
+-iteration → nested compound EList/SrcList are paired per arm in `resolve.ts`.
+-Existing scalar-child/subquery-view regressions and all-three-encoding bound
+-reset/rebind/clear native controls map these branches. Detailed evidence and
+-attempt provenance: [bounded caller repair](research/card-s-f-or/scoped-closure.md#bounded-baseline-caller-repair).
+-
+-Implicit rowid ORDER ownership does not require a declared INTEGER PRIMARY KEY column: the internal order carrier uses null for XN_ROWID, distinct from nullable skip slots. Scan and physical rowid-tail consumers preserve sort identity (where.c2749/5353); bounded rowid-order and joined-exhaustion controls: [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md). Represented LEFT ON-OR exhaustion is mapped below; unrepresented join/order combinations remain bounded by [current coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review), not a blanket exhaustion defect.
+-
+-Joined and ordinary lowering share `resolvedWhereOrder`, including implicit XN_ROWID, aliases and collation ownership; joined lowering must not reconstruct ORDER from column-name text. Joined OR range-end fixups own the emitted range opcode after RHS/NULL guards (wherecode.c2090ff). Favorable DESC companions validate selected nested IN and native SCAN controls, not selected physical-DESC OR; bounded evidence is in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+-
+-Skip-scan evidence and still-open original implementation obligations are consolidated in [coverage ledger](research/card-s-g/COVERAGE.md). Selected physical-DESC recursive OR now has ordinary/joined source-oracle witnesses without ORDER BY; ORDER-bearing cost-rejected controls remain separate. Synchronous construction shares a statement-owned progress callback through the planner budget: source deep-equality recursion and unused-term output adjustment check cancellation/deadline/work before proceeding. This does not add event-loop suspension inside synchronous construction.
+-
+-Remaining skip-scan delivery ledger now links source subset/insertion Cartesian controls, redundant WR declared/PK layout and typed REAL reset/rebinding companions plus selected payload-size corruption evidence in [coverage](research/card-s-g/COVERAGE.md). These are bounded production/source checks, not original-b closure; [mixed ownership handoff](research/card-s-g/HANDOFF.md) has delivered scoped owner dispositions; committed integration evidence remains separately gated. Reserved serial11 native progress interruption is not corrupt11-equivalence evidence.
+-
+-LEFT ON-OR now uses the same source-owned multi-OR/skip-prefix pipeline as represented inner callers (where.c4835 excludes RIGHT/FULL, not LEFT). Final LEFT exhaustion nulls the Case5 covering cursor as well as the table before shared body re-entry, preserving rewritten Column/Rowid NULLs (where.c7694). Bounded matching/empty/composite and mixed-IN controls are mapped in [coverage](research/card-s-g/COVERAGE.md#left-on-or-owner-repair); this is not broader join/optimizer completion.
+-
+-### Joined aggregate WHERE producer
+-Joined GROUP BY and implicit aggregate production consume the existing shared
+-WHERE loop through its physical-row callback, before sorter capture or aggregate
+-update (`select.c:sqlite3WhereBegin/End`). ON/WHERE, outer continuation and selected
+-access remain WHERE-owned; finalization/HAVING/destinations remain aggregate-owned.
+-Single-source and retained coroutine contracts are unchanged. See
+-[bounded consumer evidence](research/card-l-c/aggregate-where-consumer.md).
+-
+-### Bounded execution host scheduling
+-
+-The shared execution-owned scheduler changes host suspension only: existing main
+-opcode, scalar input, async Function/private and overflow checkpoints retain PC,
+-register/cursor state and statement-wide work charges. Seven MessageChannel task
+-turns alternate with an explicit timer turn; unavailable/throwing channel delivery
+-falls back to timers. At most two ports are live for an awaited yield, detached and
+-closed before resume. Reset restarts cadence. Main dispatch rechecks controls after
+-suspension before incrementing PC/work. Error/halt/reset/admission ownership remains
+-in Vdbe; synchronous scalar traversal checks are not independently preemptible.
+-
+-This browser adaptation avoids measured nested-timer latency while preserving real
+-timer opportunities; no cross-task-source ordering or hard real-time/background-tab
+-guarantee is inferred. Cancellation fixtures observe the execution-owned scheduler's
+-real yield (and hold its caller before resume), not a particular task source or the
+-first zero-delay timer. This preserves lifecycle assertions with both channel and
+-timer delivery; it is test orchestration, not engine-interruption proof. Repair
+-and finite-run evidence: [integration outcome](research/card-w-current-integration-outcome.md).
+-SQLite `vdbe.c:check_for_interrupt`/progress thresholds own
+-checks and errors, not browser task scheduling. Decision, source comparison,
+-exact program/work/type equivalence and repeated browser evidence: [scheduler
+-evidence](research/card-h-e/green.md), [decision](research/card-h-e/decision.md).
+-No SQL-plan or work-cap change, native-step parity or expanded SQL scope follows.
+--- index/docs/api.md
++++ current/docs/api.md
+@@ -190,6 +190,19 @@
+ JSON table columns; do not normalize it to null. Origin fields require the translated equivalent of SQLite column
+ metadata support.
+ 
++For represented linked scalar/vector/EXISTS/IN subqueries, expanded result width
++and original field metadata are retained through the shared producer. EXISTS is
++INTEGER0/1 and does not evaluate an unused projection, but still resolves it;
++scalar empty results are NULL. LIMIT/OFFSET names do not bind local or outer
++columns, including through a nested clause SELECT; independent clause SELECT
++sources remain valid. Represented source-free and ordinary table/joined EXISTS
++producers skip unused projection evaluation, but preserve predicate/clause errors
++and full name resolution. Mem/IN still evaluate their projection. Unsupported unimplemented composition is a typed temporary error before
++statement publication, not a partial terminal-arm result. This bounded contract
++does not promise general ordered/aggregate/window compound composition or PRAGMA
++full_column_names support. See the [current branch and boundary map](research/card-t-shared-subquery-owner-decision.md).
++
++
+ `columnType(i)` returns the row cell's **initial** storage class and is stable for
+ that row even after typed conversion. This is a deliberate deterministic adaptation:
+ `sqlite3_column_type` after a converting C accessor is undefined. `column(i)`
+@@ -317,7 +330,12 @@
+   support; declined compositions retain typed temporary unsupported failures.
+   Joined WITHOUT ROWID
+   comma/CROSS/INNER/LEFT sources use primary-index storage and represented
+-  secondary access; WITHOUT ROWID RIGHT/FULL match tracking remains temporary
++  secondary access. Represented persistent WITHOUT ROWID selected OR uses typed
++  primary-key dedup in shared ordinary/INNER/simple scalar producers; represented
++  LEFT nullable-side OR also retains selected execution and null extension.
++  Nullable ON/USING factoring exclusions do not prohibit LEFT admission; forced and
++  NOT INDEXED guards remain unchanged. This does not expand aggregate admission
++  or promise optimizer parity. WITHOUT ROWID RIGHT/FULL match tracking remains temporary
+   unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
+ - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
+   precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses
+@@ -378,6 +396,12 @@
+ document. Omitted/NULL indentation defaults to four spaces; other indentation
+ values use SQLite text conversion, truncated at the first NUL. Duplicate keys
+ and member order are preserved; indentation is not required to be whitespace.
++Pretty temporary parse/lexical/indent/output state shares the statement private-byte
++budget (conservative logical reservations, not exact JavaScript heap bytes). Parser,
++string and output checkpoints charge work and allow cooperative cancellation and
++deadlines, including escape-dense strings and labels during decoding and strict
++classification; byte bounds are checked before output encoding. Reservations release
++on success or failure, before reset/finalize.
+ See [bounded evidence and limitations](research/card-r-f/README.md).
+ 
+ json_group_array/object and jsonb_group_array/object are aggregate/window callbacks.
+@@ -429,16 +453,32 @@
+ fails with typed temporary unsupported, including repeated RIGHT/FULL producers.
+ This is not a general derived ORDER admission (card-k-h-b post-v24 checkpoint).
+ 
+-### Reopened R1/R2/R3 delivery correction
+-Singleton RIGHT/FULL admission is a historical milestone, not the current gate.
+-Represented repeated execution is implemented pending independent acceptance;
+-WITHOUT ROWID composite match keys, ordered physical-derived compositions and
+-currently declined aggregate/correlation neighbors remain typed temporary
+-unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
+-using the native-FIRST aggregate case in all encodings; not native allocation
+-parity. Exact-export evidence and inherited prerequisite attribution are in
+-`docs/research/card-k-h-b-runtime/closure.json`.
+-
+-Outer-join inline continuations apply uncoded ready WHERE terms after ON hit/match recording, before downstream positioning; LEFT synthetic rows and unmatched RIGHT/FULL calls share that constraint body. Unmatched RIGHT/FULL scans also extract ready non-ON residuals through the shared selected WHERE scan. Later-source predicates remain deferred and levels left of a later RIGHT retain upstream suppression. This does not change the temporary WITHOUT ROWID composite-key boundary or promise native planner/work counts.
++## Schema, vectors and selected consumers
+ 
+-Nested SELECT dependencies in represented WHERE scalar/EXISTS expressions retain enclosing-source readiness, including transitive nesting and resolved aliases. They must wait for later-source positioning just as direct column predicates do. Joined IN SELECT in this route remains temporary unsupported before execution; no result parity is claimed for its native captures.
++Retained immutable triggers do not authorize write execution. STORED/VIRTUAL
++generated definitions resolve before schema publication; joined/coalesced/grouped/
++correlated represented consumers retain logical binding, NullRow, aggregate
++phase and per-source dependency BUSY lifetime. Selected covering generated reads
++consume logical index fields; noncovering reads compute from table. Full NC_GenCol,
++lazy-schema, generic index-expression and arbitrary composition parity is not
++promised.
++
++STRICT ordinary persisted reads retain INT/INTEGER/REAL/TEXT/BLOB/ANY validation,
++PK-before-type error order and STRICT ANY BLOB affinity. STRICT VIRTUAL reads use
++the single-column TypeCheck branch. This does not implement write enforcement.
++Bounded vectors include typed tuple comparison and tuple-IN execution; scalar
++width, linked-source and LIMIT contracts remain intact. Native vector index
++strategy completeness is not claimed.
++
++Selected persistent WR OR uses physical PK dedup in shared ordinary/INNER/simple
++scalar and represented safe LEFT consumers. WITHOUT ROWID RIGHT/FULL tracking
++remains temporary unsupported. Represented STAT4-sensitive bindings may trigger
++bounded reprepare while retaining bindings; no planner/timing/work-count parity
++is promised. Ordinary joined direct-column projection retains column metadata,
++storage classes and early LIMIT termination.
++
++[Source ownership](TRANSLATION.md), [mapping](SQLITE_SOURCE_MAP.md) and
++[committed scope/evidence](research/card-u-reconciliation/README.md#committed-functional-scope)
++qualify these statements. Exact historical run counts and approvals are evidence,
++not API guarantees. [Functional-first beta categories](PLAN.md#functional-first-beta-view)
++do not constitute publication or whole-product acceptance.
+--- index/docs/SQLITE_SOURCE_MAP.md
++++ current/docs/SQLITE_SOURCE_MAP.md
+@@ -12,19 +12,6 @@
+ setup. Baseline findings in the [mutable audit](reviews/translation-fidelity-2026-09-14.md)
+ require current producer/consumer verification, not automatic acceptance.
+ 
+-## Distributable integration
+-
+-The existing translated API/runtime closure is emitted unchanged by
+-[tsconfig.build.json](../tsconfig.build.json) and [build tooling](../tools/package/build.mjs).
+-[Package regression](../test/package-distributable.test.mjs) validates the actual
+-local tarball, named ESM/public declarations and browser-global execution;
+-[evidence](research/card-v-a-package-evidence.md) records inventory and limitations.
+-This integration has no new C algorithm mapping or SQL coverage credit.
+-[Static demo consumer](../examples/browser/query.js) uses those public lifecycle
+-and column APIs; [browser regression](../test/demo/browser.test.mjs) and
+-[evidence](research/card-v-c-demo-evidence.md) check local Fetch, positional types,
+-failed-open and operation/finalize/close ordering without a query backend.
+-
+ ## API and immutable database
+ 
+ | Pinned implementing owners | Current TS owners | Tests/evidence navigation |
+@@ -38,20 +25,6 @@
+ machinery, not record/page semantics. UTF-8/UTF-16le/UTF-16be and overflow/bounds
+ remain required. WITHOUT ROWID primary layouts are not ordinary rowid roots.
+ 
+-Public catalog consumer: `prepare.c:sqlite3InitOne` synthetic schema Table,
+-`build.c:sqlite3StartTable/sqlite3EndTable/sqlite3FindTable`,
+-`resolve.c:isValidSchemaTableName` and `select.c:selectExpander` →
+-`schema.ts:loadSchemaGraph/findSchemaTable/SchemaGraph.findTable`,
+-`resolve.ts:sourceNameMatches` (columns) and canonical star matching,
+-ordinary `vdbe.ts` physical/aggregate/compound lookup callers, including
+-`compileAggregateSubquery` IN/scalar. `expr.c:sqlite3CodeSubselect`/TK_AGG_COLUMN
+-and `resolve.c:resolveExprStep/resolveSelectStep` map to aggregate argument
+-subquery callbacks, cached bare IN operands and SELECT-local aggregate checks.
+-Root 1 feeds existing
+-OpenRead/Column/Rowid operations; no metadata row producer or parallel evaluator.
+-Tests: `test/schema/public-catalog{,-lifecycle}.test.mjs`; pinned typed captures,
+-source comparisons and remaining consumers: [card-e-m evidence](research/card-e-m-public-catalog.md).
+-
+ ## SELECT resolution and construction
+ 
+ | Pinned owners | Current TS path | Tests/evidence |
+@@ -68,57 +41,6 @@
+ 
+ ## WHERE and joins
+ 
+-Partial prelowering OR mapping (current contracts: [WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes)):
+-
+-| Pinned owner | TypeScript producer/consumer | Focused evidence |
+-| --- | --- | --- |
+-| `whereexpr.c:exprAnalyzeOrTerm/whereCombineDisjuncts`, `whereInt.h` OR/AND info | `where-plan.ts` clause-owned analysis, masks, commutations, necessary combines, virtual IN retaining residual | `where-plan-analysis.test.mjs`; comparison/affinity/parser flags remain bounded |
+-| `where.c:whereScanInit/Next` | `scanWhereTerms`, local/outer lookup, stable RHS/seek provenance, 11-slot equivalence | analysis tests; ordinary transitive lowering and full outer-join proof outstanding |
+-| `where.c:whereOrInsert/Move`, `whereInt.h:WhereOrSet` | `where-or-cost.ts` exact ordered three-slot insertion/move/products | `where-or-cost.test.mjs`, including smallest-run full-slot behavior |
+-| `where.c:whereLoopInsert` pOrSet, `whereLoopAddBtreeIndex`3284/3580ff, `whereLoopAddOr`4837/4880/4912ff | `btreeLoops` lazy proposals, shared budget, frame-local ignored recursive rc, per-call completion and immutable parent publication | production budget/completion tests in `where-plan-analysis.test.mjs`; status134–149 |
+-| `where.c:whereLoopAddAll`4966/5025ff | `planWhere` source continuation/budget | ordinary budget/index controls; no exhaustive cleanup claim |
+-| `vdbe.c` SeekGE/SeekLE `default_rc`, `btree.c` IndexMoveto | `btree.ts:indexSeek` biased prefix boundary descent, including equal interior separators and leaf/parent fallback | `or-rowid-red.test.mjs` native three-encoding multi-page typed rows/reset/page-read bound; [repair evidence](research/card-s-f-or/verification.md#multi-page-prefix-seek-boundary-repair) |
+-| `rowset.c`, `vdbemem.c:sqlite3VdbeMemSetRowSet`, `vdbe.c:RowSetTest` | `rowset.ts` chunks/list/merge-sort/tree/forest batches; `Mem` destructor ownership; VM first/final batch bypass | `rowset.test.mjs` pinned C driver comparisons; `rowset-opcodes.test.mjs` continuation/NULL/reset/limits/Mem ownership; [[card:card-s-f-c]] status (internal only) |
+-| `expr.c:sqlite3CodeSubselect`, `select.c:selectInnerLoop`, Case5 | prepared scalar/simple rowid child routes through shared `compileInnerTableSelect`; owned-expression binding precedes RHS extraction | `or-rowid-red.test.mjs` scalar first/empty/sorted/correlated reset cases; [native capture/evidence](research/card-s-f-or/verification.md#prepared-scalar-selected-or-caller-repair) |
+-| `wherecode.c` Case5 and `disableTerm`419–444, `sqlite3WhereEnd`, VM Gosub/Return | `where-plan.ts:orArmClause/orRuntimeArmClause` retain owned original/commuted-child identities (cost versus Case5 factored scopes); ordinary driveable commuted-child omission eligibility remains conservative for nullable LEFT ON. Invocation-local `branchConsumedTerms` maps exact selected admissions to ready CODED identities and zero-child parent propagation without mutating published terms. Both `vdbe.ts:emitJoinedOr` and single-table `emitOr` consume that carrier before residual tests/RowSetTest/Gosub, retaining unready/nonadmitted/independent truth and untested enclosing parent residuals; shared builder owns NULL RowSet/safe return, nested continuations, per-outer-row initialization and IN restart. WhereEnd common-index Column/Rowid rewrite invalidates nested/different/nonindex arms; broader coded/factored omission fidelity remains incomplete | `or-branch-consumption.test.mjs` direct/AND/nested/ready/unready operand and public reset/error controls; `or-commuted-child.test.mjs` actual selected child, readiness/parent propagation, LEFT conservatism and repeated public branch roots; `or-rowid-red.test.mjs` three-encoding handoffs/continuations; [branch ownership](research/card-s-f-or/branch-consumption.md), [commuted ownership](research/card-s-f-or/commuted-child.md), [consumer evidence](research/card-s-f-or/verification.md) |
+-
+-Immutable multi-or loops retain original OR info, prerequisites, capability:null,
+-setup0/sort0 and run+1/output; physical choice belongs to lowering. WR/unsafe joins
+-remain fallback. [Native proposal](research/card-s-f-or.md),
+-[revision-bound source detail](research/card-s-f-b-prelowering-detail.md) and
+-[[card:card-s-f-b]] status retain commands/failures/provenance. This map grants no
+-runtime OR selection or exhaustive compatibility credit.
+-
+-`whereLoopAddBtreeIndex` list-IN nIn (where.c3361–3363) maps to
+-`indexLoopEstimate` immediate exprlist cardinality; all-encoding nested-function
+-list-cost controls in `where-plan-analysis.test.mjs` (evidence [[card:card-s-f-b]],
+-status attempt130). SELECT-IN multiplicity remains outside this proof.
+-`whereLoopAddBtreeIndex` exploration (where.c3284,3580ff) maps to suspended
+-`capabilities` proposals and immediate `whereLoopInsert` in `btreeLoops`;
+-early stops close suspended exploration, not just admissions. `whereLoopAddAll`4966/5025ff
+-maps to `planWhere` shared budget/per-source continuation. Private production
+-budget tests observe stopped composite leaf construction and later-index access.
+-
+-Ordered `whereLoopFindLesser/whereLoopInsert` (where.c2744–2939) and bounded
+-`wherePathSolver` (5835ff) map to `whereLoopInsertCandidates/wherePathSolver`
+-in `where-plan.ts`; `where-plan-ordered-red.test.mjs` discriminates replacement,
+-drop/tail deletion, sort/prerequisite identity, setup/budget and vector ties.
+-`indexMightHelpWithOrderBy` (where.c3664ff) → `btreeLoops` sort-identity
+-production: reject unordered indexes, retain same-cursor rowid/IPK usefulness
+-before key-column matching, separately from complete order proof.
+-`in-range-stat-choice-red.test.mjs` covers competing unforced/forced persistent
+-indexes before/after ANALYZE in all encodings; `where-plan-analysis.test.mjs`
+-checks identity retention with unsatisfied physical ORDER.
+-[Decisions and bounded evidence](research/card-s-d-a-ordered-where.md); indexed
+-row-size metadata and OR-set/automatic-index/STAT4/star branches remain gaps.
+-Preimplementation map: build.c sqlite3AddColumn/sqlite3AffinityType,
+-estimateTableWidth2222/estimateIndexWidth2236/WR conversion2340ff → proposed
+-immutable schema/physical-field estimates; analyze.c decodeIntArray1520 and
+-analysisLoader1605ff → proposed callback-text/stat1 handoff; where.c3552/4050/
+-4239/5818 → proposed real cost/width consumers. See
+-[row-width decision and native-first artifacts](research/card-s-e-row-width.md).
+-No runtime translation credit yet; production acceptance deliberately remains red.
+-
+ `whereexpr.c:sqlite3WhereExprAnalyze` → [where-plan.ts](../src/internal/where-plan.ts)
+ terms/dependencies. `where.c:whereLoopAddBtree`, `wherePathSolver`,
+ `sqlite3WhereBegin`, `sqlite3WhereEnd` → candidate/path/level state and SELECT
+@@ -133,16 +55,8 @@
+ [card-s status](record:///status.md?card=card-s), prior map advanced-index/selected
+ WHERE sections, [mutable audit tail](reviews/translation-fidelity-2026-09-14.md).
+ 
+-Current boundaries: represented repeated RIGHT/FULL execution (single-barrier
+-milestone superseded; independent goal acceptance pending), with temporary
+-WITHOUT ROWID RIGHT/FULL composite keys and ordered physical-derived boundaries;
+-selected expression/partial/covering/
+-WITHOUT ROWID paths, not optimizer completeness. parse.y1388–1444 canonical null-test
+-production, expr.c5319 unary operand coding and6847 NOTNULL implication map to
+-where-plan.ts `notNullTarget`/structural identity and vdbe.ts resolved operand
+-binders. Exact schema/analyzed predicate identity preserves covered partial
+-residual omission; analysis and advanced-index regressions cover this seam
+-([repair evidence](research/card-s-f-or/verification.md#canonical-null-consumer-repair)). Genuine IPK/rowid proof and
++Current boundaries: one RIGHT/FULL barrier; selected expression/partial/covering/
++WITHOUT ROWID paths, not optimizer completeness. Genuine IPK/rowid proof and
+ complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
+ sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit
+ `scan.loopStart` including DeferredSeek before projecting a new row. WR NOT INDEXED
+@@ -213,674 +127,23 @@
+ [pattern/window](../test/conformance/ordinary-scalars-pattern-window.test.mjs).
+ Evidence [[card:card-p]], [[card:card-q]], [[card:card-r]] and
+ [card-r metadata status](record:///status.md?card=card-r).
+-`json.c:jsonPrettyFunc`, `JsonPretty`, `jsonPrettyIndent`,
+-`jsonTranslateBlobToPrettyText` and `jsonTranslateBlobToText` TEXT/TEXTJ/TEXT5 →
+-`json.ts:jsonPretty`, `translateStringSteps`, shared Parser/decode generators and
+-encoded lexical metadata; `vdbe.ts` async FunctionContext and statement byte budget.
+-[Correction regressions](../test/conformance/json-pretty-corrections.test.mjs) map
+-scalar/label/JSONB TEXT5, strict admission, three encodings, retained-state limits,
+-append work/yield/cancel/deadline and cleanup. `jsonTranslateTextToBlob`
+-parse_string and TEXT5 cursor advances map to consumed-position checkpoints in
+-`Parser.str`/`stringEncoding` and `translateStringSteps`; escape-dense scalar/label
+-TEXT/JSONB probes cover classification interruption and saved-error/reset reuse. [Public pretty regression](../test/conformance/json-pretty.test.mjs)
+-and [source-pinned typed companions](research/card-r-f/README.md) cover both
+-arities; subtype-0 output does not inherit canonical JSON subtype.
+-Built-in JSON is not a blanket gap.
++`json_pretty` remains temporary unsupported; built-in JSON is not a blanket gap.
+ Exact function tranche runs/IDs remain in existing oracle/conformance research,
+ not duplicated here.
+ 
+-### Retained FROM hidden ORDER key correction (2026-10-03)
++## Current schema, vector and packed-consumer mapping
+ 
+-`resolve.c:resolveOrderGroupBy` EList alias/ordinal then NameContext column
+-ownership -> `vdbe.ts:compileDerivedProducer` orderIndex now denotes producer
+-register index, not parent projected register index. `select.c:flattenSubquery`
+-(11), `fromClauseTermCanBeCoroutine` (1a), 0482 / SRT_Coroutine -> existing
+-InitCoroutine/Yield/EndCoroutine and separate child/parent sorters. Tests:
+-`subquery-view-foundation.test.mjs` retained hidden ORDER key / route cases.
+-Original browser gap lane now executes both original probes successfully;
+-no general retained expression ORDER or full FROM compatibility claim.
+-
+-Nullable selected equality keys: `wherecode.c:codeAllEqualityTerms`976–980 →
+-ordinary/joined `vdbe.ts` equalityNullGuards, separate from range addrNxt guards.
+-Equality NULL breaks the level (including all IN iterations); LEFT unmatched
+-continuation is preserved; IS/ISNULL keys remain searchable. Frozen pinned
+-controls: `candidate-lifecycle-public.test.mjs`, `cases/candidate-lifecycle-native.json`;
+-development capture `capture-candidate-lifecycle.py` (post-implementation,
+-pre-consuming-test). No public diagnostic API or runtime oracle dependency.
+-
+-Row-width proposal revision [[card:card-s-e-a]] (2026-10-04, not implementation):
+-analysisLoader assigns nonpartial globally matched index count to argv[0] named
+-table, not index.table; post-load defaults may floor table-only count to99.
+-GetInt32 unsigned hex remains admitted at sz boundary. Revised native-first
+-120 snapshots and237 production/public assertions are recorded in the decision
+-note; TS baseline9/237 passes is not fidelity credit. Planner assessment pending.
+-
+-Row-width proposal acceptance maps where.c5961–5965/5993–5995/6109 per-round
+-unsorted state separately from total. Real joined path-bias control discriminates
+-prior-unsorted versus prior-total recurrence; not runtime implementation credit.
+-
+-Row-width runtime checkpoint [[card:card-s-e-b]] (2026-10-04, not acceptance):
+-`schema.ts` owns immutable szEst/szTabRow/szIdxRow/default row estimates and
+-stat1 flags; build.c AffinityType/estimateTableWidth/estimateIndexWidth/default
+-row estimates and analyze.c1520–1649/1988 map to local construction/load/freeze.
+-Fifth checkpoint maps analyze.c equal-name lookup to build.c1069 PrimaryKeyIndex
+-on rowid as well as WR tables; UNIQUE persistent origin is distinct. Encoded
+-BLOB/NUL callback fixtures bound this ownership claim; complex constraint merge
+-and autoindex ordinal fidelity remain uncertified. build.c2417/isDupColumn WR
+-primary compaction now precedes physical layout and estimates; duplicate
+-column+collation keeps first direction, with progressive native-first tests.
+-build.c1834–1890 AddPrimaryKey now publishes shared alias identity (inline DESC
+-versus table-list DESC); table width, autoindex, resolve, WHERE and VDBE consume
+-it; transient constructors publish null. Native-first IPK fixtures bound evidence.
+-expr.c4462/sqlite3ExprCodeGetColumnOfTable maps ordinary WR table reads through
+-physical primary-index fields after noncovering secondary seek; distinct-collation
+-native snapshots assert widths/ordinals and typed payload, residual and scan reads.
+-`parse.ts` preserves original type spans needed by the AffinityType BLOB pointer,
+-and translates build.c1584/util.c299 dequoting before metadata/AffinityType.
+-Native-first quoted CHAR/BLOB hex/overflow fixtures cover complete direct-column
+-origin metadata and typed reset rows in3 encodings; broader metadata unclaimed.
+-`where-plan.ts` consumes numeric estimates as explicit BigInt costs and exact
+-physical-field width, including synthetic IPK3 separate from persistent indexes.
+-where.c3552/4050/4239/5818 are partial mapped cost/width consumers, not complete
+-routine-port credit. where.c5273 WHERE_ONEROW ordering prefix and5961–5995 prior
+-unsorted recurrence map to bounded joined singleton proof and path bias.
+-Real candidate insertion does not consult width; whereLoopIsNoBetter does.
+-Runtime117/240 remains red. Third checkpoint maps where.c3533/3552/4050 range
+-estimate/clamp order and4239/4258–4278 full-scan usefulness/covered-prefix lookup
+-reduction; truthProb and full expression coverage are not claimed. Supplemental
+-cost/order native captures and tests pass; affected169/170 remains red due to
+-preserved peer sorter assertion (independent native sort0). Existing public join
+-failure and unchanged vdbe.c5495 SeekRowid missing numeric-copy coercion remain
+-separate semantic-owner work: ordinary diagnostic11/120, BigInt-only rowid
+-is120/120, neither replaces acceptance. No STAT4/skipscan/OR/count/universal
+-optimizer credit; outstanding constructor/invalid-byte/metadata gaps in status.
+-Ninth checkpoint legacy.c/sqlite3_exec→vdbemem.c/sqlite3ValueText→analyze.c
+-passes UTF8 bytes, not Unicode; schema retains Mem-converted bytes through
+-hash.c ASCII-only lookup/decodeIntArray. Overlong UTF8 names cannot alias valid
+-non-ASCII names. Native callback hex plus canonical UTF16 controls are bounded
+-evidence, not malformed UTF16 parity.
+-Tenth checkpoint grammar PRIMARY/UNIQUE action ordering maps to explicit
+-implicitConstraints; schema build.c4330–4380 equivalence merge preserves first
+-direction, PK promotion and ordinal reuse for rowid implicit indexes. Physical
+-fields still own widths. Native UNIQUE-before-PK/duplicate DESC regression is
+-bounded. Eleventh checkpoint build.c convertToWithoutRowidTable aliases primary
+-root while preserving implicit name ordinal; shared definitions now publish WR
+-primary ordinal2 and automatic UNIQUE secondaries/PK suffix fields. Native-first
+-three-encoding noncovering fixture validates widths/typed reset. Equivalent
+-UNIQUE→WR-PK direction now consumes retained merged owner before compaction
+-and storage layout (twelfth checkpoint build.c4330–4380→2417); native-first
+-covering typed/reset fixture passes, supplemental index_xinfo DESC confirms.
+-Conflict policy/full census remain open.
+-Thirteenth checkpoint utf.c sqlite3VdbeMemTranslate UTF16→UTF8 default build
+-maps to utf.ts direct read/write codepoint bytes through Mem.changeEncoding;
+-final unpaired surrogate is preserved as three bytes, paired/next-unit formula
+-and odd trailing byte use source branches. Twelve pinned column_text oracle
+-cases pass. Fourteenth checkpoint two encoded stat1 snapshots exercise invalid
+-surrogate-name lookup and surrogate-consuming-space unknown token boundaries:
+-sz=8 ignored inside token, unordered retained, default physical width24. Native
+-callbackHex/EQP and public typed/reset pass; full invalid callback matrix open.
+-Fifteenth checkpoint rowid merged-PK fixture independently captures first DESC
+-via index_xinfo and typed noncovering rows all encodings; existing constructor
+-passes. Census records resolve derived table and VDBE transient table defaults;
+-Sixteenth checkpoint parse retains onError; schema merges explicit/default
+-before PK promotion and linkIndex translates first-REPLACE bubble to tail at
+-build.c exit_create_index. Native-first index_list all encodings matches3/1/2
+-and typed reset. Seventeenth checkpoint default→REPLACE PK promotion executes list cleanup at
+-merge actions too; final policies alone had reordered native1/2 into2/1.
+-Retained producer list positions feed publication before stat load/freeze,
+-not WHERE re-ranking. Native three-encoding list/typed reset passes; explicit
+-Eighteenth checkpoint explicit conflicting policy rejection preserves object
+-name via prepare.c corruptSchema, caller prepare maps SchemaFormatError to
+-sqlite11/cause before publication. Native writable-schema three-encoding error
+-and repeated prepare coverage pass; WR+APPDEF list fixture passes existing path.
+-Nineteenth constructor publication moves automatic schema identity materialization
+-and retained grammar linkage before APPDEF insertion (build.c init-busy linkage/
+-exit_create_index); removes post-estimate implicit-slot sorting and permits real
+-APPDEF cleanup on correct list.13/13 conflict tests/typecheck pass.
+-Twentieth isolated original-native ordinary public cases1080/1080 pass, typed
+-rows/column names/rebind/clear/reset retained. Production cost/access9/9 covers
+-where.c3552/4239 seek-width ratio/truncation/noncover lookup and actual tc roots
+-with explicit BigInt handoff; full metadata/native internal costs unclaimed.
+-Twenty-first pinned public column-name/decltype/database/table/origin capture
+-plus REAL noncover lifecycle3/3 passes on three encoded snapshots49,152 bytes;
+-bounded direct-column metadata only (vdbeapi column metadata contract).
+-Twenty-second build.c2385–2411 delayed WR IPK persistent-index creation now
+-feeds implicit ordinal/linkage/physical/default/stat ownership, not undefined
+-stats recovery. Native first three-encoding WR IPK fixture reproduces rowLogEst
+-crash and passes corrected primary3/secondary1,2 list/root/public behavior.
+-Twenty-third sqlite3AddPrimaryKey identity shared by rowid publication/WR delay;
+-independent inline DESC/table DESC/UNIQUE merge controls nine encoded snapshots
+-184,320 bytes pass immediate/delayed/retained-direction paths.15/15,typecheck0.
+-Twenty-fourth select.c2246/2376/2432 transient columns remain zero-estimate,
+-table nonzero1; resolve453/455 and VDBE synthetic constructors match these
+-placeholders, not persistent AddColumn widths. Source-derived nested check3/3.
+-Checkpoint25 `docs/research/card-s-e-estimate-census.md` enumerates actual
+-persistent/transient producers, publication/error boundary and WHERE/lowering
+-consumers; mixed peer VDBE hunks require isolation. Complement94/94 is bounded.
+-Checkpoint26 selected-resource80:74 pass6 two-slot joined IN crashes; isolated
+-HEAD with identical test inputs6/6 pass. InListValue iteration register exact-
+-integer invariant divergence must be traced through chosen path/lowering, not
+-credited as old joined failure. Advanced selected resource checks8/8.
+-Checkpoint27 where.c7627 IfNotOpen guards unopened LEFT inner IN; VDBE
+-register-set lowering now fences synthetic null continuation past restart/
+-physical advance, reset per outer row. First-RHS-empty trace fixed45/45.
+-Checkpoint28 row-width-left-in-reset native JSON independently captures
+-retained reset/clear/rebind NULL/nonempty sets on six existing snapshots;
+-public6/6 vs pre-guard0/6, with TS retained replay checks.
+-Checkpoint29 ownership census records isolated VDBE11 owned/2 peer hunks;
+-reverse-check does not replace independent review. Fresh width1293/123 and
+-resource/affected228/1 retain original residuals; typecheck0.
+-Checkpoint30 build.c1651/util.c1303 declared control matrix20 columns ×3:
+-hex boundary/long zeros/invalid suffix/CHAR scan/BLOB pointer/INT precedence,
+-native direct metadata/rows3/3; widths source-derived only.
+-Checkpoint31 raw schema-byte controls ff/c183 UTF8 accepted quoted prefix;
+-UTF16 byte-encoding mismatch native/TS CORRUPT11 twice,3/3. No actual
+-malformed UTF16 declared-type or full raw-byte metadata credit.
+-Checkpoint32 utf.c UTF16 consume-next schema control encoded correctly in
+-both byte orders: raw native UTF8 metadata hex5 fields/public TEXT/reset2/2,
+-width5 source-derived; declared suites8/8,not full malformed-byte closure.
+-Checkpoint33 independent-review handoff links paths/owned-hunk boundaries;
+-fresh width1301/123,resource228/1 preserve original residuals,no acceptance.
+-Checkpoint34 vdbe.c5495 lossless SeekRowid input copy/NUMERIC affinity absent
+-in TS6902; original-bound isolated join/rowid/path-bias11/349 vs HEAD0/360,
+-INTEGER diagnostic360/360. Root semantic owner,no binding expectation waiver.
+-Checkpoint35 where.c2744 equal-loop insertion precedes5818 path width tie;
+-exact no-ORDER native EQP tb9 controls/TS plan+OpenIndex+public reset9/9,
+-original3 differing ta assertions retained pending review.
+-Checkpoint36 where.c7627 unopened IN cursor guard adaptation reverse outer
+-transition/native reset8 binding sets×6 controls6/6; broader joins unclaimed.
+-Checkpoint37 joined WR path stops at compileInnerTableSelect3376 storage
+-fence current/HEAD0/3,native nonempty. Ordinary mapping is not joined
+-execution proof; coherent SELECT extension remains separate/unwaived.
+-Checkpoint38 schema final post-load/freezing/cache publication invariant120/120:
+-single index statistics owner,physical backlink,readonly mutation/cache identity;
+-not full cleanup/transient constructor proof.
+-Checkpoint39 malformed stat1 repeated load fresh errors/public CORRUPT12/12
+-combined new/existing controls; no graph publication,not native permissive
+-corruption equivalence or full error-cleanup proof.
+-Checkpoint41 where.c5273 ONEROW skips singleton x order checking; exact
+-joined reverse SQL native SORT0 forced/SORT1 scan all encodings,TS rows/
+-retained reset/sorter parity6/6. Original sorter assertion retained.
+-Checkpoint43 whereLoopOutputAdjust3037 actual insertion cardinality separate
+-from physical run costs; prerequisites/virtual/used-parent branches and
+-heuristic eq/IS clamp translated. truthProb/HIGHTRUTH/LIKE/self-cull flags
+-remain absent; source8/8,native cost branch3/3.
+-
+-
+-Checkpoint44 expr.c2899–2927/util.c1303 EP_IntValue positive signed32
+-leaf plus unary recursion/transparent parentheses;source19/19 including
+-used virtual parent and negative singleton residual output.
+-
+-Checkpoint45 trace: TERM_HEURTRUTH only consumed by STAT4 HIGHTRUTH
+-where.c3519/7086 second-pass; STAT4 sample estimates remain unimplemented, without blocking admission.
+-No missing admitted shared-state consumer; no mutable clause workaround.
+-SELFCULL consumer6606 Bloom generation unsupported,not width cost.
+-Fresh selected55/55,WR/residual complement43/43,stat/STAT4 boundary36/36;
+-44 changed-runtime width1951:1476/475 and resources178:177/1 reused.
+-
+-Checkpoint46 current constructor census: transient result tables column0/table1/
+-rows200 (select.c2376/2432/2464) now consistently freeze completed metadata at
+-publication via schema freezeTransientTable; not persistent default/stat1 pass.
+-See refreshed estimate census and implementation handoff; independent review pending.
+-
+-Checkpoint47 transient publication regression targets real withTransientTable:
+-3/3 current versus isolated freeze-call removal0/3; broad publication200/200,
+-typecheck0,width1956:1481/475,resources49/49,affected170:168/2 (sorter assertion,
+-missing r2-native artifact). No new runtime edits; independent review pending.
+-
+-Checkpoint48 transient guard-before-freeze/repeated-identity controls pass;
+-publication/WR/STAT4/corruption159/159. Persistent PhysicalIndex-null fallback
+-width1 flagged as open source ownership branch (build.c2236 versus schema574);
+-unsupported access does not automatically justify fabricated width estimates.
+-
+-Checkpoint49 real unknown-collation index reproduces fabricated width (3/3 red).
+-Pinned native ordinary q scan succeeds with A in all encodings; forced qi returns
+-SQLITE_ERROR/no query solution. Tried whole-schema rejection,then reverted:
+-that blocks legitimate table scan and is not a coherent source-faithful policy.
+-Need structural field ownership separate from executable built-in KeyInfo;
+-no width1 fallback or global rejection credit. Final tests retain expected
+-structural width LogEst(108) (CHAR100=26 plus rowid1),still0/3. No runtime change
+-retained this checkpoint; missing four Chinook tests remain unwaived.
+-
+-Checkpoint50 replaces fabricated nullable-physical width with shared immutable
+-PhysicalIndexLayout owner; executable built-in KeyInfo uses same fields/PK
+-mapping only when collations available (build.c2236,5653–5700). Unknown collation
+-preserves structural width and ordinary table read,declines index access;
+-no competing statistics or host callback support. Review pending.
+-
+-Checkpoint51 native WR unknown-CollSeq exact index_xinfo records agree with
+-shared layout fields: PK a custom DESC,b,c; same-collation suffix dedups a;
+-different-collation suffix repeats a custom DESC and maps PK [1,2]. Three
+-encodings frozen metadata/source widths pass3/3; independent native ordinary
+-WR read and forced secondary reads fail prepare1,TS rejects too (not exact
+-code/message parity). New36,864 fixture bytes; no WR executable access credit.
+-Fresh complement156:153/3 includes existing joined-WR storage fence failures,
+-not new owner regressions. Checkpoint50 width/affected evidence reused runtime
+-unchanged; independent review/root/parent/native-input gaps remain unwaived.
+-
+-Checkpoint52 unknown-CollSeq caller now preserves native SQLite error1 rather
+-than temporary unsupported: forced unavailable index => no query solution;
+-unforced WR unavailable primary storage => no such collation sequence.
+-Owning btreeLoops uses retained layout names; existing capability gating/cost
+-ordering unchanged. build.c5653–5700/where.c6169 branches; six encoding controls
+-assert exact public kind/code/extendedCode/message/null classification across
+-repeated prepares,stable graph and immediate close. First harness syntax error
+-corrected;final6/6. Fresh affected173:170/3 existing joined-WR fence only.
+-
+-Post-runtime row-width acceptance: where.c2744–2808 dominance has no width;
+-5800–5821 width comparison is a later solver tie branch. Exact no-ORDER versus
+-ORDER BY a native controls distinguish reachability; no candidate algorithm edit.
+-
+-
+-### Revision 2026-10-04 — bounded numeric seek / LEFT continuation supersession
+-
+-This revision supersedes **only** the earlier absent NUMERIC-copy claims in the
+-row-width checkpoints (including checkpoint34 and audit2026-10-04d), not their
+-historical reds or pending e/root qualifications. See
+-[causal repair/evidence note](research/seek-rowid-numeric-repair.md).
+-Commits `4fa06e2441b978406cbd285b34ff4e6a25868ebc` and
+-`5713c0f68bfb733ecb4e527fc74841394066ceac` correct these bounded owners:
+-
+-- Pinned `vdbe.c:5495 OP_SeekRowid` copies the input Mem and applies NUMERIC
+-  affinity before integer gating/cursor access, preserving original binding
+-  payload/type. `vdbemem.c:sqlite3VdbeIntegerAffinity` uses the **exact bigint
+-  slot for IntReal**, including both signed64 endpoints and values above2^53.
+-  Existing REAL instead uses double-to-integer roundtrip equality and **strict
+-  signed64 endpoint exclusion**. This is distinct from the narrower
+-  `sqlite3RealSameAsInt` text-numericization rule; it is not a text shortcut.
+-- `where.c:sqlite3WhereEnd` distinguishes continuation, advancement and LEFT
+-  synthetic-null re-entry. TS `nextAt` enters LEFT null-pass / RIGHT Return
+-  guards; `advanceAt` identifies the actual singleton Goto or movement opcode.
+-  Singleton target patching now uses advanceAt, not an offset into nextAt.
+-  ON matching remains before null extension; WHERE remains after positioning.
+-- `where.c:wherePathSatisfiesOrderBy` /5273 WHERE_ONEROW supports only the bounded
+-  represented proof: **FINAL ordered producer after exact rowid-equality
+-  singleton predecessors**. Statistical nOut0 is not uniqueness. Outer ordering
+-  before later fanout is NEVER promoted by this proof. Other joined paths retain
+-  zero global order; this is not general multi-source ordering acceptance.
+-
+-Fresh strict singular-public ordinary execution on the disclosed peer-dirty
+-runtime completed **69/69** cases across UTF8/UTF16LE/UTF16BE, exact rows/errors
+-and every exact/min/max private bound, with no prepare waiver or increased limit.
+-Earlier63/69 with six LEFT limits and66/69 with three sorter minima remain
+-historical failures, causally repaired rather than waived. Primitive IntReal
+-coverage is not a claim of a public IntReal producer. No public API change.
+-Runtime commit/tree and fresh five-fix delivery evidence are in current executor
+-status for [[card:card-s-b-a-a-b-a-a-a]]. Native fixtures/pin evidence are not TS
+-execution credit. Shared dirty work is NOT a clean export; e aggregate1962/1490/472,
+-cFAILED, joined-WR and broader historical reds remain unwaived/separately owned.
+-
+-### 2026-10-04 joined WR caller follow-through
+-
+-`vdbe.ts:compileInnerTableSelect` consumes existing schema primary/secondary
+-PhysicalIndex identity for OpenIndex, IndexRewind/Next, PK payload remapping and
+-required-primary lookup. `build.c:convertToWithoutRowidTable`,
+-`expr.c:sqlite3ExprCodeGetColumnOfTable` 4462,
+-`wherecode.c` 2170–2186 (covering/rowid/WR lookup), and `where.c` 4055/6369
+-(index hints) own the relevant branches. `compileExpressionTree` consumes the
+-payloadIndex carrier without changing semantic affinity. LEFT continuation nulls
+-both source and selected cursor; no WR RIGHT/FULL match-key credit.
+-`without-rowid-joined.test.mjs` + pinned `without-rowid-joined-native.json` add
+-three-encoding caller evidence. Historical checkpoint37 0/3 fence is superseded
+-only for this bounded producer; broader grouped/specialized fences remain.
+-
+-
+-### Joined column-location correction (2026-10-04)
+-The semantic location contract now distinguishes `physicalColumnIndex` (table
+-primary/secondary storage ordinal) from aggregate `payloadIndex`/iAgg bookkeeping.
+-Joined columnAccess produces the former; binding replaces any prior physical
+-location when rebinding, and expression emission consumes only that location.
+-Logical transient indices and aggregate registers retain their own owners.
+-Pinned expr.c:sqlite3ExprCodeGetColumnOfTable4462 maps table storage;
+-TK_AGG_COLUMN4995–5015 uses accumulator/sorter locations first, and select.c
+-AggInfo production owns those locations. vdbe.c OP_Column reads the already
+-chosen cursor record ordinal, not a universal semantic-to-physical conversion.
+-This repairs the source-only45/68 cross-layer regression without reverting real
+-WR collation-aware mapping. Exact corrected candidate tests: discriminator68/68,
+-broad910/910,joined/shared184/184. Historical24/30 credit, wider fences and
+-post-runtime/native-FIRST shortfall remain unchanged; no B4-cause claim.
+-
+-### Current bounded width evidence closure — 2026-10-04
+-
+-Actual integrated source is `644cbcd827a2fbdf3a14407210941e38ac945a01`
+-(tree `7669377f99ead8c9bed67c52695cfa549863fa2d`), not the historical
+-mixed ACK candidate. Joined owner correction uses dedicated `physicalColumnIndex`
+-for storage; `payloadIndex`/iAgg remains logical aggregate state. Old checkpoints
+-and their failures remain chronological evidence, not current acceptance claims.
+-Independent [[card:card-s-e-c]] / [[card:card-s-e-d]] support bounded original
+-width and tested lifecycle on exact source plus inventoried297 evidence paths.
+-The coherent generator→case JSON→fixture/test corpus is promoted by
+-[[card:card-s-e-b]]; scope, hashes, fresh export checks and reuse are in
+-[width evidence delivery](research/card-s-e-b-evidence-delivery.md). Fresh exact
+-export original240/240, closure2034/2034 and read-only pinned120 snapshot equality
+-are bounded evidence, not whole-product approval. B4 now returns INTEGER1984 with
+-reset/admission on reviewed source; sole causation is not proved and cancelled
+-baselines supply no causal credit. Native-FIRST chronology is unchanged.
+-### Positional stat1 skip-scan
+-
+-where.c3238–3650 → `where-plan.ts` positional `equalitySlots/nEq/nSkip`, insert-before-recursion feedback, raw nIter output reduction and nIter+5 cost multiplier; where.c2667ff/5300ff → subset/dominance and order contribution. Skipped null slots do not earn global equality-order credit. Shared BigInt construction budgets retain enclosing insertion versus child-DONE ownership. Producer controls: `skipscan-planner-producer`, `skipscan-stat1-producer`, `where-plan-analysis` and subset/dominance tests. analyze.c1520–1589 → schema stat1 decoding and noSkipScan admission controls. STAT4 sample estimates remain unimplemented.
+-
+-wherecode.c925–960/1997–2099 and where.c7664ff → `where-prefix.ts` two-phase first/restart positioning and ordinary/joined/recursive-OR consumers in `vdbe.ts`: copy physical prefix before RHS/IN evaluation, strict GT/LT restart, physical keys without affinity conversion, IN exhaustion before prefix/final exit, equality NULL final versus bound NULL next, LEFT extension only after full exhaustion. `btree.ts` owns page-local seek and comparison-error conversion; VDBE owns registers/cache/control and operand cleanup. Tests: `skipscan-prefix-code`, `skipscan-position-owner`, `skipscan-prefix-seek`, `skipscan-seekscan-state`, `skipscan-seekscan-vdbe` and public default compiled companions.
+-
+-Current bounded admission, typed WR/REAL/reset/rebind, selected DESC recursive-OR, NULL/LEFT and resource/corruption witnesses are indexed in [COVERAGE](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review). Detailed native-FIRST chronology, historical admission-copy versus default-production results and remaining limits are in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md). This mapping does not certify universal optimizer, work/error-order or native OOM parity. Transformed EXISTS producer, vectors/subquery-IN and general joined ORDER remain unimplemented or unproved.
+-
+-Historical checkpoint: disabled lowering/internal-opt-in, advanced24/30 and analyzeC0/24 accounts describe earlier revisions, not current production. The superseded map text is retained verbatim in [F4 repair evidence](research/card-s-g/review-docs-repair.json); original tests/captures and chronology remain in IMPLEMENTATION. Current coherence guard: `skipscan-docs.test.mjs` ([independent review](research/card-s-g/REVIEW.md)).
+-
+-### Current bounded infix caller repair — card-p-b-c (2026-10-04)
+-
+-Pinned `parse.y:1363–1383` creates LIKE/GLOB function lists as RHS pattern,
+-LHS candidate, optional ESCAPE. Syntax reduction children remain LHS/RHS/ESCAPE.
+-`vdbe.ts:bindResolvedExpression` and joined `resolveTree` now use the same
+-infix child permutation in every applicable caller policy, not only windows;
+-infix NOT binds its synthesized unary child against the same infix carrier.
+-Explicit function-call children remain unchanged. No patternCompare algorithm,
+-function breadth, fixture, or expected-count change was needed.
+-
+-Fresh source-ID-pinned C API on actual UTF-8/UTF-16LE/UTF-16BE users files
+-confirms Alice/Bob/Cara LIKE results 1/0/1 and filtered count 2. Public infix
+-aggregate/join/NOT/ESCAPE and explicit-call controls now agree. Executable evidence:
+-`ordinary-scalars-pattern-native.test.py` (36 INTEGER checks),
+-`run-ordinary-scalars-pattern-ts.mjs` (5 observations, 24 boundaries,
+-90 discriminators, 33 compositions, 9 lifecycle cases). Detailed chronology and
+-commands: `docs/research/card-p-b-c-pattern-count-diagnosis.md`.
+-The 50 active ordinary non-pattern registry rows / 0 absent count is unchanged;
+-this caller repair is not new aggregate/window or excluded-family support.
+-Original broad exit1 1539/1543 four reds are not universally dispositioned by
+-this focused repair. C4 and direct REAL/expression-subquery regressions remain
+-retained; no global cleanliness or universal acceptance claim.
+-
+-### Expression work-budget boundary repair (2026-10-04)
+-
+-Pinned `src/func.c:hexFunc` and `src/vdbe.c` dispatch counter / `OP_Goto`
+-→ shared scalar SELECT setup/body routing in `vdbe.ts` and its input/function/copy
+-checkpoints → `test/conformance/run-expression-bounded-ts.mjs` (22 rejects,
+-23 reaches ROW with exact TEXT payload, saved error/reset/rebind). The old
+-`f1a5b3b` 19/20 boundary predates three executed routing jumps from `48bf18c8`.
+-The [living guide](TRANSLATION.md#expression-safety-budget-fixture-repair-2026-10-04)
+-records the inventory and independent pinned-native semantic/control comparison.
+-No runtime change, native/TS unit equivalence, new product coverage or default
+-budget increase is claimed.
+-
+-### LIMIT-zero OFFSET phase adjudication (2026-10-04)
+-
+-Pinned `select.c:2517 computeLimitRegisters` → LIMIT MustBeInt then zero branch,
+-then OFFSET expression/MustBeInt; `vdbe.c:2105/2747` → current shared
+-`computeLimitRegisters` in `vdbe.ts` (already correct at `1010b15`). Literal
+-integer zero uses upstream Goto; evaluated/coerced zero uses IfNot. Both skip
+-OFFSET at execution, not prepare-time name resolution. Native source-ID-checked
+-`limit-offset-adjudication-native.py` and public
+-`limit-offset-adjudication.test.mjs` consume identical 16 cases across three
+-encodings (48 preparations/96 executions per lane including reset/finalize).
+-The old ORDER runner zero-OFFSET error expectation was stale; no runtime edit.
+-See mutable audit adjudication for errors, exploratory gates and remaining reds.
+-
+-- Generic scalar table-child LIMIT destination (revision 2026-10-04,
+-  [[card:card-m-f-j]]): pinned `expr.c:sqlite3CodeSubselect` 3933–3958 X<>0
+-  numeric normalization → `computeScalarLimitRegisters`, selected by
+-  `compileScalarSelect`'s table-child handoff to `computeLimitRegisters`;
+-  pinned `select.c:computeLimitRegisters` zero-before-OFFSET and combined
+-  sorter capacity → the remaining shared LIMIT register setup. Mem/Exists
+-  normalize; Set/IN and retained post-predicate producers keep row-count LIMIT.
+-  `order-limit-subquery-native.py` source-ID-verifies 51 exact typed native
+-  captures; `run-order-limit-contract-ts.mjs` compares full metadata and
+-  all-encoding rows/errors/reset/finalize, including text/NULL/zero/OFFSET and
+-  IN/outer-limit distinction. Bare derived outer ORDER admission is unchanged.
+-
+-### Routed alias / membership ownership (2026-10-05, card-t-d)
+-
+-- `resolve.c:642–702 resolveAlias` → `resolve.ts aliasUses/carrier` →
+-  `whereexpr.c:1827–1863 ExprUsage` → `where-plan.ts columnUse/prereq`:
+-  substituted identity owns direct-column admission and all-source readiness;
+-  joined `vdbe.ts resolveTree/compilePredicate` consumes masks before execution.
+-- `vdbe.c:5368–5438 Found` → `btree.c IndexMoveto` interval comparisons →
+-  `private-state.ts EphemeralIndexCursor.found` for sorted keys. Aggregate
+-  equality-EXISTS compiler emits `EphemeralSort` after once-only join/correlation
+-  key construction; VM executes sorting/probing through existing private control.
+-  Shared append invalidation/OpenDup, independent positions, KeyInfo/Mem and
+-  unsorted linear branch retained. Flat-array/merge-sort adaptation and exact
+-  regression/gaps: [report](research/card-t-d-routed-alias-b4-repair.md).
+-
+-#### Working-tree repeated joins / original window input ([[card:card-k-h-b]])
+-
+-`compileInnerTableSelect.rightStates`: whereInt.h WhereRightJoin/WhereLevel,
+-wherecode.c2740ff match insertion before interior, where.c WhereEnd reverse closure
+-and forward RightJoinLoop. Each cursor/key/return/body is independent. Window's
+-original input edge uses this shared producer with Yield, not raw nested scans.
+-`resolve.direct` FULL merged provenance and joined USING equality correspond to
+-resolve.c402ff/select.c583ff. Implementation is in progress, not accepted API
+-expansion: aggregate and adapted-upstream residuals and nonzero shared budget
+-measurement remain. WR composite match keys remain unsupported.
+-
+-Working-tree follow-up: grouped aggregate input calls the same WHERE destination
+-(select.c updateAccumulator/WhereEnd); no local rewind patch owns these loops.
+-parse.ts identity-only SrcList splice preserves expression EList substitution
+-(select.c:substExpr3797–3898); join8-3030 UTF8 passes after this repair.
+-where-plan.ts binding/prereq treats FULL merged names as coalesce functions,
+-not the first physical column (resolve.c775; whereexpr.c:exprMightBeIndexed1085).
+-Full schedule/budget review remains open; this note does not change accepted API.
+-
+-Latest all-encoding run is 87/90, with join8-3040 temporary unsupported in all
+-encodings after expression projection retention. `flattenOrdinaryDerived` still
+-requires one inner source and does not expand outer star from transient EList;
+-aggregate-parent substitution accepts multiple sources. Follow-up belongs to
+-select.c flattenSubquery/substExpr and result expansion, not parser expression
+-splicing. Keep this residual separate from the nine passing adapted assertions.
+-
+-Follow-up: `flattenOrdinaryDerived` permits nonempty multi-source explicit EList
+-and expands parent star from its transient EList before substitution/splicing,
+-following selectExpander → flattenSubquery → substExpr. Inner producer stars remain
+-retained. All12 adapted assertion instances now pass, alongside60 supplemental
+-and18 controls (90/90 selected). Additional shared-budget boundary test passes3/3;
+-logical high-water225 UTF8/224 UTF16LE/BE, not a native allocation metric. Complete
+-nested-return review and final admission synchronization remain open.
+-
+-Working resolved validation: vdbeaux.c995–1068 checked after builder finish label
+-resolution, traversing Return chains to owning register; explicit stop identities
+-permit source SELECT producer termination without treating arbitrary halt jumps
+-as continuation. New builder tests2/2, adjacent suite14/14. Broad229-file run:
+-220 successes/9 failures, including retained window-star affinity metadata and
+-obsolete structural assertions; see card-k-h-b status. Aggregate producer flatten
+-is excluded via semantic selectHasAggregate; transient collation guard alone does
+-not repair absent expression carriers for star-expanded source metadata.
+-
+-
+-### card-k-h-b follow-up: metadata owner repair (working tree, not final acceptance)
+-Expanded-star transient results have resolved source-column identity but may lack
+-a parser Expr reduction. Metadata now takes affinity/datatype masks from that
+-identity, retaining the Expr path and compound conflict/CAST branches. CTE star
+-names use expanded result metadata; CTE and ordinary derived descriptors retain
+-the resolved producer for declared-type provenance. This follows pinned
+-select.c:2340–2416 sqlite3SubqueryColumnTypes, not a token reconstruction.
+-The prior collation-only hypothesis was insufficient: affinity still crashed,
+-then CTE naming crashed, then declared type INT differed from native INTEGER.
+-Those observed failures motivated fixing the owning descriptor and its callers.
+-
+-Fresh unconditional repeated-right-full is 99/99 (190978ms), including native
+-ordered typed rows/all five metadata fields across three encodings, adapted
+-upstream assertions and shared live-budget/yield controls. The inherited native
+-corpus was reused, not newly captured. The earlier integration result220/229
+-and its30s repeated-suite watchdog remain failures, not waived by this separate
+-run. Adjacent combined run122/123: sole obsolete aggregate scan structural
+-assertion; corrected to test actual RIGHT exclusion, then owner suite21/21.
+-Endpoint compile fixture now supplies table nRowLogEst required by the shared
+-WHERE planner; it is not a substitute runtime database. Source predicate
+-assertion tests shared resolved input producer, not the superseded raw walker.
+-Final source schedule audit, full regression/browser snapshot, public admission
+-synchronization and reviewed explicit-path commits remain outstanding.
+-
+-
+-### card-k-h-b scheduling and mixed merged-name follow-up (not final acceptance)
+-Test teardown now uses existing closeTestServer after connection cleanup. This
+-alone was insufficient: twelve adapted256-row upstream queries still take
+-approximately150s sequentially. Parallel twelve-query group passed100/100 but
+-took35s (above unchanged30s watchdog). Split by encoding into three discoverable
+-test files, four concurrent independent connections each; shared prototype and
+-timer probes stay sequential in repeated-right-full. No SQL/expected rows removed.
+-Focused integration four components completed within watchdog; combined102/102
+-then111/111 with nine new native-FIRST mixed USING cases.
+-
+-Pinned resolve.c449–464 resets pFJMatch on a RIGHT USING successor. TS retained
+-the earlier FULL coalesce graph, causing FULL-RIGHT metadata mismatch in all
+-three encodings (six of nine new cases passed). Clear mergedSources on that
+-RIGHT branch; nine of nine now pass ordered typed rows and all metadata fields.
+-New frozen corpus repeated-merged-using.json SHA256
+-3eff93ea3700f866dfd319ffc4148de5e227a06a88ea435cb3513b642ee0c89b;
+-captured independently with pinned shared library before new TS assertions.
+-RIGHT-FULL and FULL-LEFT retain their appropriate graph.
+-Fresh built browser current38/38 and gap2/2 pass before this last resolver change;
+-therefore they are intermediate snapshot evidence, not final latest-tree credit.
+-Full integration reruns and final source review/contract/commit work remain open.
+-
+-### card-k-h-b fresh working-tree checkpoint (not final acceptance)
+-Current per-WhereLevel match/return/body maps translate whereInt.h45–145,
+-WhereBegin7394ff, wherecode2740–end and WhereEnd7500ff into shared builder
+-ordinary scans, reverse closures and forward drains. Original window input
+-uses resolved SELECT/WHERE coroutine destination, retaining rewrite/framing.
+-Mixed USING RIGHT clears previous FULL graph (resolve.c449–464). Source and
+-fixture hashes plus current232/232 integration and focused6/6+9/9 evidence:
+-[card-k-h-b progress](research/card-k-h-b-runtime/progress.md). Complete owning
+-Return/stop and register/index payload review remains a delivery gate; historical
+-one-barrier baseline findings are not current runtime facts. WR composite keys
+-remain unsupported; no native allocator parity or universal composition claim.
+-
+-
+-### card-k-h-b continuation checkpoint (working tree, review pending)
+-Native-FIRST continuation corpus adds21 discriminators (seven x three encodings):
+-LIMIT0, unmatched-drain OFFSET, scalar/EXISTS stops, compound LIMIT, downstream
+-LEFT selected-index IN, and RHS selected-index unmatched drain. Public consumers
+-compare ordered typed duplicate rows and all five metadata fields, repeat after
+-reset/clearBindings, and reuse the connection. Independent pinned recapture
+-compares byte-identically; no expected values were revised to fit TypeScript.
+-
+-The settled-target verifier now shares `reachesOwningReturn`: consecutive Return
+-opcodes must reach the owning register, with invalid/unsettled targets rejected.
+-Pinned vdbeaux.c995–1068 is debug verification, not runtime jump rewriting; TS
+-has no Noop/Explain opcodes. Producer-stop identities and coroutine/Gosub
+-boundaries remain distinct. Source reread confirms wherecode.c2740–end records
+-ON matches before interior/downstream WHERE, where.c WhereEnd closes reverse
+-and drains forward, and selected RHS indexes must be invalidated before drain.
+-Original window input uses physical cursor bindings across Yield; retained
+-register producers are not claimed covered by this input-edge change.
+-
+-Fresh helper-tree evidence: focused122/122 plus typecheck; original gap6/6;
+-integration232/232 components, all three prerequisites exit0, input_drift=[];
+-build and Chromium current38+gap2=40/40. Exact commands/artifacts/hashes are in
+-`docs/research/card-k-h-b-runtime/{progress.md,hashes.json}`. These are internal
+-checks, not parent independent acceptance or complete owning-path fidelity
+-approval. Explicit-path/hunk commit review remains pending; inherited bitwise
+-changes in vdbe.ts/run-advanced-index must not be staged as this card's work.
+-
+-
+-### card-k-h-b continuation caller checkpoint — 2026-10-05 (post-v24)
+-Bounded caller review found an admitted ordinary-derived projection metadata
+-error: native-FIRST `derived-filter-admitted` returned column names k/v while
+-TS returned qualified j.k/j.v in all three encodings (0/3 public contracts).
+-`flattenOrdinaryDerived` now preserves the resolved transient column name before
+-producer substitution, as select.c sqlite3GenerateColumnNames/substExpr do;
+-explicit AS names remain authoritative. Aggregate lowerResult now distinguishes
+-only the generated FULL USING coalesce column leaf from parsed function calls,
+-instead of skipping recursion for arbitrary calls with carrier children.
+-
+-Continuation corpus now has 33 native captures (11 x3), independently recaptured
+-byte-identically. Public checks are 30 admitted typed-row/all-five-metadata/reset
+-contracts plus three honest temporary-unsupported checks: ordered physical-derived
+-filter remains an existing declined route, not native-success TS credit. The
+-new un-ordered filter is admitted and passes. Do not infer universal derived ORDER
+-or aggregate/correlation admission. This extends, not replaces, the 21-case history.
+-Focused five-file run passes165/165; original FULL/FULL/window gap6/6 and typecheck
+-pass. Complete delivery review/explicit own-hunk commits remain pending; internal
+-checks are not independent parent acceptance. Exact evidence is in
+-`docs/research/card-k-h-b-runtime/progress.md` and hashes.json.
+-
+-### card-k-h-b R4 residual owner
+-`wherecode.c:sqlite3WhereRightJoinLoop`2842–end → `rightJoinResidual` in where-plan.ts and forward drains in vdbe.ts: readiness/origin/LTORJ extraction, null previous/index state, copied jointype0 source, shared one-source SELECT/WHERE scan, exact membership and owning subroutine. `whereexpr.c:sqlite3WhereExprAnalyze`1885 → base-before-virtual publication with parent/child IDs remapped. `expr.c:sqlite3ExprCodeIN` / TK_IN5505 → scalar resolved IN operands consume column cursor identity before compilation. Public right-residual tests cover native30 across encodings, early downstream positioning/reset and sticky first-error/reuse; they do not claim full WHERE/vector optimization or native work counts.
+-
+-### card-k-h-b R5 SELECT usage owner
+-whereexpr.c997–1023 /1827–1863 -> where-plan.ts prereq: relevant resolved SELECT graph, owning clauses and compound arms, same enclosing source identity mask, alias/merged substitution. wherecode.c rightJoinLoop readiness caller unchanged. expr.c sqlite3CodeSubselect scalar LIMIT1 -> vdbe.ts resolvedScalarSubqueryEmitter closes synthesized as well as explicit ifZero; settled RIGHT verifier remains verification, not rewriting. Tests right-nested/where-plan-analysis: native24, public21 success+3 typed IN boundary, downstream3 starts per execution, saved-error/reset/reuse across encodings. Transitive no-FROM scalar admitted; no global correlation admission. See research/card-k-h-b-runtime/r5.md.
+-
+-### Outer-constraint owner
+-`wherecode.c`2740–2833 match/hit/BeginSubrtn/code_outer_join_constraints and `where.c:sqlite3WhereEnd`7525–7712 → `compileInnerTableSelect` invocation-local WHERE coded state, ready/LTORJ checks, post-hit shared body and owning continuation. Immutable `analyzeWhere(...,true)` publishes base identities; ON/virtual terms are excluded. LEFT NullRow re-enters constraint body; unmatched Gosub shares it, while drain extraction remains independently owned. `outer-constraints.test.mjs` native FIRST24 typed/all5/reset plus physical-position/error/work contracts; [R6 evidence](research/card-k-h-b-runtime/r6.md). No general optimizer or native work parity claim. `run-index-planner-ts.mjs` checks the LEFT matched/NullRow term count (five: one ON plus two WHERE checks per body entry); `select-scalar-child.test.mjs` retains enclosing-builder ownership with the zero-width range guard. Repair evidence: [[card:card-k-f]] `status.md` (diagnosis v24).
+-
+-## Optional STAT4 file admission
+-
+-`analyze.c:sqlite3AnalysisLoad` (1942–2028) loads stat1/default estimates
+-independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
+-owner follows the non-STAT4 branch: publish ordinary `sqlite_stat4` metadata,
+-load supported stat1, and do not read optional sample payloads for estimates.
+-Presence of samples alone is not an unsupported-file error. Ordinary schema,
+-record and type validation remains in force on consumed paths. This provides
+-file/query admission, not native STAT4 selectivity or cost/plan parity; sample
+-optimization remains progressive work, not a permanent exclusion.
+-
+-Mapping: `src/internal/schema.ts` estimate initialization/stat1 publication →
+-`test/conformance/private-alpha-stat4-admission.test.mjs`,
+-`stat4-enabled-boundary.test.mjs`, and `stat-record-boundary.test.mjs`.
+-Pinned non-STAT4 comparison: `private-alpha-stat4-portability-native.py`.
+-Revision-bound repair evidence: [[card:card-e-h]] status and
+-[admission evidence](research/card-e-h-stat4-admission.md).
+-
+-`wherecode.c`2500–2505/2618–2630 OR_SUBCLAUSE notReady/untested terms →
+-`emitJoinedOr` per-term prereqAll readiness checks and ordinary level-aware
+-`codeOuterConstraints` full untested parent residual. Fully tested OR parents
+-are omitted invocation-locally; selected exact constraints and eligible commuted
+-parents use `branchConsumedTerms` as mapped above, without mutating shared terms.
+-Tests/evidence: [not-ready residual repair](research/card-s-f-or/verification.md#not-ready-arm-residual-ownership-repair).
+-
+-Represented-inner Case5 common iCovCur/pCov → `emitJoinedOr` level continuation
+-and WhereEnd covered Column/Rowid rewrite; Case4 end-bound producer precedes
+-patched IndexRangeEnd branch PC. Mixed-index invalidation/full residual/three-encoding
+-public trace tests: [inner covering evidence](research/card-s-f-or/verification.md#represented-inner-common-covering-relationship-repair).
+-
+-| `resolve.c:resolveSelectStep` NC_AllowAgg classification; `expr.c` TK_AGG_FUNCTION | `resolve.ts` WHERE admission retains result/GROUP aggregate state; existing codegen owns missing aggregate context error. Unchanged scalar no-FROM preparation regression; [evidence](research/card-s-f-or/verification.md#aggregate-where-error-phase-ownership). |
+-
+-Low-multiplier literal-IN: where.c3396 flag → positional admission/capability `inSeekScan` (default enabled; explicit-disabled control); wherecode.c2043 → shared `emitPrefixSeek` GE-only descriptor, `(rowLogEst[0]+9)/10` steps/range marker; joined1965 → `IndexNullRow`/clearPosition; vdbe.c5093–5200 → `IndexCursor.seekScan` and VDBE register/cache/destination/control/accounting wrapper. `skipscan-lowmul-producer`, `skipscan-prefix-code`, `skipscan-seekscan-state`, `skipscan-seekscan-vdbe` tests and disposable compiled native-first lowmul proof cover represented branches. Default no-skip low-multiplier SQL production now enabled and native-tested; skipped-prefix gate remains fenced; normal IN earlyout/SeekHit/SeekEq broader owner fidelity still open (flagged source path suppresses them). Source5337 IN order handling retained. [Chronology and gaps](research/card-s-g/IMPLEMENTATION.md); no default/whole optimizer credit.
+-
+-where.c3588 secondary nColumn/primary nKeyCol recursion limit → capabilities physical fieldCount independent of skipScan; default lowmul producer and public proof assert ordinal3 rowid bound and GT4 (GE3 without range). [Evidence](research/card-s-g/IMPLEMENTATION.md). Full cost/order traversal closure remains separately open.
+-
+-where.c3284/3580–3613 insertion/recursive-return order → shared proposal feedback for default ordinary as well as skip/OR index frames; zero debit OK, next insertion DONE, child return ignored. where-plan-analysis source state tests distinguish construction/IteratorClose/frontier; ordinary scalar transitive whereScanNext now shares original term/RHS physical-target admission and ready/commuted/residual lowering; borrowed IN unadmitted. [Evidence](research/card-s-g/IMPLEMENTATION.md).
+-
+-whereScanNext equivalence slots → default capabilities borrowed scalar admissions (original term/orientation/RHS affinity and physical field); existing joined bound extraction and ready masks/residual evaluation consume them. Native-first transitive-native.json/script and default public proof exercise equality, commuted join/LEFT and empty ISNULL. [Evidence](research/card-s-g/IMPLEMENTATION.md). No borrowed-IN/vector or whole equivalence machinery claim.
+-
+-wherecode979 EQ NULL addrBrk vs2000/2102 bound NULL addrNxt → existing equality/final vs prefix guards; null-in-native.json public private-seek tests assert distinct exits, nested IN and NOTNULL residuals. Default corruption/recovery/memory test modes validate existing source-based error/reset/cleanup owners without admission-copy edits; evidence in IMPLEMENTATION.md.
+-
+-Historical checkpoint: missing linked NOTNULL/VNULL producer/consumer predictions are superseded by the current linked NOTNULL owner mapping below; retain primitive captures and chronology in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+-
+-### Linked NOTNULL range owner
+-whereexpr.c1331–1360 → where-plan.ts analyzeClause linked virtualNull GT child; where.c1921/2229/3292 → rangeRows and proposal admission; wherecode.c1997/2099 → ordinary/joined/OR VNULL guard exemption and normal end-NULL exit in vdbe.ts; aStartOp1852/2041 → where-prefix.ts zero-key Rewind/Last positioning. Column-only, excludes rowid/IPK/outer-ON; no additional expression/join admission. Producer regression and native-first NULL/caller public evidence: [implementation evidence](research/card-s-g/IMPLEMENTATION.md). Direction/end controls are covered by notnull-directions-native.json and skipscan-position-owner.test.mjs; complete matrix closure remains a review obligation.
+-
+-- wherecode.c2026 (nConstraint==nSkip) → `where-prefix.ts` positioned fall-through with carried keys/affinities; ordinary/joined/joined-OR consumers in `vdbe.ts` preserve restart/final/OR-return ownership. Source state tests: `skipscan-position-owner.test.mjs`; public/native mapping: [prefix continuation evidence](research/card-s-g/IMPLEMENTATION.md), `prefix-position-native.json`. Native OR companion exercises strict restart/cleanup but not reversed OR no-reseek selection.
+-
+-- wherecode.c2431 recursive OR `sqlite3WhereBegin(...,0,...)` → where-plan.ts OR-arm `orderBy:[]`; outer ASC/DESC does not reverse arm positioning. Tests: `or-order-position-native.json` through `skipscan-compiled-copy.test.mjs` strict GE/GT private bounds and typed/reset comparisons; [evidence](research/card-s-g/IMPLEMENTATION.md). where.c3618/5289 boundary Cartesian state tests: `skipscan-planner-producer.test.mjs`64 combinations (native threshold proof remains separate).
+-
+-- Physical DESC suffix endpoint comparison (wherecode.c range-start/end lowering) → `vdbe.ts` rangeReverse + shared prefix positioning; `desc-or-end-native.json` through public `skipscan-compiled-copy.test.mjs` verifies strict GT/2 versus inclusive GE/2 and strict GT/1 restarts. Other captured OR/IN/NOTNULL shapes are SCAN controls, not selected consumer credit; [evidence](research/card-s-g/IMPLEMENTATION.md).
+-
+-- where.c2749/5353–5364 XN_ROWID order and separate iSortIdx → `resolvedWhereOrder`/OrderRequirement null rowid carrier, ordinary scan and physical-tail consumers in `where-plan.ts`; producer rowid-sort-owner regression and desc-selected native/public evidence in [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md). Shared ordinary/joined resolver ORDER handoff preserves XN_ROWID; bounded controls close the former exhaustion/selection discrepancy.
+-
+-- wherecode.c2090ff RHS/NULL-before-end branch → joined `emitJoinedOr` records actual IndexRangeEnd opcode after bound emission, not pre-expression position. Final-op zero-reset assertion and native SCAN selection regression: [IMPLEMENTATION](research/card-s-g/IMPLEMENTATION.md).
+-
+-- wherecode.c2431 recursive OR passes no ORDER BY → physical-forward shared restart. Native-selected DESC ordinary/joined OR18 shapes36 reset executions (GT/1 and suffix GT/2/GE/3): [coverage ledger](research/card-s-g/COVERAGE.md), desc-recursive-native/capture-desc-recursive.
+-
+-- where.c3060/3595 sqlite3ProgressCheck → WherePlanBudget.progressCheck, outputAdjust unused-term branch and capabilities deep equality recursion; SelectProgramBuilder/compileSelect shares prepare control with recursive OR. [Construction evidence](research/card-s-g/COVERAGE.md#construction-progress-repair); skipscan-construction-progress structural reproducer and producer/public behavioral tests.
+-
+-- where.c2662–2697/2740ff → properSubset/whereLoopAdjustCost/whereLoopInsert: skipscan-dominance-matrix2304+5184 bounded branch cases; build.c convertToWithoutRowid/isDupColumn → physical declared count/PK suffix: skipscan-wr-layout plus wr-layout-native18 selected shapes. [Remaining matrix evidence](research/card-s-g/IMPLEMENTATION.md#remaining-matrix-increment-after-focused172), [ownership handoff](research/card-s-g/HANDOFF.md).
+-
+-- where.c4835 LEFT-allowed OR admission /7694–7703 covering NullRow → where-plan btreeLoops and vdbe joined WhereEnd orCovering cursor: mixed-native30 shapes60 resets/private strict-prefix bounds, matched/exhausted/composite LEFT ON-OR. [Repair evidence](research/card-s-g/IMPLEMENTATION.md#left-on-or-accepted-red-repair).
+-
+-
+-WHERE full-index admission/order: where.c4233–4295 → `where-plan.ts:indexProposals` before recursive `capabilities`; where.c4290/2838–2866 owning full-index DONE → explicit insertion-result carrier and three-encoding completion regression in `where-plan-analysis.test.mjs`. where.c3238–3650 empty recursive scan → no phantom proposal; three-encoding production empty-cost/debit control. Shared internal `whereLoopAddBtreeIndex`/`btreeIndexLoops` use the same runtime capability, cost and insertion owners; direct recursive parent/child DONE budget controls isolate already-admitted templates, not AddBtree full scans. [Open d9 preservation investigation](research/card-s-g/IMPLEMENTATION.md#d9-analysis-preservation-investigation-b-2026-10-08); unchanged joined-WR movement native companions/public probes and source budget controls. Partial-key GE default_rc: vdbe4943–4952 → `IndexCursor.seekKey`; advanced-index production probes assert biased nonzero comparisons with live KeyInfo/values and physical positions, not unbiased exact equality. [Integration repair evidence](research/card-s-g/IMPLEMENTATION.md#integration-preservation-repair-b-2026-10-07). No new cursor substitution or general optimizer acceptance.
+-
+-| Upstream owner | Current translation and tests |
+-| --- | --- |
+-| `select.c:8531,8884 sqlite3WhereBegin/End` joined aggregate input | `vdbe.ts:compileAggregateSelect` → existing `compileInnerTableSelect.consumeRow` / `planWhere`; group sorter capture and implicit update use positioned physical cursors. `aggregate-where-chinook.test.mjs`, outer/phase/derived aggregate suites. [Bounded evidence](research/card-l-c/aggregate-where-consumer.md). |
+-
+-### Execution host-task adaptation
+-
+-`vdbe.c:sqlite3VdbeExec`, `check_for_interrupt`, progress `nProgressLimit`;
+-`vdbeapi.c:sqlite3_step/reset/finalize`, `vdbeaux.c:sqlite3VdbeHalt/Reset` →
+-Vdbe checkpoint/control/error/lifecycle owners in `src/internal/vdbe.ts`; shared
+-browser wait policy in `src/internal/task-scheduler.ts`. Host-task delivery is a
+-bounded browser adaptation, not native VM-step/timing parity. Source rationale
+-and evidence: [card-h-e](research/card-h-e/green.md). Tests:
+-`test/select/task-scheduler.test.mjs`, `test/browser/scheduler-controls.mjs`,
+-`test/browser/scheduler-latency-green.mjs` (unchanged red-program comparison),
+-`test/select/first-select.test.mjs` (overflow/lifecycle).
++| Pinned producer/control | Committed TS consumer | Evidence |
++|---|---|---|
++| `build.c:sqlite3EndTable`, `resolve.c:sqlite3ResolveSelfReference` | `schema.ts` immutable generated/STRICT publication; `parse.ts` retained DDL | [generated](research/card-t-c-generated-consumers/README.md), [STRICT](research/card-e-h-strict/README.md) |
++| `expr.c:sqlite3ExprCodeGetColumn`, `vdbe.c` TypeCheck | `vdbe.ts` logical/generated binding, BUSY/finally, NullRow and single-column type check | [generated](research/card-t-c-generated-consumers/README.md), [boundaries](research/card-e-h-strict/boundaries-README.md) |
++| `expr.c:sqlite3ExprVectorSize`, `sqlite3ExprCodeIN` | `vdbe.ts` field-width/vector IN destinations; `resolve.ts` linked source | [vector review](research/card-i-c-row-vector-review.md) |
++| `wherecode.c:sqlite3WhereCodeOneLoopStart`, `where.c:sqlite3WhereEnd` | `where-plan.ts`, shared ordinary/INNER/scalar/represented LEFT WR PK dedup and continuation | [source comparison](research/card-s-i/source-owner-comparison.md) |
++| `window.c` bounded frame comparison/step/return/inverse control | `window-rewrite.ts`, `vdbe.ts`, `mem.ts`, packed private owners | [owner correction](research/card-s-i/window-owner-correction.md) |
++| `btree.c:sqlite3BtreeInsert`, `balance` | `btree.ts`, `private-state.ts`, `record.ts`; selected packed private VM consumers | [acceptance matrix](research/card-s-i/acceptance-matrix.md) |
++| `where.c` selectivity, `vdbeapi.c:sqlite3_bind` expiry | `schema.ts` sample loading, `where-plan.ts` bounded consumers, `index.ts` reprepare | [reprepare](research/card-h-b-reprepare/README.md) |
++
++Current [guide](TRANSLATION.md) and [API](api.md) own admission. The
++[reconciliation archive](research/card-u-reconciliation/README.md) preserves
++superseded map additions and exact run attribution without making them current
++contract authority.

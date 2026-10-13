@@ -453,148 +453,32 @@ An ordered physical-derived filter outside the represented producer route still
 fails with typed temporary unsupported, including repeated RIGHT/FULL producers.
 This is not a general derived ORDER admission (card-k-h-b post-v24 checkpoint).
 
-### Reopened R1/R2/R3 delivery correction
-Singleton RIGHT/FULL admission is a historical milestone, not the current gate.
-Represented repeated execution is implemented pending independent acceptance;
-WITHOUT ROWID composite match keys, ordered physical-derived compositions and
-currently declined aggregate/correlation neighbors remain typed temporary
-unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
-using the native-FIRST aggregate case in all encodings; not native allocation
-parity. Exact-export evidence and inherited prerequisite attribution are in
-`docs/research/card-k-h-b-runtime/closure.json`.
+## Schema, vectors and selected consumers
 
-Outer-join inline continuations apply uncoded ready WHERE terms after ON hit/match recording, before downstream positioning; LEFT synthetic rows and unmatched RIGHT/FULL calls share that constraint body. Unmatched RIGHT/FULL scans also extract ready non-ON residuals through the shared selected WHERE scan. Later-source predicates remain deferred and levels left of a later RIGHT retain upstream suppression. This does not change the temporary WITHOUT ROWID composite-key boundary or promise native planner/work counts.
+Retained immutable triggers do not authorize write execution. STORED/VIRTUAL
+generated definitions resolve before schema publication; joined/coalesced/grouped/
+correlated represented consumers retain logical binding, NullRow, aggregate
+phase and per-source dependency BUSY lifetime. Selected covering generated reads
+consume logical index fields; noncovering reads compute from table. Full NC_GenCol,
+lazy-schema, generic index-expression and arbitrary composition parity is not
+promised.
 
-Nested SELECT dependencies in represented WHERE scalar/EXISTS expressions retain enclosing-source readiness, including transitive nesting and resolved aliases. They must wait for later-source positioning just as direct column predicates do. Joined IN SELECT in this route remains temporary unsupported before execution; no result parity is claimed for its native captures.
+STRICT ordinary persisted reads retain INT/INTEGER/REAL/TEXT/BLOB/ANY validation,
+PK-before-type error order and STRICT ANY BLOB affinity. STRICT VIRTUAL reads use
+the single-column TypeCheck branch. This does not implement write enforcement.
+Bounded vectors include typed tuple comparison and tuple-IN execution; scalar
+width, linked-source and LIMIT contracts remain intact. Native vector index
+strategy completeness is not claimed.
 
-### Selected rowid OR execution
-Represented single-table and inner-join rowid OR alternatives may execute through
-shared-body index arms with statement-private deduplication. This is an internal
-optimization, not an API addition or an ordering guarantee: full WHERE truth,
-parameter/reset behavior and existing ORDER sorters remain authoritative.
-Unsupported optimization shapes retain existing semantic fallback and forced-index
-contracts. Represented LEFT ON-OR uses the shared source-owned pipeline;
-RIGHT/FULL and unrepresented nullable outer-OR combinations remain excluded. Current boundaries and source rationale are in
-[the WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes).
+Selected persistent WR OR uses physical PK dedup in shared ordinary/INNER/simple
+scalar and represented safe LEFT consumers. WITHOUT ROWID RIGHT/FULL tracking
+remains temporary unsupported. Represented STAT4-sensitive bindings may trigger
+bounded reprepare while retaining bindings; no planner/timing/work-count parity
+is promised. Ordinary joined direct-column projection retains column metadata,
+storage classes and early LIMIT termination.
 
-Represented stat1 positional skip-scan is an internal access path for ordinary, joined and recursive-OR callers, including represented LEFT ON-OR controls. RIGHT/FULL, unrepresented outer-OR combinations, general STAT4 sample-parity, transformed EXISTS producer admission, vectors/subquery-IN and general joined ORDER proofs remain excluded or unimplemented. This adds no public planner, ordering, timing or work-count guarantee; see [current bounded coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review).
-
-Optional STAT4 samples are an internal selectivity input for represented literal
-equality/IS/NULL, contiguous known prefixes, literal-list IN and scalar ranges.
-Parameters initially use fallback. A binding consulted by represented STAT4
-sample costing expires the program; the next step recompiles saved SQL with
-retained typed bindings, preserving statement identity, metadata and tail.
-Clear bindings also expires a masked statement. Unrelated low-slot binds and
-zero-mask programs do not recompile; slots32+ share the native conservative mask
-bit. Compilation failure is saved for reset/finalize without losing bindings.
-This is bounded parameter-sensitive reprepare, not arbitrary native plan parity;
-vectors, function/subquery probes and skipscan sample range refinement remain
-unimplemented. See [source/evidence boundary](research/card-h-b-reprepare/README.md).
-This changes no public planner/timing/work-count or covering/affinity guarantee.
-Consumer loading, bounded sample costing and failure cleanup are delivered; finite
-independent committed verification and remaining limits are recorded in the
-[consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md).
-See the [translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).
-
-### Represented WR consuming boundary (current clarification)
-
-The [finite source-owner comparison](research/card-s-i/source-owner-comparison.md) supports ordinary/represented INNER/simple persistent scalar Case5 and witness-qualified safe LEFT; no new consuming divergence was established. Residual-before-dedup, physical PK/REAL ownership and shared continuation remain source-owned. Unrepresented fromExists/DUPLICATES_OK/virtual dispatch and native malloc recovery remain gaps, not platform exclusions. Accepted packed reseek preserves comparison/dedup with extra work, not seek-cost parity. [Current matrix](research/card-s-i/acceptance-matrix.md) distinguishes completed local executor225/225, current-lane browser47/47, affected370/370 and native receipts from revision-bound failed predecessors. [Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) accepts the selected consuming outcome and SAME finite test-owner completion; parent incorporation/root/main/product/later-v decisions remain separate, with no whole-product approval.
-
-
-## Approved joint integration boundary
-
-Window owner carrier54f8495 (o review24 / o-c review12) supplies source-owned pending end, bounded following lookahead, phase deletion before Next, current EOF before inverse and shared monotonic identities. Compatible cache-required value/EXCLUDE paths remain retained. Exact composed accounting witness is sorter192 + frame96 + packed71 =359:358/200 reject,359 succeeds; serialized charge is retained, not native heap parity. SingleInsert packed71 + logical11 gives81reject/82success. See research/card-s-i/window-owner-correction.md for revision evidence.
-
-Endpoint review card-t21 approves only exact final successful-high bounded-search test blob69e088e, not the neighboring proposal. LEFT review card-s-b-a-a21 approves exact sorter0 spec: complete outer IPK order persists through inner rowid singleton/LEFT NullRow and production consumes full selected order count; prior final-only assertion is superseded for this bounded witness. Statistical nOut0, arbitrary fanout and incomplete proofs are not certified.
-
-WR f5ff865 and R3 eb8c75 are historical consuming milestones; the admitted
-joint carrier76a77d2/treee77ca0d includes approved original corrections and
-completed local gates on byte-equal executable inputs from96722500: a single
-original225225/225 (three native prerequisites0), typecheck/build0, actual
-Chromium current-lane47/47 (filter null), affected370/370 and pinned native
-capture0 (five genuine source cases, not encoding copies). These are retained
-executor receipts, not fresh successor or Reviewer-run gates. Exact inputs,
-commands and hashes are in [receipt inputs](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-inputs.json),
-[receipt hashes](work:///cards/card-s-i-c-b-c/wr-joint-approved/final-gate-hashes.json)
-and [[card:card-s-i-c-b-c]] status.
-
-SAME independent finite test owner [[card:card-s-i-c-b-d]] completed acceptance
-([status32](record:///status.md?card=card-s-i-c-b-d&v=32)); its affected268/268 and
-4435-inventory checks are descendant-attributed, not a new225/native/browser run.
-[Bounded goal review15](record:///review.md?card=card-s-i-c-b&v=15) approves the
-selected consuming outcome on76a77d2, not every parent criterion. Parent
-incorporation and renewed parent review, root/main/product promotion and later
-root-v review remain separate decisions. No whole-product/performance/allocator,
-all-browser-lane or exhaustive VM compatibility follows. This docs-only
-successor reuses the qualified receipts; it does not fabricate executable reruns.
-
-
-## Assembled bounded functional-schema admission
-
-The exact patch against b0206817ce8781f937e8fe793b1e964db0ba0c65 in
-`docs/research/card-e-h-delivery/scoped.patch` admits retained immutable triggers
-without write execution and the tested single-source STORED/VIRTUAL/quoted
-identifier consumers. Original SQL/reductions survive initialized source fixation
-and nonconstant frame NULL normalization. Combined Window field order and failed
-construction retries are source/native-controlled. Full Select/CTE/UPDATE-FROM
-semantic walker, interruption/depth parity, STRICT and alternate generated
-producers remain temporary backlog, not permanent exclusions. This is bounded
-admission, not whole compatibility or optimizer acceptance. Assembly evidence:
-`docs/research/card-e-h-delivery/README.md`.
-
-## Bounded generated consumer integration
-
-All retained STORED/VIRTUAL definitions resolve under existing immutable SELF
-TABLE owner before schema publication (build.c sqlite3EndTable2763 / resolve.c
-sqlite3ResolveSelfReference). Name, aggregate and syntax faults produce owning
-schema-name CORRUPT diagnostics; dependency expansion remains compile-local
-with per-source BUSY finally cleanup and native cycle errors. Source-free SELECT
-graphs use an uncached empty schema carrier; WITH/source-bearing graphs initialize
-conservatively rather than claiming full native lazy schema-load parity.
-Joined/coalesced/grouped/correlated generated consumers share linked logical
-column binding with aggregate register/sorter precedence, NullRow before generating
-dependencies and affinity, and STORED physical mapping. Selected single-source
-covering reads consume materialized logical generated index fields, not dependency
-ordinals; noncovering reads compute from table. General indexed-expression
-matching/subtype rules, STRICT and untested producer placements remain gaps.
-Source/caller/test map, pinned typed/metadata fixtures and bounded limitations:
-[generated consumers](research/card-t-c-generated-consumers/README.md).
-
-### Generated dependency lifetime correction (review24)
-
-The prior isolated3957684 delivery remains review-withheld, not MAIN. Its binary
-cycle diagnostics did not establish scalar BUSY lifetime. The shared binder now
-forwards the same per-source map through CASE/BETWEEN/IN-list and aggregate
-argument/filter/order edges, matching expr.c4449–4464 whole-generation BUSY;
-finally, source identity, aggregate/register precedence and NullRow are preserved.
-Native-first boundary81 evidence and precise revised isolated export/review status:
-[generated consumers](research/card-t-c-generated-consumers/README.md).
-No full NC_GenCol/lazy-schema/STRICT/generic indexed-expression claim follows.
-
-### STRICT ordinary persisted reads
-
-Generated table-option semantics publish immutable `strict` metadata. Schema
-initialization follows build.c sqlite3EndTable's column-order type validation:
-INT/INTEGER/REAL/TEXT/BLOB/ANY only, missing/custom type is corruption for stored
-SQL, ANY has BLOB affinity and non-rowid primary keys gain implicit NOT NULL.
-Ordinary ANY remains NUMERIC. Read lowering consumes catalog affinity rather
-than re-inferring from decltype, including generated values; this is not CAST or
-write enforcement. STRICT VIRTUAL reads use the expr.c/vdbe.c single-column
-TypeCheck branch (including REAL type and datatype errors); PK declaration errors
-precede STRICT type validation. See [boundary evidence](research/card-e-h-strict/boundaries-README.md).
-Existing shared generated admission/consumers remain bounded:
-full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
-implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).
-
-
-Bounded vector integration review, scalar width/linked-source/LIMIT preservation,
-public encoding/reset controls and unwaived external regression inventory: [independent
-evidence](research/card-i-c-row-vector-review.md#authorized-scoped-integration).
-Historical review-v6 tuple-IN prepare rejection is superseded by admitted typed
-execution, not selected-index strategy credit. Root stage2 harness rejection of
-empty sqlite_master is stale versus pinned/public behavior, not a vector regression.
-
-
-### INNER destination stabilization
-
-Ordinary joined direct-column projection retains column metadata/storage classes and early LIMIT termination without temporary result-register copies. Work units remain charged at existing checkpoints; fixture-specific exact boundaries are regression evidence, not a universal opcode/performance contract. [Evidence](research/card-k-c-inner-limit/README.md).
+[Source ownership](TRANSLATION.md), [mapping](SQLITE_SOURCE_MAP.md) and
+[committed scope/evidence](research/card-u-reconciliation/README.md#committed-functional-scope)
+qualify these statements. Exact historical run counts and approvals are evidence,
+not API guarantees. [Functional-first beta categories](PLAN.md#functional-first-beta-view)
+do not constitute publication or whole-product acceptance.

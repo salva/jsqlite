@@ -1,0 +1,656 @@
+
+RANGE comparison owner now follows window.c2101-2217: csr1 numeric-only
+Add/Subtract uses Mem int64/overflow arithmetic, storage-class/collation comparison,
+PRECEDING precompare and BIGNULL before DESC; no Number coercion or nonnumeric
+inequality-as-peer shortcut. Ordinary registered no-EXCLUDE RANGE PRECEDING/CURRENT/UNBOUNDED..FOLLOWING
+uses pending input-peer end step, positioned-end eligibility, current-peer return
+then start inverse/Delete. Pinned EXPLAIN corrects the earlier four-admission
+prediction to three for singleton preceding1/following1; accumulator membership
+stays two rows at first output. Flush skips inverse on current EOF. Other RANGE
+schedules remain uncertified; see window-owner-correction native/source receipt.
+Generated sort trees retain a sourceExpression identity carrier for scalar
+PARTITION/ORDER lowering: deep-copy leaves cannot be looked up in the resolver's
+original-node map. Copy still owns integer-to-NULL sort adaptation; binding
+uses source semantic identity, not copied spelling. Shared aggregates/int64
+thresholds and typed three-encoding partition/ORDER/reset controls cover this
+repair; see window-owner-correction receipt. Other schedules remain uncertified.
+Ordinary no-EXCLUDE registered GROUPS UNBOUNDED..offset PRECEDING
+uses input-peer pending current control and independent end-peer iteration.
+Validated bound initializes/reset regEnd countdown; IfPos skips step peers,
+then one full end peer steps before current return. Positive literal selects
+step deletion; zero/parameter retains as pinned. One end lookahead carries
+cursor positioning across yields; other GROUPS/cache-required schedules remain
+uncertified. See correction receipt.
+Ordinary registered no-EXCLUDE GROUPS offset PRECEDING..CURRENT/FOLLOWING
+and UNBOUNDED/CURRENT..FOLLOWING
+uses input-peer step then independent current-return/start-inverse peer cursors.
+FOLLOWING regEnd IfPos skips both return and inverse; start regStart IfPos skips
+inverse. Flush steps pending end once then drains current peers, final current
+EOF skips inverse. Cursor lookahead/countdown resets per partition; other GROUPS
+bounds and cache-required paths remain uncertified. UNBOUNDED start has no
+inverse and deletes each returned row including final EOF. CURRENT start uses
+zero countdown with independent inverse peers, final EOF skips inverse
+(correction receipt). Ordinary registered no-EXCLUDE GROUPS FOLLOWING..FOLLOWING uses independent
+return/inverse countdowns and flush adjustment. Start EOF selects return-only
+empty tail with partition-reset EOF state; reversed bounds return each row
+with empty accumulators/reset shared eph before next producer row. Positive
+literal start return-deletes; zero/parameter starts retain as upstream selects.
+Validated bounds/countdowns reset after rebind. Ordinary registered no-EXCLUDE GROUPS
+PRECEDING..PRECEDING uses independent end-step/start-inverse peer countdowns
+with unconditional current return; final pending peer returns without inverse.
+Reversed end>start returns empty and clears shared eph before next admission;
+validated offsets/reset/rebind use these countdowns. Ordinary GROUPS
+UNBOUNDED/CURRENT/PRECEDING..UNBOUNDED retains the partition, steps prior peers
+on new-peer admission without return/inverse, then flush steps final peer once
+and drains independent current/start peers, final current EOF skips inverse.
+FOLLOWING..UNBOUNDED uses full-cache pending end step, return regStart
+countdown then independent unconditional start inverse; start EOF selects
+return-only empty tail. No end-offset subtraction/reversed guard. Other
+cache-required schedules remain gaps.
+
+# Public API contract
+
+Status: implemented browser-safe read-only API with bounded progressive SQL admission.
+[SPEC](SPEC.md) owns the product target; this document does not turn temporary
+implementation gaps into exclusions. Public declarations are authored in `src/index.ts` and emitted to `dist/index.d.ts`.
+Detailed historical contracts/runs are preserved in [card-u history](research/card-u-history/README.md).
+
+## Import and values
+
+`npm run build` emits browser-resolvable named ESM and declarations. Install a
+local `npm pack` tarball to consume the package import below; in an unbundled
+browser, serve the complete `dist/` tree and import its `index.js` URL. The
+private `0.0.0-local-translated` package is experimental local output, not release
+acceptance. See [local build instructions](../README.md#local-browser-esm-build).
+
+```ts
+import { open, JSQLiteError } from "jsqlite2";
+import type {
+  Connection, Statement, SqliteValue, SqliteStorageClass,
+} from "jsqlite2";
+```
+
+`SqliteValue` is `null | bigint | number | string | Uint8Array`:
+
+| SQLite storage class | JavaScript value |
+|---|---|
+| NULL | `null` |
+| INTEGER | signed 64-bit `bigint` |
+| REAL | IEEE-754 `number` |
+| TEXT | `string` |
+| BLOB | `Uint8Array` |
+
+INTEGER accepts only `-9223372036854775808n..9223372036854775807n`. A value outside
+that interval is JS `misuse`, not `SQLITE_RANGE` (which is used for an invalid bind
+index). REAL and INTEGER stay distinct even when a REAL is integral. Binding NaN
+binds SQL NULL; positive and negative infinity remain REAL, following
+`sqlite3VdbeMemSetDouble` (`src/vdbemem.c`).
+
+Bound JS strings must be well-formed UTF-16: each surrogate must belong to a valid
+pair. A lone high or low surrogate is `misuse` with no SQLite code. This is an
+explicit JS-boundary adaptation, separate from SQL preparation, because the C API
+receives bytes while `SqliteValue` receives a JS string; silently applying
+`TextEncoder` replacement would bind a different value. The binding adapter
+strictly encodes Unicode scalars as UTF-8, including four bytes for a supplementary
+scalar, then follows `src/vdbeapi.c:bindText`/`sqlite3_bind_text`: the Mem value
+enters as copied UTF-8 and is translated immediately to the connection database
+encoding (UTF-8, UTF-16le, or UTF-16be) by the SQLite-derived UTF routines. Embedded
+NUL is ordinary data because the adapter always supplies an explicit byte length;
+it does not terminate the value. Byte limits account for both the complete source
+UTF-8 byte length and the translated logical byte length (excluding any terminator),
+and failure is `limit`. UTF-16 lengths are bytes, not JS code units. This rule is
+tested across all three database encodings; it does not use WHATWG replacement
+semantics.
+
+Inputs are copied when bound. Every returned BLOB is a fresh copy owned by the
+caller; strings and scalar values are JS values. Thus subsequent conversion, step,
+reset, finalize, or close cannot mutate a value already returned to the caller.
+
+## Opening and residency
+
+```ts
+open(source: string | URL | Request, options?: OpenOptions): Promise<Connection>
+```
+
+`open` is the only acquisition boundary. It fetches and validates one immutable
+main-database snapshot, then retains the complete file in bounded in-memory byte
+storage for the connection lifetime. It follows redirects as Fetch does and does
+not fetch WAL, journals, attached databases, or any SQL-selected URL. Success means
+all bytes are resident; there are no hidden asynchronous page reads. Consequently
+`prepare`, binding, metadata access, reset, finalize, and close are synchronous;
+`step` is asynchronous so execution can yield between bounded work chunks.
+
+The implementation constructs a new `Request` using caller `fetchOptions` and the
+operation signal, but defaults to `credentials: "omit"`, `cache: "default"`, and
+`redirect: "follow"`. Caller options may override these defaults, including
+credentials. `fetchOptions.signal` is excluded to avoid two competing signals;
+use `OpenOptions.signal`. A supplied `Request` contributes its URL and options,
+then explicit `fetchOptions` override them; the API still forces the operation
+signal. Transport, HTTP (non-2xx), CORS, unavailable/opaque body, premature EOF,
+and body-stream failures are `transport`, not SQLite errors. HTTP success does not
+imply a valid database.
+
+`maxFileBytes` is checked against trustworthy declared length when available and
+while streaming, before retaining excess data. `maxResultBytes` (default 1,000,000,000) bounds each scalar TEXT/BLOB result; see stepping below. Unsupported reserved bytes,
+recovery-requiring snapshots, malformed headers/pages, or unsupported storage
+features fail explicitly as documented under errors. The eventual engine must
+support the SPEC's UTF-8, UTF-16le, and UTF-16be database encodings.
+
+`signal` is observed before and during streaming and bounded work. `timeoutMs` is
+a finite nonnegative duration measured from operation entry. Zero permits only
+already-completed checks. Aborting wins over timeout if abort is already observable;
+otherwise the first observed condition wins. Timeout does not abort the caller's
+controller. Open failure owns and releases partial buffers and exposes no
+connection.
+
+## Immutable catalog SELECT
+
+Public `SELECT` from `main.sqlite_schema` or `sqlite_master` reads the physical
+root-page1 catalog through ordinary SELECT execution. The columns are `type TEXT`,
+`name TEXT`, `tbl_name TEXT`, `rootpage INT`, `sql TEXT`, in that order; physical
+rowid and NULL SQL (including implicit indexes) are preserved. Origin metadata
+uses canonical `sqlite_master`. Preferred/legacy column qualifiers are equivalent
+unless an explicit alias hides them. Qualified `*` follows canonical Table/alias
+matching, so `sqlite_schema.*` is not an alias for `sqlite_master.*`.
+Aggregate IN and scalar subqueries use the same catalog identity, including
+represented aggregate arguments and scalar count(*) consumers.
+Represented filters, aggregates, joins and compounds retain their usual admission
+boundaries. The existing flattened derived outer-ORDER boundary remains temporary
+unsupported. This adds no host metadata/registration API or writes/PRAGMA mutation.
+[Evidence and remaining consumers](research/card-e-m-public-catalog.md).
+
+## Connection and preparation
+
+A connection owns its statements. Operations on one connection are serialized:
+while `open` or `step` is pending, starting another stateful connection/statement
+operation throws `JSQLiteError(kind: "misuse")`; accessors for the current row of
+the stepping statement are also unavailable until its promise settles. Separate
+connections may overlap. This deterministic rejection avoids races rather than
+silently queueing them.
+
+```ts
+const { statement, tail, tailOffset } = db.prepare(sql, options);
+```
+
+`prepare` compiles at most the first statement. Empty, whitespace-only, and
+comment-only SQL succeeds with `statement === null`. `tailOffset` is the exact
+number of UTF-8 bytes consumed, and `tail` is the exact unconsumed JS-string suffix.
+The implementation must map the parser boundary back to a Unicode scalar boundary;
+it never splits a surrogate pair or returns a replacement-normalized suffix.
+Malformed unpaired JS surrogates are `misuse`, because they have no lossless UTF-8
+encoding. SQL parse/compile failure returns no handle and throws a `sqlite` error.
+`maxSqlBytes` applies to encoded bytes. Public prepare flags are omitted until a
+read-only-relevant behavior is implemented; this is the v2 retained-SQL model,
+including future bounded automatic reprepare.
+
+Parameter indexes are one-based and column indexes zero-based. `parameterName(i)`
+returns the original marker (`:x`, `@x`, `$x`, or numbered form) or null;
+`parameterIndex(name)` returns zero if absent. Unbound parameters are NULL.
+`bind(number|string, value)` resolves names exactly and rejects absent names or
+out-of-range indexes. Binding is allowed only before execution or after reset.
+`reset()` rewinds and invalidates the row but retains bindings. Repeating reset
+without an intervening step is valid and leaves the statement prepared with the
+same bindings. `clearBindings()` sets every parameter to NULL and does not reset
+execution.
+
+## Stepping, bounded work, and rows
+
+```ts
+await statement.step(options) // "row" | "done"
+```
+
+`"row"` and `"done"` are control outcomes, never exceptions. Execution runs in
+bounded chunks and yields to the host between chunks, preserving VM state. It
+uses bounded host task delivery (MessageChannel with periodic timer turns, or
+timer fallback), not microtask-only suspension. Pending task resources are released
+before resumption; this is not a hard real-time or background-tab latency guarantee. It
+checks the effective signal, deadline, and work budget between chunks and within
+bounded traversal/recursion loops. Statement operation options may only tighten,
+never relax, connection limits. `maxWorkUnits` is an implementation-defined stable
+unit counter intended as a safety bound, not elapsed time or a compatibility/performance
+promise. The VM, input decoding, scalar traversal/result copying, private comparisons and
+controlled endpoint lookups charge deterministic bounded work at their owning
+checkpoints. Detailed unit inventories are implementation evidence, not native
+performance parity. `maxResultBytes` bounds one TEXT/BLOB result connection-wide
+and cannot be relaxed per operation; output-growing functions preflight bounds
+where possible and verify encoded output. Exceeding it is `kind: "limit"` with
+message `string or blob too big`. Overflow reconstruction yields per page;
+signal/deadline/work checks bracket those reads while PC and cursor remain on the
+current row. Other configured bounds include SQL/file bytes, rows, parser/expression depth,
+b-tree depth, and overflow-page traversal.
+
+Cancellation, timeout, limit, or corruption failure halts the run and rejects the
+promise with the matching `JSQLiteError`. Lazy b-tree/record format corruption is
+reported as `kind: "sqlite"`, code/extendedCode `SQLITE_CORRUPT` (11); configured
+b-tree depth and overflow-page ceilings are `kind: "limit"`. Unrelated internal
+`RangeError` is not treated as a resource ceiling. The row is invalidated. The statement remains owned and
+must be reset or finalized; `reset()` performs cleanup and then rethrows the saved
+execution error. Since checks occur only at bounded checkpoints, deadlines are not
+hard real-time deadlines. Asynchronous `step` allows same-agent abort delivery;
+synchronous methods can observe only a signal/deadline already visible during
+their bounded synchronous call.
+
+Column access is valid only after `"row"` and until the next step attempt, reset,
+finalize, or connection destruction. `columnCount` is prepared result width;
+access without a current row is misuse. `columnMetadata(i)` preserves position and
+returns a fresh immutable record, so duplicate display names are not collapsed.
+`name` is always present. `declaredType`, `database`, `table`, and `origin` are null
+where SQLite metadata is unavailable (including expressions as applicable).
+An available declared type may legitimately be the empty string, including hidden
+JSON table columns; do not normalize it to null. Origin fields require the translated equivalent of SQLite column
+metadata support.
+
+For represented linked scalar/vector/EXISTS/IN subqueries, expanded result width
+and original field metadata are retained through the shared producer. EXISTS is
+INTEGER0/1 and does not evaluate an unused projection, but still resolves it;
+scalar empty results are NULL. LIMIT/OFFSET names do not bind local or outer
+columns, including through a nested clause SELECT; independent clause SELECT
+sources remain valid. Represented source-free and ordinary table/joined EXISTS
+producers skip unused projection evaluation, but preserve predicate/clause errors
+and full name resolution. Mem/IN still evaluate their projection. Unsupported unimplemented composition is a typed temporary error before
+statement publication, not a partial terminal-arm result. This bounded contract
+does not promise general ordered/aggregate/window compound composition or PRAGMA
+full_column_names support. See the [current branch and boundary map](research/card-t-shared-subquery-owner-decision.md).
+
+`columnType(i)` returns the row cell's **initial** storage class and is stable for
+that row even after typed conversion. This is a deliberate deterministic adaptation:
+`sqlite3_column_type` after a converting C accessor is undefined. `column(i)`
+returns that initial-class public value. Typed accessors implement SQLite's
+`sqlite3_column_int64/double/text/blob` conversion behavior but are nullable:
+`columnInteger`, `columnReal`, `columnText`, and `columnBlob` return `null` for SQL
+NULL. Empty TEXT is `""`; empty BLOB is a zero-length `Uint8Array`, never null.
+This avoids C's ambiguous zero-length BLOB pointer. Out-of-range indexes are
+`sqlite`/`SQLITE_RANGE`; unsupported conversion cannot be approximated.
+
+## Lifecycle and cleanup
+
+Statements begin prepared, can move through running/current-row/done, can be reset
+for reuse, and end finalized. `finalize()` always invalidates the row, releases
+bindings/resources, and destroys the handle, even when it throws a saved execution
+error. `reset()` likewise completes cleanup before reporting the prior error, but
+keeps the statement and its bindings. A second reset without another step is
+valid (and has no prior execution error to rethrow); this follows the explicit
+`sqlite3_reset` repeat contract in `src/sqlite.h.in` and `src/vdbeapi.c`.
+Calling `finalize()` a second time is `misuse`; this explicit non-idempotence
+prevents accidental suppression of meaningful errors. Every other operation on a
+finalized statement is misuse.
+
+`close()` maps legacy `sqlite3_close`: if statements remain, it throws a
+`sqlite` error with primary code `SQLITE_BUSY` and leaves the connection open and
+usable. It never cascade-finalizes. With no dependents it releases resident bytes
+and closes. `closeDeferred()` maps `sqlite3_close_v2`: it immediately marks the
+connection zombie, rejects prepare and all other new connection operations, but
+existing statements remain usable; finalizing the last statement performs deferred
+connection cleanup. There are intentionally no public `closed` flags: zombie
+admission and completed destruction are different states, and every invalid use
+is reported by the operations themselves rather than compressed into a boolean.
+Repeating either close or using a fully closed connection is misuse (rather than
+C's null-pointer OK adaptation). If statement cleanup reports
+an earlier execution error, cleanup still completes; that earlier error is thrown,
+while successful zombie deletion is not a competing error. Across explicit nested
+cleanup, the first operation/execution error remains primary, otherwise a finalize
+error is primary, otherwise a close error is primary. Any later finalize/close
+failure is a secondary diagnostic (attached as `cause`/aggregate information by
+helpers, or handled separately by the caller) and never prevents the remaining
+cleanup attempt. This follows
+`connectionIsBusy`, `sqlite3Close`, and `sqlite3LeaveMutexAndCloseZombie`
+(`src/main.c`) plus reset/finalize cleanup (`src/vdbeapi.c`, `src/vdbeaux.c`).
+
+GC is a leak backstop only. Applications must finalize statements and close their
+connection. No finalizer timing or error reporting is part of the API.
+
+## Errors
+
+All library-detected failures are `JSQLiteError` with one `kind`:
+
+- `sqlite`: SQL, binding-index, schema, database-format/corruption, and other
+  SQLite-observable failures. `code` and `extendedCode` contain numeric SQLite
+  primary/extended result codes.
+- `transport`: Fetch/HTTP/CORS/body failures; `cause` may retain the host error.
+- `cancelled`, `timeout`, `limit`: operation controls, not fabricated SQLite codes.
+- `misuse`: JS API validation, illegal overlap/lifetime/index representation, or
+  out-of-range bigint. (A SQLite-origin invalid bind/column index remains sqlite.)
+- `unsupported`: behavior is unavailable. The `UnsupportedClassification` value is the stable typed discriminator: `"temporary"` for an untranslated in-scope feature
+  and `"permanent"` for a SPEC exclusion. It is present exactly for this kind, so
+  callers never parse messages to distinguish the two.
+- `internal`: an impossible translated-engine state, never converted to NULL/success.
+
+The complete permanent set is: mutating SQL/transactions/savepoints/database
+rewriting/WAL checkpointing/vacuum/schema changes; runtime C, native code, WASM,
+Emscripten, `sql.js`, `wa-sqlite`, or an embedded SQLite binary; externally loaded
+extensions and host-registered functions/collations/authorizers/progress handlers/
+application virtual tables; SQLite CLI, shell dot commands, Tcl harness, server,
+network protocol, or `sql.js` API compatibility; and browser-runtime WAL/journal
+recovery or sidecar application. Everything else unavailable inside broad
+read-only scope is `unsupported`/`"temporary"`, never silently reclassified as a
+permanent boundary.
+
+For non-`sqlite` kinds, `code` and `extendedCode` are null. For every kind except
+`unsupported`, `unsupportedClassification` is null. Errors preserve cleanup:
+prepare failure leaks no statement; step failure invalidates its row; reset and
+finalize report prior execution errors only after required cleanup. When cleanup
+also detects an internal failure, the saved execution error is primary and cleanup
+failure is attached as `cause`/aggregate diagnostic rather than replacing it.
+No promise is made to catch host process termination or all host OOM failures.
+
+Numeric constants are intentionally not declared in Stage 1; when implementation
+adds them they must be sourced from the pin, not invented. Consumers may inspect
+numeric codes and error kind without parsing messages.
+
+## Limits and ownership summary
+
+`WorkLimits` defaults are implementation constants that must be finite, documented,
+and tested before runtime support is claimed. The implemented parser uses
+`maxSqlBytes` (16 MiB), `maxParserDepth` (2500), `maxExpressionDepth` (1000), and
+the configured work-unit budget. Callers can tighten them at open;
+operation-level `maxWorkUnits` tightens the connection budget. Private sorter and
+ephemeral-index work charges one unit per inserted record, copied logical byte,
+visited `KeyInfo` comparison term, and merge move, in addition to the enclosing
+VDBE opcode. Cancellation, deadline, and work checks bracket bounded growth and
+run at each comparison/move charge; failed post-growth admission rolls the entry
+back. `maxRows` counts
+`"row"` outcomes across one execution until reset, and `maxResultBytes` bounds only public/scalar result values. Private sorter/ephemeral state is independently bounded by `maxPrivateEntries` (default 100,000), `maxPrivateKeyBytes` (default 16 MiB), and `maxPrivateBytes` (default 256 MiB), fixed immutably when a statement Program is prepared. `maxPrivateBytes` is one aggregate execution-wide budget shared by every simultaneously live sorter and ephemeral cursor in that statement; it is not a per-cursor allowance. Reset, failure, and finalize release all reservations before later connection work is admitted. Limits must cover parser
+recursion, expression depth, page/b-tree/overflow traversal, and query loops as
+required by SPEC. This Stage 1 contract does not falsely select numeric defaults
+before measurements and engine consumers exist.
+
+The connection exclusively owns resident database bytes and statements; a
+statement owns binding copies and VM state; callers own values returned by column
+methods. No public API exposes borrowed pages, pointers, mutable row arrays, native
+destructors, or object-keyed rows.
+
+## Current SQL admission
+
+Admission follows parsed/resolved graph branches and is atomic at prepare unless a
+registered runtime boundary is explicitly stated. Feature names alone do not
+promise arbitrary composition. The current [translation guide](TRANSLATION.md)
+and [source map](SQLITE_SOURCE_MAP.md) describe semantic owners and limitations;
+[CONFORMANCE](CONFORMANCE.md) retains allocated case evidence, not corpus-wide
+compatibility credit.
+
+- No-FROM expressions, structured VALUES, ordinary rowid-table projections,
+  filters and selected index/WITHOUT ROWID access execute. Multi-source comma,
+  CROSS, INNER and LEFT joins are present. Ordinary rowid RIGHT/FULL barriers,
+  including repeated/mixed barriers, downstream ordinary joins and represented
+  USING/NATURAL metadata, execute through per-level match/continuation owners.
+  Original window input on the represented joined route consumes that same
+  SELECT/WHERE producer rather than a separate raw scan. This is bounded
+  progressive admission, not arbitrary aggregate/window/correlation composition
+  support; declined compositions retain typed temporary unsupported failures.
+  Joined WITHOUT ROWID
+  comma/CROSS/INNER/LEFT sources use primary-index storage and represented
+  secondary access. Represented persistent WITHOUT ROWID selected OR uses typed
+  primary-key dedup in shared ordinary/INNER/simple scalar producers; represented
+  LEFT nullable-side OR also retains selected execution and null extension.
+  Nullable ON/USING factoring exclusions do not prohibit LEFT admission; forced and
+  NOT INDEXED guards remain unchanged. This does not expand aggregate admission
+  or promise optimizer parity. WITHOUT ROWID RIGHT/FULL match tracking remains temporary
+  unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
+- ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
+  precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses
+  complete projected keys. Equal complete ORDER keys have no public deterministic
+  order guarantee. Unproved index order uses a typed sorter rather than guessed
+  planner equivalence.
+- LIMIT/OFFSET accepts INTEGER, integral REAL and signed integral base-10 TEXT at
+  first step, otherwise SQLite code 20. Negative LIMIT is unlimited; negative
+  OFFSET is zero. SELECT coerces LIMIT first; LIMIT-zero bypasses OFFSET
+  evaluation/coercion and producers, including compounds. Positive ordered LIMIT
+  bounds sorter retention by LIMIT+OFFSET.
+- Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented direct-table
+  arms and selected aggregate/CTE compounds execute with compound-wide ORDER/
+  LIMIT/OFFSET. Width and compound ORDER errors are prepare errors. Broader arms,
+  arbitrary-expression set compositions and retained producer combinations remain
+  bounded by their actual admission branches. Finite materialized routes do not
+  imply native intermediate-error/work/suspension schedule equivalence.
+- Core count/sum/total/avg/min/max/group_concat/string_agg and represented JSON
+  aggregates support bounded grouped/ungrouped input, WHERE/GROUP/HAVING,
+  argument DISTINCT/FILTER/local ORDER and result ORDER/DISTINCT/LIMIT. Selected
+  joins, derived inputs, linked scalar/EXISTS/IN consumers and CTE/recursive
+  consumers are admitted; this is not full aggregate analyzer coverage.
+- Bounded flattened, coroutine and materialized FROM-derived sources and immutable
+  views execute through one Statement and shared limits. View names/collation/
+  origin and independent materialized reader positions are retained. Child and
+  outer LIMIT are distinct. Arbitrary view bodies or planner identity are not
+  promised. Scalar, EXISTS, IN/NOT IN and selected correlated expression-subquery
+  compositions preserve empty/NULL and parent-phase semantics; deeper/transient
+  relationships remain temporary unsupported.
+- Ordinary WITH has represented flatten/coroutine/materialized and repeated-source
+  routes. Recursive WITH has iterative Queue/Current, duplicate and queue-order
+  behavior, body LIMIT/OFFSET separate from the outer consumer, and selected
+  aggregate/window consumers. Aggregates/windows in the recursive term itself
+  are not thereby admitted. Unsupported WITH shapes fail without registering a
+  Statement or execution state.
+- Ordinary aggregate windows and represented special builtins execute over default
+  and explicit ROWS/RANGE/GROUPS frames, bounds and EXCLUDE. Compatible windows,
+  named inheritance and selected joins/grouped/derived/ordinary-recursive CTE and
+  outer ORDER/LIMIT compositions are present. Unrepresented combinations fail
+  with temporary unsupported; no blanket window or multisource rejection remains.
+  Endpoint private lookup is controlled async linear traversal; complexity is not
+  native Btree complexity, but per-visited-entry work/cancel/deadline checks and
+  first-error cleanup remain required. Ordinary aggregate ROWS
+  PRECEDING/FOLLOWING without EXCLUDE uses bounded lookahead and releases rows
+  after inverse; first input initializes, subsequent input steps pending end,
+  and flush checks current EOF before inverse. Compatible cache-required value functions and EXCLUDE retain
+  rows. Cumulative ROWS UNBOUNDED PRECEDING..CURRENT ROW ordinary aggregates
+  without EXCLUDE share pending-end lookahead and release shared rows after
+  every return, including final output before EOF. Ordinary sliding ROWS
+  PRECEDING/CURRENT..CURRENT without EXCLUDE share pending-end lookahead and
+  post-return inverse/deletion; CURRENT..FOLLOWING uses the same pending-end
+  schedule with zero start countdown. Final output EOF skips inverse.
+  PRECEDING..PRECEDING conditionally steps end and returns each subsequent
+  input, with a single final return/no inverse; reversed bounds emit empty frames.
+  FOLLOWING..FOLLOWING uses independent return/inverse countdowns and separate
+  inverse/empty-return flush tails, with source-selected return deletion or retention.
+  UNBOUNDED PRECEDING..offset PRECEDING uses conditional pending end-step
+  and per-input return (no inverse), positive constant end step deletion and
+  parameter retention. Literal-zero offsets preserve boundary kind/expression
+  and select retention for zero PRECEDING end/FOLLOWING start. Invalid boundary
+  type ordering rejects before publication even when offsets are zero. This does not promise streaming for every represented frame or native
+  allocation/work timing. The simultaneous sorter/frame/packed-record budget
+  still applies; [scoped correction evidence](research/card-s-i/window-owner-correction.md)
+  is not whole-release acceptance.
+- Ordinary scalars, translated formatter/round, LIKE/GLOB, date/time and enabled
+  math callbacks execute via the internal registry. INTEGER/REAL, encoding,
+  embedded NUL, NULL/domain and result limits remain observable. Host registration
+  is not exposed. Read-only last_insert_rowid/changes/total_changes return INTEGER
+  zero; sqlite_log is a NULL-producing no-op without a host log callback.
+
+## JSON built-ins
+
+JSON scalar inspection, constructors, mutation/merge patch, json/jsonb,
+json_valid, json_extract and ->/->> execute through ordinary Statement values.
+Canonical JSON is TEXT with private subtype 74; SQLite JSONB is a subtype-0 BLOB
+(`Uint8Array`), not PostgreSQL JSONB. Malformed JSON raises a SQLite error; work,
+result-byte, cancellation and deadline limits still apply. `json_pretty` accepts
+one or two arguments and returns ordinary TEXT (subtype 0), or NULL for a NULL
+document. Omitted/NULL indentation defaults to four spaces; other indentation
+values use SQLite text conversion, truncated at the first NUL. Duplicate keys
+and member order are preserved; indentation is not required to be whitespace.
+Pretty temporary parse/lexical/indent/output state shares the statement private-byte
+budget (conservative logical reservations, not exact JavaScript heap bytes). Parser,
+string and output checkpoints charge work and allow cooperative cancellation and
+deadlines, including escape-dense strings and labels during decoding and strict
+classification; byte bounds are checked before output encoding. Reservations release
+on success or failure, before reset/finalize.
+See [bounded evidence and limitations](research/card-r-f/README.md).
+
+json_group_array/object and jsonb_group_array/object are aggregate/window callbacks.
+Empty input returns the appropriate empty container, subtype-producing values
+embed structurally, ordinary TEXT is quoted, ordinary BLOB fails, and duplicate
+object labels/order follow SQLite. Grouped JSON extraction retains numeric
+INTEGER versus REAL classes.
+
+Bounded json_each/json_tree/jsonb_each/jsonb_tree accept one or two scalar arguments.
+Visible expression projection, WHERE, ORDER/LIMIT, grouped/HAVING, physical-left
+and two-source left-to-right JSON correlation are represented. Hidden json/root
+are explicit-only (not in *). Direct resolved virtual columns expose the underlying
+column name, database main, eponymous table/origin; alias overrides. Computed names
+preserve exact SQL expression text and have null source metadata. Visible columns
+have null declared type; hidden json/root legitimately have empty declared types.
+These are internal built-in sources, not arbitrary external virtual-table modules.
+
+## Source basis and exclusions
+
+Pinned SQLite identity is in [manifest](../reference/sqlite/manifest.json).
+`sqlite.h.in`, `main.c`, `prepare.c`, `vdbeapi.c`, `vdbeaux.c`, `vdbemem.c`
+own API lifecycle/value contracts; [source map](SQLITE_SOURCE_MAP.md) links
+execution owners and source-based tests. Permanent exclusions are only those in
+[SPEC](SPEC.md): writes/mutation/recovery, native/Wasm runtime, host extensions,
+external modules and other explicitly named environment boundaries. Everything
+else unavailable within broad read-only scope remains temporary unsupported.
+This consolidation preserves accepted bounded outcomes and adds no compatibility
+credit; historical case counts and exact commands remain in linked evidence.
+
+Retained single-source derived SELECTs with represented column ORDER keys may
+order by a producer column omitted from the parent projection. Child ORDER/LIMIT
+remains independent of parent ORDER/LIMIT. Both sorters charge the same execution
+private-byte limit; prepare success does not guarantee sufficient runtime bytes.
+
+An index whose schema names an unavailable collation retains structural metadata
+but cannot provide executable access. Forced use reports SQLite `no query
+solution` (code 1); an unavailable WITHOUT ROWID primary storage collation reports
+SQLite `no such collation sequence` (code 1), not an untranslated-feature
+classification. This does not add host-registered collation support.
+
+The bounded immutable schema-estimate/WHERE evidence closure is documented in
+[width evidence delivery](research/card-s-e-b-evidence-delivery.md). This does not
+expand optimizer, STAT4, skipscan or specialized SELECT guarantees.
+
+
+The represented ordinary-derived projection route preserves transient column
+names for unaliased direct columns before flattening; explicit AS takes priority.
+An ordered physical-derived filter outside the represented producer route still
+fails with typed temporary unsupported, including repeated RIGHT/FULL producers.
+This is not a general derived ORDER admission (card-k-h-b post-v24 checkpoint).
+
+### Reopened R1/R2/R3 delivery correction
+Singleton RIGHT/FULL admission is a historical milestone, not the current gate.
+Represented repeated execution is implemented pending independent acceptance;
+WITHOUT ROWID composite match keys, ordered physical-derived compositions and
+currently declined aggregate/correlation neighbors remain typed temporary
+unsupported. R2 adds distinct store/common-budget simultaneous ownership proof
+using the native-FIRST aggregate case in all encodings; not native allocation
+parity. Exact-export evidence and inherited prerequisite attribution are in
+`docs/research/card-k-h-b-runtime/closure.json`.
+
+Outer-join inline continuations apply uncoded ready WHERE terms after ON hit/match recording, before downstream positioning; LEFT synthetic rows and unmatched RIGHT/FULL calls share that constraint body. Unmatched RIGHT/FULL scans also extract ready non-ON residuals through the shared selected WHERE scan. Later-source predicates remain deferred and levels left of a later RIGHT retain upstream suppression. This does not change the temporary WITHOUT ROWID composite-key boundary or promise native planner/work counts.
+
+Nested SELECT dependencies in represented WHERE scalar/EXISTS expressions retain enclosing-source readiness, including transitive nesting and resolved aliases. They must wait for later-source positioning just as direct column predicates do. Joined IN SELECT in this route remains temporary unsupported before execution; no result parity is claimed for its native captures.
+
+### Selected rowid OR execution
+Represented single-table and inner-join rowid OR alternatives may execute through
+shared-body index arms with statement-private deduplication. This is an internal
+optimization, not an API addition or an ordering guarantee: full WHERE truth,
+parameter/reset behavior and existing ORDER sorters remain authoritative.
+Unsupported optimization shapes retain existing semantic fallback and forced-index
+contracts. Represented LEFT ON-OR uses the shared source-owned pipeline;
+RIGHT/FULL and unrepresented nullable outer-OR combinations remain excluded. Current boundaries and source rationale are in
+[the WHERE guide](TRANSLATION.md#where-joins-and-physical-indexes).
+
+Represented stat1 positional skip-scan is an internal access path for ordinary, joined and recursive-OR callers, including represented LEFT ON-OR controls. RIGHT/FULL, unrepresented outer-OR combinations, general STAT4 sample-parity, transformed EXISTS producer admission, vectors/subquery-IN and general joined ORDER proofs remain excluded or unimplemented. This adds no public planner, ordering, timing or work-count guarantee; see [current bounded coverage](research/card-s-g/COVERAGE.md#current-bounded-contract-and-review).
+
+Optional STAT4 samples are an internal selectivity input for represented literal
+equality/IS/NULL, contiguous known prefixes, literal-list IN and scalar ranges.
+Parameters initially use fallback. A binding consulted by represented STAT4
+sample costing expires the program; the next step recompiles saved SQL with
+retained typed bindings, preserving statement identity, metadata and tail.
+Clear bindings also expires a masked statement. Unrelated low-slot binds and
+zero-mask programs do not recompile; slots32+ share the native conservative mask
+bit. Compilation failure is saved for reset/finalize without losing bindings.
+This is bounded parameter-sensitive reprepare, not arbitrary native plan parity;
+vectors, function/subquery probes and skipscan sample range refinement remain
+unimplemented. See [source/evidence boundary](research/card-h-b-reprepare/README.md).
+This changes no public planner/timing/work-count or covering/affinity guarantee.
+Consumer loading, bounded sample costing and failure cleanup are delivered; finite
+independent committed verification and remaining limits are recorded in the
+[consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md).
+See the [translation guide](TRANSLATION.md#optional-stat4-loading-and-selectivity-consumers).
+
+Ordinary aggregate ROWS all represented starts to UNBOUNDED end
+without EXCLUDE now shares first-input initialization, subsequent pending-end
+step and final end-step before return-loop/inverse. Partition caching is
+source-required here; current EOF skips final inverse, selected start deletion
+follows output consumption. Parameter preceding starts and partition FILTER
+share this schedule. FOLLOWING start guards return with its start countdown
+while inversing independently, then returns empty-frame tail after start EOF;
+positive literal start deletes at return, parameter/zero retains. Other frame
+types and cache-required value/EXCLUDE schedules remain uncertified.
+
+Ordinary no-EXCLUDE RANGE/GROUPS CURRENT..CURRENT with represented ORDER
+terms (including partitioned)
+now detects peers at input using resolved KeyInfo, steps completed end peer,
+returns that peer, then inverses/deletes start peer before next output. Final
+partition peer returns without inverse. Shared aggregate scan retains only the
+pending peer plus boundary lookahead (upstream windowIfNewPeer/windowCodeOp).
+Peer cardinality countdowns carry the established input boundary through the
+three independent cursor loops; no host grouping or recomputation. Other RANGE
+bounds, offset GROUPS and cache-required value/EXCLUDE
+remain uncertified.
+
+Ordinary no-EXCLUDE RANGE/GROUPS UNBOUNDED..CURRENT now shares input-peer
+pending-end step/return control across represented ORDER terms. No inverse;
+selected return deletion occurs after each output consumption including final.
+Partition flush/reset uses one peer owner (overlapping legacy RANGE cumulative
+predicate cannot double-drain). Window ORDER terms now retain per-item DESC/NULLS at parse/resolve and named
+inheritance, consumed by rewrite/sorter/peer KeyInfo. Compatibility compares
+normalized DESC/BIGNULL (ExprListCompare), not expression-only or NULL spelling.
+Named multi-term DESC regression and direct/inherited flag topology pass;
+other frame schedules remain uncertified.
+
+
+### Functional schema admission checkpoint
+
+Trigger-bearing immutable files have a tested ordinary-read admission slice; this does not enable writes or trigger execution. Generated-column reads and fuller trigger semantic-walker initialization remains a temporary gap under review. See [source/evidence and four-category readiness](research/card-e-h-functional-schema/README.md).
+
+
+## Assembled bounded functional-schema admission
+
+The exact patch against b0206817ce8781f937e8fe793b1e964db0ba0c65 in
+`docs/research/card-e-h-delivery/scoped.patch` admits retained immutable triggers
+without write execution and the tested single-source STORED/VIRTUAL/quoted
+identifier consumers. Original SQL/reductions survive initialized source fixation
+and nonconstant frame NULL normalization. Combined Window field order and failed
+construction retries are source/native-controlled. Full Select/CTE/UPDATE-FROM
+semantic walker, interruption/depth parity and STRICT remain temporary backlog,
+not permanent exclusions. Ordinary joined, grouped aggregate and correlated
+scalar generated reads now share immutable dependency binding; tested mixed
+STORED/VIRTUAL, aliases and outer null-extension combinations are documented in
+`docs/research/card-t-c-generated-consumers/README.md`. Untested producer/index
+placements remain temporary backlog. Selected single-source covering generated
+fields preserve typed values and full origin/declared metadata. Invalid retained
+STORED/VIRTUAL definitions reject atomically with CORRUPT schema diagnostics;
+consumed generating cycles reject with SQLITE_ERROR, retaining repeated prepare
+and subsequent source-free admission. This is bounded
+admission, not whole compatibility or optimizer acceptance. Assembly evidence:
+`docs/research/card-e-h-delivery/README.md`.
+
+### Generated dependency lifetime correction (review24)
+
+The prior isolated3957684 delivery remains review-withheld, not MAIN. Its binary
+cycle diagnostics did not establish scalar BUSY lifetime. The shared binder now
+forwards the same per-source map through CASE/BETWEEN/IN-list and aggregate
+argument/filter/order edges, matching expr.c4449–4464 whole-generation BUSY;
+finally, source identity, aggregate/register precedence and NullRow are preserved.
+Native-first boundary81 evidence and precise revised isolated export/review status:
+[generated consumers](research/card-t-c-generated-consumers/README.md).
+No full NC_GenCol/lazy-schema/STRICT/generic indexed-expression claim follows.
+
+### STRICT ordinary persisted reads
+
+Generated table-option semantics publish immutable `strict` metadata. Schema
+initialization follows build.c sqlite3EndTable's column-order type validation:
+INT/INTEGER/REAL/TEXT/BLOB/ANY only, missing/custom type is corruption for stored
+SQL, ANY has BLOB affinity and non-rowid primary keys gain implicit NOT NULL.
+Ordinary ANY remains NUMERIC. Read lowering consumes catalog affinity rather
+than re-inferring from decltype, including generated values; this is not CAST or
+write enforcement. STRICT VIRTUAL reads use the expr.c/vdbe.c single-column
+TypeCheck branch (including REAL type and datatype errors); PK declaration errors
+precede STRICT type validation. See [boundary evidence](research/card-e-h-strict/boundaries-README.md).
+Existing shared generated admission/consumers remain bounded:
+full NC_GenCol/lazy/error/dependency and generic index-expression parity is not
+implied. Evidence/limits: [STRICT receipt](research/card-e-h-strict/README.md).
+
+
+### INNER destination stabilization
+
+Ordinary joined direct-column projection retains column metadata/storage classes and early LIMIT termination without temporary result-register copies. Work units remain charged at existing checkpoints; fixture-specific exact boundaries are regression evidence, not a universal opcode/performance contract. [Evidence](research/card-k-c-inner-limit/README.md).

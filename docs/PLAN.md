@@ -20,67 +20,30 @@ handoff is not an architecture reopening or whole-project completion gate.
 The root Planner directs goals and sequencing, not an exhaustive leaf-task
 inventory.
 
-## Current sequence: private local versioned alpha, then residual breadth
 
-Independent [resumed evidence](research/card-v-alpha-resumed-diagnosis.md) binds
-runtime `2f1545c`: core238/additional352 and installed alpha.3 browser/package
-checks pass. Later finite adversarial/reuse, indexed throughput, real credential/
-CORS and 8.5MB overflow coverage pass without runtime changes. Original blockers
-are discharged for this identity; old failures retain their source provenance.
-[Independent alpha.4 acceptance](research/card-v-alpha-four-acceptance.md) now
-binds installed private-local delivery to release source `1984a9a`, runtime
-`2f1545c`, and tarball `d5949e25…`: package13, Chromium current38 and separate
-historical-gap2, installed demo, credentials/CORS and affected42 pass. The earlier
-core238/additional352 evidence is reused only for byte-identical runtime inputs.
-This is finite private-local readiness, not publication, global compatibility,
-arbitrary compositions, performance or other-browser certification. Residual
-read-only breadth remains product backlog under unchanged SPEC; the subsequent
-independent postcandidate review does not impose a circular wait here.
+## Functional-first beta view
 
-Owner-authorized [future LOCAL alpha readiness at b131](research/card-v-new-alpha-b131-readiness.md)
-is separate from immutable alpha.4 acceptance: coherent accepted source lineage,
-independently verified w227/native3, fresh isolated offline package closure72files/
-35JS and focused23 pass. Original query now supplied: independent pinned native
-10typed rows/all metadata match installed-tarball Chromium Fetch across three
-reset/reexecutions with actual task responsiveness measurements and fresh browser
-controls/security. **Alpha.5 candidate packaging** proceeds through the original a/c workflow:
-[current package evidence](research/card-v-a-alpha-five.md) identifies the explicit
-release source/artifact. Installed demo/browser and independent finite acceptance
-follow; source readiness is not artifact acceptance. Historical timing settings unavailable, no causal speedup ratio.
-Named historical sorter fixture red→current pass retained; unspecified concern
-unverified, not claimed fixed or a new blocker.
+This is a development prioritization view, **not publication or a compatibility
+certificate**. Four categories keep functional breadth ahead of optimization:
 
-Owner-directed sequencing now stabilizes the implemented core for a **PRIVATE
-LOCAL versioned alpha** under goal v before returning to residual SQL breadth.
-SPEC is unchanged. This is not a registry/public repository release, external
-distribution, full SQLite compatibility certificate, or numerical coverage claim.
-Integration ownership [[card:card-v-d]] reuses the retained [[card:card-w]]
-runner/reproduction tooling; w's immutable dependency on v is not a reason to
-wait for w, activate it, or clone its work.
+1. **Committed represented functionality:** immutable database/public lifecycle,
+   represented SELECT/join/compound/aggregate/subquery/CTE/window/function/JSON
+   routes, bounded generated and STRICT reads, vector expressions and selected
+   WITHOUT ROWID consumers. Admission is semantic and composition-specific.
+2. **In-scope functional gaps:** unrepresented compositions, broader semantic
+   walker/NC_GenCol coverage, generic indexed-expression and virtual-table routes,
+   and remaining read-only SQL. These are temporary unsupported, not exclusions.
+3. **Optimization and fidelity gaps:** broader planner/STAT4/vector index choices,
+   storage/VM migrations and materialized-route parity. Do not turn absent
+   optimization into a claim that represented functional execution is absent.
+4. **Delivery and evidence:** installed-artifact/browser/native comparisons and
+   independent bounded acceptance remain revision-specific. Local beta is not
+   registry publication, all-browser certification or whole-product completion.
 
-1. Publish a finite proposed advertised-core/temporary-gap/permanent-exclusion
-   contract derived from current semantic owners, API, source map and mutable
-   audit. [Private alpha stabilization](research/card-v-private-alpha.md) owns
-   the candidate/evidence matrix and current blockers. Historical browser38/gap2
-   and integration225 results are provenance, not candidate certification.
-2. Stabilize a fresh exact committed-source checkout against pinned SQLite3.53.4
-   with reference/fixture identity, typed rows/metadata/errors and lifecycle;
-   realistic joins/aggregates/subqueries/CTEs/windows/common functions, indexes,
-   overflow, all encodings and schema admission including common STAT4 files;
-   malicious inputs, cleanup/reuse, execution/acquisition/prepare controls and
-   realistic bounded termination/performance. No skips, weakened expectations or
-   inflated watchdogs. Semantic defects go through Planner to original owners,
-   not an integration evaluator refactor. Settled JSON r v24/f1eb053 focused53/53
-   is retained; no optional JSON breadth is a prerequisite.
-3. Once blockers are resolved in exact committed source, coordinate the candidate
-   source/evidence manifest with original package [[card:card-v-a]] and demo
-   [[card:card-v-c]] owners. They produce a private local versioned artifact and
-   coherent examples. Reverify the actual artifact against that source; a source
-   pass does not certify an as-yet unbuilt versioned package.
-4. Return to progressive residual breadth under unchanged SPEC after bounded
-   private-alpha acceptance. Material observable-guarantee tradeoffs require
-   owner escalation; ordinary technical choices remain project-owned. Preserve
-   unrelated dirty/staged work and operator-owned configuration.
+Current contracts are in [api.md](api.md) and [TRANSLATION.md](TRANSLATION.md).
+Exact historical candidate identities and peer proposals are preserved in
+[reconciliation evidence](research/card-u-reconciliation/README.md), not promoted
+from dirty working bytes. Root owns subsequent roadmap and delivery decisions.
 
 ## Stage 0: Pin And Orient
 
@@ -172,17 +135,3 @@ At meaningful milestones, recheck the official stable release. Adopt any new
 baseline deliberately with source, tests, and oracle updated together, not through
 silent floating downloads. Keep stages practical: API first, an initial test
 pipeline second, then repeated tests-before-translation cycles.
-
-
-## Assembled bounded functional-schema admission
-
-The exact patch against b0206817ce8781f937e8fe793b1e964db0ba0c65 in
-`docs/research/card-e-h-delivery/scoped.patch` admits retained immutable triggers
-without write execution and the tested single-source STORED/VIRTUAL/quoted
-identifier consumers. Original SQL/reductions survive initialized source fixation
-and nonconstant frame NULL normalization. Combined Window field order and failed
-construction retries are source/native-controlled. Full Select/CTE/UPDATE-FROM
-semantic walker, interruption/depth parity, STRICT and alternate generated
-producers remain temporary backlog, not permanent exclusions. This is bounded
-admission, not whole compatibility or optimizer acceptance. Assembly evidence:
-`docs/research/card-e-h-delivery/README.md`.

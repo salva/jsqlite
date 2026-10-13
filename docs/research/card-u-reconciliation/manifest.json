@@ -1,0 +1,111 @@
+{
+  "captureHead": "d51a26a753c8e65ee06cc615548dd0ea9f2b78ff",
+  "indexTree": "cbc220f0e061c7b7370a2b62f91fddb5e26f99e9",
+  "captures": [
+    {
+      "path": "README.md",
+      "state": "head",
+      "archive": "head-README.md",
+      "sha256": "3dd2e02f5e5235da4320cb7e201ff363258dabb04b67ec23c1baac84bb5eec8d",
+      "bytes": 7076
+    },
+    {
+      "path": "README.md",
+      "state": "index",
+      "archive": "index-README.md",
+      "sha256": "3dd2e02f5e5235da4320cb7e201ff363258dabb04b67ec23c1baac84bb5eec8d",
+      "bytes": 7076
+    },
+    {
+      "path": "README.md",
+      "state": "work",
+      "archive": "work-README.md",
+      "sha256": "3dd2e02f5e5235da4320cb7e201ff363258dabb04b67ec23c1baac84bb5eec8d",
+      "bytes": 7076
+    },
+    {
+      "path": "docs/PLAN.md",
+      "state": "head",
+      "archive": "head-PLAN.md",
+      "sha256": "c442fef18cde7438b569b1b05f072476bc79647a62d28b05f14303924abe81e6",
+      "bytes": 12038
+    },
+    {
+      "path": "docs/PLAN.md",
+      "state": "index",
+      "archive": "index-PLAN.md",
+      "sha256": "5a582d8fa3c0e00ea8ef6d35084e827f92e8044df42052663274329dcaa10b47",
+      "bytes": 11242
+    },
+    {
+      "path": "docs/PLAN.md",
+      "state": "work",
+      "archive": "work-PLAN.md",
+      "sha256": "bbe5f19f9f683f12c25e6c8dc5ecccca85d7479ff393ea4fa84e3466044ce7d6",
+      "bytes": 12495
+    },
+    {
+      "path": "docs/TRANSLATION.md",
+      "state": "head",
+      "archive": "head-TRANSLATION.md",
+      "sha256": "69997d29647a59afcd82d774f17e3410e79414841e41fac4ded320fb57d12fe4",
+      "bytes": 135071
+    },
+    {
+      "path": "docs/TRANSLATION.md",
+      "state": "index",
+      "archive": "index-TRANSLATION.md",
+      "sha256": "8003a9fa3a7fb4eb26836fce18c83751a43b3178f841ed4d481e3cb5a99caf2d",
+      "bytes": 103975
+    },
+    {
+      "path": "docs/TRANSLATION.md",
+      "state": "work",
+      "archive": "work-TRANSLATION.md",
+      "sha256": "a89f8696602b7f05ae19f8a412f1805103887b1d688964b0bd8a07384cea8f4e",
+      "bytes": 179557
+    },
+    {
+      "path": "docs/api.md",
+      "state": "head",
+      "archive": "head-api.md",
+      "sha256": "aefd0df2b0496eac0620e347a36beea422f59a27e69c1e3330b86760c22adbf1",
+      "bytes": 41710
+    },
+    {
+      "path": "docs/api.md",
+      "state": "index",
+      "archive": "index-api.md",
+      "sha256": "e83613da9f728c7ae82d77663bcb5112c9b9ac25f9eaa502f299667aea8ddc3c",
+      "bytes": 29155
+    },
+    {
+      "path": "docs/api.md",
+      "state": "work",
+      "archive": "work-api.md",
+      "sha256": "4b96514e223161e751c66f85af817fb22a710ad755f20f248e9d0fe77cf15b80",
+      "bytes": 44743
+    },
+    {
+      "path": "docs/SQLITE_SOURCE_MAP.md",
+      "state": "head",
+      "archive": "head-SQLITE_SOURCE_MAP.md",
+      "sha256": "b7888266b29ca043cdf0e4a7a55d79febbda2fc8a173e6270cc581318d1ccbc7",
+      "bytes": 102713
+    },
+    {
+      "path": "docs/SQLITE_SOURCE_MAP.md",
+      "state": "index",
+      "archive": "index-SQLITE_SOURCE_MAP.md",
+      "sha256": "6630b167968a90cf32cf9b27cb674c001c8c00e73ab6410421353479ed22a5e1",
+      "bytes": 76023
+    },
+    {
+      "path": "docs/SQLITE_SOURCE_MAP.md",
+      "state": "work",
+      "archive": "work-SQLITE_SOURCE_MAP.md",
+      "sha256": "a6891422cfdfeb0af30a53fa1e5fdb886f755788cd819c33e9e5b1bc40f2d76f",
+      "bytes": 142552
+    }
+  ]
+}

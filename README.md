@@ -14,6 +14,10 @@ and selected index planning execute at documented bounded admission gates. This
 is not full read-only SQLite compatibility or whole-project completion. Native
 SQLite is development-only, never the runtime backend.
 
+[Functional-first beta categories](docs/PLAN.md#functional-first-beta-view) distinguish
+committed functionality from gaps, optimization and delivery evidence; beta is not
+publication.
+
 [Current translation guidance](docs/TRANSLATION.md), [public API](docs/api.md),
 [source map](docs/SQLITE_SOURCE_MAP.md), [oracle setup](docs/oracle.md), and
 [conformance evidence](docs/CONFORMANCE.md) are available. Technical choices remain
