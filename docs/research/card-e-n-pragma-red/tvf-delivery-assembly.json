@@ -1,0 +1,33 @@
+{
+  "base": "ed734fff0772f489d56aaf73a8753bdffcdb2a68",
+  "included_patch_sha256": "c71faa18aa9a5c39cfa64d10091acd425e57252a31fe34c0e89b73772c51a752",
+  "excluded_patch_sha256": "143598a7c6157dba004c1c005a6d20f76560841249d643e05db0136e6e472d7e",
+  "excluded_hunks": [
+    "@@ -2226,17 +2229,13 @@ function expressionName(expression: SelectNode[\"result\"][number]): string {",
+    "@@ -6115,24 +6165,24 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat",
+    "@@ -6144,12 +6194,12 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat"
+  ],
+  "merge": "retain HEAD jsonResultMetadata and paired/sole call sites; merged physical call retains [jsonIdentity]",
+  "files": [
+    "TVF.md",
+    "capture-tvf.py",
+    "capture-tvf-bindings.py",
+    "tvf-native.json",
+    "tvf-binding-native.json",
+    "tvf-on-native.json",
+    "tvf-public.mjs",
+    "tvf-bindings.test.mjs",
+    "tvf-on.test.mjs",
+    "tvf-boundaries.test.mjs",
+    "independent-tvf-assessment.md"
+  ],
+  "real_index_sha256": "04c05cf020e64c2a98a96457558456d1f26e10ebd5c009aa2928c241d2250ebe",
+  "correction": "Initial exclusion of whole standalone JSON-context hunks also omitted metadata field loads/output. Candidate public12/54 failed; merged entire bounded standalone route from live (no identity reversal there), retained HEAD paired route and helper. Candidate final public54 plus bindings/ON/resources/composition/rowid494/494 pass proc-21da75f2d28f.",
+  "candidate_hashes": {
+    "src/internal/vdbe.ts": "a41989c24417b945fb93dc57dcf2687e3c533e1ab3681b1af183a9c35f7919dc",
+    "src/internal/pragma.ts": "6adcd068ccdfce910c73b75d2da0b3a89e188ca563114ba090aaa7452f2a55cc",
+    "docs/TRANSLATION.md": "b85d298ad0f3edf176df05d70545075d9f183a1357950e690c714c2f1ccce217",
+    "docs/api.md": "b0fec29cac687fab0b77279f345ba500ba2edc721fecbc06762e8b136abe7a8b",
+    "docs/SQLITE_SOURCE_MAP.md": "3615db10c61147c2309caa18732ae354f097b0c612e84c9b70829bfab2d6092d"
+  }
+}
