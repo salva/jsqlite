@@ -118,12 +118,12 @@ test('packed interior RTRIM replacement preserves both child identities through 
 });
 test('ordered overflow keys balance leaf/interior dividers with multi-level packed seeks',async()=>{
  let interiorExpansionAllocations=0,changedCountPublications=0,pendingExpansion=false,publicationStep=0;
- const observedControl={snapshotCheckpoint(){},async checkpoint(){const stack=new Error().stack;if(pendingExpansion&&stack.includes('#publishChild')&&stack.includes('publishBlobkeyDividers')){if(++publicationStep===2){changedCountPublications++;pendingExpansion=false}}}};
+ const observedControl={snapshotCheckpoint(){},async checkpoint(){if(!pendingExpansion)return;const stack=new Error().stack;if(stack.includes('#publishChild')&&stack.includes('publishBlobkeyDividers')){if(++publicationStep===2){changedCountPublications++;pendingExpansion=false}}}};
  const limits={maxEntries:180,maxKeyBytes:10000,maxBytes:4000000},budget=new PrivateStateByteBudget(limits.maxBytes),arena=await PrivateBlobkeyPages.open(budget,control,(event,pgno,bytes)=>{
  // Raw allocated sibling release occurs after native page-type initialization,
  // before derived acquisition/rekey/publication. Deeper and overflow releases
  // do not qualify: require the nonroot caller and an empty interior header.
- if(event==='release'&&bytes&&new Error().stack.includes('#balanceNonroot')&&bytes[0]===2&&bytes[3]===0&&bytes[4]===0&&bytes[5]===16&&bytes[6]===0){interiorExpansionAllocations++;pendingExpansion=true;publicationStep=0}
+ if(event==='release'&&bytes&&bytes[0]===2&&bytes[3]===0&&bytes[4]===0&&bytes[5]===16&&bytes[6]===0&&new Error().stack.includes('#balanceNonroot')){interiorExpansionAllocations++;pendingExpansion=true;publicationStep=0}
  },limits),cursor=new PrivateBlobkeyCursor(arena,info,limits);
  // BLOB6000 header3/serial12012; big-endian ordinal dominates ordering.
  const key=n=>{const b=new Uint8Array(6003);b.set([3,0xdd,0x6c,n>>>8,n&255]);b.fill(37,5);return b};
