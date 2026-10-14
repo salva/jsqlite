@@ -1,3 +1,4 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -6,7 +7,7 @@ import {KeyInfo} from '../../src/internal/comparison.ts';
 import {openBtreeDatabase} from '../../src/internal/btree.ts';
 import {decodeRecord} from '../../src/internal/record.ts';
 import {Mem,memFromRawRecord} from '../../src/internal/mem.ts';
-const root=new URL('../../docs/research/card-s-g/primitive-companions/',import.meta.url);
+const root=new URL('primitive-companions/',skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url)));
 const native=JSON.parse(fs.readFileSync(new URL('native.json',root),'utf8'));
 
 for(const reverse of [false,true])for(const nSkip of [0,1,2])test(`prefix builder source control reverse=${reverse} nSkip=${nSkip}`,()=>{

@@ -145,3 +145,42 @@ Fresh current archive typecheck0; harness5/5pass0 in8.536s. Fresh metadata7-file
 98case lane is separate additional inventory (not inflated348 total). Public45
 matrix observers complete0 but contain21 rejected queries, not a green engine
 suite. No beta/release/artifact readiness conclusion.
+
+### Focused fixture-consumer repair (subsequent node)
+
+The two skipscan ENOENT failures are repaired in the working test consumers:
+`skipscan-prefix-code.test.mjs` and `skipscan-seekscan-state.test.mjs` now use the
+existing `test/skipscan-root.mjs` helper, exactly as prefix-seek already does.
+The runner sets SKIPSCAN_NATIVE_ROOT to the producer's purpose root; previously
+these two consumers ignored it. Legacy standalone root behavior is preserved;
+explicit absent roots still fail, with no fallback to unrelated fixture evidence.
+New `test/skipscan-root.test.mjs` checks URL construction, legacy identity and
+explicit missing-root non-fallback. No engine/source algorithm or expected rows
+changed. Prior348 aggregate1 remains historical current-input evidence, not green.
+
+Fresh committed d1bef6c1 archive plus only these two consumer overlays:
+external120s runner proc-39aec33a6f88 exit0, six dependency-ordered native producers0,
+three files39/39cases0skips/fail and input_drift[]. Includes both repaired files
+and unchanged prefix-seek primitive lane. Manifest
+`work:///cards/card-w/repair-fixture-consumers/run/integration-run/manifest.json`
+SHAa33340f8c644764a12ac344e3402c697ff8c9bbb0a53eb508c2789e73cea3598.
+Fresh helper regression proc-edf596bcdae9 1/1pass under10s. These are focused
+fixture orchestration fixes only; remaining nine failed348 components and the
+common-composition engine gaps are not waived. Scoped working patch awaits review;
+no shared index normalization or additional commit in this repair node.
+
+### Authorized scoped delivery verification
+
+ROOT authorized this four-path delivery after review. The delivered helper test
+also retains the already committed helper's actual ENOENT assertion (rather than
+only URL nonfallback), using an absent purpose-root child and checking legacy
+identity. Fresh candidate-tree verification proc-e914c402b84d:6native producers0,
+4files40/40cases0skip/fail, no input drift. Fresh typecheck proc-552c4770640f0;
+harness proc-46e7f7953815 five tests pass in8.477s. Candidate and final tree/log
+hashes and actual commit identity are in current card status, not speculative
+commit IDs here. Prior raw348337/11fail is still nonpass evidence. Two fixture
+consumer failures resolved; remaining **nine components**, not nine failing cases,
+are explicitly unwaived and not collectively rerun. No runtime/SQL/semantic
+expectations, new breadth, browser or release changes. Shared-index deletions of
+this README and helper remain preserved; temporary-index delivery uses actual
+four scoped working files instead of that unrelated deletion carrier.

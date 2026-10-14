@@ -1,6 +1,7 @@
+import {skipscanRoot} from '../skipscan-root.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
 import {openBtreeDatabase} from '../../src/internal/btree.ts';import {KeyInfo} from '../../src/internal/comparison.ts';import {Mem} from '../../src/internal/mem.ts';
-const root=new URL('../../docs/research/card-s-g/primitive-companions/',import.meta.url),native=JSON.parse(fs.readFileSync(new URL('native.json',root),'utf8'));
+const root=new URL('primitive-companions/',skipscanRoot(new URL('../../docs/research/card-s-g/',import.meta.url))),native=JSON.parse(fs.readFileSync(new URL('native.json',root),'utf8'));
 const cell=n=>{const m=new Mem();m.setInt64(n);return m;};
 for(const v of native.variants.filter(v=>v.tail==='18'))test(`source SeekScan state ${v.encoding}`,()=>{
  const db=openBtreeDatabase(new Uint8Array(fs.readFileSync(new URL(v.fixture,root)))),info=new KeyInfo({encoding:db.encoding,totalFieldCount:3,keyFieldCount:2,terms:[{},{},{}]}),page=Number(v.roots.find(r=>Buffer.from(r[0].utf8Hex,'hex').toString()==='ab')[1].value),cursor=db.indexCursor(page);
