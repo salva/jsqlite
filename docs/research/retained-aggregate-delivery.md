@@ -11,11 +11,13 @@ full command receipts: [[card:card-m-f-k]] status.md (accepted v168, v174 and cu
 New acceptance `derived-aggregate-resources.test.mjs` runs through public Fetch:
 byte/entry/work/result limits, entry abort/deadline, saved error identity, reset
 then smaller rebind, two executions, failure/Halt/finalize refund and same-connection
-recovery for all encodings (18 tests). Private budget observation delegates actual
-reserve unchanged; no opcode injection or host evaluator. Abort/deadline checks
-here are at entry, **not** an in-flight latency claim. Existing packed resource
-suite's in-flight receipts remain separate; retained route live asynchronous
-abort/deadline/control breadth is outstanding, not silently inherited.
+recovery for all encodings (24 tests, including six live-control tests). Private budget observation delegates actual
+reserve unchanged; no opcode injection or host evaluator. Live retained sorter tests use a 200,000-character parameter, real timer abort
+and positive deadline across production scheduler turns. They assert admitted
+reservations before failure, saved error identity, total refund, smaller rebind
+and two reset executions. Observers delegate reserve/yield unchanged. These
+six tests supplement entry checks; they do not claim hard real-time latency or
+exhaustive interruption positions. Existing packed receipts remain separate.
 
 Tests first found real missing Parse.nVar publication: all18 failed bind with
 SQLITE_RANGE25. Internal aggregate returned empty parameter metadata; enclosing
@@ -44,3 +46,9 @@ bytes and workspace except own edits. Remaining handoff: [[card:card-w]] exact22
 must run against coherent reviewed committed inputs, with affected receipt above;
 [[card:card-m-f-d]] independent bounded review is required. Neither receipt nor
 approval fabricated. No zero remaining global lowering-gap claim.
+
+Live-control follow-up: proc-d87c4d4a130e resources24/24 in preserved workspace;
+proc-79afe3294318 isolated HEAD e1492706 archive plus only updated resource test,
+shared node_modules tooling: typecheck0 and focused56/56 (24+3+29). No peer source
+or index deltas entered isolated verification. Exact225/independent review remain
+the explicit W/D handoffs above, not prerequisites falsely reported as executed.

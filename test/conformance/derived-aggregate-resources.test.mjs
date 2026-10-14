@@ -34,3 +34,30 @@ test(`retained aggregate ${image.encoding} ${mode} saved error/refund/reset/rebi
   const recovery=db.prepare('SELECT 1').statement;assert.equal(await recovery.step(),'row');assert.equal(recovery.column(0),1n);recovery.finalize();
  }finally{try{s?.finalize();db?.close()}finally{globalThis.fetch=fetch;PrivateStateByteBudget.prototype.reserve=reserve;}}
 });
+
+// Observe real task delivery and reservations only; do not inject control into
+// scheduler callbacks or replace SQL execution with a synthetic VM.
+for(const image of native.encodings)for(const mode of ['abort','deadline'])
+test(`retained aggregate ${image.encoding} live ${mode} across scheduler turns`,async()=>{
+ const {ExecutionTaskScheduler}=await import('../../src/internal/task-scheduler.ts');
+ const fetch=globalThis.fetch,reserve=PrivateStateByteBudget.prototype.reserve,yieldTask=ExecutionTaskScheduler.prototype.yield;
+ const budgets=new Set();let turns=0,peak=0,db,s,timer;
+ globalThis.fetch=async()=>new Response(readFileSync(image.file));
+ PrivateStateByteBudget.prototype.reserve=function(...args){budgets.add(this);const r=reserve.apply(this,args);peak=Math.max(peak,this.usedBytes);return r};
+ ExecutionTaskScheduler.prototype.yield=function(){turns++;return yieldTask.call(this)};
+ try{
+  db=await open('https://fixture.invalid/retained-live');
+  s=db.prepare('SELECT sum(x) FROM (SELECT x,?1 AS payload FROM t ORDER BY x DESC LIMIT 2)').statement;
+  s.bind(1,'x'.repeat(200000));
+  const controller=new AbortController();assert.equal(controller.signal.aborted,false);
+  const pending=s.step(mode==='abort'?{signal:controller.signal}:{timeoutMs:20});
+  if(mode==='abort')timer=setTimeout(()=>controller.abort('live retained producer'),5);
+  let first;
+  await assert.rejects(pending,e=>{first=e;return e.kind===(mode==='abort'?'cancelled':'timeout')});
+  assert.ok(turns>0,'real production scheduler turns');assert.ok(peak>0,'live admitted reservation');
+  for(const b of budgets)assert.equal(b.usedBytes,0,'terminal refund');
+  assert.throws(()=>s.reset(),e=>e===first);s.bind(1,'small');
+  for(let run=0;run<2;run++){assert.equal(await s.step(),'row');assert.equal(s.column(0),5n);assert.equal(await s.step(),'done');s.reset()}
+  s.finalize();s=null;for(const b of budgets)assert.equal(b.usedBytes,0);
+ }finally{clearTimeout(timer);try{s?.finalize();db?.close()}finally{globalThis.fetch=fetch;PrivateStateByteBudget.prototype.reserve=reserve;ExecutionTaskScheduler.prototype.yield=yieldTask;}}
+});
