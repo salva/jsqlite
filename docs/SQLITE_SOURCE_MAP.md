@@ -25,6 +25,23 @@ Current upstream → TypeScript → test/evidence navigation. The source root is
 owns current design; [API](api.md) owns the public contract. This map does not
 claim complete upstream coverage or reproduce execution inventories.
 
+## Ordinary materialized producer cursors
+
+- build.c sqlite3SrcListAssignCursors / Parse.nTab; select.c tag-select-0488,
+  selectInnerLoop SRT_EphemTab → vdbe.ts compileCteDerivedSources and fallback:
+  shared-builder physical input cursor mapping, separate destination, fill/return
+  and OpenDup reuse. compileRepeatedImmutableView reserves resolved input slots
+  before allocating owner/dup, preserving the same Parse.nTab frontier invariant.
+  Tests: select-repeated-view-parent.test.mjs (native companion),
+  select-repeated-view-parent-builder.test.mjs, from-subquery-routes.test.mjs,
+  select-cte-order-owner.test.mjs,
+  select-cte-fallback-destination-owner.test.mjs (all encodings, bind/reset).
+  expr.c sqlite3ExprAnalyzeAggregates (iDistinct = Parse.nTab++) →
+  compileScalarSelect derived aggregate-expression input cursorFor mapping before
+  DISTINCT/order allocation; select-scalar-child.test.mjs and
+  select-scalar-cursor-owner.test.mjs (allocation invariant/all-encoding public resets).
+  [Evidence and bounded residuals](research/limited-cte-cursor-ownership.md).
+
 ## Retained derived aggregate input
 
 - select.c flatten restriction9, SRT_Coroutine and AggInfo input; where.c
@@ -141,7 +158,14 @@ these branches, not general storage/complexity parity.
 - `select.c:generateWithRecursiveQuery` Queue/Current/setup/recursive/destination
   control → `recursiveCteOwner`, `CtePrepareContext`, recursive generators in
   [vdbe.ts](../src/internal/vdbe.ts). Body versus consumer LIMIT ownership and
-  duplicate/queue order remain separate. Evidence [[card:card-n]], [[card:card-t-d]].
+  duplicate/queue order remain separate. `select.c:sqlite3Select` retained
+  materialization → `compileRecursiveJoinedSelect` → ephemeral destination →
+  shared `compileInnerTableSelect`/`compileAggregateSelect`, with retained cursor
+  handles skipped by physical OpenRead. VDBE Rewind/Next/Column/Rowid dispatch
+  ephemeral handles through the existing private cursor primitive. Tests:
+  `recursive-cte-join.test.mjs` and `cte-admission.test.mjs` (pre-emission
+  specialization decline preserves derived/multiple recursive dispatch); [native/public evidence and boundaries](research/recursive-join/README.md).
+  Evidence [[card:card-n]], [[card:card-n-c]], [[card:card-t-d]].
 - `window.c:sqlite3WindowRewrite`, `sqlite3WindowCodeInit`,
   `sqlite3WindowCodeStep`, `windowCacheFrame` →
   [window-rewrite.ts](../src/internal/window-rewrite.ts): `sqlite3WindowRewrite`,

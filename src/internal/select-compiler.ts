@@ -8,7 +8,7 @@ import type { SchemaGraph } from "./schema.ts";
 import type { BtreeDatabase } from "./btree.ts";
 import type { Program } from "./vdbe.ts";
 import { SelectProgramBuilder, emitSelectDestination, type SelectDest } from "./select-program.ts";
-import { compileAggregateSelect, compileCteUnionAll, compileOrderedCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
+import { compileAggregateSelect, compileCteUnionAll, compileOrderedCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveJoinedSelect, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
 
 /**
  * Production SELECT program entry. The graph has already passed public parse,
@@ -47,6 +47,12 @@ function compileSelectInner(
         builder.ops.push({ code: "Halt" });
         return Object.freeze({ ...windowProgram, ops: builder.finish(), registers: builder.registers });
       }
+    }
+    {
+      const builder = new SelectProgramBuilder<Program["ops"][number]>(progressCheck,reprepare);
+      const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
+      const joined = compileRecursiveJoinedSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'output'}});
+      if(joined){builder.ops.push({code:'Halt'});return Object.freeze({...joined,ops:builder.finish(),registers:builder.registers});}
     }
     // The ordinary recursive aggregate consumer shares enclosing Parse allocation and output.
     // Admission declines before emission; selected diagnostics are terminal.

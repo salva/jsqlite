@@ -13,10 +13,10 @@ const cases=[
  {sql:'WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 1 OFFSET 2) SELECT x AS y FROM c ORDER BY 1',names:['y'],rows:[[3n]]},
  {sql:'WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 2) SELECT l.x AS y FROM c l CROSS JOIN c r ORDER BY 1',names:['y'],rows:[[1n],[1n],[1n],[1n]]},
 ];
-for(const {sql,names,rows} of cases)test(`derived compound destination: ${sql}`,async()=>{
+for(const encoding of ['utf8','utf16le','utf16be'])for(const {sql,names,rows} of cases)test(`derived compound destination ${encoding}: ${sql}`,async()=>{
  const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
  try{
-  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-utf8`));
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-${encoding}`));
   const statement=db.prepare(sql).statement;
   try{
     assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i).name),names);
@@ -48,4 +48,19 @@ test('forced CTE child missing identifier stays lexical before empty LIMIT',asyn
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-utf8`));
   assert.throws(()=>db.prepare('WITH c AS MATERIALIZED (SELECT missing AS x FROM t2 LIMIT 0) SELECT x FROM c ORDER BY 1'),error=>error.kind==='sqlite'&&error.code===1&&/no such column/.test(error.message));
  }finally{db?.closeDeferred();await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
+});
+
+for(const encoding of ['utf8','utf16le','utf16be'])test(`materialized cursor ownership ${encoding} rebinds LIMIT and NULL input`,async()=>{
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;let statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-${encoding}`));
+  statement=db.prepare('WITH c AS MATERIALIZED (SELECT ?1 AS x FROM t1 LIMIT ?2 OFFSET ?3) SELECT x FROM c ORDER BY 1').statement;
+  assert.equal(statement.columnCount,1);
+  assert.deepEqual(statement.columnMetadata(0),{name:'x',declaredType:null,database:null,table:null,origin:null});
+  for(const [values,expected] of [ [[4n,2n,0n],[4n,4n]],[[null,2n,1n],[null,null]],[[9n,0n,0n],[]],[[7n,1n,3n],[7n]],[[8n,2n,4n],[]],[[5n,2n,0n],[5n,5n]] ]){
+   values.forEach((value,index)=>statement.bind(index+1,value));const rows=[];
+   while(await statement.step()==='row'){assert.equal(statement.columnType(0),values[0]===null?'null':'integer');rows.push(statement.column(0));}
+   assert.deepEqual(rows,expected);statement.reset();
+  }
+ }finally{statement?.finalize();db?.closeDeferred();await new Promise((resolve,reject)=>bridge.server.close(error=>error?reject(error):resolve()))}
 });

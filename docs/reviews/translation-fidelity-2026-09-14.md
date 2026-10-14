@@ -5176,3 +5176,15 @@ mid-yield lifecycle coverage, browser or release acceptance.
 The bounded ordered single-output ordinary table producer now feeds shared same-VM sorter coroutines/merge, rather than the earlier eager global table set. Initial-empty EXCEPT/INTERSECT skips B, balanced identical UNION/ALL runs and independent ALL capacity copies preserve immutable graph ownership. Shared ORDER visits each arm alias then expression before moving right. These are bounded source/test findings, not general merge parity or root/full-w acceptance. Evidence and failed minimal-union attempts: [MERGE.md](../research/card-j-d-b-a-c-filtered/MERGE.md).
 
 Actual bounded MAIN delivery is 59e74b4b83783e31b72a0fd6324e4fadf59d2aa4; exact archive103/public22/native153 and integrated scheduling evidence supersede open integration findings for this slice only. [Evidence](../research/card-j-d-b-a-c-filtered/MERGE.md). No root/full-w or general parity claim.
+
+### Recursive physical consumer repair — [[card:card-n-c]]
+
+The common-checkpoint recursive physical join and join+sum observations are no
+longer current unsupported predictions: retained queue output now enters shared
+WHERE/AggInfo consumers. This is a bounded implementation correction, not planner
+parity or closure of recursive composition. The physical-only specialization
+declines before emission outside its admission, preserving represented derived
+and distinct multiple-recursive owners. SQL outer joins, repeated references to
+one declaration and unrepresented joined compound/window inputs remain gaps. Source
+comparison, exact encoding/reset/metadata observations and residual evidence
+limits are in [recursive join evidence](../research/recursive-join/README.md).

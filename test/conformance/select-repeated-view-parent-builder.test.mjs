@@ -11,6 +11,8 @@ test('repeated immutable view fill uses enclosing builder destination',()=>{
  const route=source.slice(start,end);
  assert.match(route,/new SelectProgramBuilder<Op>\(/);
  assert.match(route,/compileInnerTableSelect\(/);
+ const reserve=route.indexOf('builder.reserveCursorsThrough(Math.max(...resolved.sources.map(source=>source.cursorId)))');
+ assert.ok(reserve>=0&&reserve<route.indexOf('const owner=builder.cursor()'),'resolved inputs reserved before materialized owner/dup allocation');
  assert.match(route,/destination:\{kind:'ephemeral',cursor:owner\}/);
  assert.doesNotMatch(route,/for\(const original of inner\.ops\)|producerBase/);
 });

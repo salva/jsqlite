@@ -1,6 +1,19 @@
 # SQLite-to-TypeScript translation guide
 
-### Read-only metadata PRAGMA (bounded consumers)
+### Ordinary materialized producer cursor ownership
+
+Table-backed ordinary CTE fills allocate physical input cursors from the enclosing
+SelectProgramBuilder, separately from the materialized SelectDest cursor. Resolved
+child-local cursor IDs are semantic carriers, not shared VDBE slots (build.c
+sqlite3SrcListAssignCursors / Parse.nTab). The fill returns with its destination
+intact; repeated consumers use OpenDup and position independently. LIMIT/OFFSET
+terminates the producer, not its parent. Repeated immutable view fills that use
+resolved cursor IDs directly reserve those slots in the enclosing builder before
+allocating the materialized owner and duplicate reader, mirroring Parse.nTab's
+advancing frontier. No cursor invariant is suppressed.
+[Bounded repair evidence](research/limited-cte-cursor-ownership.md).
+
+## Read-only metadata PRAGMA (bounded consumers)
 
 `PRAGMA [main.]table_info` and `table_xinfo` accept omitted, parenthesized or `=` table-name arguments through pinned Lemon command semantics. Immutable catalog columns lower to ordinary VDBE literal loads/ResultRow, preserving logical declaration order, compact visible cid, generated hidden 2/3, PK ordinal and retained default span. Explicit temp is empty; absent databases error. Views derive names and types at prepare through the existing stored-view SELECT expansion/resolution owner, without executing rows. View columns do not inherit base PK, notnull, defaults or generated hidden flags; explicit names, duplicate-name disambiguation, nested/circular views and NONE versus BLOB affinity follow the same source graph. `index_list`, `index_info`, `index_xinfo` and `foreign_key_list` consume the same linked catalog graph: linked index order/origin/partial flags, logical column ordinals versus physical suffix fields, expression/rowid sentinels, key bits/collations/direction (Index.azColl spelling retained separately from folded KeyInfo lookup), and reverse-declaration FK order/actions. WITHOUT ROWID table names may denote their PK index.  `database_list` reports the resident immutable memory snapshot as main with empty filename (not the Fetch URL or native-oracle path); explicit temp PRAGMA preparation opens an empty temp metadata state, subsequently listed with empty filename. Unknown names absent from the pinned pragma registry prepare as zero-column no-ops, even with arguments; known untranslated names remain unsupported. No mutating or extension operation is enabled. This is bounded common metadata coverage, not arbitrary PRAGMA support. Source/verification and outstanding coverage: [card-e-n repair evidence](research/card-e-n-pragma-red/REPAIR.md) and [VIEW derivation](research/card-e-n-pragma-red/VIEW.md).
 
@@ -182,7 +195,9 @@ AggInfo consumes that same transient source identity. Scalar compound producers
 receive the enclosing SelectDest as well as the row callback, so merge output
 resumes the consumer instead of publishing child ResultRow values. AggInfo consumes its shared row
 registers; synthetic transient sources never OpenRead. Child cursors are allocated
-from the enclosing builder so a correlated scalar cannot exhaust its outer scan.
+from the enclosing builder so a correlated scalar cannot exhaust its outer scan. Scalar derived aggregate-expression producers also map physical inputs through that
+builder before allocating DISTINCT/order state, keeping those cursors disjoint
+([cursor ownership evidence](research/limited-cte-cursor-ownership.md)).
 The enclosing compileSelect publishes the shared parameter inventory (Parse.nVar)
 with the finished program. GROUP BY may consume adjacent child keys directly when
 resolved result identity/collation proves adjacency; wherePathMatchSubqueryOB
@@ -425,8 +440,17 @@ represented flatten/coroutine/materialized/repeated-source routes. Recursive
 `generateWithRecursiveQuery` lowering uses iterative Queue/Current state, setup,
 duplicate tracking, queue ORDER and body LIMIT/OFFSET distinct from outer consumer
 limits. Recursive aggregates and windows are consumers, not permission for
-aggregates/windows in the recursive term. Broader retained producer composition
-remains temporary unsupported, not permanently excluded.
+aggregates/windows in the recursive term. A single recursive SrcItem joined to
+physical tables uses a retained insertion-order ephemeral destination feeding the
+shared WHERE loops and AggInfo (including GROUP/HAVING); producer queue order,
+deduplication and LIMIT remain separate from consumer controls. This physical-only
+specialization declines outside its admission before resolution or builder mutation,
+so represented derived-input and multiple-recursive-declaration consumers retain
+their semantic owners; selected compilation errors remain terminal. SQL outer joins,
+repeated references to one recursive declaration and joined compound/window shapes
+not represented by another owner remain bounded temporary gaps. Materializing this retained input charges all producer
+rows before consumer output; it does not promise streaming latency or planner
+parity. [Source comparison and evidence](research/recursive-join/README.md).
 
 ## Windows and private storage
 

@@ -1,0 +1,322 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "version": "3.53.4",
+  "librarySha": "3d976cb9d9e6c6f343d4307c707bb52cdebf4c8ebe650397fb9da6fba3c689fe",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "file": "UTF-8-corrected.sqlite",
+      "sha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "cases": [
+        {
+          "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "sum(t.x)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "file": "UTF-16le-corrected.sqlite",
+      "sha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "cases": [
+        {
+          "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "sum(t.x)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "file": "UTF-16be-corrected.sqlite",
+      "sha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "cases": [
+        {
+          "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "sum(t.x)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

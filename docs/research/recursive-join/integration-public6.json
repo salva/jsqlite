@@ -1,0 +1,362 @@
+[
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+    "metadata": [
+      {
+        "name": "sum(t.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+    "metadata": [
+      {
+        "name": "sum(t.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+    "metadata": [
+      {
+        "name": "sum(t.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  }
+]

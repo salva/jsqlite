@@ -895,3 +895,17 @@ compare returned values with the pinned oracle). It reports mismatches as nonpas
 with a final attempted/failed/unattempted denominator. Accounting regression also
 injects an unmatched expectation to verify fail-closed reporting. See [V1 repair
 evidence](research/card-m-packed-independent-review.md#v1-repair--historical-baseline-versus-current-diagnostic-accounting).
+
+## Recursive physical consumer companion evidence
+
+The two common-checkpoint recursive physical join/join+sum shapes now match
+pinned native typed rows and full metadata across three encodings, twice after
+reset. Five additional companion shapes have 15 native/public observations,
+separate from the five credited upstream recursive assertions. Shared join/group,
+bind/reset and operation controls are covered by `recursive-cte-join.test.mjs`.
+See [source comparison and exact evidence](research/recursive-join/README.md).
+Admission regressions in `cte-admission.test.mjs` preserve represented derived
+inner-join and distinct multiple-recursive routes; these are separate from the
+physical-join specialization. This does not close SQL outer joins, repeated
+references to one recursive declaration, broader nested WITH composition,
+unrepresented joined compound/window inputs or original225/release obligations.

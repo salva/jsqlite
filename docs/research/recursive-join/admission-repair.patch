@@ -1,0 +1,13 @@
+--- a/src/internal/vdbe.ts
++++ b/src/internal/vdbe.ts
+@@ -2615,7 +2615,9 @@
+  const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
+  if(!owner||select.from.items.length<2)return undefined;
+  const refs=select.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
+- if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.left||item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))throw new JSQLiteError('unsupported','this recursive joined consumer is not implemented',{unsupportedClassification:'temporary'});
++ // Decline before resolution/allocation/emission: other semantic owners handle
++ // derived inputs and multiple recursive declarations. Selected errors remain terminal.
++ if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.left||item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))return undefined;
+  const {transient,expanded}=prepareRecursiveSource(select,owner,schema),{builder,parameters,destination}=shared,ops=builder.ops;
+  const recursiveSource=expanded.sources[select.from.items.indexOf(refs[0]!) ]!;
+  // Reserve resolver cursor identities before queue code allocates private ones.
