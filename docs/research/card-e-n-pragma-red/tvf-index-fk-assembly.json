@@ -1,0 +1,17 @@
+{
+  "base": "8e91994b14ebf3abe82c6db3db4eba4a29a60f06",
+  "included_hashes": {
+    "src/internal/pragma.ts": "0a69c98f84753179262d09b9e0ab09b4b20872ab782d2352fc5f6f88f22a4293",
+    "src/internal/vdbe.ts": "7d80cbad100e02eadae45a96b113ce877a2c73457bba796855e86abe9fe53420",
+    "docs/TRANSLATION.md": "4c124a83fbf937e940d0a5b47844e940a5ab8f0a3b8cf101d4dcda579b830b58",
+    "docs/api.md": "a9a3dfdd5b7e3e28637a71d4b7e83d9fb3f61e4e7178bb3d2511f53454349e20",
+    "docs/SQLITE_SOURCE_MAP.md": "e4f0269cab77a42accf86cb5d65dd1ad8571df7b9541d84c0f68eb881b7b15cc",
+    "docs/research/card-e-n-pragma-red/capture-tvf-five.py": "81eb24225a770566be05056c220e6716c16c3d1b9e355ac5e4e8c186d4f3fbd6",
+    "docs/research/card-e-n-pragma-red/tvf-five-native.json": "cd8d19706d1de0fe745ca05bd18857e754a47eff1c7b3b715910b26d22a10646",
+    "docs/research/card-e-n-pragma-red/tvf-five-admission-native.json": "5865f82a0cfa9efbcf6a1896b3e8d1a69373f4b2eb1012820483db0d9d0d5ffc",
+    "docs/research/card-e-n-pragma-red/tvf-five.test.mjs": "32a5277848571682b4c9957f8e3b2538ae614b83d665d499a4d8b89f0663b027",
+    "docs/research/card-e-n-pragma-red/TVF-INDEX-FK.md": "98dcb308919e7693bee22d389ca2051f166be4296db15553630c2feb6812706c"
+  },
+  "excluded": "all live peer vdbe, staged deletions, dirty guide contradictions/stat/bitwise/generated/JSON/vectorIN; candidate constructed from accepted HEAD",
+  "real_index_sha256": "04c05cf020e64c2a98a96457558456d1f26e10ebd5c009aa2928c241d2250ebe"
+}

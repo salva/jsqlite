@@ -206,3 +206,8 @@ companions are in json-mixed-rowid-integration.test.mjs;
 [correction evidence](research/card-r-e-review27-correction.md).
 Accepted pretty `f1eb053` bounded implementation is retained from MAIN; no
 pretty source change or breadth claim is part of this mixed correction.
+
+
+### Additional bounded index/FK table-valued PRAGMA consumers
+
+`pragma_index_list`, `pragma_index_info`, `pragma_index_xinfo` and `pragma_foreign_key_list` share direct-PRAGMA catalog traversal and existing statement-owned metadata Filter/Next/Column state with table_info/xinfo. Hidden arg/schema retain empty declared type versus NULL visible type, normal runtime binding/reset and physical-left correlated schema joins with explicit projections. Qualified metadata identity remains temporarily unsupported; JSON/physical rowid ownership is separate. Mixed/qualified stars remain unsupported. `pragma_database_list` is still deferred: Result0 has no hidden argument/schema slots and needs its resident-database producer/caller contract, unlike the four Result1+SchemaOpt modules. This is not generic vtab admission. Native evidence and precise boundaries: [index/FK TVF evidence](research/card-e-n-pragma-red/TVF-INDEX-FK.md).
