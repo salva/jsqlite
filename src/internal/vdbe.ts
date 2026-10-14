@@ -7260,7 +7260,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
    const childPlan=resolveTransientArm(child,schema),cursors=new Map(childPlan.sources.map(source=>[source,builder.cursor()]));
    compileInnerTableSelect(child,childPlan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,cursorFor:source=>cursors.get(source)??source.cursorId});
   }else if(child.from.items.length)compileTableSelectProducer(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination});
-  else compileScalarSelect(child,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow:(row,count)=>emitSelectDestination(ops,destination,row,count)});
+  else compileScalarSelect(child,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,destination,emitRow:(row,count)=>emitSelectDestination(ops,destination,row,count)});
   ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
   const input={first,emit:(consume:()=>void)=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
   const compiled=compileAggregateSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...parent,builder,ops,parameters,linkedPlan,input,destination:parent?.destination??{kind:'output'}});
@@ -7303,7 +7303,10 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
  const zeroSourceDerivedCount=schema&&!parent?.linkedPlan?compileZeroSourceDerivedCount(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent):undefined;if(zeroSourceDerivedCount)return zeroSourceDerivedCount;
  const compoundDerived=schema&&!parent?.linkedPlan?compileCompoundDerivedAggregate(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent):undefined;if(compoundDerived)return compoundDerived;
  const derived=select.from.derived;
- if(derived&&derived.index===0&&select.from.items.length===1&&!derived.select.hasDistinct&&!derived.select.hasGroupBy&&!derived.select.hasHaving&&!derived.select.hasOrderBy&&!derived.select.hasLimit&&!derived.select.hasCompound&&derived.select.from.items.length>=1){
+ // Once an input and linked NameContext have been installed, their transient
+ // SrcItem identity owns AggInfo binding. Flattening here would substitute the
+ // producer reduction while retaining the consumer's resolved carrier.
+ if(!parent?.input&&derived&&derived.index===0&&select.from.items.length===1&&!derived.select.hasDistinct&&!derived.select.hasGroupBy&&!derived.select.hasHaving&&!derived.select.hasOrderBy&&!derived.select.hasLimit&&!derived.select.hasCompound&&derived.select.from.items.length>=1){
   // select.c:flattenSubquery, bounded aggregate-parent form. Substitute the
   // transient producer columns before inheriting its source. This also retains
   // CTE alias names without fabricating a schema table.

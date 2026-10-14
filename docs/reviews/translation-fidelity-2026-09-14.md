@@ -2885,8 +2885,11 @@ runner checks types/names/two reset iterations/done/finalize. Type/focused81
 pass. Selected broad676 has 25 failures (651 pass), NOT a green compatibility
 claim: same-input disposable baseline with only vdbe pre-repair restored
 reproduces all failing names across baseline suites. Existing enclosing
-aggregate retained derived/COUNT composition failures require coordinated
-follow-up; not waived as unsupported. No changes to b577 COUNT5268–5546/entry,
+aggregate retained derived/COUNT composition failures required coordinated
+follow-up; the two 4ab82183 handoff regressions are now repaired at the installed
+input/NameContext and scalar compound SelectDest boundaries (see
+[revision-bound evidence](../research/cte-aggregate-handoff-repair.md)). This does
+not resolve every residual composition shape. No changes to b577 COUNT5268–5546/entry,
 c873/c864/d260/d247/private/root seam. Full scalar/IN nested-depth/analyzer,
 index-expression/RIGHT invalidation producers and retained composition remain
 unfinished; parent revision_required. Phase NULL is not RIGHT producer proof.

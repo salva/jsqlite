@@ -20,6 +20,10 @@ claim complete upstream coverage or reproduce execution inventories.
 - select.c flatten restriction9, SRT_Coroutine and AggInfo input; where.c
   wherePathMatchSubqueryOB → vdbe.ts compileAggregateSelect input/adjacentGroups,
   resolvedScalarSubqueryEmitter linked outer binding and shared child cursors.
+  Installed input/NameContext prevents late flattening; scalar compound merge
+  receives the same SelectDest (select.c selectInnerLoop SRT_Coroutine).
+  Regression coverage: cte-execution.test.mjs and recursive-cte-aggregate.test.mjs;
+  [handoff evidence](research/cte-aggregate-handoff-repair.md).
 - build.c sqlite3FinishCoding / vdbeaux.c sqlite3VdbeMakeReady Parse.nVar →
   select-compiler.ts aggregate publication of shared parameters.
 - Public tests: derived-order-limit-aggregate.test.mjs (independent pinned producer

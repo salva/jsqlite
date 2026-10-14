@@ -58,7 +58,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} sour
   ];
   for(const [query,values,expected] of cases){
    const statement=db.prepare(query).statement;
-   try{for(let pass=0;pass<2;pass++){
+   try{assert.equal(statement.columnCount,1);if(query.startsWith('SELECT count(*)'))assert.deepEqual(statement.columnMetadata(0),{name:'count(*)',declaredType:null,database:null,table:null,origin:null});for(let pass=0;pass<2;pass++){
     values.forEach((value,index)=>statement.bind(index+1,value));
     assert.equal(await statement.step(),'row',query);assert.equal(statement.column(0),expected,query);
     assert.equal(statement.columnType(0),expected===null?'null':'integer',query);assert.equal(await statement.step(),'done');
@@ -81,4 +81,25 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} recu
   }finally{stmt.finalize()}
   assert.throws(()=>db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT missing FROM c LIMIT 0'),e=>e.code===1&&e.message==='no such column: missing');
  }finally{db?.closeDeferred();await new Promise(r=>server.close(r))}
+});
+
+// Independently pinned native companion for the scalar ordered-merge destination.
+// One prepared statement must return aggregate rows, never producer ResultRows.
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} ordered merge count destination rebinds empty and NULL input`,async()=>{
+ const server=await serve(fs.readFileSync(path.join(generated,`subquery-${encoding}.db`)));let db;let statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  statement=db.prepare('SELECT count(*) FROM (SELECT ?1 UNION SELECT ?2 UNION SELECT NULL ORDER BY 1 LIMIT ?3)').statement;
+  assert.equal(statement.columnCount,1);
+  assert.deepEqual(statement.columnMetadata(0),{name:'count(*)',declaredType:null,database:null,table:null,origin:null});
+  for(const [values,expected] of [
+   [[3n,4n,-1n],3n],[[3n,3n,-1n],2n],[[null,null,-1n],1n],
+   [[7n,8n,0n],0n],[[9n,10n,1n],1n],[[11n,12n,-1n],3n],
+  ]){
+   values.forEach((value,index)=>statement.bind(index+1,value));
+   assert.equal(await statement.step(),'row');
+   assert.equal(statement.columnType(0),'integer');assert.equal(statement.column(0),expected);
+   assert.equal(await statement.step(),'done');statement.reset();
+  }
+ }finally{statement?.finalize();db?.closeDeferred();await new Promise(resolve=>server.close(resolve));}
 });

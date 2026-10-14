@@ -176,7 +176,11 @@ the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 ### Retained derived aggregate input
 
 An ORDER/LIMIT child that cannot flatten into an aggregate (select.c restriction
-9) remains a linked SRT_Coroutine producer. AggInfo consumes its shared row
+9) remains a linked SRT_Coroutine producer. Once its input and resolved
+NameContext are installed, aggregate compilation does not flatten it again:
+AggInfo consumes that same transient source identity. Scalar compound producers
+receive the enclosing SelectDest as well as the row callback, so merge output
+resumes the consumer instead of publishing child ResultRow values. AggInfo consumes its shared row
 registers; synthetic transient sources never OpenRead. Child cursors are allocated
 from the enclosing builder so a correlated scalar cannot exhaust its outer scan.
 The enclosing compileSelect publishes the shared parameter inventory (Parse.nVar)
