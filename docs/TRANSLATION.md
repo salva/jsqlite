@@ -432,7 +432,11 @@ partition/order keys, input coroutine, buffer duplicates and endpoint scheduling
 aggregate and special builtin windows. Compatible windows share rewritten input;
 incompatible layers retain their own ordering. Grouped, join, derived, ordinary/
 recursive CTE and outer ORDER/LIMIT compositions are bounded admissions, not
-blanket gates. Cached frame/EXCLUDE scheduling is a source-shaped adaptation, not
+blanket gates. Recursive grouped input rebuilds generated projection result
+carriers by expression identity after lifting correlated terminals; ephemeral
+recursive columns do not acquire physical schema provenance. [Pinned parity
+and repair evidence](research/recursive-group-window/README.md).
+Cached frame/EXCLUDE scheduling is a source-shaped adaptation, not
 proof that every frame must stream.
 
 Private entries/sequence identity are shared across OpenDup cursors; positions are

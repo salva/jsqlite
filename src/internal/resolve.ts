@@ -252,6 +252,9 @@ function lookupName(expression:ExprNode,context:NameContext,owner:NameContext=co
 }
 function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDescriptor{if(!resolved)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:null,collation:'BINARY'});const producer=transientProducerPlans.get(resolved.source.table);
  if(producer){const child=producer.result[resolved.columnIndex]?.descriptor;return Object.freeze({name,declaredType:child?.declaredType??null,database:child?.database??null,table:child?.table??null,origin:child?.origin??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});}
+ // A recursive ephemeral source has no physical schema provenance. Without
+ // a linked subquery producer, columnTypeImpl cannot identify an origin table.
+ if(resolved.source.table.rootPage===0)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
  // select.c:columnTypeImpl uses iPKey for negative TK_COLUMN addressing,
  // not the spelling used to reach that rowid (rowid/_rowid_/oid).
  const columnIndex=resolved.columnIndex<0?integerPrimaryKeyIndex(resolved.source.table):resolved.columnIndex;
@@ -271,6 +274,22 @@ function resolvedResultColumnName(resolved:ResolvedColumnRef):string{
  return resolved.source.table.columns[index]?.name??'rowid';
 }
 function result(expression:ExprNode,resolved:ResolvedColumnRef|null,name:string,mergedSources:readonly ResolvedColumnRef[]|null=null):ResolvedResult{let resultDescriptor=mergedSources?mergedDescriptor(name,mergedSources):descriptor(name,resolved);if(resolved){const collateAt=expression.tokens.map(token=>token.text.toUpperCase()).lastIndexOf('COLLATE');if(collateAt>=0&&expression.tokens[collateAt+1]){const explicit=identifier(expression.tokens[collateAt+1]!.text),supported=['binary','nocase','rtrim'].find(name=>sqliteIdentifierEqual(name,explicit));if(!supported)throw new NameResolutionError(`no such collation sequence: ${explicit}`,257);resultDescriptor=Object.freeze({...resultDescriptor,collation:supported});}}return Object.freeze({name,expression,source:mergedSources?null:resolved?.source??null,columnIndex:mergedSources?null:resolved?.columnIndex??null,mergedSources:mergedSources?Object.freeze([...mergedSources]):null,resolution:mergedSources?'coalesce':resolved?'direct':'expression',descriptor:resultDescriptor});}
+// window.c selectWindowRewriteExprCb changes the producer projection, not
+// just pEList's spellings. Retain lexical bindings but rebuild each generated
+// result carrier from its expression identity (including lifted correlations).
+export function resolvedProducerProjection(plan:ResolvedSelect,select:SelectNode):ResolvedSelect {
+ const projection=select.result.map(expression=>{
+  const use=plan.columnUses.find(use=>use.expression===expression.reduction&&use.selectDepth===0);
+  const existing=plan.result.find(item=>item.expression.reduction===expression.reduction);
+  const ref=use?{source:use.source,columnIndex:use.columnIndex,name:use.source.table.columns[use.columnIndex]?.name??'rowid'}:null;
+  const name=expression.alias??(ref?resolvedResultColumnName(ref):null)??expression.sourceText??expression.tokens.map(token=>token.text).join(' ');
+  if(existing)return Object.freeze({...existing,name,expression,descriptor:Object.freeze({...existing.descriptor,name})});
+  const generated=result(expression,ref,name,use?.mergedSources??null);
+  if(ref||!expression.reduction)return generated;
+  return Object.freeze({...generated,descriptor:Object.freeze({...generated.descriptor,...resolvedExpressionMetadata(expression.reduction,plan),affinity:resolvedExpressionAffinity(expression.reduction,plan)??null,collation:resolvedExpressionCollation(expression.reduction,plan)??'binary'})});
+ });
+ return Object.freeze({...plan,source:select,result:Object.freeze(projection)});
+}
 // expr.c sqlite3ExprVectorSize: SELECT width or ordered TK_VECTOR fields.
 function reductionWidth(node:ExprReduction):number {
  if(node.signature==='expr ::= LP select RP'){const child=node.children.find(c=>c.kind==='reduction'&&c.signature.startsWith('select ::='));const select=child?.kind==='reduction'?child.semantic:undefined;return select&&typeof select==='object'&&'result' in select?(select as SelectNode).result.length:1;}

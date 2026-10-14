@@ -247,3 +247,9 @@ build.c sqlite3AddColumn1530–1586 / util.c sqlite3ColumnType104 / select.c col
 Pinned expr.c:sqlite3ExprCodeGeneratedColumn/GetColumnOfTable → generated lowering → vdbe.c:OP_Affinity/OP_TypeCheck → vdbe.ts:opcodeRealAffinity → existing Mem IntReal/double. Native/public generated-real-value-native.test.mjs exercises six-byte boundaries, STRICT/STORED/VIRTUAL and represented callers.
 
 [Isolated candidate evidence and remaining boundaries](research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.
+
+- `window.c:selectWindowRewriteExprCb` generated projection / `select.c:columnTypeImpl`
+  → `resolve.ts:resolvedProducerProjection` and recursive grouped lowering in
+  `vdbe.ts`; lifted terminals retain lexical bindings, generated result ordinals
+  own descriptors, ephemeral recursive sources have no physical origin.
+  [Eight-case pinned typed/metadata parity](research/recursive-group-window/README.md).

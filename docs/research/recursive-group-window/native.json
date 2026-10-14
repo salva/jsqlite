@@ -1,0 +1,836 @@
+{
+  "version": "3.53.4",
+  "sourceid": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "581d968a5356e366d813e4f9529b3e0507598dbfb2de4897e9f7300ec5019555",
+  "cases": [
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT (SELECT q.a)),first_value(a) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT q.a))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT q.a),first_value(a) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT q.a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a) FILTER(WHERE a<7),(SELECT (SELECT q.a)),first_value(a) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a) FILTER(WHERE a<7)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT q.a))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT (SELECT q.a WHERE q.a>3 LIMIT 0.5)),first_value(a) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT q.a WHERE q.a>3 LIMIT 0.5))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),first_value((SELECT (SELECT q.a))) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value((SELECT (SELECT q.a))) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT (SELECT q.a)),first_value(a) OVER(ORDER BY a%3),sum(count(*)) OVER(ORDER BY a%3 ROWS 1 PRECEDING) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT q.a))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(count(*)) OVER(ORDER BY a%3 ROWS 1 PRECEDING)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 1
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT (SELECT q.a)),first_value(a) OVER(ORDER BY a%3) FROM q WHERE 0 GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT q.a))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "SELECT t.a%3,max(t.a) FILTER(WHERE t.a<7),t.a,first_value(t.a) OVER (ORDER BY t.a%3) FROM t1 t GROUP BY t.a%3",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "t.a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(t.a) FILTER(WHERE t.a<7)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "a",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "a"
+        },
+        {
+          "name": "first_value(t.a) OVER (ORDER BY t.a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "integer",
+            "value": 3
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(NULL) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT (SELECT q.a)),first_value(a) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT q.a))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value(a) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    },
+    {
+      "sql": "WITH RECURSIVE q(a) AS(VALUES(1) UNION ALL SELECT a+2 FROM q WHERE a<7) SELECT a%3,max(a),(SELECT (SELECT NULL)),first_value((SELECT NULL)) OVER(ORDER BY a%3) FROM q GROUP BY a%3 ORDER BY 1",
+      "prepare": 0,
+      "columns": [
+        {
+          "name": "a%3",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "max(a)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "(SELECT (SELECT NULL))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "first_value((SELECT NULL)) OVER(ORDER BY a%3)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": 0
+          },
+          {
+            "type": "integer",
+            "value": 3
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 1
+          },
+          {
+            "type": "integer",
+            "value": 7
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": 2
+          },
+          {
+            "type": "integer",
+            "value": 5
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "step": 101,
+      "error": null
+    }
+  ]
+}

@@ -5158,3 +5158,15 @@ MAIN5bcafad original INNER metadata mismatch: native3.53.4 confirms INT for sour
 The metadata-only origin-g exclusion is not a value waiver. The reproduced INTEGER2/REAL2 divergence is corrected at the shared VDBE opcode, not via downstream generated-only RealAffinity or global comparison coercion. Bounded evidence does not certify full NC_GenCol, lazy-schema or generic indexed-expression parity.
 
 [Isolated candidate evidence and remaining boundaries](../research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.
+
+### Recursive grouped Window projection carrier correction
+
+The MAIN b417ac4 recursive grouped/correlated Window crash is a generated
+projection/result-carrier ownership divergence, not evidence that frame stepping
+is absent. Recursive lowering now rebuilds generated producer results from
+expression identities and lifted lexical bindings. Independent full metadata
+capture additionally exposed false physical provenance on recursive ephemeral
+sources; resolver descriptor ownership now distinguishes these from physical
+and linked subquery sources. [Pinned eight-case parity, boundaries and commands](../research/recursive-group-window/README.md).
+This focused workspace correction does not establish committed integration,
+mid-yield lifecycle coverage, browser or release acceptance.
