@@ -264,3 +264,30 @@ saved-phase result descriptor. Dedicated row identities remain independent of
 JSON parse offsets/id. [Pinned capture and public regression](research/card-r-d-grouped-rowid-metadata.md)
 cover duplicate aliases, computed/physical controls, all4 modules/all encodings
 and NULL extension/reset; no generic module or planner parity claim.
+
+### Linked NOTNULL range owner
+
+Pinned `whereexpr.c:1331–1360` turns a non-rowid column NOTNULL test outside
+outer-ON into a linked virtual `x > NULL` term (`TERM_VNULL`), with zero RHS
+prerequisites and the parent's dependency mask. `where-plan.ts:analyzeClause`
+retains that parent/child relationship as `virtualNull`; it is not an ordinary
+SQL NULL comparison. `wherecode.c:1997/2099` exempts this bound from NULL guards;
+the ordinary, joined and recursive-OR range consumers in `vdbe.ts` use the same
+flag for start/end guard suppression. `wherecode.c:aStartOp` maps to
+`where-prefix.ts:emitPrefixSeek`: zero-key Rewind/Last, not a zero-field seek;
+when `nConstraint == nSkip`, already-positioned prefix columns fall through
+without a redundant suffix seek. `where.c:sqlite3WhereEnd` maps to shared
+`finishPrefixLoop` restart/exit patching.
+
+Current positional stat1 skipscan ownership is `where-plan.ts:btreeLoops` →
+shared `where-prefix.ts` → the existing ordinary/joined/recursive-OR consumers,
+not an eager distinct-prefix scan. Native/typed selection and boundary evidence,
+including NOTNULL direction/end and joined no-start continuation, is retained in
+[owner evidence](research/card-s-g/IMPLEMENTATION.md#notnull-linked-range-repair-continuation).
+[Generated-fixture closure](research/card-w-current-integration-outcome.md) and
+`test/storage/skipscan-prefix-seek.test.mjs`, `skipscan-seekscan-state.test.mjs`,
+`test/conformance/skipscan-position-owner.test.mjs` and
+`skipscan-docs.test.mjs` map current primitive/control/document contracts.
+Historical disabled-caller checkpoints in the owner evidence are not current
+production exclusions. These bounded mappings do not establish arbitrary
+optimizer or STAT4 sample parity.

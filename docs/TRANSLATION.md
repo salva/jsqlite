@@ -538,3 +538,16 @@ Standard declared types use exact case-insensitive sqlite3StdType matching after
 Generated REAL output uses OP_Affinity/OP_TypeCheck post-applyAffinity integer conversion: exact IntReal within the inclusive signed six-byte range, double outside. Shared comparison Mem.applyAffinity remains unchanged; generated IfNullRow/BUSY/register precedence is retained.
 
 [Isolated candidate evidence and remaining boundaries](research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.
+
+### Positional stat1 range ownership
+
+Represented skipscan uses the shared WHERE candidate/positional-prefix consumers,
+not a precomputed distinct-prefix evaluator. Linked NOTNULL virtual bounds retain
+their parent dependencies and suppress ordinary SQL NULL guards; zero-key starts
+use Rewind/Last and already-positioned skipped prefixes avoid redundant seeks.
+Current source/control mappings and bounded caller exclusions are in
+[Linked NOTNULL range owner](SQLITE_SOURCE_MAP.md#linked-notnull-range-owner) and
+[the public contract](api.md). [Owner evidence](research/card-s-g/IMPLEMENTATION.md)
+preserves historical disabled-caller checkpoints separately from current paths;
+[bounded integration evidence](research/card-w-current-integration-outcome.md)
+does not imply general optimizer or STAT4 sample parity.

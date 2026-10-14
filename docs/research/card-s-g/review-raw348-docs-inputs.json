@@ -1,0 +1,68 @@
+{
+  "before": {
+    "head": "264390ea7ef43bb944050a95b075dfad458d7b78",
+    "index_sha": "beaa09bd13ab3507614f431f4b2f7d061e83a34397a7073f389433b9ba0ce572",
+    "files": {
+      "docs/TRANSLATION.md": {
+        "head": "be179d419c64ae4f2a7cc9319ce1558563ad12164f50cecccd670d65c273f03c",
+        "work": "e3e176bc62f9f9520f314b13f58672d1f2571737e721df8ace2d403c49b2fdc6"
+      },
+      "docs/SQLITE_SOURCE_MAP.md": {
+        "head": "3391ebafa13d768fd3775161d75290b5b4ffe200b5a0472a25055772170704ce",
+        "work": "2a6dfb32a2f19b1f7eb0dd07db9ff5815716d66f19f204250d5b783377cfcc6e"
+      },
+      "docs/api.md": {
+        "head": "8b56bcf4f19fde61efcbf849408c11c2dc073764e4b727b23227e87824aa8522",
+        "work": "d897ff6073df5bbc5ef68b1f1932ae7d11ae19972e608d8bdfd03a1e9ab0f17e"
+      },
+      "test/conformance/skipscan-docs.test.mjs": {
+        "head": "c0ee90714012747a5acb3470e32c7680f7beef24f1a785a272c40b7ce9dcf63f",
+        "work": "c0ee90714012747a5acb3470e32c7680f7beef24f1a785a272c40b7ce9dcf63f"
+      },
+      "src/internal/where-plan.ts": {
+        "head": "8cdd7be1d8c4c24b30e23b26d521002e4be3fa61713d2119cc7174ff643e9cb1",
+        "work": "8cdd7be1d8c4c24b30e23b26d521002e4be3fa61713d2119cc7174ff643e9cb1"
+      },
+      "src/internal/vdbe.ts": {
+        "head": "1645af5e9438c1b7ca2205563e8d224eb61632613d705d912d13b1c431fe58de",
+        "work": "99accc38cffcedfdf54f3cc0a440f416036d469d7a2a7c368694015ff8d9ccfa"
+      },
+      "reference/sqlite/manifest.json": {
+        "head": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615",
+        "work": "815dbc38051c8c985b888ed8c7adadff70abaf73d566802e169f9c1ce4719615"
+      },
+      "docs/reviews/translation-fidelity-2026-09-14.md": {
+        "head": "dd2af8d9f2b4b905d7af51a4bc3d85c1d54f62b4e6231dc1f1eae88a241f0992",
+        "work": "6903e01e2e65a40e5332563bfc25d42777b364b0086f6f581873253df41d7fe1"
+      }
+    }
+  },
+  "head_index_live_inputs_unchanged": true,
+  "patch_sha256": "869c4f7f5a6b41fe02cd2df151093ce2364597d898d153d56e250651d1e23f98",
+  "candidate_sha256": {
+    "SQLITE_SOURCE_MAP.md": "fd2228926400dbee7fa21b7786e4391868a00d3a64e9c2dcee457be12fd71fab",
+    "api.md": "60a3f7d2552f98e8be57145d1ca6a05caa84fd7b486557fdf9af78fb76dd5d42",
+    "TRANSLATION.md": "838753a4bb094e6e51c35ab8cff30d65c52b44ca42c38fd9961a9c99be668f26"
+  },
+  "export": "/work/jsqlite2/.saivage/work/cards/card-s-g-c/raw348-review/export",
+  "fixtures": {
+    "docs/research/card-s-g/fixtures/utf8-stat1.db": "26a5bc57a63b2f1dba19c023a06bea9dcdc0d4b11999ae70ef53947125a5d6e1",
+    "docs/research/card-s-g/fixtures/utf8-stat1-malformed.db": "bc8c1fe167e7498b221919e11da28519f33c6f98595627c3dc8417c5eeddac38",
+    "docs/research/card-s-g/fixtures/utf8-noStats.db": "72b658d951c1f5362ec7359674b266d5c303736b005590f1bf1ee2c797a5915a",
+    "docs/research/card-s-g/fixtures/utf8-noskipscan.db": "37b9061ed6c3ac55a423bbe138c61ad2d4353aa88c09c207e6dc9f56aed5359e",
+    "docs/research/card-s-g/fixtures/utf8-lowDuplicates.db": "17026ca6a60f7316dcad80bf4fd25a421f24145622c1bdd1081a1e4a4230f2c2",
+    "docs/research/card-s-g/fixtures/utf16le-stat1.db": "bba6d6cb51840f6c9396d3ac1af9294bdc7419e9b48414555ee9bbe533fdb724",
+    "docs/research/card-s-g/fixtures/utf16le-stat1-malformed.db": "e1e9b1c95975433f6d357f773ed16ff19564d09cd125f68406c3dcff528fd31d",
+    "docs/research/card-s-g/fixtures/utf16le-noStats.db": "a8fca06b6187d48bab9315835a7c569999dd068549415855215ef0908fb0c1c7",
+    "docs/research/card-s-g/fixtures/utf16le-noskipscan.db": "17b5c763e3621fb5f8fb1d328712f6a426c94f9fd5d0766d6d67602f22671256",
+    "docs/research/card-s-g/fixtures/utf16le-lowDuplicates.db": "08d648e4433a0119e7c1e3b4e288af1b66deaa5d8525fb1bbfefb2d6b738b0a3",
+    "docs/research/card-s-g/fixtures/utf16be-stat1.db": "84944d5c2d940da0190d4acfa718809898d66f114efc6e7b041261d09aeedd92",
+    "docs/research/card-s-g/fixtures/utf16be-stat1-malformed.db": "4fbd8fad255c4be00fc11e6d551279107aaf90df8e6317f0ab65806f65714f2b",
+    "docs/research/card-s-g/fixtures/utf16be-noStats.db": "ed34af3fed22213e3217002763747c37cb88aa0169eb3afac7c39454bb677b81",
+    "docs/research/card-s-g/fixtures/utf16be-noskipscan.db": "ce7c4ecb66641b989ace49019bfadee6ee5e0706fb2dc9b4188826818a68a319",
+    "docs/research/card-s-g/fixtures/utf16be-lowDuplicates.db": "27dbeee0795b586195f070f0218f5ff1c5e19a2edc0b3132738fe4481c8fff6a",
+    "docs/research/card-s-g/desc-selected/utf-8.db": "aa9abeba4a68b22d9445c0131bad68d2eaee55ff1c5e1898193234da0e3823f9",
+    "docs/research/card-s-g/desc-selected/utf-16le.db": "751951755a9736337d0aadae7b74e6e82ce4ae224a9558445f35599d49328fb8",
+    "docs/research/card-s-g/desc-selected/utf-16be.db": "99148696dd174954ca1d8cf54e0639c83eb3da702248225c1c2e36700e1e2582"
+  }
+}

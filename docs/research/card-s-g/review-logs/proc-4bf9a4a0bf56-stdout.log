@@ -1,0 +1,97 @@
+✔ skipscan map separates historical disabled callers from current production (1.144123ms)
+✔ linked NOTNULL mapping does not retain the superseded blanket full-range gap (0.530065ms)
+✔ public skipscan contract retains bounded callers and exclusions without diagnostics (0.319977ms)
+✔ source skip recursion admission: stat1 duplicate60 (15.703143ms)
+✔ source skip recursion admission: threshold42 (1.204159ms)
+✔ source skip recursion admission: threshold41 (1.096437ms)
+✔ source skip recursion admission: no stat1 (1.026459ms)
+✔ source skip recursion admission: noskipscan (1.137126ms)
+✔ shared positioning owns zero-constraint forward/reverse transitions (2.735041ms)
+✔ source skipped-prefix-only start preserves positioned cursor without re-seek (0.365318ms)
+✔ no-reseek entry preserves first/restart columns and final exhaustion labels (0.603251ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 252.580167
+compiled-prefix UTF-8 SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.a IS NOT NULL ORDER BY s.a DESC {}
+compiled-prefix UTF-8 SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.a>=NULL ORDER BY s.a DESC {}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE a IS NOT NULL ORDER BY a DESC {}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE a IS NOT NULL ORDER BY a {"lt/1":2}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE a>=NULL ORDER BY a DESC {}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NOT NULL ORDER BY a DESC,b DESC {}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NOT NULL ORDER BY a,b {}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NULL AND b IS NOT NULL ORDER BY id {"ge/2":6,"gt/1":6}
+compiled-prefix UTF-8 SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.b IS NOT NULL ORDER BY s.a DESC,s.b DESC {}
+compiled-prefix UTF-8 SELECT id,a,b,c FROM s INDEXED BY sa WHERE b>=NULL ORDER BY a DESC,b DESC {"gt/1":6}
+compiled-prefix UTF-16le SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.a IS NOT NULL ORDER BY s.a DESC {}
+compiled-prefix UTF-16le SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.a>=NULL ORDER BY s.a DESC {}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE a IS NOT NULL ORDER BY a DESC {}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE a IS NOT NULL ORDER BY a {"lt/1":2}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE a>=NULL ORDER BY a DESC {}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NOT NULL ORDER BY a DESC,b DESC {}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NOT NULL ORDER BY a,b {}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NULL AND b IS NOT NULL ORDER BY id {"ge/2":6,"gt/1":6}
+compiled-prefix UTF-16le SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.b IS NOT NULL ORDER BY s.a DESC,s.b DESC {}
+compiled-prefix UTF-16le SELECT id,a,b,c FROM s INDEXED BY sa WHERE b>=NULL ORDER BY a DESC,b DESC {"gt/1":6}
+compiled-prefix UTF-16be SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.a IS NOT NULL ORDER BY s.a DESC {}
+compiled-prefix UTF-16be SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.a>=NULL ORDER BY s.a DESC {}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE a IS NOT NULL ORDER BY a DESC {}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE a IS NOT NULL ORDER BY a {"lt/1":2}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE a>=NULL ORDER BY a DESC {}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NOT NULL ORDER BY a DESC,b DESC {}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NOT NULL ORDER BY a,b {}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE b IS NULL AND b IS NOT NULL ORDER BY id {"ge/2":6,"gt/1":6}
+compiled-prefix UTF-16be SELECT s.id,s.a,s.b,s.c FROM t1 CROSS JOIN s INDEXED BY sa WHERE t1.d=5 AND s.b IS NOT NULL ORDER BY s.a DESC,s.b DESC {}
+compiled-prefix UTF-16be SELECT id,a,b,c FROM s INDEXED BY sa WHERE b>=NULL ORDER BY a DESC,b DESC {"gt/1":6}
+✔ compiled skipped cursors against native-first companions (1460.973102ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1859.991152
+compiled-prefix utf-8 SELECT rowid,a,b,c FROM t WHERE b IS NOT NULL AND c IN (1,12) {}
+compiled-prefix utf-8 SELECT rowid,a,b,c FROM t WHERE b IS NULL AND c IN (1,12) {"ge/2":8,"gt/1":8}
+compiled-prefix utf-8 SELECT rowid,a,b,c FROM t WHERE b IN (1,998) AND c IS NOT NULL {"ge/2":16,"gt/1":8}
+compiled-prefix utf-8 SELECT rowid,a,b,c FROM t WHERE b IN (1,998) AND c IN (1,12) {"ge/2":16,"gt/1":8}
+compiled-prefix utf-8 SELECT rowid,a,b,c FROM t WHERE b IN ('1','998') AND c IN (1,12) COLLATE NOCASE {"ge/2":16,"gt/1":8}
+compiled-prefix utf-8 SELECT rowid,a,b,c FROM t WHERE b COLLATE NOCASE IN ('1','998') AND c IN (1,12) {}
+compiled-prefix utf-8 SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b>998 OR t.b<1) WHERE x.rowid=1 {"gt/1":16,"gt/2":8}
+compiled-prefix utf-8 SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b>1005 OR t.b<0) WHERE x.rowid=1 {"gt/1":16,"gt/2":8}
+compiled-prefix utf-8 SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b=1 AND t.c=1) OR (t.b=998 AND t.c=12) WHERE x.rowid=1 {"ge/3":16,"gt/1":16}
+compiled-prefix utf-8 SELECT t.rowid,t.a,t.b,t.c FROM t AS x CROSS JOIN t WHERE x.rowid=1 AND ((t.b=1 AND t.c=1) OR t.b>998) AND t.c=12 {"ge/3":8,"gt/1":16}
+compiled-prefix utf-16le SELECT rowid,a,b,c FROM t WHERE b IS NOT NULL AND c IN (1,12) {}
+compiled-prefix utf-16le SELECT rowid,a,b,c FROM t WHERE b IS NULL AND c IN (1,12) {"ge/2":8,"gt/1":8}
+compiled-prefix utf-16le SELECT rowid,a,b,c FROM t WHERE b IN (1,998) AND c IS NOT NULL {"ge/2":16,"gt/1":8}
+compiled-prefix utf-16le SELECT rowid,a,b,c FROM t WHERE b IN (1,998) AND c IN (1,12) {"ge/2":16,"gt/1":8}
+compiled-prefix utf-16le SELECT rowid,a,b,c FROM t WHERE b IN ('1','998') AND c IN (1,12) COLLATE NOCASE {"ge/2":16,"gt/1":8}
+compiled-prefix utf-16le SELECT rowid,a,b,c FROM t WHERE b COLLATE NOCASE IN ('1','998') AND c IN (1,12) {}
+compiled-prefix utf-16le SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b>998 OR t.b<1) WHERE x.rowid=1 {"gt/1":16,"gt/2":8}
+compiled-prefix utf-16le SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b>1005 OR t.b<0) WHERE x.rowid=1 {"gt/1":16,"gt/2":8}
+compiled-prefix utf-16le SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b=1 AND t.c=1) OR (t.b=998 AND t.c=12) WHERE x.rowid=1 {"ge/3":16,"gt/1":16}
+compiled-prefix utf-16le SELECT t.rowid,t.a,t.b,t.c FROM t AS x CROSS JOIN t WHERE x.rowid=1 AND ((t.b=1 AND t.c=1) OR t.b>998) AND t.c=12 {"ge/3":8,"gt/1":16}
+compiled-prefix utf-16be SELECT rowid,a,b,c FROM t WHERE b IS NOT NULL AND c IN (1,12) {}
+compiled-prefix utf-16be SELECT rowid,a,b,c FROM t WHERE b IS NULL AND c IN (1,12) {"ge/2":8,"gt/1":8}
+compiled-prefix utf-16be SELECT rowid,a,b,c FROM t WHERE b IN (1,998) AND c IS NOT NULL {"ge/2":16,"gt/1":8}
+compiled-prefix utf-16be SELECT rowid,a,b,c FROM t WHERE b IN (1,998) AND c IN (1,12) {"ge/2":16,"gt/1":8}
+compiled-prefix utf-16be SELECT rowid,a,b,c FROM t WHERE b IN ('1','998') AND c IN (1,12) COLLATE NOCASE {"ge/2":16,"gt/1":8}
+compiled-prefix utf-16be SELECT rowid,a,b,c FROM t WHERE b COLLATE NOCASE IN ('1','998') AND c IN (1,12) {}
+compiled-prefix utf-16be SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b>998 OR t.b<1) WHERE x.rowid=1 {"gt/1":16,"gt/2":8}
+compiled-prefix utf-16be SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b>1005 OR t.b<0) WHERE x.rowid=1 {"gt/1":16,"gt/2":8}
+compiled-prefix utf-16be SELECT t.rowid,t.a,t.b,t.c FROM t AS x LEFT JOIN t ON (t.b=1 AND t.c=1) OR (t.b=998 AND t.c=12) WHERE x.rowid=1 {"ge/3":16,"gt/1":16}
+compiled-prefix utf-16be SELECT t.rowid,t.a,t.b,t.c FROM t AS x CROSS JOIN t WHERE x.rowid=1 AND ((t.b=1 AND t.c=1) OR t.b>998) AND t.c=12 {"ge/3":8,"gt/1":16}
+✔ compiled skipped cursors against native-first companions (1527.489531ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1892.710538
