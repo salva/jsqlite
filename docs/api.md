@@ -438,6 +438,17 @@ else unavailable within broad read-only scope remains temporary unsupported.
 This consolidation preserves accepted bounded outcomes and adds no compatibility
 credit; historical case counts and exact commands remain in linked evidence.
 
+Represented retained single-source GROUP/aggregate producers also compose with
+scalar FIRST and EXISTS consumers, including zero-source GROUP BY. Empty scalar
+results are NULL; EXISTS reports INTEGER presence independently of its EList
+values, while preparation still validates names. Producer GROUP/HAVING/order and
+LIMIT/OFFSET keep their ownership. GROUP private entry admission happens before
+output LIMIT; a smaller LIMIT does not promise smaller grouping storage. Shared
+resource limits, terminal saved errors, reset/rebind, cancellation and refunds
+apply across these composed destinations. This does not admit arbitrary derived
+expression projections or unsupported compounds; see the bounded
+[GROUP source/evidence inventory](research/retained-group-delivery.md).
+
 Retained single-source derived SELECTs with represented column ORDER keys may
 order by a producer column omitted from the parent projection. Child ORDER/LIMIT
 remains independent of parent ORDER/LIMIT. Both sorters charge the same execution

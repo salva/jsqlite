@@ -1,5 +1,15 @@
 # SQLite source map
 
+## Retained GROUP scalar destinations
+
+| Pinned upstream owner | Current TS owner | Tests/evidence |
+| --- | --- | --- |
+| `select.c:sqlite3Select` SF_Aggregate dispatch; `selectInnerLoop` SRT_Coroutine/Mem/Exists | `vdbe.ts` retained child aggregate dispatch and `compileDerivedProducer`, scalar subquery destination composition; EXISTS presence-only consumer after transient resolution | `retained-no-from-group.test.mjs`, `retained-group-native-public.test.mjs` |
+| `resolve.c:resolveAlias`, aggregate argument/FILTER/ORDER ownership | `resolve.ts:resolvedExpressionCarrier` canonical identity plus original `sourceReduction`; aggregate modifier linked binding in `vdbe.ts` | alias FILTER/ordered group_concat/parenthesized max in no-FROM GROUP tests |
+| GROUP sort/accumulator/HAVING and output LIMIT branches | shared aggregate compiler, existing private sorter and statement lifecycle (not independent evaluator) | `retained-group-resources.test.mjs`; [bounded native/control/resource accounting](research/retained-group-delivery.md) |
+
+
+
 ### Read-only metadata PRAGMA (bounded consumers)
 
 Pinned `parse.y:1714–1721` → `parse.ts:productionAction` PRAGMA semantic ownership → `index.ts:prepare` admission → `pragma.ts:compilePragma` → normal `VdbeStatement`. `pragma.c:PragTyp_TABLE_INFO/INDEX_LIST/INDEX_INFO/FOREIGN_KEY_LIST/DATABASE_LIST` and `vdbeaux.c:sqlite3VdbeMultiLoad` map to catalog traversal and literal register loads/ResultRow. `build.c:sqlite3AddColumn` standard types, `sqlite3AddDefaultValue` and `malloc.c:sqlite3DbSpanDup` map to stored-DDL type/default-span producers. Generated `pragma.h`/`mkpragmatab.tcl` supplies result column names. `parse.y:plus_num` → numeric PRAGMA argument terminal; `build.c:sqlite3CreateIndex` linked order/azColl spelling and `convertToWithoutRowidTable` layout → schema Index/layout (folded lookup plus retained metadata name) → index metadata; [argument/collation regression evidence](research/card-e-n-pragma-red/argument-collation-repair.md); `sqlite3CreateForeignKey` pNextFrom prepending → reversed schema declaration-order FK consumption. `pragmaLocate`/`mkpragmatab.tcl` → pinned `pragma-names.ts` distinguishes unknown no-op from known untranslated forms; explicit-temp initialization → connection temp-residency state. Btree/Pager memory filename → empty snapshot filename (not acquisition URL). `db-public.mjs` and `memory-db.py` cover Db rows/residency and no-ops. `index-public.mjs` compares index/FK paths with independent pinned `index-native.json`. [Native/public repair evidence and remaining forms](research/card-e-n-pragma-red/REPAIR.md).

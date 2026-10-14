@@ -303,6 +303,20 @@ No general AggInfo/analyzer completeness follows from bounded source/saved-phase
 migration. Represented GROUP/ORDER/DISTINCT/LIMIT and join/derived/CTE compositions
 are admitted only through their actual semantic branches.
 
+Retained single-source GROUP/aggregate producers, including zero-source GROUP
+without an aggregate EList call, use the shared aggregate owner and
+SRT_Coroutine feeding parent Mem/Exists destinations. GROUP is an aggregate
+classification, not evidence of an EList function. Lexical aggregate modifier
+edges survive alias/parenthesis normalization alongside canonical linked identity.
+EXISTS validates its EList at prepare but observes presence without evaluating
+its values; Mem returns the first admitted row or NULL. Physical unsafe scan gates
+remain distinct from grouped sorter ownership. This bounded composition is not
+arbitrary transient-expression projection or arbitrary compound admission.
+GROUP sorters precede output LIMIT: reducing LIMIT alone does not reduce their
+entry admission. Shared limits, saved errors, reset/rebind and refunds apply to
+producer and consumer together. Source/control/native/resource evidence and exact
+scope accounting: [GROUP delivery](research/retained-group-delivery.md).
+
 `expr.c` scalar/EXISTS/IN lowering uses one VM, linked parent identity and phase,
 conditional Once for uncorrelated producers and rebuild/reset for correlated
 producers. `parse.y:seltablist` installs a derived source only from its immediate

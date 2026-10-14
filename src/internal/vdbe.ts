@@ -2035,7 +2035,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
         const filterNode=findReduction(carrier.reduction,'filter_clause ::= FILTER');
         const filterExpr=filterNode?.children.find((part):part is Reduction=>part.kind==='reduction'&&part.signature.startsWith('expr ::='));
         const owned=(node:Reduction):ResolvedExpressionCarrier=>{
-          const search=(current:ResolvedExpressionCarrier):ResolvedExpressionCarrier|undefined=>current.reduction===node?current:current.children.map(search).find(Boolean);
+          const search=(current:ResolvedExpressionCarrier):ResolvedExpressionCarrier|undefined=>current.reduction===node||current.sourceReduction===node?current:current.children.map(search).find(Boolean);
           const found=search(carrier);if(!found)throw new JSQLiteError('internal','aggregate modifier lost linked identity');return found;
         };
         return {...value,args:value.args.map((arg,index)=>bindResolvedExpression(arg,child(index),cursorFor,true,binding,generatedBusy)),
@@ -3361,13 +3361,14 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       postProducerPredicates.set(lowered,predicate);
       return compileSubquery({...expression,select:lowered,resolved:undefined});
     }
-    // A retained compound SrcItem is not a persistent schema table. Until
-    // this scalar destination composes its producer, reject before lookup.
-    if(nested.from.derived?.select.hasCompound){
+    // Retained compound and grouped/aggregate SrcItems are coroutine
+    // producers, never persistent schema tables. Compose the scalar destination
+    // on the enclosing builder; reject unrepresented consumer shapes atomically.
+    if(nested.from.derived?.select.hasCompound || (nested.from.derived && (nested.from.derived.select.hasGroupBy || selectHasAggregate(nested.from.derived.select)) && !selectHasAggregate(nested))){
       // Resolve transient consumer before destination capability rejection.
       // LIMIT 0 and unsupported lowering do not waive lookupName errors.
       resolveTransientArm(nested,schema);
-      if(expression.kind==='in-subquery'||nested.where||nested.hasOrderBy||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.from.items.length!==1||nested.from.derived.select.hasOrderBy||nested.from.derived.select.arms.some((arm,index)=>index>0&&arm.operatorFromPrior!=='union-all'||arm.from.items.length>1||arm.from.derived||arm.from.cteDerived?.length||arm.hasGroupBy||arm.hasHaving||selectHasAggregate({...nested.from.derived!.select,result:arm.result,arms:Object.freeze([arm]),hasCompound:false})||selectHasWindow({...nested.from.derived!.select,result:arm.result,arms:Object.freeze([arm]),hasCompound:false})))throw new JSQLiteError('unsupported','scalar retained compound producer destination is not implemented',{unsupportedClassification:'temporary'});
+      if(expression.kind==='in-subquery'||nested.where||nested.hasOrderBy||nested.hasDistinct||nested.hasGroupBy||nested.hasHaving||nested.from.items.length!==1||(nested.from.derived.select.hasCompound&&(nested.from.derived.select.hasOrderBy||nested.from.derived.select.arms.some((arm,index)=>index>0&&arm.operatorFromPrior!=='union-all'||arm.from.items.length>1||arm.from.derived||arm.from.cteDerived?.length||arm.hasGroupBy||arm.hasHaving||selectHasAggregate({...nested.from.derived!.select,result:arm.result,arms:Object.freeze([arm]),hasCompound:false})||selectHasWindow({...nested.from.derived!.select,result:arm.result,arms:Object.freeze([arm]),hasCompound:false})))))throw new JSQLiteError('unsupported','scalar retained compound producer destination is not implemented',{unsupportedClassification:'temporary'});
       const destination=allocate();
       resultOps.push(expression.exists?{code:'Integer',p1:0n,p2:destination}:{code:'Null',p2:destination});
       const exits:number[]=[];
@@ -5347,7 +5348,7 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
 function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;scalarRetained?:boolean;emitRow?:(first:number,count:number)=>void}):Program|undefined {
   if(owner?.scalarRetained){
     const child=select.from.derived?.select;
-    if(!child||select.from.items.length!==1||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.hasOrderBy||!owner.scalarRetained&&(!!select.limit||!!select.offset)||child.from.items.length>1||child.from.derived||child.hasCompound&&!owner.scalarRetained||selectHasWindow(child)||selectHasAggregate(child)||child.hasGroupBy||child.hasHaving||child.orderBy.some(term=>term.descending))throw new JSQLiteError('unsupported','retained derived destination shape is not implemented',{unsupportedClassification:'temporary'});
+    if(!child||select.from.items.length!==1||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.hasOrderBy||!owner.scalarRetained&&(!!select.limit||!!select.offset)||child.from.items.length>1||child.from.derived||child.hasCompound&&!owner.scalarRetained||selectHasWindow(child))throw new JSQLiteError('unsupported','retained derived destination shape is not implemented',{unsupportedClassification:'temporary'});
   }
  const derived=select.from.derived;
  if(derived&&derived.index===0&&select.from.items.length===1&&selectHasWindow(derived.select)&&!derived.select.hasCompound&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&select.orderBy.length<=1){
@@ -5383,7 +5384,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   // wrap those programs in a coroutine and publish their valid prefix as a
   // derived-table result. They remain atomic prepare-time exclusions until the
   // owning scan primitive is corrected.
-  if(derived.select.from.items.length&&((select.hasOrderBy&&!derived.select.hasOrderBy&&!derived.select.where)||derived.select.orderBy.some(term=>term.descending)))
+  if(!derived.select.hasGroupBy&&!selectHasAggregate(derived.select)&&derived.select.from.items.length&&((select.hasOrderBy&&!derived.select.hasOrderBy&&!derived.select.where)||derived.select.orderBy.some(term=>term.descending)))
     throw new JSQLiteError("unsupported","this derived table scan shape is not implemented",{unsupportedClassification:"temporary"});
   // select.c tag-select-0482, single-source form. Compile the child into the
   // parent's coroutine destination rather than letting ordinary table lookup
@@ -5477,7 +5478,10 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   const inner=nestedProducer?{columns:compoundArmColumns(derived.select,schema),registers:0,parameters:[] as {name:string|null}[]}:residualCompoundColumns?{columns:residualCompoundColumns,registers:0,parameters:[] as {name:string|null}[]}:orderedAggregateColumns?{columns:orderedAggregateColumns,registers:0,parameters:[] as {name:string|null}[]}:values?{columns:values[0]!.map((_,index)=>({name:`column${index+1}`,declaredType:null,database:null,table:null,origin:null})),registers:0,parameters:[] as {name:string|null}[]}:ordered?{columns:derived.select.arms[0]!.result.map(result=>({name:expressionName(result),declaredType:null,database:null,table:null,origin:null})),registers:0,parameters:[] as {name:string|null}[]}:setProducer||mixedProducer?{columns:derived.select.arms[0]!.result.map(result=>({name:expressionName(result),declaredType:null,database:null,table:null,origin:null})),registers:0,parameters:[] as {name:string|null}[]}:tableCompoundPlan?{columns:tableCompoundPlan.result.map((result,index)=>({name:expressionName(derived.select.arms[0]!.result[index]!),declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})),registers:0,parameters:[] as {name:string|null}[]}:mixedPhysicalPlan?{columns:mixedPhysicalPlan.result.map((result,index)=>({name:expressionName(derived.select.arms[0]!.result[index]!),declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})),registers:0,parameters:[] as {name:string|null}[]}:joinedOrderedPlan?{columns:joinedOrderedPlan.result.map(result=>({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})),registers:0,parameters:[] as {name:string|null}[]}:tablePlan?{columns:tablePlan.result.map(result=>({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})),registers:0,parameters:[] as {name:string|null}[]}:unionProducer||groupedAllProducer?{columns:derived.select.arms[0]!.result.map((result,index)=>({name:derived.select.arms[0]!.origin==='values'?`column${index+1}`:expressionName(result),declaredType:null,database:null,table:null,origin:null})),registers:0,parameters:[] as {name:string|null}[]}:scalarProducer||aggregateProducer?{columns:derived.select.result.map(result=>({name:expressionName(result),declaredType:null,database:null,table:null,origin:null})),registers:0,parameters:[] as {name:string|null}[]}:{columns:compoundArmColumns(derived.select,schema),registers:0,parameters:[] as {name:string|null}[]};
   const alias=select.from.items[0]!.alias,firstNames=owner?.scalarRetained&&derived.select.hasCompound?compoundArmColumns({...derived.select,result:derived.select.arms[0]!.result,from:derived.select.arms[0]!.from,where:derived.select.arms[0]!.where,hasCompound:false,hasGroupBy:derived.select.arms[0]!.hasGroupBy,groupBy:derived.select.arms[0]!.groupBy??Object.freeze([]),hasHaving:derived.select.arms[0]!.hasHaving,having:derived.select.arms[0]!.having??null,hasOrderBy:false,orderBy:Object.freeze([]),arms:Object.freeze([derived.select.arms[0]!])},schema).map(column=>column.name):derived.select.result.map((expression,index)=>expression.alias??inner.columns[index]?.name??`column${index+1}`),names=uniqueTransientColumnNames(firstNames);
   const bareStar=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==='*';
-  const indices=bareStar?inner.columns.map((_,index)=>index):select.result.map(expression=>{if(!expression.reduction)return -1;let tree=expressionFromReduction(expression.reduction);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=='column')return -1;const parts=tree.name.split('.').map(sqlName);if(parts.length>2||(parts.length===2&&(!alias||!sqliteIdentifierEqual(parts[0]!,alias))))return -1;return names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));});if(indices.some(index=>index<0)){
+  // selectInnerLoop SRT_Exists records presence, not an EList value. Resolve
+  // that EList for prepare errors, but do not require a projection index or
+  // evaluate it when the consumer only observes whether a row exists.
+  const indices=owner?.destination.kind==='exists'?(resolveTransientArm(select,schema),[0]):bareStar?inner.columns.map((_,index)=>index):select.result.map(expression=>{if(!expression.reduction)return -1;let tree=expressionFromReduction(expression.reduction);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=='column')return -1;const parts=tree.name.split('.').map(sqlName);if(parts.length>2||(parts.length===2&&(!alias||!sqliteIdentifierEqual(parts[0]!,alias))))return -1;return names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));});if(indices.some(index=>index<0)){
     // Resolve expressions in the transient NameContext before capability rejection.
     // A valid non-column expression is not a missing identifier.
     resolveTransientArm(select,schema);
@@ -7264,7 +7268,9 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   const first=builder.range(linkedPlan.sources[0]!.table.columns.length),coroutine=builder.register(),ready=builder.label();
   builder.jump(ready,{code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1},(op,pc)=>({...op,p2:pc}));
   const destination:SelectDest={kind:'coroutine',register:coroutine,first};
-  if(selectHasAggregate(child))compileAggregateSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination});
+  // SF_Aggregate includes GROUP BY even when the EList has no aggregate call.
+  // Retain the existing group sorter/AggInfo owner and enclosing SelectDest.
+  if(selectHasAggregate(child)||child.hasGroupBy)compileAggregateSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination});
   else if(child.from.items.length&&!child.from.derived&&!child.hasCompound){
    const childPlan=resolveTransientArm(child,schema),cursors=new Map(childPlan.sources.map(source=>[source,builder.cursor()]));
    compileInnerTableSelect(child,childPlan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,cursorFor:source=>cursors.get(source)??source.cursorId});

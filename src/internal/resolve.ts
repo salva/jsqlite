@@ -919,6 +919,8 @@ export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):v
  */
 export interface ResolvedExpressionCarrier {
  readonly reduction:ExprReduction;
+ /** Original lexical edge before resolveAlias/parenthesis substitution. */
+ readonly sourceReduction?:ExprReduction;
  readonly column:ResolvedColumnUse|null;
  readonly select?:ResolvedSelect;
  readonly children:readonly ResolvedExpressionCarrier[];
@@ -946,13 +948,17 @@ export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|
  const build=(node:ExprReduction):ResolvedExpressionCarrier=>{
   // resolve.c resolveAlias substitutes the result expression after lexical
   // source lookup fails; retain its identity rather than rebind its spelling.
-  const alias=plan.aliasUses?.get(node);if(alias)return build(alias);
+  const sourceReduction=node;
+  const alias=plan.aliasUses?.get(node);if(alias)return Object.freeze({...build(alias),sourceReduction});
   while(node.signature==='expr ::= LP expr RP'){
    const child=expressionChildren(node)[0];if(!child)throw new NameResolutionError('parenthesized expression lost identity');node=child;
   }
+  // Lemon retains parentheses that the native Expr already elides. Resolve
+  // the exposed alias as well, retaining the original modifier/argument edge.
+  const unwrappedAlias=plan.aliasUses?.get(node);if(unwrappedAlias)return Object.freeze({...build(unwrappedAlias),sourceReduction});
   const selectNode=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('select ::='));
   const linked=selectNode?.kind==='reduction'?plan.nested?.find(child=>child.source===selectNode.semantic):undefined;
-  return Object.freeze({reduction:node,column:uses.get(node)??null,...(linked?{select:linked}:{}),children:Object.freeze(expressionChildren(node).map(build))});
+  return Object.freeze({reduction:node,sourceReduction,column:uses.get(node)??null,...(linked?{select:linked}:{}),children:Object.freeze(expressionChildren(node).map(build))});
  };
  return build(reduction);
 }
