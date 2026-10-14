@@ -173,6 +173,20 @@ unrepresented deep/transient compositions remain roadmap debt, not a reason to
 repeat accepted bounded migrations. Detailed accepted seam evidence is linked in
 the [source map](SQLITE_SOURCE_MAP.md#select-resolution-and-construction).
 
+### Retained derived aggregate input
+
+An ORDER/LIMIT child that cannot flatten into an aggregate (select.c restriction
+9) remains a linked SRT_Coroutine producer. AggInfo consumes its shared row
+registers; synthetic transient sources never OpenRead. Child cursors are allocated
+from the enclosing builder so a correlated scalar cannot exhaust its outer scan.
+The enclosing compileSelect publishes the shared parameter inventory (Parse.nVar)
+with the finished program. GROUP BY may consume adjacent child keys directly when
+resolved result identity/collation proves adjacency; wherePathMatchSubqueryOB
+ignores direction for grouping, so this is not an ascending output promise.
+Other output ordering retains its own sorter. Budgets and error cleanup remain
+execution-wide, not per child. Bounded tests/evidence and exclusions:
+[retained aggregate evidence](research/retained-aggregate-delivery.md).
+
 ## WHERE, joins and physical indexes
 
 ON hit/match recording precedes ready non-ON WHERE constraints and downstream

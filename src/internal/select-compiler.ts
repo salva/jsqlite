@@ -140,7 +140,7 @@ function compileSelectInner(
     const destination: SelectDest = { kind: "output" };
     const produced = compileAggregateSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, ops: builder.ops, parameters, destination });
     builder.ops.push({ code: "Halt" });
-    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
   }
   // Only the ordinary physical window consumer below has migrated here.
   // Retained/JSON/CTE specializations keep their live preparation contracts.

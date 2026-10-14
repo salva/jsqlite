@@ -15,6 +15,17 @@ Current upstream → TypeScript → test/evidence navigation. The source root is
 owns current design; [API](api.md) owns the public contract. This map does not
 claim complete upstream coverage or reproduce execution inventories.
 
+## Retained derived aggregate input
+
+- select.c flatten restriction9, SRT_Coroutine and AggInfo input; where.c
+  wherePathMatchSubqueryOB → vdbe.ts compileAggregateSelect input/adjacentGroups,
+  resolvedScalarSubqueryEmitter linked outer binding and shared child cursors.
+- build.c sqlite3FinishCoding / vdbeaux.c sqlite3VdbeMakeReady Parse.nVar →
+  select-compiler.ts aggregate publication of shared parameters.
+- Public tests: derived-order-limit-aggregate.test.mjs (independent pinned producer
+  derived-order-limit-aggregate-native.py), derived-aggregate-resources.test.mjs.
+  [Bounded evidence and accounting](research/retained-aggregate-delivery.md).
+
 The [complete prior map](research/card-u-history/SQLITE_SOURCE_MAP.md) preserves
 original line/section pointers and run provenance; [history manifest](research/card-u-history/manifest.json)
 records exact capture identity. [Oracle](oracle.md) owns reproducible development
