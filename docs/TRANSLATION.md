@@ -257,7 +257,28 @@ Structured VALUES compiles each retained row, validates every arm width, and
 preserves arm-level set semantics. Compound collation searches result expressions
 across arms using upstream ownership; no leftmost-default shortcut. Represented
 scalar/set and table/CTE/aggregate compound branches use shared destinations,
-including same-VM coroutine merge where implemented.
+including same-VM coroutine merge where implemented. Bounded single-source,
+single-output ordinary table set arms resolve retained WHERE and projection
+carriers on their shared scan cursor; false/NULL predicates skip delivery. Shared
+parameters retain lexical generated-terminal identity before LIMIT/WHERE lowering.
+Explicit ORDER COLLATE set-rewrite metadata follows native rightmost type/origin
+with leftmost names, separately from compound key collation. Tests and current
+working-copy boundaries: [filtered compound evidence](research/card-j-d-b-a-c-filtered/README.md).
+Unordered table sets retain the bounded typed ephemeral route. Ordered ordinary
+single-output table arms now feed per-arm sorter coroutines and the existing
+same-VM A/B merge owner; initial empty A ends EXCEPT/INTERSECT without evaluating
+B, while UNION/ALL positions B. WHERE, projection and local DISTINCT remain
+scan-owned, and lexical parameters and metadata retain their preceding owners.
+This working-copy repair is not completed MAIN integration or general merge
+parity. The shared owner now splits maximal identical UNION/ALL suffixes
+using SQLite's balanced split, copies independent LIMIT+OFFSET capacities only
+for ALL, bounds leaf sorter retention and producer delivery, and charges each
+visited merge/duplicate comparison term to the shared yielding work owner.
+Mixed operators remain left-associated and set membership is not truncated.
+Shared/table ORDER resolution now visits each arm's alias then expression
+identity before proceeding rightward, preserving native precedence. Scoped MAIN
+integration/committed-source verification remains open in the [bounded design](research/ordered-filtered-compound-design.md).
+[Revision-bound repair and attempted hypothesis evidence](research/card-j-d-b-a-c-filtered/MERGE.md).
 
 ### Surviving finite materialization adaptation
 

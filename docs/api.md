@@ -354,8 +354,8 @@ compatibility credit.
   OFFSET is zero. SELECT coerces LIMIT first; LIMIT-zero bypasses OFFSET
   evaluation/coercion and producers, including compounds. Positive ordered LIMIT
   bounds sorter retention by LIMIT+OFFSET.
-- Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented direct-table
-  arms and selected aggregate/CTE compounds execute with compound-wide ORDER/
+- Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented single-output ordinary table arms with retained WHERE/projections
+  and direct-table arms and selected aggregate/CTE compounds execute with compound-wide ORDER/
   LIMIT/OFFSET. Width and compound ORDER errors are prepare errors. Broader arms,
   arbitrary-expression set compositions and retained producer combinations remain
   bounded by their actual admission branches. Finite materialized routes do not

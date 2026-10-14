@@ -13,14 +13,32 @@ test('compound producer shapes outside the bounded implementation reject atomica
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
   for(const sql of [
-   'SELECT a FROM left_meta UNION SELECT b FROM right_meta WHERE b=8',
    'SELECT a,a FROM left_meta UNION SELECT b,b FROM right_meta',
    'SELECT 1 UNION SELECT a FROM left_meta',
-   'SELECT a+1 FROM left_meta UNION SELECT b FROM right_meta',
    'SELECT a FROM left_meta JOIN right_meta UNION SELECT b FROM right_meta',
   ])assert.throws(()=>db.prepare(sql),temporary,sql);
   const statement=db.prepare('SELECT 1').statement;assert.equal(await statement.step(),'row');statement.finalize();
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+});
+
+// These former exclusions are admitted by the filtered/projection compound slice.
+// Pinned 3.53.4 preserves INTEGER/TEXT distinction despite both displaying 8.
+test('admitted compound filter and projection preserve typed rows and reset',async()=>{
+ const bridge=await startFixtureServer(fixtureRoot);let db,statement;
+ try{
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
+  for(const [sql,expected] of [
+   ['SELECT a FROM left_meta UNION SELECT b FROM right_meta WHERE b=8',[7n,'8']],
+   ['SELECT a+1 FROM left_meta UNION SELECT b FROM right_meta',[8n,'8']],
+  ]){
+   statement=db.prepare(sql).statement;
+   for(let run=0;run<2;run++){
+    const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));
+    assert.deepEqual(rows,expected,sql);statement.reset();
+   }
+   statement.finalize();statement=undefined;
+  }
+ }finally{try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
 test('implemented VALUES production identity remains structured and executable',async()=>{

@@ -119,3 +119,36 @@ test('maxPrivateBytes is aggregate across simultaneous compound cursors and rele
  // Failure/finalize returned the execution budget, so another statement starts clean.
  const admitted=db.prepare('VALUES(1)').statement;try{assert.equal(await admitted.step(),'row');assert.equal(admitted.column(0),1n)}finally{admitted.finalize()}
 },{maxPrivateBytes:12,maxPrivateKeyBytes:16,maxPrivateEntries:10}));
+
+test('ordered identical UNION runs split balanced without changing mixed association or global caps',()=>withDb(async db=>{
+ for(const operator of ['UNION','UNION ALL'])for(const size of [4,5,6,7]){
+  const sql=Array.from({length:size},(_,i)=>`SELECT ${size-i} AS v`).join(` ${operator} `)+' ORDER BY v DESC LIMIT 2 OFFSET 1';
+  const statement=db.prepare(sql).statement;
+  try{for(let run=0;run<2;run++){const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));assert.deepEqual(rows,[BigInt(size-1),BigInt(size-2)]);statement.reset();}}finally{statement.finalize();}
+ }
+ const statement=db.prepare('SELECT 1 AS v UNION ALL SELECT 2 EXCEPT SELECT 1 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 ORDER BY v LIMIT 3 OFFSET 1').statement;
+ try{const rows=[];while(await statement.step()==='row')rows.push(statement.column(0));assert.deepEqual(rows,[3n,4n,5n]);}finally{statement.finalize();}
+}));
+
+test('ordered ALL propagates private top-N capacity but set membership does not truncate',()=>{
+ const storage=ImmutableStorage.open(fs.readFileSync(new URL('fixtures/advanced-index-utf8.db',import.meta.url)));
+ try{
+  const schema=loadSchemaGraph({[storageOwner]:storage}),database=btreeFromStorage(storage);
+  for(const operator of ['UNION ALL','UNION']){
+   const parsed=parseSql(Array.from({length:7},(_,i)=>`SELECT ${i} AS v`).join(` ${operator} `)+' ORDER BY v LIMIT 2 OFFSET 1');
+   const program=compileScalarSelect(parsed.statement,database.encoding,undefined,undefined,undefined,schema,database);
+   const inserts=program.ops.filter(op=>op.code==='SorterInsert');
+   assert.equal(inserts.length,7);
+   assert.equal(inserts.every(op=>op.topN!==undefined),operator==='UNION ALL');
+   assert.equal(program.ops.filter(op=>op.code==='CompareJump').length,6);
+   assert.ok(program.ops.some(op=>op.code==='Yield'));
+   assert.equal(program.ops.filter(op=>op.code==='Halt').length,1);
+  }
+ }finally{storage.close();}
+});
+test('compound ORDER matches each arm expression before a later-arm alias',()=>withDb(async db=>{
+ for(const suffix of ['',' COLLATE BINARY']){
+  const s=db.prepare('SELECT 2 AS a,1 AS z UNION ALL SELECT 0 AS z,3 AS b ORDER BY z'+suffix).statement;
+  try{for(let run=0;run<2;run++){const rows=[];while(await s.step()==='row')rows.push([s.column(0),s.column(1)]);assert.deepEqual(rows,[[2n,1n],[0n,3n]]);s.reset();}}finally{s.finalize();}
+ }
+}));

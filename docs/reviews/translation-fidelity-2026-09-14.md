@@ -5170,3 +5170,7 @@ sources; resolver descriptor ownership now distinguishes these from physical
 and linked subquery sources. [Pinned eight-case parity, boundaries and commands](../research/recursive-group-window/README.md).
 This focused workspace correction does not establish committed integration,
 mid-yield lifecycle coverage, browser or release acceptance.
+
+## Compound merge revision-bound correction
+
+The bounded ordered single-output ordinary table producer now feeds shared same-VM sorter coroutines/merge, rather than the earlier eager global table set. Initial-empty EXCEPT/INTERSECT skips B, balanced identical UNION/ALL runs and independent ALL capacity copies preserve immutable graph ownership. Shared ORDER visits each arm alias then expression before moving right. These are bounded source/test findings, not general merge parity or root/full-w acceptance. Evidence and failed minimal-union attempts: [MERGE.md](../research/card-j-d-b-a-c-filtered/MERGE.md).
