@@ -1,0 +1,16 @@
+{
+  "base": "2f13d880c7f610e68eed534c663abbd095c12316",
+  "included": "metadata-qualified rowid guard only in mixed binder before JSON identity; unqualified and physical aliases unchanged",
+  "excluded": "all other live vdbe, JSON metadata/identity and peer docs/index edits",
+  "real_index_sha256": "04c05cf020e64c2a98a96457558456d1f26e10ebd5c009aa2928c241d2250ebe",
+  "included_hashes": {
+    "src/internal/vdbe.ts": "e6ccb10e8d45f47c7aa74fe377068ade741386b7cf1b2023a9153536d83555d7",
+    "docs/SQLITE_SOURCE_MAP.md": "6aabeffbd2de432182bb05966fb20242209edd2ec56d25761541044582c2dcd8",
+    "docs/research/card-e-n-pragma-red/TVF.md": "a516cf0d24067697b203beca86e720ac8d36b9c2fac6eaf989c7e2e74e324448",
+    "docs/research/card-e-n-pragma-red/capture-tvf-r1.py": "cab10049bc5a17aeace92539b5d5ee0d8c52bd7909b949e5f9fb51229bebb9e3",
+    "docs/research/card-e-n-pragma-red/tvf-r1-native.json": "98e1f22f8fc36b3c98d740d8b94e18393ed04df4a5151a9e3d15670b4111856e",
+    "docs/research/card-e-n-pragma-red/tvf-r1-public.mjs": "f7bee8adeee3f5ed71d7b4ded74e8134182c8ec3b185766b23cce02dff889af9",
+    "docs/research/card-e-n-pragma-red/tvf-r1.test.mjs": "0e81f9b37ac1379c22360a22f3610b0de092d283ea1929a296b3e0607a5ac399"
+  },
+  "test_evidence": "proc-30fe3c289a16: type/public54/bindingONlimitscompositionrowid494 plus R1 boundary3 pass. Final test adds predicate-only and ON admission checks; proc-e026f9789931 pending."
+}
