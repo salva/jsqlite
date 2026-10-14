@@ -1,4 +1,4 @@
-import {metadataColumnDeclaredType,metadataSource,METADATA_MODULE_COLUMNS,type MetadataValue} from './pragma.ts';
+import {metadataColumnDeclaredType,metadataSource,metadataHiddenColumns,METADATA_MODULE_COLUMNS,type MetadataValue} from './pragma.ts';
 import {PrivateKeyVmCursor} from './private-key-vm.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
@@ -6029,7 +6029,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const metadataNames=new Set(Object.keys(METADATA_MODULE_COLUMNS)),privateNames=new Set([...jsonNames,...metadataNames]);
   if(select.from.items.length===2&&!privateNames.has(select.from.items[0]!.tableName.toLowerCase())&&privateNames.has(select.from.items[1]!.tableName.toLowerCase())){
     if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError("unsupported","this mixed JSON table composition is not implemented",{unsupportedClassification:"temporary"});
-    const metadata=metadataNames.has(select.from.items[1]!.tableName.toLowerCase()),sourceColumns=metadata?[...METADATA_MODULE_COLUMNS[select.from.items[1]!.tableName.toLowerCase()]!,"arg","schema"]:JSON_TABLE_COLUMNS;
+    const metadata=metadataNames.has(select.from.items[1]!.tableName.toLowerCase()),sourceColumns=metadata?[...METADATA_MODULE_COLUMNS[select.from.items[1]!.tableName.toLowerCase()]!,...metadataHiddenColumns(select.from.items[1]!.tableName.toLowerCase())]:JSON_TABLE_COLUMNS;
     const physicalItem=select.from.items[0]!,jsonItem=select.from.items[1]!,table=findSchemaTable(schema,physicalItem.tableName);if(!table)throw new JSQLiteError("sqlite",`no such table: ${physicalItem.tableName}`,{code:1});if(table.withoutRowid||!metadata&&table.columns.some(column=>column.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});
   const parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()},ops=builder.ops;let registers=builder.registers;const allocate=()=>{builder.registers=registers;return registers=builder.register()},rowStart=registers+1;registers+=sourceColumns.length;const jsonIdentity=allocate();
     const bind=(tree:Expression,jsonAvailable:boolean):Expression=>{if(tree.kind==="column"){const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!,qualifier=parts.length>1?parts.at(-2)!:null,physicalQualifier=physicalItem.alias??physicalItem.tableName,jsonQualifier=jsonItem.alias??jsonItem.tableName;if(["rowid","_rowid_","oid"].includes(sqliteAsciiFold(name))){if(qualifier&&sqliteAsciiFold(qualifier)===sqliteAsciiFold(jsonQualifier)){if(metadata)throw new JSQLiteError("unsupported","metadata table-function rowid is not implemented",{unsupportedClassification:"temporary"});if(!jsonAvailable)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:jsonIdentity};}if((!qualifier||sqliteAsciiFold(qualifier)===sqliteAsciiFold(physicalQualifier))&&!table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))return{...tree,cursor:0,index:-1};};const physicalIndex=(!qualifier||sqliteIdentifierEqual(qualifier,physicalQualifier))?table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)):-1,jsonIndex=jsonAvailable&&(!qualifier||sqliteIdentifierEqual(qualifier,jsonQualifier))?sourceColumns.findIndex(column=>sqliteIdentifierEqual(column,name)):-1;if(physicalIndex>=0&&jsonIndex>=0)throw new JSQLiteError("sqlite",`ambiguous column name: ${name}`,{code:1});if(jsonIndex>=0)return{kind:"register",index:rowStart+jsonIndex};if(physicalIndex>=0){if(metadata&&table.columns[physicalIndex]!.generatedExpr)throw new JSQLiteError("unsupported","generated outer metadata-join column binding is not implemented",{unsupportedClassification:"temporary"});tree.cursor=0;tree.index=isIntegerPrimaryKeyAlias(table,physicalIndex)?-1:physicalIndex;tree.affinity=affinityOf(table.columns[physicalIndex]!.declaredType??"");tree.collation=sqliteAsciiFold(table.columns[physicalIndex]!.collation??"binary") as BuiltinCollation;return tree;}throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});}if(tree.kind==="unary")return{...tree,value:bind(tree.value,jsonAvailable)};if(tree.kind==="binary")return{...tree,left:bind(tree.left,jsonAvailable),right:bind(tree.right,jsonAvailable)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:bind(tree.value,jsonAvailable)};if(tree.kind==="call")return{...tree,args:tree.args.map(arg=>bind(arg,jsonAvailable))};
@@ -6041,6 +6041,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       // columns as the enclosing row. Correlation requires the shared linker.
       return tree;};
     const args=jsonItem.arguments;
+    if(metadata&&jsonItem.tableName.toLowerCase()==="pragma_database_list")throw new JSQLiteError("unsupported","database_list joins are not implemented",{unsupportedClassification:"temporary"});
     if(metadata&&(args?.length??0)>2)throw new JSQLiteError("sqlite",`too many arguments on ${jsonItem.tableName}() - max 2`,{code:1});
     if(!args||args.length<1||args.length>2||args.some(arg=>!arg.reduction))throw new JSQLiteError("unsupported","this JSON table argument is not implemented",{unsupportedClassification:"temporary"});
     // where.c left-join completion owns ON matching independently of WHERE.
@@ -6090,11 +6091,26 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     let whereSkip:number|null=null;
     if(select.where&&!select.where.reduction)throw new JSQLiteError("unsupported","this JSON filter is not implemented",{unsupportedClassification:"temporary"});
     if(residualWhere){const test=compileExpressionTree(bind(residualWhere,true),ops,allocate,parameters,undefined,true);whereSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
-    const outputTrees=select.result.map(result=>{if(!result.reduction)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return bind(expressionFromReduction(result.reduction),true)}),outputs=outputTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters)),out=registers+1;
+    // select.c selectExpander expands visible fields in source order; hidden
+    // metadata arg/schema are excluded from stars, but remain explicitly bindable.
+    const projection=select.result.flatMap(result=>{
+      const tokens=result.tokens,star=tokens.at(-1)?.text==='*';
+      if(!metadata||!star)return [{result,tree:result.reduction?expressionFromReduction(result.reduction):null}];
+      const qualifier=tokens.length===3&&tokens[1]?.text==='.'?sqlName(tokens[0]!.text):null;
+      if(tokens.length!==1&&qualifier===null)return [{result,tree:null}];
+      const entries:{result:ExprNode;tree:Expression|null}[]=[];
+      for(const [item,names] of [[select.from.items[0]!,table.columns.map(col=>col.name)],[jsonItem,METADATA_MODULE_COLUMNS[jsonItem.tableName.toLowerCase()]!]] as const){
+       const alias=item.alias??item.tableName;if(qualifier!==null&&!sqliteIdentifierEqual(qualifier,alias))continue;
+       for(const name of names)entries.push({result:{kind:'tokens',tokens:[],alias:name,sourceText:name},tree:{kind:'column',index:0,name:`${JSON.stringify(alias)}.${JSON.stringify(name)}`}});
+      }
+      if(entries.length===0)throw new JSQLiteError('sqlite',`no such table: ${qualifier}`,{code:1});
+      return entries;
+    });
+    const outputTrees=projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return bind(tree,true)}),outputs=outputTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters)),out=registers+1;
     for(const output of outputs){registers++;ops.push({code:"Copy",p1:output,p2:registers});}if(shared?.consume){builder.registers=registers;shared.consume(out,outputs.length);registers=builder.registers;}else emitSelectDestination(ops,shared?.destination??{kind:"output"},out,outputs.length);
     const consumeReturn=ops.length;if(whereSkip!==null)(ops[whereSkip] as {p2:number}).p2=consumeReturn;ops.push({code:"Return",p1:returnReg});
     const halt=ops.length;(ops[finished] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
-    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>metadata?(()=>{const tree=outputTrees[index]!;if(tree.kind==='register'){const origin=sourceColumns[tree.index-rowStart]??null;return {name:result.alias??origin??expressionName(result),declaredType:metadataColumnDeclaredType(origin),database:origin?'main':null,table:origin?jsonItem.tableName:null,origin};}if(tree.kind==='column'){const col=tree.index===-1?table.columns.find(column=>column.primaryKeyPosition===1):table.columns[tree.index??-1];return {name:result.alias??col?.name??expressionName(result),declaredType:col?.declaredType??null,database:'main',table:table.name,origin:col?.name??null};}return{name:result.alias??expressionName(result),declaredType:null,database:null,table:null,origin:null};})():jsonResultMetadata(result,outputTrees[index]!,[rowStart],[jsonItem.tableName],table,[jsonIdentity]))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(projection.map(({result},index)=>metadata?(()=>{const tree=outputTrees[index]!;if(tree.kind==='register'){const origin=sourceColumns[tree.index-rowStart]??null;return {name:result.alias??origin??expressionName(result),declaredType:metadataColumnDeclaredType(origin),database:origin?'main':null,table:origin?jsonItem.tableName:null,origin};}if(tree.kind==='column'){const col=tree.index===-1?table.columns.find(column=>column.primaryKeyPosition===1):table.columns[tree.index??-1];return {name:result.alias??col?.name??expressionName(result),declaredType:col?.declaredType??null,database:'main',table:table.name,origin:col?.name??null};}return{name:result.alias??expressionName(result),declaredType:null,database:null,table:null,origin:null};})():jsonResultMetadata(result,outputTrees[index]!,[rowStart],[jsonItem.tableName],table,[jsonIdentity]))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
   if(select.from.items.length===2&&select.from.items.every(item=>jsonNames.has(item.tableName.toLowerCase()))){
     if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError("unsupported","this correlated JSON table composition is not implemented",{unsupportedClassification:"temporary"});
@@ -6115,12 +6131,12 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const jsonTableName=select.from.items.length===1?select.from.items[0]!.tableName.toLowerCase():"";
   const metadata=Object.hasOwn(METADATA_MODULE_COLUMNS,jsonTableName);
   const visibleColumns=metadata?METADATA_MODULE_COLUMNS[jsonTableName]!:JSON_EACH_COLUMNS;
-  const sourceColumns=metadata?[...visibleColumns,"arg","schema"]:JSON_TABLE_COLUMNS;
+  const sourceColumns=metadata?[...visibleColumns,...metadataHiddenColumns(jsonTableName)]:JSON_TABLE_COLUMNS;
   if(metadata||jsonTableName==="json_each"||jsonTableName==="json_tree"||jsonTableName==="jsonb_each"||jsonTableName==="jsonb_tree"){
     if(metadata&&(select.hasGroupBy||select.hasHaving||select.hasCompound||selectHasAggregate(select)||selectHasWindow(select)))throw new JSQLiteError("unsupported","this metadata table composition is not implemented",{unsupportedClassification:"temporary"});
     if(select.hasDistinct)throw new JSQLiteError("unsupported",`this ${jsonTableName} composition is not implemented`,{unsupportedClassification:"temporary"});
     const source=select.from.items[0]!,args=source.arguments;
-    if(metadata&&(args?.length??0)>2)throw new JSQLiteError('sqlite',`too many arguments on ${jsonTableName}() - max 2`,{code:1});
+    if(metadata&&(args?.length??0)>metadataHiddenColumns(jsonTableName).length)throw new JSQLiteError('sqlite',`too many arguments on ${jsonTableName}() - max ${metadataHiddenColumns(jsonTableName).length}`,{code:1});
     if(!metadata&&(args===null||args.length<1||args.length>2||args.some(arg=>!arg.reduction)))throw new JSQLiteError("unsupported",`this ${jsonTableName} argument is not implemented`,{unsupportedClassification:"temporary"});
     // whereexpr.c sqlite3WhereTabFuncArgs synthesizes hidden EQ terms, then
     // pragmaVtabBestIndex chooses the last usable equality and omits that term.
@@ -6131,7 +6147,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const retained:Expression[]=[];
     if(metadata){
      const terms:Expression[]=[];const split=(tree:Expression):void=>{if(tree.kind==='binary'&&tree.op==='AND'){split(tree.left);split(tree.right);}else terms.push(tree);};if(predicateTree)split(predicateTree);
-     const hiddenIndex=(tree:Expression):number=>{if(tree.kind!=='column')return -1;const parts=tree.name.split('.').map(sqlName);if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,source.alias??source.tableName))return -1;const name=sqliteAsciiFold(parts.at(-1)!);return name==='arg'?0:name==='schema'?1:-1;};
+     const hiddenIndex=(tree:Expression):number=>{if(tree.kind!=='column')return -1;const parts=tree.name.split('.').map(sqlName);if(parts.length>1&&!sqliteIdentifierEqual(parts.at(-2)!,source.alias??source.tableName))return -1;const name=sqliteAsciiFold(parts.at(-1)!);return metadataHiddenColumns(jsonTableName).findIndex(column=>column===name);};
      const usable=(tree:Expression):boolean=>{if(tree.kind==='column'||tree.kind==='scalar-subquery')return false;if(tree.kind==='binary')return usable(tree.left)&&usable(tree.right);if(tree.kind==='unary')return usable(tree.value);if(tree.kind==='call')return tree.args.every(usable);return tree.kind==='literal'||tree.kind==='variable';};
      const chosen=new Map<number,Expression>();
      for(const term of terms){if(term.kind==='binary'&&(term.op==='='||term.op==='==')){const li=hiddenIndex(term.left),ri=hiddenIndex(term.right),index=li>=0?li:ri,rhs=li>=0?term.right:term.left;if(index>=0&&usable(rhs)){if(chosen.has(index))retained.push(chosen.get(index)!);chosen.set(index,term);constraints[index]=rhs;continue;}}retained.push(term);}
@@ -6163,7 +6179,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       if(tree.kind==="case")return{...tree,operand:tree.operand&&bindColumns(tree.operand),pairs:tree.pairs.map(([x,y])=>[bindColumns(x),bindColumns(y)]),otherwise:tree.otherwise&&bindColumns(tree.otherwise)};
       return tree;
     };
-    const starProjection=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==="*";
+    const starProjection=select.result.length===1&&(select.result[0]!.tokens.length===1||metadata&&select.result[0]!.tokens.length===3&&select.result[0]!.tokens[1]!.text==="."&&sqliteIdentifierEqual(sqlName(select.result[0]!.tokens[0]!.text),source.alias??source.tableName))&&select.result[0]!.tokens.at(-1)!.text==="*";
     const resultTrees=starProjection?[]:select.result.map(result=>{if(!result.reduction)throw new JSQLiteError("unsupported",`this ${jsonTableName} projection is not implemented`,{unsupportedClassification:"temporary"});return bindColumns(expressionFromReduction(result.reduction));});
     const groupTrees=select.groupBy.map(group=>{if(!group.reduction)throw new JSQLiteError("unsupported",`this ${jsonTableName} grouping is not implemented`,{unsupportedClassification:"temporary"});return bindColumns(expressionFromReduction(group.reduction));});
     const groupedEntries=resultTrees.map(tree=>tree.kind==="aggregate"&&!tree.distinct&&!tree.filter&&!tree.orderBy.length?tree:null);
@@ -8086,10 +8102,10 @@ export class VdbeStatement implements Statement {
             let rows:Generator<readonly MetadataValue[]>;
             try{rows=metadataSource(op.schema,hidden[0]!,hidden[1]!,op.module,check);}
             catch(error){if(error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message.startsWith('unknown database '))throw new JSQLiteError('sqlite',`unknown database '${hidden[1]}'`,{code:1});throw error;}
-            this.#metadataCursors.set(op.p1,{rows,hidden});
+            this.#metadataCursors.set(op.p1,{rows,hidden:hidden.slice(0,metadataHiddenColumns(op.module).length)});
             const row=rows.next();
             if(row.done){this.#metadataCursors.delete(op.p1);this.#pc=op.p2;break;}
-            [...row.value,...hidden].forEach((value,index)=>{const mem=this.#registers[op.rowStart+index]!;if(value===null)mem.setNull();else if(typeof value==='number')mem.setInt64(BigInt(value));else mem.copyFrom(memFromPublic(value,this.#program.encoding));});
+            [...row.value,...hidden.slice(0,metadataHiddenColumns(op.module).length)].forEach((value,index)=>{const mem=this.#registers[op.rowStart+index]!;if(value===null)mem.setNull();else if(typeof value==='number')mem.setInt64(BigInt(value));else mem.copyFrom(memFromPublic(value,this.#program.encoding));});
             break;
           }
           case "MetadataNext": {

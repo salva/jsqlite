@@ -1,7 +1,7 @@
 import { ImmutableStorage, StorageLimitError, StorageClosedError, StorageCorruptError, StorageUnsupportedError, storageOwner, type StorageOwnerCarrier } from "./internal/storage.ts";
 import { parseSql, SqlParseError, SqlUnsupportedError } from "./internal/parse.ts";
 import { aggregateShapeSupported, rejectDistinctWindowFunctions, selectHasAggregate, selectHasWindow, VdbeStatement } from "./internal/vdbe.ts";
-import { compilePragma, pragmaNeedsSchema } from "./internal/pragma.ts";
+import { compilePragma, pragmaNeedsSchema, setMetadataDatabases } from "./internal/pragma.ts";
 import type {Program} from "./internal/vdbe.ts";
 import { compileSelect } from "./internal/select-compiler.ts";
 import { rejectBareBuiltinWindowFunctions } from "./internal/resolve.ts";
@@ -209,6 +209,7 @@ class OpenConnection implements Connection, StorageOwnerCarrier {
         // ordinary aggregate-shape admission gate bypass that phase.
         const window = recursiveOwner===null&&selectHasWindow(selected);
         if(aggregate&&!window&&!selected.hasCompound&&!selected.from.derived&&!aggregateShapeSupported(selected)) failure("unsupported","this aggregate form is not implemented",{unsupportedClassification:"temporary"});
+        setMetadataDatabases(schema,[{sequence:0,name:"main",file:""},...(this.#pragmaTempOpen?[{sequence:1,name:"temp",file:""}]:[])],()=>{this.#pragmaTempOpen=true;});
         program = compileSelect(
           selected, schema, btreeFromConnection(this, this.#btreeLimits), recursiveEncoding,
           this.#maxRows, this.#limits.maxWorkUnits, this.#limits.maxResultBytes,

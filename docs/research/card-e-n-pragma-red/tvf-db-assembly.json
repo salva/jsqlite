@@ -1,0 +1,25 @@
+{
+  "base": "fd0bc1b496b31a08eddae107128b85972588998c",
+  "included_hashes": {
+    "src/index.ts": "89e3df3eb65a2df74db4b61ac0d6053c4ebe02860d0a7ab883f72803eea6ea39",
+    "src/internal/pragma.ts": "209671b9442d9ca53e0d786463b742cc02500636bbbbb5746da076ebefd187c4",
+    "src/internal/vdbe.ts": "4d9c18beac16fdedf7c73c7cffb0b9b8d648f41d3d79d0da2d4b646b23e94ccf",
+    "docs/TRANSLATION.md": "4725f871e7bcd4d075cddbeb470fc4f00d6755d6ee2a5b5f27bbe49494ac29f2",
+    "docs/api.md": "0b0b86d207c51c4d700fccecd04623d80bfe0b4da4b48b4093bc2135710b1b14",
+    "docs/SQLITE_SOURCE_MAP.md": "20b48509d0b4ceed42f609ed2e52292f7a26bde6f4ccf13e38380621aa3457e0",
+    "docs/research/card-e-n-pragma-red/capture-tvf-db.py": "66b6327b9648ca838f98604799e7db994794b798ea7bb091d50abeaa9d20f740",
+    "docs/research/card-e-n-pragma-red/tvf-db-native.json": "4802c5506dda62f3ed10a975991711658a2d065035db859729c9c28602489397",
+    "docs/research/card-e-n-pragma-red/tvf-db.test.mjs": "a3020d574ef66528906ac4bc2d1af5b761527e21743b3d5bc6ee7a8adcb468e0",
+    "docs/research/card-e-n-pragma-red/tvf-five.test.mjs": "d62d49793c91e0f76a7b95c0f5df0c2287bc1a6bf3f448411cfb105b2e8fcaf1",
+    "docs/research/card-e-n-pragma-red/tvf-five-admission.test.mjs": "b10b0ac8c1bd3381bc5eed9289c1230307b190a16903c7859f9a1851366f3e8b",
+    "docs/research/card-e-n-pragma-red/TVF-INDEX-FK.md": "d0f6f7949c286762579025215ce442b914a447753ec499f2f26fe6e0c54c1a16",
+    "docs/research/card-e-n-pragma-red/TVF-DB.md": "d3e98d91642286e13378289525ec492fb3937319d0c229b1d564ae892008a26b"
+  },
+  "real_index_sha256": "04c05cf020e64c2a98a96457558456d1f26e10ebd5c009aa2928c241d2250ebe",
+  "excluded": "all unrelated live/staged source/doc edits; candidate constructed from accepted MAIN archive",
+  "provisional_tested_candidate": {
+    "commit": "05a76fc7df730c750feaf5a415b0245e9f101f19",
+    "tree": "19e4bdcb815accfe8971367f34ab3eaad48aca5b",
+    "base": "fd0bc1b496b31a08eddae107128b85972588998c"
+  }
+}
