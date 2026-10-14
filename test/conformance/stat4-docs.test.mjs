@@ -6,20 +6,25 @@ const map = read('SQLITE_SOURCE_MAP.md');
 const guide = read('TRANSLATION.md');
 const audit = read('reviews/translation-fidelity-2026-09-14.md');
 
-test('STAT4 primitive checkpoint locally supersedes pending consumers with delivered caller ownership', () => {
-  const start = map.indexOf('STAT4 primitive verification:');
-  const end = map.indexOf('### STAT4 selectivity callers', start);
-  assert.ok(start >= 0 && end > start);
-  const primitive = map.slice(start, end);
-  assert.doesNotMatch(primitive, /Consumers\/selectivity estimates remain pending\./,
-    'review v6: primitive-only checkpoint must not compete with current callers');
-  assert.match(primitive, /Historical primitive-only checkpoint/);
-  assert.match(primitive, /\[current bounded callers\]\(#stat4-selectivity-callers\)/);
-  const callers = map.slice(end);
-  for (const owner of ['whereKeyStats', 'whereEqualScanEst/whereInScanEst/whereRangeScanEst', 'second pass 7090ff']) {
-    assert.ok(callers.includes(owner), `missing delivered caller owner ${owner}`);
+test('bounded STAT4 documentation maps current production and caller ownership', () => {
+  const section = map.split('## Bounded STAT4 sample consumers')[1]?.split('\n## ')[0];
+  assert.ok(section, 'current bounded STAT4 source mapping required');
+  for (const owner of ['loadStat4', 'sqlite3Stat4ProbeSetValue', 'whereKeyStats',
+    'sampleEquality', 'sampleRange', 'HIGHTRUTH/HEURTRUTH', 'buildAll']) {
+    assert.ok(section.includes(owner), `missing semantic owner ${owner}`);
   }
-  assert.match(guide, /## Optional STAT4 loading and selectivity consumers/);
+  assert.match(section, /vector\/function\/subquery probes.*remain gaps/);
+  assert.match(section, /not independent histograms or arbitrary native plan\/cost parity/);
+  assert.match(guide, /###? Optional STAT4 loading and selectivity consumers/);
+  assert.match(guide, /Immutable schema loading retains represented sqlite_stat4 samples/);
+  const source = name => fs.readFileSync(new URL(`../../src/internal/${name}.ts`, import.meta.url), 'utf8');
+  assert.match(source('schema'), /sampleStates=loadStat4Samples\(stat4Rows/);
+  assert.match(source('stat4-estimate'), /export function whereKeyStats/);
+  const planner = source('where-plan');
+  assert.match(planner, /function sampleEquality[\s\S]*whereKeyStats\(index.stat4!,probe,false\).equal/);
+  assert.match(planner, /for\(const expr of directExprReductions\(list\)\)[\s\S]*finally\{probe.nRecValid=valid;probe.nField=active;\}/);
+  assert.match(planner, /if\(planBudget.truth.secondPass\)\{planBudget.remaining=initialLimit;planBudget.progressCheck\?\.\(\);groups=buildAll\(\);\}/);
+  assert.match(source('stat4-probe'), /withPrefix<T>[\s\S]*finally/);
 });
 
 test('directly affected absent-sample and HIGHTRUTH checkpoints retain local supersession', () => {

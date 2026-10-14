@@ -291,3 +291,13 @@ including NOTNULL direction/end and joined no-start continuation, is retained in
 Historical disabled-caller checkpoints in the owner evidence are not current
 production exclusions. These bounded mappings do not establish arbitrary
 optimizer or STAT4 sample parity.
+
+## Bounded STAT4 sample consumers
+
+| Pinned upstream owner | Current TS owner | Tests/evidence |
+| --- | --- | --- |
+| `analyze.c:loadStat4`, sample counts/record acquisition; `vdbemem.c:sqlite3Stat4ProbeSetValue` and ProbeFree | `schema.ts:loadStat4Samples` acquires encoded records; `stat4-probe.ts:Stat4Probe` shares Mem affinity/comparison and restores active prefixes/all-slot cleanup | `stat4-loader-primitive.test.mjs`, `stat4-probe-primitive.test.mjs`; [mapped review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md) |
+| `where.c:whereKeyStats` (1718), equality/IN/range estimators | `stat4-estimate.ts:whereKeyStats` virtual-prefix search; `where-plan.ts:sampleEquality`, `sampleRange` consume contiguous prefix/literal equality, IS/NULL, literal-list IN and scalar range/DESC estimates | `stat4-keystats.test.mjs`, `docs/research/card-s-h/public-first.test.mjs`; [integrated evidence](research/card-s-h/main-integration/) |
+| `where.c:sqlite3WhereBegin` second pass (7086–7106), HIGHTRUTH/HEURTRUTH | `where-plan.ts:WhereTruthState`, `buildAll` reconstruct whole loop groups with restored construction budget and progress checks; probe callers restore prefix state on failure | `docs/research/card-s-h/caller-first.test.mjs`, `stat4-schema-lifecycle.test.mjs`; same integrated evidence |
+
+These are bounded delivered consumers, not independent histograms or arbitrary native plan/cost parity. Wider vector/function/subquery probes and general STAT4 skipscan sample-range refinements remain gaps. Parameter-sensitive reprepare is separately mapped in the current guide; this sample slice alone does not certify general reprepare parity.
