@@ -4,6 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import {startFixtureServer} from './fixture-server.mjs';
 import {openFixture} from './public-api-adapter.mjs';
+import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
 
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
 
@@ -464,13 +465,27 @@ test('public heterogeneous three-source INNER chain preserves source metadata an
 
 test('public INNER computed projection observes cancellation inside one long step and cleans up',async()=>{
  const bridge=await startFixtureServer(root);let db,s;
+ const yieldTask=ExecutionTaskScheduler.prototype.yield;let suspended=false,resumed=false;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/select1-where`));
   s=db.prepare('SELECT hex(?1) FROM test1 AS a CROSS JOIN test1 AS b LIMIT 1').statement;
   s.bind(1,'z'.repeat(256*1024));
   const abort=new AbortController(),reason=new Error('injected INNER abort');
-  setTimeout(()=>abort.abort(reason),0);
+  // A short execution can finish MessageChannel turns before a timer is due.
+  // Inject at the real pending host suspension, not before step or instead of
+  // yielding. This still detects missing suspension and post-resume checks.
+  ExecutionTaskScheduler.prototype.yield=function(){
+   const pending=yieldTask.call(this);
+   if(!suspended){
+    suspended=true;
+    queueMicrotask(()=>{assert.equal(resumed,false);abort.abort(reason)});
+    return pending.then(()=>{resumed=true});
+   }
+   return pending;
+  };
   let primary;try{await s.step({signal:abort.signal})}catch(error){primary=error}
+  assert.equal(suspended,true,'computed projection must suspend before cancellation');
+  assert.equal(resumed,true,'real scheduler must resume before reporting cancellation');
   assert.equal(primary?.kind,'cancelled');
   assert.equal(primary?.message,'statement execution was cancelled');
   assert.equal(primary?.cause,reason);
@@ -479,6 +494,7 @@ test('public INNER computed projection observes cancellation inside one long ste
   s.bind(1,'ok');assert.equal(await s.step(),'row');assert.equal(s.columnText(0),'6F6B');
   assert.equal(await s.step(),'done');
  }finally{
+  ExecutionTaskScheduler.prototype.yield=yieldTask;
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}
   await closeTestServer(bridge.server);
