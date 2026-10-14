@@ -525,3 +525,8 @@ pretty source change or breadth claim is part of this mixed correction.
 ### Additional bounded index/FK table-valued PRAGMA consumers
 
 `pragma_index_list`, `pragma_index_info`, `pragma_index_xinfo` and `pragma_foreign_key_list` share direct-PRAGMA catalog traversal and existing statement-owned metadata Filter/Next/Column state with table_info/xinfo. Hidden arg/schema retain empty declared type versus NULL visible type, normal runtime binding/reset and physical-left correlated schema joins with explicit projections. Qualified metadata identity remains temporarily unsupported; JSON/physical rowid ownership is separate. Mixed metadata stars expand visible fields in source order, excluding hidden arg/schema. Sole-source `pragma_database_list` has zero hidden slots (Result0), max arity zero, and consumes resident main/explicit-empty-temp descriptors; filenames remain empty text by the immutable-memory API boundary. Joins involving database_list remain temporarily unsupported. This is not generic vtab admission. Native evidence and precise boundaries: [index/FK TVF evidence](research/card-e-n-pragma-red/TVF-INDEX-FK.md).
+
+
+### Standard declared-type metadata
+
+`columnMetadata().declaredType` uses SQLite canonical standard type names for exact standard declarations after dequote, while custom type spelling is retained; untyped columns and expressions may return null. This does not uppercase arbitrary declared types. [Evidence](research/card-k-c-declared-type/README.md).

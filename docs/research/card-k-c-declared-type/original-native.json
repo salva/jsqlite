@@ -1,0 +1,68 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixtureSha256": "9ac04b2b5437767bdf43643f11739bc3b618ec6b86e4ad3efb8bd3d5e4788052",
+  "cases": [
+    {
+      "sql": "SELECT a.f1,b.f1 FROM test1 AS a CROSS JOIN test1 AS b ",
+      "metadata": [
+        [
+          "f1",
+          "INT",
+          "main",
+          "test1",
+          "f1"
+        ],
+        [
+          "f1",
+          "INT",
+          "main",
+          "test1",
+          "f1"
+        ]
+      ],
+      "rows": [
+        [
+          {
+            "type": 1,
+            "value": "11"
+          },
+          {
+            "type": 1,
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": 1,
+            "value": "11"
+          },
+          {
+            "type": 1,
+            "value": "33"
+          }
+        ],
+        [
+          {
+            "type": 1,
+            "value": "33"
+          },
+          {
+            "type": 1,
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": 1,
+            "value": "33"
+          },
+          {
+            "type": 1,
+            "value": "33"
+          }
+        ]
+      ],
+      "done": 101
+    }
+  ]
+}

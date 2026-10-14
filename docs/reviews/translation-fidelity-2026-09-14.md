@@ -5147,3 +5147,8 @@ companions are in json-mixed-rowid-integration.test.mjs;
 [correction evidence](../research/card-r-e-review27-correction.md).
 Accepted pretty `f1eb053` bounded implementation is retained from MAIN; no
 pretty source change or breadth claim is part of this mixed correction.
+
+
+### Standard declared-type metadata
+
+MAIN5bcafad original INNER metadata mismatch: native3.53.4 confirms INT for source declaration int, matching committed54e7a228 standard type translation; original lowercase expectation corrected, runtime unchanged. Allenc metadata/reset boundaries independently captured. Separate generated REAL2 vs TS INTEGER2 value gap remains root/shared-owner work, not closed here. [Evidence](../research/card-k-c-declared-type/README.md).

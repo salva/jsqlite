@@ -19,7 +19,9 @@ test('public two- and three-source INNER loops preserve source scan order and pr
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/select1-where`));
 
   s=db.prepare('SELECT a.f1,b.f1 FROM test1 AS a CROSS JOIN test1 AS b').statement;
-  assert.deepEqual(s.columnMetadata(0),{name:'f1',declaredType:'int',database:'main',table:'test1',origin:'f1'});
+  // build.c sqlite3AddColumn exact standard-name matching -> util.c sqlite3ColumnType.
+  // Native-first fixture/sourceID/full metadata evidence: docs/research/card-k-c-declared-type.
+  assert.deepEqual(s.columnMetadata(0),{name:'f1',declaredType:'INT',database:'main',table:'test1',origin:'f1'});
   assert.deepEqual(await rows(s),[[11n,11n],[11n,33n],[33n,11n],[33n,33n]]);
   s.finalize();s=null;
 

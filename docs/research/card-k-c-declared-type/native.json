@@ -1,0 +1,759 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "ddl": "CREATE TABLE t(a int,b InTeGeR,c \"TeXt\",d CuStOm,e \"MiXeD type\",f,g real GENERATED ALWAYS AS (a+1) VIRTUAL); INSERT INTO t(a,b,c,d,e,f) VALUES(1,2,3,4,5,6); CREATE TABLE st(a int,b text) STRICT; INSERT INTO st VALUES(7,8); CREATE VIEW v AS SELECT a AS alias,d,f,g FROM t;",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "UTF-8.db",
+      "sha256": "d09c508ae891b54e78da86452a84d0f8f8df4bd57104b75841fa87b957ed8ced",
+      "cases": [
+        {
+          "sql": "SELECT a AS alias,b,c,d,e,f,g,1 AS expr FROM t",
+          "metadata": [
+            {
+              "name": "alias",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "b",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "c",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            },
+            {
+              "name": "d",
+              "declaredType": "CuStOm",
+              "database": "main",
+              "table": "t",
+              "origin": "d"
+            },
+            {
+              "name": "e",
+              "declaredType": "MiXeD type",
+              "database": "main",
+              "table": "t",
+              "origin": "e"
+            },
+            {
+              "name": "f",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "f"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "expr",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT * FROM st",
+          "metadata": [
+            {
+              "name": "a",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "st",
+              "origin": "a"
+            },
+            {
+              "name": "b",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "st",
+              "origin": "b"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "text",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT * FROM v",
+          "metadata": [
+            {
+              "name": "alias",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "d",
+              "declaredType": "CuStOm",
+              "database": "main",
+              "table": "t",
+              "origin": "d"
+            },
+            {
+              "name": "f",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "f"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sql FROM sqlite_schema ORDER BY name",
+          "metadata": [
+            {
+              "name": "sql",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "sql"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "CREATE TABLE st(a int,b text) STRICT"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "CREATE TABLE t(a int,b InTeGeR,c \"TeXt\",d CuStOm,e \"MiXeD type\",f,g real GENERATED ALWAYS AS (a+1) VIRTUAL)"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "CREATE VIEW v AS SELECT a AS alias,d,f,g FROM t"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT a.a AS left_name,b.a AS right_name FROM t a CROSS JOIN t b",
+          "metadata": [
+            {
+              "name": "left_name",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "right_name",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "UTF-16le.db",
+      "sha256": "fcfc5cb0298518cf23487959a71bf924b8084af6a536ed13d66fa616247eb8ad",
+      "cases": [
+        {
+          "sql": "SELECT a AS alias,b,c,d,e,f,g,1 AS expr FROM t",
+          "metadata": [
+            {
+              "name": "alias",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "b",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "c",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            },
+            {
+              "name": "d",
+              "declaredType": "CuStOm",
+              "database": "main",
+              "table": "t",
+              "origin": "d"
+            },
+            {
+              "name": "e",
+              "declaredType": "MiXeD type",
+              "database": "main",
+              "table": "t",
+              "origin": "e"
+            },
+            {
+              "name": "f",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "f"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "expr",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT * FROM st",
+          "metadata": [
+            {
+              "name": "a",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "st",
+              "origin": "a"
+            },
+            {
+              "name": "b",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "st",
+              "origin": "b"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "text",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT * FROM v",
+          "metadata": [
+            {
+              "name": "alias",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "d",
+              "declaredType": "CuStOm",
+              "database": "main",
+              "table": "t",
+              "origin": "d"
+            },
+            {
+              "name": "f",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "f"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sql FROM sqlite_schema ORDER BY name",
+          "metadata": [
+            {
+              "name": "sql",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "sql"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "CREATE TABLE st(a int,b text) STRICT"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "CREATE TABLE t(a int,b InTeGeR,c \"TeXt\",d CuStOm,e \"MiXeD type\",f,g real GENERATED ALWAYS AS (a+1) VIRTUAL)"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "CREATE VIEW v AS SELECT a AS alias,d,f,g FROM t"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT a.a AS left_name,b.a AS right_name FROM t a CROSS JOIN t b",
+          "metadata": [
+            {
+              "name": "left_name",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "right_name",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "UTF-16be.db",
+      "sha256": "88250f087bd1b9a616271f7d59975de3413427a31bc1d054fcfbd21c4ff15740",
+      "cases": [
+        {
+          "sql": "SELECT a AS alias,b,c,d,e,f,g,1 AS expr FROM t",
+          "metadata": [
+            {
+              "name": "alias",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "b",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "c",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            },
+            {
+              "name": "d",
+              "declaredType": "CuStOm",
+              "database": "main",
+              "table": "t",
+              "origin": "d"
+            },
+            {
+              "name": "e",
+              "declaredType": "MiXeD type",
+              "database": "main",
+              "table": "t",
+              "origin": "e"
+            },
+            {
+              "name": "f",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "f"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "expr",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT * FROM st",
+          "metadata": [
+            {
+              "name": "a",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "st",
+              "origin": "a"
+            },
+            {
+              "name": "b",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "st",
+              "origin": "b"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "text",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT * FROM v",
+          "metadata": [
+            {
+              "name": "alias",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "d",
+              "declaredType": "CuStOm",
+              "database": "main",
+              "table": "t",
+              "origin": "d"
+            },
+            {
+              "name": "f",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "f"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sql FROM sqlite_schema ORDER BY name",
+          "metadata": [
+            {
+              "name": "sql",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "sqlite_master",
+              "origin": "sql"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "CREATE TABLE st(a int,b text) STRICT"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "CREATE TABLE t(a int,b InTeGeR,c \"TeXt\",d CuStOm,e \"MiXeD type\",f,g real GENERATED ALWAYS AS (a+1) VIRTUAL)"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "CREATE VIEW v AS SELECT a AS alias,d,f,g FROM t"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT a.a AS left_name,b.a AS right_name FROM t a CROSS JOIN t b",
+          "metadata": [
+            {
+              "name": "left_name",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "right_name",
+              "declaredType": "INT",
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
