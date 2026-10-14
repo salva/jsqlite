@@ -155,3 +155,37 @@ archive proof follow only when actually created; portable proof is not MAIN.
 Broad storage-glob proc-479efc8d1506 failed missing external skipscan native
 fixtures, not merge behavior. This failed batch is not accepted storage proof;
 core affected storage must be selected explicitly, with exact denominators.
+
+### Actual MAIN delivery and exact-source proof
+
+Actual MAIN `59e74b4b83783e31b72a0fd6324e4fadf59d2aa4`, parent
+`fb4974a002aefe56dcf38bf4f35c10902a4fbb16`, tree
+`00e44709609159d1556c721e3406c06295494720`: fourteen scoped paths,
+minimum HEAD-relative vdbe owners/tests plus bounded docs/evidence. Constructed
+through alternate index, tested exact archive, then compare-and-swap updated
+refs/heads/master. Real index SHA256 remains
+8e6ba52cac5a07960972458179f59149bd9a63d1ec5e8ba96307605fdc822181;
+all worktree peer effects preserved. Relative-to-HEAD staged diff necessarily
+changes as MAIN advances; index bytes are not rewritten. No full120/3279 sweep.
+Remaining vdbe diff consists only of peer metadata-TVF/JSON hunks, not missing
+compound prerequisites. HEAD already carried required portable foundations.
+
+Exact archive proc-775d96068325 exit0: typecheck; six compound/lifecycle fixtures
+66 plus DISTINCT6/core storage31 =103/103; public22 declared/attempted/passed/
+credited; package boundary/runtime package; native153 row/five-field metadata
+matches +12 expected errors. Core storage explicitly selected btree-reader and
+record-primitives. Earlier broad storage43/37pass/6failed due absent peer
+skipscan fixtures is preserved, not erased. Exact committed inventory
+proc-fa297d2309e8 exit0: parser35, firstSELECT8, expressions40, relational3/18
+(15unattempted,2prior credits), ORDER10, encoding3, six bounded checks.
+
+Current integrated working-copy proc-8f2693dc1321 exit0: exact scheduling probe
+all8 matches, typecheck, filtered+union-all30/30, public22/22, diff hygiene.
+The committed source is independently coherent without peer prerequisites;
+current integrated source also passes bounded affected checks. No independent
+review, full root/w, GUI-browser or broad compatibility claim. Runtime package
+checks used isolated browser-global VM. Historical portable delivery records
+remain provenance, not current MAIN authority. Final source/test/doc evidence
+and command outputs are under card-work merge-integration; status cites actual
+process IDs. Documentation followup records this tested MAIN result without
+changing tested semantic source.

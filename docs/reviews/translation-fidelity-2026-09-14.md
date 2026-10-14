@@ -5174,3 +5174,5 @@ mid-yield lifecycle coverage, browser or release acceptance.
 ## Compound merge revision-bound correction
 
 The bounded ordered single-output ordinary table producer now feeds shared same-VM sorter coroutines/merge, rather than the earlier eager global table set. Initial-empty EXCEPT/INTERSECT skips B, balanced identical UNION/ALL runs and independent ALL capacity copies preserve immutable graph ownership. Shared ORDER visits each arm alias then expression before moving right. These are bounded source/test findings, not general merge parity or root/full-w acceptance. Evidence and failed minimal-union attempts: [MERGE.md](../research/card-j-d-b-a-c-filtered/MERGE.md).
+
+Actual bounded MAIN delivery is 59e74b4b83783e31b72a0fd6324e4fadf59d2aa4; exact archive103/public22/native153 and integrated scheduling evidence supersede open integration findings for this slice only. [Evidence](../research/card-j-d-b-a-c-filtered/MERGE.md). No root/full-w or general parity claim.

@@ -269,15 +269,14 @@ single-output table arms now feed per-arm sorter coroutines and the existing
 same-VM A/B merge owner; initial empty A ends EXCEPT/INTERSECT without evaluating
 B, while UNION/ALL positions B. WHERE, projection and local DISTINCT remain
 scan-owned, and lexical parameters and metadata retain their preceding owners.
-This working-copy repair is not completed MAIN integration or general merge
-parity. The shared owner now splits maximal identical UNION/ALL suffixes
+The bounded merge is committed on MAIN; this is not general merge parity. The shared owner now splits maximal identical UNION/ALL suffixes
 using SQLite's balanced split, copies independent LIMIT+OFFSET capacities only
 for ALL, bounds leaf sorter retention and producer delivery, and charges each
 visited merge/duplicate comparison term to the shared yielding work owner.
 Mixed operators remain left-associated and set membership is not truncated.
 Shared/table ORDER resolution now visits each arm's alias then expression
-identity before proceeding rightward, preserving native precedence. Scoped MAIN
-integration/committed-source verification remains open in the [bounded design](research/ordered-filtered-compound-design.md).
+identity before proceeding rightward, preserving native precedence. Minimal HEAD-relative integration excludes unrelated metadata-TVF/schema changes;
+exact committed-source and integrated bounded evidence is linked below.
 [Revision-bound repair and attempted hypothesis evidence](research/card-j-d-b-a-c-filtered/MERGE.md).
 
 ### Surviving finite materialization adaptation
