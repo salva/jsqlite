@@ -41,6 +41,15 @@ import {evaluateMathFunction,isMathFunction} from "./math.ts";
 import { jsonArrayLength, jsonArrow, jsonConstruct, openJsonTableCursor, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonPretty, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode, type JsonTableCursor } from "./json.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
+// vdbe.c OP_Affinity/OP_TypeCheck REAL post-applyAffinity branch. Keep
+// applyAffinity itself unchanged: comparison coercion is not opcode affinity.
+function opcodeRealAffinity(value:Mem):void {
+  if(value.initialStorageClass!=="integer")return;
+  const integer=value.integerValue();
+  if(integer>=-140737488355328n&&integer<=140737488355327n)value.setIntReal(integer);
+  else value.setDouble(Number(integer));
+}
+
 export {sqlite3WindowRewrite};
 export type {WindowRewriteFunction,WindowRewriteSortTerm,WindowRewriteLayer,WindowRewriteGraph} from "./window-rewrite.ts";
 
@@ -8518,12 +8527,12 @@ export class VdbeStatement implements Statement {
             let type=value.initialStorageClass;
             if(type!=="null"){
               const required=op.type==="INT"||op.type==="INTEGER"?"integer":op.type.toLowerCase();
-              if(required==="real"&&type==="integer"){value.cast("real",this.#program.encoding);type=value.initialStorageClass;}
+              if(required==="real"&&type==="integer"){opcodeRealAffinity(value);type=value.initialStorageClass;}
               if(required!=="any"&&type!==required)throw new JSQLiteError("sqlite",`cannot store ${type.toUpperCase()} value in ${op.type} column ${op.table}.${op.column}`,{code:3091});
             }
             break;
           }
-          case "Affinity": {this.#registers[op.p1]!.applyAffinity(op.affinity,this.#program.encoding);break;}
+          case "Affinity": {const value=this.#registers[op.p1]!;value.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")opcodeRealAffinity(value);break;}
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
           case "Rowid": {const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }

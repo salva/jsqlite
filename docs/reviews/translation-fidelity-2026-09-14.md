@@ -5152,3 +5152,9 @@ pretty source change or breadth claim is part of this mixed correction.
 ### Standard declared-type metadata
 
 MAIN5bcafad original INNER metadata mismatch: native3.53.4 confirms INT for source declaration int, matching committed54e7a228 standard type translation; original lowercase expectation corrected, runtime unchanged. Allenc metadata/reset boundaries independently captured. Separate generated REAL2 vs TS INTEGER2 value gap remains root/shared-owner work, not closed here. [Evidence](../research/card-k-c-declared-type/README.md).
+
+## Generated REAL value owner correction
+
+The metadata-only origin-g exclusion is not a value waiver. The reproduced INTEGER2/REAL2 divergence is corrected at the shared VDBE opcode, not via downstream generated-only RealAffinity or global comparison coercion. Bounded evidence does not certify full NC_GenCol, lazy-schema or generic indexed-expression parity.
+
+[Isolated candidate evidence and remaining boundaries](../research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.

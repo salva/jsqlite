@@ -530,3 +530,9 @@ pretty source change or breadth claim is part of this mixed correction.
 ### Standard declared-type metadata
 
 `columnMetadata().declaredType` uses SQLite canonical standard type names for exact standard declarations after dequote, while custom type spelling is retained; untyped columns and expressions may return null. This does not uppercase arbitrary declared types. [Evidence](research/card-k-c-declared-type/README.md).
+
+## Generated REAL typed values
+
+Represented REAL generated values report REAL including integral values after copied accessors. INTEGER/NUMERIC/ANY retain their own affinities. This bounded correction does not expand generated-column composition or write admission.
+
+[Isolated candidate evidence and remaining boundaries](research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.

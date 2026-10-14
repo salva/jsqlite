@@ -231,3 +231,9 @@ pretty source change or breadth claim is part of this mixed correction.
 ### Standard declared-type metadata
 
 build.c sqlite3AddColumn1530–1586 / util.c sqlite3ColumnType104 / select.c columnTypeImpl → parse.ts declaredTypeSource → schema columns → resolver descriptors. Standard/custom/null metadata boundaries: declared-type-standard-native.test.mjs (allenc/reset/alias/generated/STRICT/view/catalog) and original multisource test16:1. [Evidence and separate generated-value gap](research/card-k-c-declared-type/README.md).
+
+## Generated REAL opcode mapping
+
+Pinned expr.c:sqlite3ExprCodeGeneratedColumn/GetColumnOfTable → generated lowering → vdbe.c:OP_Affinity/OP_TypeCheck → vdbe.ts:opcodeRealAffinity → existing Mem IntReal/double. Native/public generated-real-value-native.test.mjs exercises six-byte boundaries, STRICT/STORED/VIRTUAL and represented callers.
+
+[Isolated candidate evidence and remaining boundaries](research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.

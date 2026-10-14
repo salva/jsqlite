@@ -503,3 +503,9 @@ pretty source change or breadth claim is part of this mixed correction.
 ### Standard declared-type metadata
 
 Standard declared types use exact case-insensitive sqlite3StdType matching after dequote; custom spelling is retained, no-type/expression metadata is null. build.c eCType/HASTYPE and util.c sqlite3ColumnType own this distinction, not blanket uppercasing. [Native boundary evidence](research/card-k-c-declared-type/README.md).
+
+## Generated REAL opcode ownership
+
+Generated REAL output uses OP_Affinity/OP_TypeCheck post-applyAffinity integer conversion: exact IntReal within the inclusive signed six-byte range, double outside. Shared comparison Mem.applyAffinity remains unchanged; generated IfNullRow/BUSY/register precedence is retained.
+
+[Isolated candidate evidence and remaining boundaries](research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.

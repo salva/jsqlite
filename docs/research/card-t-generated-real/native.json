@@ -1,0 +1,4860 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "ddl": "CREATE TABLE t(id INTEGER PRIMARY KEY,a,g REAL AS(a) VIRTUAL,h REAL AS(g+0) VIRTUAL,i INTEGER AS(a),n NUMERIC AS(a),z ANY AS(a),s REAL AS(a) STORED); INSERT INTO t(id,a) VALUES(1,NULL),(2,2),(3,2.5),(4,9223372036854775807),(5,'3'),(6,'word'),(7,140737488355327),(8,140737488355328),(9,-140737488355328),(10,-140737488355329); CREATE VIEW v AS SELECT * FROM t; CREATE TABLE st(id INTEGER PRIMARY KEY,a ANY,g REAL AS(a) VIRTUAL,h REAL AS(g+0),s REAL AS(a) STORED,z ANY AS(a)) STRICT; INSERT INTO st(id,a) VALUES(1,NULL),(2,2),(3,2.5),(4,9223372036854775807),(5,'3'); CREATE INDEX ti ON t(g,id);",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "UTF-8.db",
+      "sha256": "c4d89a94c2f7a04cf61cc670d6a2e69ee146ee136038fff4cc1a4ad36a36c35c",
+      "cases": [
+        {
+          "sql": "SELECT id,g,typeof(g),h,typeof(h),i,n,z,s,typeof(s) FROM t ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "h"
+            },
+            {
+              "name": "typeof(h)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "i",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "i"
+            },
+            {
+              "name": "n",
+              "declaredType": "NUMERIC",
+              "database": "main",
+              "table": "t",
+              "origin": "n"
+            },
+            {
+              "name": "z",
+              "declaredType": "ANY",
+              "database": "main",
+              "table": "t",
+              "origin": "z"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "s"
+            },
+            {
+              "name": "typeof(s)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,g,h,s FROM v ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "h"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "s"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,g,typeof(g),h,s,z,typeof(z) FROM st ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "st",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "h"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "s"
+            },
+            {
+              "name": "z",
+              "declaredType": "ANY",
+              "database": "main",
+              "table": "st",
+              "origin": "z"
+            },
+            {
+              "name": "typeof(z)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x.id,x.g,y.g FROM t x JOIN t y ON y.id=x.id ORDER BY x.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x.id,y.g,typeof(y.g) FROM t x LEFT JOIN t y ON y.id=0 ORDER BY x.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(y.g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,(SELECT g FROM t y WHERE y.id=x.id) AS g FROM t x ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(g),count(*),sum(g),min(g),max(g) FROM t GROUP BY typeof(g) ORDER BY typeof(g)",
+          "metadata": [
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "sum(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "min(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "max(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT g,typeof(g),id FROM t INDEXED BY ti WHERE g>=2 ORDER BY g,id",
+          "metadata": [
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(g),typeof(sum(g)) FROM t WHERE id IN (2,3)",
+          "metadata": [
+            {
+              "name": "sum(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(sum(g))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "real",
+                "value": 4.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "UTF-16le.db",
+      "sha256": "be4f244c98a673d3eb413a69f05c8a12298e2f0fc4b6dc4699d7f793a212f138",
+      "cases": [
+        {
+          "sql": "SELECT id,g,typeof(g),h,typeof(h),i,n,z,s,typeof(s) FROM t ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "h"
+            },
+            {
+              "name": "typeof(h)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "i",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "i"
+            },
+            {
+              "name": "n",
+              "declaredType": "NUMERIC",
+              "database": "main",
+              "table": "t",
+              "origin": "n"
+            },
+            {
+              "name": "z",
+              "declaredType": "ANY",
+              "database": "main",
+              "table": "t",
+              "origin": "z"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "s"
+            },
+            {
+              "name": "typeof(s)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,g,h,s FROM v ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "h"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "s"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,g,typeof(g),h,s,z,typeof(z) FROM st ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "st",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "h"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "s"
+            },
+            {
+              "name": "z",
+              "declaredType": "ANY",
+              "database": "main",
+              "table": "st",
+              "origin": "z"
+            },
+            {
+              "name": "typeof(z)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x.id,x.g,y.g FROM t x JOIN t y ON y.id=x.id ORDER BY x.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x.id,y.g,typeof(y.g) FROM t x LEFT JOIN t y ON y.id=0 ORDER BY x.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(y.g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,(SELECT g FROM t y WHERE y.id=x.id) AS g FROM t x ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(g),count(*),sum(g),min(g),max(g) FROM t GROUP BY typeof(g) ORDER BY typeof(g)",
+          "metadata": [
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "sum(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "min(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "max(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT g,typeof(g),id FROM t INDEXED BY ti WHERE g>=2 ORDER BY g,id",
+          "metadata": [
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(g),typeof(sum(g)) FROM t WHERE id IN (2,3)",
+          "metadata": [
+            {
+              "name": "sum(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(sum(g))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "real",
+                "value": 4.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "UTF-16be.db",
+      "sha256": "379d354f1d14f07fe9089718babc75c839c76e8eb499e7b463386d02bbee0434",
+      "cases": [
+        {
+          "sql": "SELECT id,g,typeof(g),h,typeof(h),i,n,z,s,typeof(s) FROM t ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "h"
+            },
+            {
+              "name": "typeof(h)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "i",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "i"
+            },
+            {
+              "name": "n",
+              "declaredType": "NUMERIC",
+              "database": "main",
+              "table": "t",
+              "origin": "n"
+            },
+            {
+              "name": "z",
+              "declaredType": "ANY",
+              "database": "main",
+              "table": "t",
+              "origin": "z"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "s"
+            },
+            {
+              "name": "typeof(s)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355327"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "140737488355328"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355328"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "integer",
+                "value": "-140737488355329"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,g,h,s FROM v ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "h"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "s"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,g,typeof(g),h,s,z,typeof(z) FROM st ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "st",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "h",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "h"
+            },
+            {
+              "name": "s",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "st",
+              "origin": "s"
+            },
+            {
+              "name": "z",
+              "declaredType": "ANY",
+              "database": "main",
+              "table": "st",
+              "origin": "z"
+            },
+            {
+              "name": "typeof(z)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "integer",
+                "value": "9223372036854775807"
+              },
+              {
+                "type": "text",
+                "value": "integer"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x.id,x.g,y.g FROM t x JOIN t y ON y.id=x.id ORDER BY x.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x.id,y.g,typeof(y.g) FROM t x LEFT JOIN t y ON y.id=0 ORDER BY x.id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(y.g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "text",
+                "value": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT id,(SELECT g FROM t y WHERE y.id=x.id) AS g FROM t x ORDER BY id",
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            },
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "real",
+                "value": 2.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "real",
+                "value": 2.5
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "real",
+                "value": 3.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              },
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "9"
+              },
+              {
+                "type": "real",
+                "value": -140737488355328.0
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(g),count(*),sum(g),min(g),max(g) FROM t GROUP BY typeof(g) ORDER BY typeof(g)",
+          "metadata": [
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "count(*)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "sum(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "min(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "max(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "real",
+                "value": -140737488355329.0
+              },
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "real",
+                "value": 0.0
+              },
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "word"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT g,typeof(g),id FROM t INDEXED BY ti WHERE g>=2 ORDER BY g,id",
+          "metadata": [
+            {
+              "name": "g",
+              "declaredType": "REAL",
+              "database": "main",
+              "table": "t",
+              "origin": "g"
+            },
+            {
+              "name": "typeof(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "id"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "real",
+                "value": 2.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 2.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 3.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 140737488355327.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 140737488355328.0
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ],
+            [
+              {
+                "type": "real",
+                "value": 9.223372036854776e+18
+              },
+              {
+                "type": "text",
+                "value": "real"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "value": "word"
+              },
+              {
+                "type": "text",
+                "value": "text"
+              },
+              {
+                "type": "integer",
+                "value": "6"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT sum(g),typeof(sum(g)) FROM t WHERE id IN (2,3)",
+          "metadata": [
+            {
+              "name": "sum(g)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(sum(g))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "real",
+                "value": 4.5
+              },
+              {
+                "type": "text",
+                "value": "real"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
