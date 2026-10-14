@@ -10,3 +10,16 @@ export function assertOperation(op, observed) {
  assert.equal(observed.phase, op.op, 'observed phase must match attempted operation');
  for (const [key,value] of Object.entries(op.assertion)) assert.deepEqual(observed[key], value, `Stage2 ${op.key}: ${key}`);
 }
+
+// Observations for currently allocated prepare and empty-step assertions.
+export function checkPrepareAssertion(a,p,s){
+ if(!a)return 0;
+ assertOperation({op:'prepare',key:'prepare',assertion:a},{phase:'prepare',tail:p.tail,columnCount:s.columnCount,metadata:s.columnMetadata(0)});
+ return 1;
+}
+export function checkStepAssertion(a,result){
+ if(!a)return 0;
+ assertOperation({op:'step',key:'step',assertion:a},{phase:'step',result,rowCount:result==='done'?0:1});
+ assert.equal(a.rowCount,0);assert.equal(result,'done');
+ return 1;
+}

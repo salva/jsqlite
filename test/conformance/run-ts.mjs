@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { startFixtureServer } from "./fixture-server.mjs";
 import { openFixture } from "./public-api-adapter.mjs";
+import { checkPrepareAssertion,checkStepAssertion } from "./stage2-assertions.mjs";
+import { matchDiagnostic } from "./diagnostic-match.mjs";
 import { validateCaseData } from "./ts-accounting.mjs";
 const root=path.resolve(new URL("../..",import.meta.url).pathname);
 const manifest=JSON.parse(fs.readFileSync(path.join(root,"test/conformance/cases/stage2-initial.json")));
@@ -12,10 +14,10 @@ function statementOf(state) { if(!state.statement) throw new Error("adapter inva
 async function execute(op,state) {
  switch(op.op) {
   case "openFixture": state.connection=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/${encodeURIComponent(op.fixture)}`)); return;
-  case "prepare": { const p=state.connection.prepare(op.sql); state.statement=p?.statement??p; return; }
+  case "prepare": { const p=state.connection.prepare(op.sql); state.statement=p?.statement??p; state.assertions+=checkPrepareAssertion(op.assertion,p,state.statement); return; }
   case "closeDeferred": state.connection.closeDeferred(); return;
   case "bind": statementOf(state).bind(op.index??op.name, decodeValue(op.value)); return;
-  case "step": await statementOf(state).step(); return;
+  case "step": { const result=await statementOf(state).step(); state.assertions+=checkStepAssertion(op.assertion,result); return; }
   case "reset": statementOf(state).reset(); return;
   case "clearBindings": statementOf(state).clearBindings(); return;
   case "finalize": statementOf(state).finalize(); return;
@@ -44,7 +46,7 @@ function decodeValue(v) {
 }
 try {
  for (const c of data.cases) {
-  const state={connection:null,statement:null}; let failure=null;
+  const state={connection:null,statement:null,assertions:0}; let failure=null;
   for (let index=0;index<c.operations.length;index++) {
    const op=c.operations[index];
    try { await execute(op,state); } catch(e) { failure={error:e,index,key:op.key,op:op.op}; break; }
@@ -53,15 +55,13 @@ try {
   // now implemented, so completion is success rather than an obsolete expected
   // "temporary unsupported" failure. Retain real observed failures without
   // converting them into compatibility credit.
-  const expectedError=c.diagnosticExpected.error;
-  const matched=failure
-   ? !!expectedError && failure.op===expectedError.operation && failure.error?.name==="JSQLiteError"
-     && ['kind','code','extendedCode','message'].every(key=>failure.error?.[key]===expectedError[key])
-   : c.diagnosticExpected.disposition==='completed';
+  const {matched,reason}=matchDiagnostic(c,failure);
   const result=failure
    ? {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"observed-error",credit:0,attempted:{index:failure.index,key:failure.key,op:failure.op},error:{name:failure.error?.name??"Error",kind:failure.error?.kind??null,code:failure.error?.code??null,extendedCode:failure.error?.extendedCode??null,unsupportedClassification:failure.error?.unsupportedClassification??null,message:String(failure.error?.message??failure.error)},notAttempted:c.operations.slice(failure.index+1).map((op,index)=>({index:index+failure.index+1,key:op.key,op:op.op}))}
    : {schema:"jsqlite-ts-result/2",caseId:c.id,caseCredit:c.credit,disposition:"completed",credit:0,attempted:null,error:null,notAttempted:[]};
   result.matched=matched;
+  result.matchReason=reason;
+  result.sourceAssertionsChecked=state.assertions;
   results.push(result); console.log(JSON.stringify(result));
   // Always retire the case's connection, including failed expectations. Report
   // subsequent allocated cases and the final denominator rather than aborting.
