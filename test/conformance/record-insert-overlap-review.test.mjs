@@ -23,14 +23,14 @@ test('packed record and logical insertion overlap, failed reserve is atomic, cle
     const release = PrivateStateByteBudget.prototype.release;
     PrivateStateByteBudget.prototype.reserve = function (bytes, ...args) {
       budgets.add(this); const before = this.usedBytes;
-      try { const result = reserve.call(this, bytes, ...args); events.push(['reserve', before, bytes, this.usedBytes]); return result; }
+      try { const result = reserve.call(this, bytes, ...args); if(bytes!==0)events.push(['reserve', before, bytes, this.usedBytes]); return result; }
       catch (error) { events.push(['reject', before, bytes, this.usedBytes]); throw error; }
     };
     PrivateStateByteBudget.prototype.release = function (bytes) {
       const before = this.usedBytes; const result = release.call(this, bytes);
-      events.push(['release', before, bytes, this.usedBytes]); return result;
+      if(bytes!==0)events.push(['release', before, bytes, this.usedBytes]); return result;
     };
-    let statement;
+    let statement, primary;
     try {
       statement = new VdbeStatement({ops: [
         {code:'OpenEphemeral',p1:1,keyInfo:new KeyInfo({encoding:'utf-8',totalFieldCount:2,keyFieldCount:0,terms:[]})},
@@ -57,8 +57,11 @@ test('packed record and logical insertion overlap, failed reserve is atomic, cle
       assert.ok([...budgets].every(b=>b.usedBytes===0));
       statement.finalize(); statement=undefined;
       assert.ok([...budgets].every(b=>b.usedBytes===0));
+    } catch(error) {
+      primary=error; throw error;
     } finally {
-      try {statement?.finalize();} finally {
+      // Cleanup must not replace an assertion failure with saved execution error.
+      try {statement?.finalize();} catch(error) {if(!primary)throw error;} finally {
         PrivateStateByteBudget.prototype.reserve=reserve;
         PrivateStateByteBudget.prototype.release=release;
       }

@@ -41,3 +41,30 @@ Raw final225 log establishes undefined caught error, not deadline: execution fin
 Pinned vdbe.c902 checks isInterrupted, and debug loop961–970 injects interruption at an execution checkpoint; TS checkControl probes signal before timeout/work and private checkpoint checks again after real scheduler resume. This is deterministic test injection, not a change to host fairness or a native equivalence assertion about scheduling.
 
 Focused file29/29 and twelve bounded repetitions pass proc-3dbaac27f394/proc-b266d5f47e43; four-file combined125/125 passes. Initial test copy included unrelated peer comment/review additions; excluded them in final scoped copy rooted at exact committed6d1525ad. Scoped combined125/125 proc-f1a69f9250ec exit0 under75s confirms owned hunk only. Disposable negative removes abort delivery: proc-c602a5096db7 prints actual test exit1, undefined versus cancelled, proving real assertion sensitivity (wrapper0 is expected control completion). Exact logs in work:///cards/card-w/cancel-fixture-repair/, scoped-combined.log and negative.log. Full225/348 not rerun for this focused repair; previous aggregate failures remain unwaived. No new commit authorization assumed for this additional overlapping file; prepared owned patch excludes peer hunks.
+
+
+## Original inventory budget-fixture reconciliation
+
+Current raw348 diagnosis at dffdd6f2 leaves only two missing companion files and
+a stale overlap observer. Retain original inventory paths: MakeRecord companion
+is actual numeric-text conversion admission rejection at81 with saved-error/reset
+cleanup; window companion is no-conversion success359 and retained-row pressure
+failure358, each repeated after reset. Historical blanket359 rejection is retained
+in card-w checkpoint-28a artifacts, not current authority. Existing
+window-bounded-lookahead owns exact pinned rows/359 peak/cap matrix; companions
+add statement cleanup lifecycle controls, not new engine support or native heap
+parity. Both delivered companions are unchanged original approved900 own files.
+
+Overlap observer records real nonzero ownership transitions rather than treating
+zero-byte conversion reserve/release as storage transfers. Keep exact71+11=82
+trace, atomic81 rejection, saved reset identity and refunds. Cleanup preserves
+the primary assertion error instead of masking it with finalize's saved error.
+Pinned vdbe.c OP_MakeRecord applies affinity before record serialization and
+OP_Insert consumes it; TS conditional scratch admission is the documented bounded
+logical-byte adaptation, not a changed native algorithm. Owner review15's81/82
+and UTF16 149/150 adjudication remains source evidence, not a new runtime fix.
+
+Exact dffdd6f2 archive plus only these three test files passes focused117/117 and
+typecheck proc-61b4faaa66c6. Detailed delivery/checks belong to current
+[[card:card-w]] status and work:///cards/card-w/budget-fixture-repair/. No
+cap inflation, skipped failure, dirty runtime overlay or missing-inventory removal.
