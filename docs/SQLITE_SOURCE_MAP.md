@@ -301,3 +301,7 @@ optimizer or STAT4 sample parity.
 | `where.c:sqlite3WhereBegin` second pass (7086–7106), HIGHTRUTH/HEURTRUTH | `where-plan.ts:WhereTruthState`, `buildAll` reconstruct whole loop groups with restored construction budget and progress checks; probe callers restore prefix state on failure | `docs/research/card-s-h/caller-first.test.mjs`, `stat4-schema-lifecycle.test.mjs`; same integrated evidence |
 
 These are bounded delivered consumers, not independent histograms or arbitrary native plan/cost parity. Wider vector/function/subquery probes and general STAT4 skipscan sample-range refinements remain gaps. Parameter-sensitive reprepare is separately mapped in the current guide; this sample slice alone does not certify general reprepare parity.
+
+## Right-nested correlated membership residual
+
+`expr.c:sqlite3CodeRhsOfIN/sqlite3ExprCodeIN` → `vdbe.ts:compileWideSubquery` linked joined binding, correlated no-Once SRT_Set and packed probe; RIGHT downstream readiness remains with joined continuation. Exact original positives and adjacent atomic ordered-compound gate: `test/conformance/right-nested.test.mjs`. [Native-first typed three-encoding and affected control/lifecycle evidence](research/right-nested-in/README.md). No runtime admission change or general nested-join completeness claimed.

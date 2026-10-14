@@ -25,7 +25,9 @@ function metadata(s){return Array.from({length:s.columnCount},(_,i)=>{const m=s.
 async function rows(s){const out=[];while(await s.step()==='row')out.push(Array.from({length:s.columnCount},(_,i)=>cell(s,i)));return out}
 const residual=JSON.parse(fs.readFileSync(new URL('./cases/right-nested.json',import.meta.url),'utf8'));
 for(const c of residual.cases)test(`R5 residual ${c.encoding}/${c.id}`,()=>withDb(c.encoding,async db=>{
- if(c.id==='in-left'){assert.throws(()=>db.prepare(c.sql),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');const reuse=db.prepare('SELECT 1').statement;try{assert.equal(await reuse.step(),'row')}finally{reuse.finalize()}return;}
+ // Correlated scalar IN now uses the shared packed SRT_Set producer and
+ // membership lowering at the joined binding frontier. Pinned native rows,
+ // not the superseded temporary rejection, own this represented case.
  const s=db.prepare(c.sql).statement;try{assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);s.reset();assert.deepEqual(await rows(s),c.native.first.rows)}finally{s.finalize()}
 }));
 // Sequential, finally-restored observation of actual physical positioning.
@@ -48,4 +50,22 @@ for(const enc of Object.keys(corpus.fixtures))test(`R5 selected drain first erro
  try{await assert.rejects(s.step(),error=>{first=error;return true});assert.equal(entered,1);await assert.rejects(s.step(),error=>error===first);assert.equal(entered,1);assert.throws(()=>s.reset(),error=>error===first)}
  finally{BtreeDatabase.prototype.tableScanCursor=original;s.finalize()}
  const retry=db.prepare(c.sql).statement;try{assert.deepEqual(await rows(retry),c.native.first.rows)}finally{retry.finalize()}
+}));
+
+// Independent pinned capture uses the exact residual fixtures, not a TS oracle.
+const inNative=JSON.parse(fs.readFileSync(new URL('../../docs/research/right-nested-in/native.json',import.meta.url)));
+assert.equal(inNative.sourceId,JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url))).sqliteSourceId);
+for(const c of inNative.cases)test(`R5 packed IN native ${c.encoding}/${c.id}`,()=>withDb(c.encoding,async db=>{
+ assert.deepEqual(c.fixture,corpus.fixtures[c.encoding]);
+ const s=db.prepare(c.sql).statement;
+ try{assert.deepEqual(metadata(s),c.columns);for(const run of c.runs){assert.equal(run.done,101);assert.deepEqual(await rows(s),run.rows);s.reset()}}
+ finally{s.finalize()}
+}));
+// Keep the original atomic capability-gate intent at a real adjacent boundary:
+// ordered table compound RHS cannot be lowered by a terminal-arm table loop.
+for(const enc of Object.keys(corpus.fixtures))test(`R5 packed IN adjacent unsafe compound ${enc}`,()=>withDb(enc,async db=>{
+ const sql='SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k FROM c UNION ALL SELECT k FROM c ORDER BY 1)';
+ assert.throws(()=>db.prepare(sql),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ const s=db.prepare(residual.cases.find(c=>c.encoding===enc&&c.id==='in-left').sql).statement;
+ try{assert.deepEqual(await rows(s),residual.cases.find(c=>c.encoding===enc&&c.id==='in-left').native.first.rows)}finally{s.finalize()}
 }));

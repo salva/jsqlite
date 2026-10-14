@@ -1,0 +1,1595 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "id": "original",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "not-in",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 NOT IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "null",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [],
+          "done": 101
+        },
+        {
+          "rows": [],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL IN(SELECT z.k WHERE 0) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [],
+          "done": 101
+        },
+        {
+          "rows": [],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "empty-not",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL NOT IN(SELECT z.k WHERE 0) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "correlated-empty",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k WHERE b.k=3) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "on-ready",
+      "encoding": "utf8",
+      "fixture": {
+        "path": "repeated-right-full-utf8.db",
+        "sha256": "894b9dc420a9f24b2318d7a5be3627f70612d86f94a975f8606fc277ecaa404d"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k IN(SELECT b.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "original",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "not-in",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 NOT IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "null",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [],
+          "done": 101
+        },
+        {
+          "rows": [],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL IN(SELECT z.k WHERE 0) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [],
+          "done": 101
+        },
+        {
+          "rows": [],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "empty-not",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL NOT IN(SELECT z.k WHERE 0) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "correlated-empty",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k WHERE b.k=3) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "on-ready",
+      "encoding": "utf16le",
+      "fixture": {
+        "path": "repeated-right-full-utf16le.db",
+        "sha256": "19572fbee14e2f0fad4877ed39f00e90d18966d56d6025480923904fb719fb93"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k IN(SELECT b.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "original",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "not-in",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 NOT IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "null",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL IN(SELECT z.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [],
+          "done": 101
+        },
+        {
+          "rows": [],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "empty",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL IN(SELECT z.k WHERE 0) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [],
+          "done": 101
+        },
+        {
+          "rows": [],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "empty-not",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE NULL NOT IN(SELECT z.k WHERE 0) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "correlated-empty",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k=b.k WHERE 3 IN(SELECT z.k WHERE b.k=3) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    },
+    {
+      "id": "on-ready",
+      "encoding": "utf16be",
+      "fixture": {
+        "path": "repeated-right-full-utf16be.db",
+        "sha256": "e0014fc301114faba601bdd8d6a7c96c31d2262775aec2180dca1d874899c4e2"
+      },
+      "sql": "SELECT a.k,b.k,z.k FROM a RIGHT JOIN b ON a.k=-1 LEFT JOIN c z ON z.k IN(SELECT b.k) ORDER BY 1,2,3",
+      "columns": [
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "a",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "b",
+          "origin": "k"
+        },
+        {
+          "name": "k",
+          "declType": "INTEGER",
+          "database": "main",
+          "table": "c",
+          "origin": "k"
+        }
+      ],
+      "runs": [
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        },
+        {
+          "rows": [
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ]
+          ],
+          "done": 101
+        }
+      ]
+    }
+  ]
+}
