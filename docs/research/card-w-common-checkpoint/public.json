@@ -1,0 +1,2324 @@
+[
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT sum(x) FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2)",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "no such table: (subquery)",
+      "code": 1,
+      "kind": "sqlite",
+      "unsupportedClassification": null
+    },
+    "classification": "diagnostic-or-runtime-error",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x FROM t WHERE x>1 UNION SELECT x FROM u WHERE x<4 ORDER BY x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "complex compound table arms are not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x FROM t INTERSECT SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x FROM t EXCEPT SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this recursive aggregate consumer is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info('t') p ON p.cid=0 ORDER BY t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info(t.nm) p ON p.cid=0 ORDER BY t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x,y,typeof(y) FROM g ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "g",
+        "origin": "x"
+      },
+      {
+        "name": "y",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "g",
+        "origin": "y"
+      },
+      {
+        "name": "typeof(y)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x FROM audit ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "audit",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x,js FROM t ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "t",
+        "origin": "js"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b31302c31315d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b32305d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b5d"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b31302c31315d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b32305d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b5d"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info('t') p ON p.cid=0",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "name",
+        "declaredType": null,
+        "database": "main",
+        "table": "pragma_table_info",
+        "origin": "name"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this recursive common table expression consumer is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT x FROM t UNION SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT sum(x) FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2)",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "no such table: (subquery)",
+      "code": 1,
+      "kind": "sqlite",
+      "unsupportedClassification": null
+    },
+    "classification": "diagnostic-or-runtime-error",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x FROM t WHERE x>1 UNION SELECT x FROM u WHERE x<4 ORDER BY x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "complex compound table arms are not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x FROM t INTERSECT SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x FROM t EXCEPT SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this recursive aggregate consumer is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info('t') p ON p.cid=0 ORDER BY t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info(t.nm) p ON p.cid=0 ORDER BY t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x,y,typeof(y) FROM g ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "g",
+        "origin": "x"
+      },
+      {
+        "name": "y",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "g",
+        "origin": "y"
+      },
+      {
+        "name": "typeof(y)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x FROM audit ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "audit",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x,js FROM t ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "t",
+        "origin": "js"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b31302c31315d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b32305d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b5d"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b31302c31315d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b32305d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b5d"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info('t') p ON p.cid=0",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "name",
+        "declaredType": null,
+        "database": "main",
+        "table": "pragma_table_info",
+        "origin": "name"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this recursive common table expression consumer is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT x FROM t UNION SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT sum(x) FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2)",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "no such table: (subquery)",
+      "code": 1,
+      "kind": "sqlite",
+      "unsupportedClassification": null
+    },
+    "classification": "diagnostic-or-runtime-error",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x FROM t WHERE x>1 UNION SELECT x FROM u WHERE x<4 ORDER BY x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "complex compound table arms are not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x FROM t INTERSECT SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x FROM t EXCEPT SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this recursive aggregate consumer is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info('t') p ON p.cid=0 ORDER BY t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info(t.nm) p ON p.cid=0 ORDER BY t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this mixed JSON table composition is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x,y,typeof(y) FROM g ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "g",
+        "origin": "x"
+      },
+      {
+        "name": "y",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "g",
+        "origin": "y"
+      },
+      {
+        "name": "typeof(y)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "696e7465676572"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x FROM audit ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "audit",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x,js FROM t ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "t",
+        "origin": "js"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b31302c31315d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b32305d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b5d"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b31302c31315d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b32305d"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "5b5d"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT t.x,p.name FROM t JOIN pragma_table_info('t') p ON p.cid=0",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      },
+      {
+        "name": "name",
+        "declaredType": null,
+        "database": "main",
+        "table": "pragma_table_info",
+        "origin": "name"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "78"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT t.x FROM r JOIN t ON r.x=t.x",
+    "error": {
+      "name": "JSQLiteError",
+      "message": "this recursive common table expression consumer is not implemented",
+      "code": null,
+      "kind": "unsupported",
+      "unsupportedClassification": "temporary"
+    },
+    "classification": "truthful-unsupported",
+    "recovery": "row"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT x FROM t UNION SELECT x FROM u ORDER BY x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "t",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  }
+]
