@@ -254,7 +254,7 @@ function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDes
  if(producer){const child=producer.result[resolved.columnIndex]?.descriptor;return Object.freeze({name,declaredType:child?.declaredType??null,database:child?.database??null,table:child?.table??null,origin:child?.origin??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});}
  // A recursive ephemeral source has no physical schema provenance. Without
  // a linked subquery producer, columnTypeImpl cannot identify an origin table.
- if(resolved.source.table.rootPage===0)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
+ if(resolved.source.table.rootPage===0&&!schemaSourceProvenance.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
  // select.c:columnTypeImpl uses iPKey for negative TK_COLUMN addressing,
  // not the spelling used to reach that rowid (rowid/_rowid_/oid).
  const columnIndex=resolved.columnIndex<0?integerPrimaryKeyIndex(resolved.source.table):resolved.columnIndex;
@@ -263,8 +263,8 @@ function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDes
  // (iColumn<0 and no INTEGER PRIMARY KEY alias) to INTEGER metadata whose
  // physical origin is the canonical "rowid", regardless of the SQL alias
  // spelling (_rowid_ or oid). Keep database/table provenance as for columns.
- return Object.freeze({name,declaredType:'INTEGER',database:'main',table:resolved.source.table.name,origin:'rowid',affinity:'integer',collation:'BINARY'});
-}return Object.freeze({name,declaredType:c.declaredType,database:'main',table:resolved.source.table.name,origin:c.name,affinity:c.affinity,collation:c.collation??'BINARY'});}
+ return Object.freeze({name,declaredType:'INTEGER',database:schemaSourceProvenance.get(resolved.source.table)?.database??'main',table:schemaSourceProvenance.get(resolved.source.table)?.table??resolved.source.table.name,origin:'rowid',affinity:'integer',collation:'BINARY'});
+}return Object.freeze({name,declaredType:c.declaredType,database:schemaSourceProvenance.get(resolved.source.table)?.database??'main',table:schemaSourceProvenance.get(resolved.source.table)?.table??resolved.source.table.name,origin:c.name,affinity:c.affinity,collation:c.collation??'BINARY'});}
 function mergedDescriptor(name:string,sources:readonly ResolvedColumnRef[]):ResultColumnDescriptor{const first=sources[0],column=first&&first.columnIndex>=0?first.source.table.columns[first.columnIndex]:null;return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:column?.affinity??(first?'integer':null),collation:column?.collation??'BINARY'});}
 /** select.c:sqlite3GenerateColumnNames maps a negative TK_COLUMN to iPKey
  * (or canonical rowid). Keep lookup spelling and physical addressing unchanged:
@@ -929,6 +929,14 @@ export function resolvedExpressionDeclaredType(expression:LemonValue<SqlToken>,p
 
 // SrcItem.u4.pSubq metadata relationship: WeakMap preserves shared TableNode
 // representation without pretending rootPage=0 is a physical origin.
+// select.c:columnTypeImpl distinguishes schema-owned virtual tables from
+// ephemeral producer tables even though neither has a physical btree root.
+// Bind provenance to the SELECT-private table identity, not SQL spellings or
+// output expressions. Producer-derived origins still use their linked plan.
+const schemaSourceProvenance=new WeakMap<TableNode,{readonly database:string;readonly table:string}>();
+export function bindSchemaSourceProvenance(table:TableNode,database:string,name:string):void{
+ freezeTransientTable(table);schemaSourceProvenance.set(table,Object.freeze({database,table:name}));
+}
 const transientProducerPlans=new WeakMap<TableNode,ResolvedSelect>();
 export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{freezeTransientTable(table);transientProducerPlans.set(table,producer);}
 

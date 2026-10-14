@@ -6,7 +6,7 @@ import {StorageLimitError} from './storage.ts';
 import { ExecutionTaskScheduler } from "./task-scheduler.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
-import {resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
+import {bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
 import {findSchemaTable,integerPrimaryKeyColumn,freezeTransientTable,tableColumnToStorage} from "./schema.ts";
 import {resolvedColumnCarrier,resolvedGeneratedExpressionCarrier,resolvedExpressionCarrier,type ResolvedExpressionCarrier,type ResolvedSource,type ResolvedExpressionBinding} from './resolve.ts';
 // First compiled no-FROM scalar SELECT slice. The instruction/register split
@@ -7296,6 +7296,8 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   if(!physical)throw new JSQLiteError("sqlite",`no such table: ${select.from.items[0]!.tableName}`,{code:1});
   const columns=JSON_TABLE_COLUMNS.map((name,index)=>Object.freeze({szEst:0,name,declaredType:index>=8?"":null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
   const virtual:TableNode=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:"table",name:item.tableName,tableName:item.tableName,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
+  // jsonEachConnect has schema provenance despite its absent btree root.
+  bindSchemaSourceProvenance(virtual,"main",item.tableName);
   const transient=schema.withTransientTable(virtual),builder=parent?.builder??new SelectProgramBuilder<Op>(),parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},first=builder.range(physical.columns.length+columns.length+2);
   builder.reserveCursorsThrough(1);
   const quote=(name:string)=>'"'+name.replaceAll('"','""')+'"';

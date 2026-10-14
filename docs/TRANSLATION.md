@@ -486,6 +486,17 @@ exhaustive JSON or virtual-table-planning parity.
 external virtual-table modules remain SPEC exclusions, not an excuse to exclude
 built-in JSON.
 
+## Grouped internal JSON identity metadata
+
+Schema-owned built-in JSON virtual sources retain `main`/module provenance even
+without a btree root. Mixed aggregate saved-phase direct rowid outputs use the
+original resolved source: INTEGER and canonical rowid origin for JSON, or the
+physical table's IPK alias when present. Output aliases change names only;
+computed expressions and unlinked ephemeral producers retain unknown origins.
+LEFT NULL extension changes storage classes, not these prepare-time descriptors.
+No public module registration or generic origin inference is introduced.
+[Source comparison and scoped metadata evidence](research/card-r-d-grouped-rowid-metadata.md).
+
 ## Remaining debt and bounded handoff
 
 This guide consolidates accepted bounded contracts, not universal compatibility.

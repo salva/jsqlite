@@ -1,0 +1,5552 @@
+{
+  "identity": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+  },
+  "cases": [
+    {
+      "id": "nonipk-json_each-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN json_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN json_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN json_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN json_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN json_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN json_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN json_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN jsonb_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN jsonb_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN jsonb_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN jsonb_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN jsonb_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN jsonb_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "blob",
+            "value": "2b1331"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN jsonb_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN jsonb_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN json_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN json_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN json_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN json_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN json_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "[7]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN json_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN json_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN jsonb_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN jsonb_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN jsonb_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN jsonb_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN jsonb_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN jsonb_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "blob",
+            "value": "2b1337"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN jsonb_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN jsonb_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN json_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN json_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN json_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN json_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN json_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN json_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN json_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN jsonb_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN jsonb_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN jsonb_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN jsonb_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN jsonb_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN jsonb_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "blob",
+            "value": "2b1331"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN jsonb_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN jsonb_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN json_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN json_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN json_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN json_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN json_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "[7]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN json_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN json_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN jsonb_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN jsonb_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN jsonb_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN jsonb_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN jsonb_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN jsonb_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "blob",
+            "value": "2b1337"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN jsonb_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN jsonb_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN json_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN json_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN json_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN json_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN json_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN json_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN json_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN jsonb_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN jsonb_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN jsonb_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN jsonb_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-aliases-group",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t1 t CROSS JOIN jsonb_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-correlated-group",
+      "physical": "nonipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t1 t CROSS JOIN jsonb_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "blob",
+            "value": "2b1331"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-predicate-only",
+      "physical": "nonipk",
+      "sql": "SELECT count(*) AS total FROM t1 t CROSS JOIN jsonb_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-aliases-null",
+      "physical": "nonipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t1 t LEFT JOIN jsonb_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN json_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN json_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN json_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_each-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN json_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN json_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN json_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "[7]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN json_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-json_tree-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN json_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN jsonb_each('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN jsonb_each('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN jsonb_each('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_each-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN jsonb_each('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-aliases-group",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,t.rowid AS physical,j.rowid+0 AS computed,count(*) FROM t t CROSS JOIN jsonb_tree('[10,20]') j GROUP BY j.rowid,t.rowid HAVING j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "physical",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-correlated-group",
+      "physical": "ipk",
+      "sql": "SELECT j.rowid AS identity,j.value AS payload,count(*) FROM t t CROSS JOIN jsonb_tree('['||t.rowid||']') j GROUP BY j.rowid,j.value",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "identity",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "payload",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "blob",
+            "value": "2b1337"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-predicate-only",
+      "physical": "ipk",
+      "sql": "SELECT count(*) AS total FROM t t CROSS JOIN jsonb_tree('[10,20]') j WHERE j.rowid>=0",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "total",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "ipk-jsonb_tree-aliases-null",
+      "physical": "ipk",
+      "sql": "SELECT j._rowid_ AS same,j.oid AS same,j.rowid+0 AS computed,count(*) FROM t t LEFT JOIN jsonb_tree('[]') j ON j.rowid<0 GROUP BY j.rowid",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "same",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "computed",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    }
+  ]
+}

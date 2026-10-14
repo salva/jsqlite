@@ -253,3 +253,14 @@ Pinned expr.c:sqlite3ExprCodeGeneratedColumn/GetColumnOfTable → generated lowe
   `vdbe.ts`; lifted terminals retain lexical bindings, generated result ordinals
   own descriptors, ephemeral recursive sources have no physical origin.
   [Eight-case pinned typed/metadata parity](research/recursive-group-window/README.md).
+
+## JSON grouped identity metadata
+
+`json.c:jsonEachConnect` schema-owned virtual declaration and
+`select.c:columnTypeImpl` negative TK_COLUMN/iPKey/schema origin branches →
+`vdbe.ts:compileAggregateSelect` SELECT-private TableNode provenance
+binding → `resolve.ts:descriptor` original-source metadata → existing aggregate
+saved-phase result descriptor. Dedicated row identities remain independent of
+JSON parse offsets/id. [Pinned capture and public regression](research/card-r-d-grouped-rowid-metadata.md)
+cover duplicate aliases, computed/physical controls, all4 modules/all encodings
+and NULL extension/reset; no generic module or planner parity claim.
