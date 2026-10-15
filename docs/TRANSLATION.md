@@ -518,7 +518,12 @@ The bounded physical-left/JSON-right CROSS/INNER/LEFT producer rebinds arguments
 per outer row; LEFT records ON matches before WHERE and clears every visible
 and hidden JSON field for an unmatched row. Rows feed existing AggInfo input
 registers/group sorter, including FILTER and aggregate projections, not a
-parallel evaluator. RIGHT/FULL/NATURAL/USING/reverse correlation remain temporary
+parallel evaluator. Mixed projection ORDER/DISTINCT/LIMIT lowers candidates through
+ordinary KeyInfo/sorter/destination consumers: DISTINCT precedes sorting and
+OFFSET/LIMIT gates delivered rows. Unprojected keys and result aliases/ordinals
+are represented; shared bounded-memory sorter limits remain, not native
+spill/top-N resource equivalence. [Evidence](research/card-r-d-ordered-consumer.md).
+RIGHT/FULL/NATURAL/USING/reverse correlation remain temporary
 unsupported in this route. Cursor offsets use encoded container header widths
 and retained label encodings; binary input preserves original bounds. COLLATE
 keeps direct-column naming but has null declared type and origins, separating

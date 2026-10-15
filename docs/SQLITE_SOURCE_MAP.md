@@ -280,6 +280,12 @@ Pinned expr.c:sqlite3ExprCodeGeneratedColumn/GetColumnOfTable → generated lowe
 
 ## JSON grouped identity metadata
 
+`select.c:selectInnerLoop/codeDistinct/computeLimitRegisters/generateSortTail` →
+`vdbe.ts:compileTableSelectProducer` mixed JSON projection, Found/IdxInsert,
+KeyInfo/Sorter and SelectDest; `json-mixed-ordered.test.mjs` four-module,
+three-encoding typed row/metadata/reset matrix.
+[Evidence](research/card-r-d-ordered-consumer.md).
+
 `json.c:jsonEachConnect` schema-owned virtual declaration and
 `select.c:columnTypeImpl` negative TK_COLUMN/iPKey/schema origin branches →
 `vdbe.ts:compileAggregateSelect` SELECT-private TableNode provenance
