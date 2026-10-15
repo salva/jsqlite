@@ -8,11 +8,13 @@ const repair = '58a22728c6c6d9bf8261aa3154359de8695c47ec';
 // Documentation is evidence guidance, not an oracle or a browser execution gate.
 // Preserve the original discriminators while guarding against reintroducing the
 // stale current failure instructions found by card-m-f-d after the repair.
-test('browser lane guidance distinguishes repaired gap2 from accepted current38', () => {
+test('browser lane guidance distinguishes repaired gap2 from current48 evidence', () => {
   for (const name of ['LANES.md', 'README.md']) {
     const text = read(name);
     assert.ok(text.includes(repair), `${name}: identify the exact repair`);
-    assert.match(text, /current 38\/38 pass/);
+    assert.match(text, /full47 \+ Chinook48/);
+    assert.match(text, /359/);
+    assert.match(text, /record:\/\/\/status\.md\?card=card-v-d&v=109/);
     assert.match(text, /original gap 2\/2 pass/);
     assert.match(text, /denominators are separate|separate\s+denominators/);
     assert.match(text, /not a 40\/40 conformance claim/);
@@ -38,4 +40,15 @@ test('original browser gap SQL and success/limit thresholds remain distinct', ()
   assert.ok(runner.includes("maxPrivateBytes:c.id==='budget-composed'?300:150"));
   assert.ok(runner.includes(`['private-shared', '${sql}',{limits:{maxPrivateBytes:150}}, {},{kind:'limit'},false]`));
   assert.ok(runner.includes("lane:id==='private-shared'?'gap':'current'"));
+});
+
+test('current window guidance distinguishes live peak from composed bounded probes', () => {
+  for (const name of ['README.md', 'LANES.md']) {
+    const text = read(name);
+    assert.match(text, /192[^\n]*96[^\n]*71/);
+    assert.match(text, /358/);
+    assert.match(text, /no consumed.sorter refund/i);
+    assert.doesNotMatch(text, /success336|success at maxPrivateBytes=336|ending at 336|buffer144/);
+    assert.match(text, /not.*exact composed.*peak/i);
+  }
 });

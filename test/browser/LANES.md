@@ -17,32 +17,29 @@ JSQLITE_BROWSER_LANE=all timeout 180s node test/browser/run.mjs # both
 
 Report selection records lane, declared counts and gap IDs/SQL/provenance.
 Archive report.json after each invocation; each run overwrites it. Independent
-review [[card:card-m-f-d]] reran **current 38/38 pass** and **original gap 2/2 pass**
-in Chromium 153.0.8010.12 / Playwright 1.63.0. Those denominators are separate,
-not a 40/40 conformance claim. Gap success checks exact native rows at
-maxPrivateBytes=300; the 150-byte control requires a runtime limit, saved error
-and cleanup, not unsupported prepare success. Evidence and archived report hashes:
-[review status](record:///status.md?card=card-m-f-d&v=39).
+review [card-v-d v109](record:///status.md?card=card-v-d&v=109) authenticated
+LOCAL alpha.6 source a572862f and installed artifact: **full47 + Chinook48**,
+current48 and **original gap 2/2 pass**, Chromium148 / Playwright1.60.
+These denominators are separate, not a 40/40 conformance claim. Publication is
+WITHDRAWN/DEFERRED. Historical current38 reviews remain revision-bound at
+[earlier review](record:///status.md?card=card-m-f-d&v=39).
+Gap success checks native rows at300; rejection150 requires runtime limit,
+saved primary error and cleanup. This is not an exact composed allocator peak.
 
-The previously admitted replacement remains in current coverage: existing aggregate-window-private-controls ordinal44 SQL
-on digest-bound w2rows.db, `sum(d)` with one preceding/following frame. Native
-capture-window.py independently captures successful ordered metadata/typed rows.
-Browser success at maxPrivateBytes=336 checks those exact native values and reset
-reexecution. Limit at 200 checks primary saved error, cleanup and connection reuse.
+Current admitted window ordinal44 on digest-bound w2rows.db uses `sum(d)` with
+one preceding/following frame. Independently captured typed rows/metadata remain
+unchanged. Browser success359/reset and rejection358/200 exercise shared budget.
+Dev-only `observe-window-budget.mjs` temporarily wraps reserve/release/cursor
+methods and restores them in finally; no runtime artifacts are modified.
+Peak359 = retained sorter192 + frame96 + packed71 logical bytes on the same budget.
+There is no consumed-sorter refund. Delete releases24 before the next non-release
+cursor transition (transient packed releases may intervene); halt drains to0,
+reset reexecution again reaches359. Source-derived private-controls/lookahead114
+checks supplement, not replace, browser execution. Evidence and historical failed
+observer assumptions: [b48](record:///status.md?card=card-v-b&v=48).
 
-`timeout 30s node test/browser/observe-window-budget.mjs` is a development-only
-observation against the same emitted ESM closure. It temporarily wraps reservation
-methods, restores them in finally, and does not alter browser/runtime artifacts.
-Observed six sorter reserves of 32 bytes (192 total), then six window ephemeral
-reserves of 24 on the **same budget object**, beginning at usedBytes=192 and
-ending at 336. VM SorterOpen/OpenEphemeral pass the same #privateBytes; sorter
-records remain reserved through drain while window buffer inserts occur. This
-proves live shared ownership rather than guessing from SQL names. A 200 bound
-admits sorter-alone192 and buffer-alone144 but rejects simultaneous total; 336
-admits complete query. No native memory-count parity claim: these are documented
-logical browser private-byte units, not C allocation sizes. Pinned window.c
-windowCacheFrame/windowCodeStep and vdbe.c sorter/buffer lifecycle are owner
-references. Public aggregate-window controls and primitive shared-budget tests
-also pass (9/9 in one scoped Node command), supplementing rather than replacing
-browser proof. Broader optimizer/whole-product debt remains; independent reviewer
-acceptance is still required.
+Pinned window.c windowCodeOp/windowCodeStep and vdbe.c sorter/buffer lifecycle
+own the path; VM SorterOpen/OpenEphemeral share #privateBytes. These are logical
+browser units, not native heap/work/performance parity. Historical336 =192+144
+observations describe their old revision only, not current limits. Broader
+optimizer/product debt and Chromium-only/external-watchdog boundaries remain.

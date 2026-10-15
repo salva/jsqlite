@@ -5,7 +5,7 @@ ESM closure, then uses actual browser Fetch over loopback HTTP to acquire
 immutable SQLite bytes. No native/WASM/server SQL evaluator or Fetch mock.
 Build/package production belongs to [[card:card-v-a]]; **finish builds before
 running browser suites**, since rebuilds remove dist. Independent bounded review
-[[card:card-v-d]] verified the current artifact and delivery. This is not global
+[[card:card-v-d]] verified revision-bound artifacts and delivery. This is not global
 SQLite compatibility or product-release approval.
 
 ## Setup and run (repository root)
@@ -38,22 +38,24 @@ SIGTRAP when given an explicit full-Chrome executable override; default tooling
 subsequently passed. Cause was not established: no arbitrary-executable override
 reliability claim follows from the default-tooling results.
 
-Current unfiltered lane with local Chinook: **38 declared/executed, 38 pass**,
-Chromium 148.0.7778.96 / Playwright 1.60.0, including repeated independent review.
-Without `JSQLITE_CHINOOK`, that optional case is omitted and selection reports it
-(37 current cases). Chinook bytes/license are now vendored by the demo; see
-[CHINOOK-LICENSE.md](CHINOOK-LICENSE.md) and `examples/browser/CHINOOK-LICENSE.md`.
+Current unfiltered inventory: **full47 + Chinook48** (47 without optional
+`JSQLITE_CHINOOK`, 48 with it); omission/filtering is reported. Actual current48
+and separate original gap 2/2 pass are revision-bound results, not a universal
+compatibility count. Licensed bytes: [CHINOOK-LICENSE.md](CHINOOK-LICENSE.md).
 
 ## Current versus roadmap gap lanes
 
 See [LANES.md](LANES.md) for source ownership, live-budget evidence and scope.
 The two unchanged derived-composition probes now pass their original assertions
 after retained ORDER-key repair `58a22728c6c6d9bf8261aa3154359de8695c47ec`.
-Independent review reran **current 38/38 pass** and **original gap 2/2 pass**
-with Chromium 153.0.8010.12 / Playwright 1.63.0. These remain separate
-denominators, not a 40/40 conformance claim or new SQL compatibility credit.
-Historical unsupported prepare failures are retained in BUDGET-GAP.md; the
-accepted bounded current-admission milestone is unchanged:
+Independent LOCAL alpha.6 acceptance and exact source/artifact provenance:
+[card-v-d v109](record:///status.md?card=card-v-d&v=109), source
+`a572862f74876f8c29a7ab4697cfb5e9fc842840`, tarball SHA256
+`66dfc717f6b490b347f67064afea59a076d3c7ac462bde29e702c543949019d8`.
+Chromium148.0.7778.96 / Playwright1.60.0 executed current48 and original gap 2/2 pass.
+These are separate denominators, not a 40/40 conformance claim or new SQL credit.
+Historical unsupported prepare failures remain in BUDGET-GAP.md. Publication is
+WITHDRAWN/DEFERRED; this documentation does not repack or retag that artifact.
 
 ```sh
 # Archive the current report before running another lane.
@@ -96,12 +98,15 @@ header/schema plus corrupted t1 root flags test SQLITE_CORRUPT11 **during step**
 including saved reset error; not merely open-time malformed-format rejection.
 
 Admitted aggregate-window ordinal44 rows are independently native captured.
-Development-only observation confirms sorter192 plus buffer144 logical bytes on
-one live execution budget. Public browser success336/reset and limit200/cleanup
-exercise shared budgeting: 200 admits either standalone store but not their live
-combined reservation. These are browser logical-byte adaptation units, **not C
-allocation parity**. Browser mechanics and lifecycle controls earn no extra
-upstream compatibility credit.
+Development-only observation confirms peak359 = retained sorter192 + frame96 + packed71
+logical bytes on one live budget, with **no consumed-sorter refund**. Public
+browser success359/reset and rejection358/200 check the current boundary.
+Delete releases frame bytes before the next non-release cursor transition;
+halt releases to zero and reset reexecution is checked. See [LANES.md](LANES.md)
+and [b48 evidence](record:///status.md?card=card-v-b&v=48). The separate composed
+probes establish bounded300 success/150 rejection, not an exact composed allocator peak.
+These are logical-byte adaptation units, not C allocation parity or performance
+guarantees. Browser mechanics earn no extra upstream compatibility credit.
 
 Recapture independently to work-root files and compare, rather than overwriting
 expectations based on browser results:
@@ -125,7 +130,7 @@ scripts/connect to self, service workers are blocked. Digest-bound Chinook and
 fixtures execute locally. Package closure/security checks supplement real browser
 execution, not replace it or certify universal security.
 
-Independent [[card:card-v-d]] review rebuilt/checked current package identity
+Independent [[card:card-v-d]] review historically rebuilt/checked package identity
 (31 emitted JS modules), historically reran current38, failing gap2, ownership, native captures
 and demo sequentially. See [its exact findings and historical failures](record:///status.md?card=card-v-d&v=6).
 Earlier harness authoring failures, historical 29/33-case runs and preliminary
