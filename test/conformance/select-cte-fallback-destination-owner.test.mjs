@@ -4,6 +4,16 @@ import path from 'node:path';
 import {startFixtureServer} from './fixture-server.mjs';
 import {openFixture} from './public-api-adapter.mjs';
 
+// Each case owns a new server and makes one fixture fetch. Advertise response
+// connection closure before streaming starts: server.close() can otherwise race
+// the HTTP response becoming idle and wait ~3 seconds per case. Do not destroy
+// active sockets or weaken database/statement cleanup or the file watchdog.
+async function startCaseFixtureServer(){
+ const bridge=await startFixtureServer(path.resolve('test/fixtures'));
+ bridge.server.prependListener('request',(_request,response)=>response.setHeader('Connection','close'));
+ return bridge;
+}
+
 // select.c sqlite3Select() tag-select-0482/0484 materializes derived arms in
 // the enclosing Parse/Vdbe; multiSelect and selectInnerLoop share destinations.
 // Paired with select-derived-composition-native.py on pinned 3.53.4.
@@ -14,7 +24,7 @@ const cases=[
  {sql:'WITH c AS MATERIALIZED (SELECT x FROM t2 LIMIT 2) SELECT l.x AS y FROM c l CROSS JOIN c r ORDER BY 1',names:['y'],rows:[[1n],[1n],[1n],[1n]]},
 ];
 for(const encoding of ['utf8','utf16le','utf16be'])for(const {sql,names,rows} of cases)test(`derived compound destination ${encoding}: ${sql}`,async()=>{
- const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
+ const bridge=await startCaseFixtureServer();let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-${encoding}`));
   const statement=db.prepare(sql).statement;
@@ -43,7 +53,7 @@ test('forced/repeated CTE fallback owns destination rather than completed child 
 });
 
 test('forced CTE child missing identifier stays lexical before empty LIMIT',async()=>{
- const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;
+ const bridge=await startCaseFixtureServer();let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-utf8`));
   assert.throws(()=>db.prepare('WITH c AS MATERIALIZED (SELECT missing AS x FROM t2 LIMIT 0) SELECT x FROM c ORDER BY 1'),error=>error.kind==='sqlite'&&error.code===1&&/no such column/.test(error.message));
@@ -51,7 +61,7 @@ test('forced CTE child missing identifier stays lexical before empty LIMIT',asyn
 });
 
 for(const encoding of ['utf8','utf16le','utf16be'])test(`materialized cursor ownership ${encoding} rebinds LIMIT and NULL input`,async()=>{
- const bridge=await startFixtureServer(path.resolve('test/fixtures'));let db;let statement;
+ const bridge=await startCaseFixtureServer();let db;let statement;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/subquery-${encoding}`));
   statement=db.prepare('WITH c AS MATERIALIZED (SELECT ?1 AS x FROM t1 LIMIT ?2 OFFSET ?3) SELECT x FROM c ORDER BY 1').statement;
