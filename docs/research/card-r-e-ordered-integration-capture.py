@@ -23,10 +23,12 @@ for physical,table in [('nonipk','t1')]:
    ('badblob',"SELECT j.value FROM @P t JOIN @J(x'ff') j ORDER BY j.key LIMIT 1"),
    ('distinctprojection',"SELECT DISTINCT j.atom FROM @P t JOIN @J('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1"),
   ]:cases.append({'id':physical+'-'+function+'-'+id,'physical':physical,'sql':sql.replace('@P',table).replace('@J',function)})
+cases.append({'id':'exact-checkpoint','physical':'checkpoint','sql':'SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key'})
 output={'identity':identity,'cases':[]}
 for encoding in ['utf8','utf16le','utf16be']:
  for case in cases:
   fixture=(root/f'test/fixtures/generations/{g}/generated/encoding-{encoding}.db') if case['physical']=='nonipk' else root/f'test/conformance/fixtures/row-width-ipk-{dict(utf8="utf-8",utf16le="utf-16le",utf16be="utf-16be")[encoding]}.db'
+  if case['physical']=='checkpoint':fixture=root/f'test/conformance/fixtures/json-ordered-checkpoint/{dict(utf8="UTF-8",utf16le="UTF-16le",utf16be="UTF-16be")[encoding]}-corrected.sqlite'
   d=P();assert lib.sqlite3_open_v2(str(fixture).encode(),C.byref(d),1,None)==0
   s=P();rc=lib.sqlite3_prepare_v2(d,case['sql'].encode(),-1,C.byref(s),None);entry=dict(case,encoding=encoding,columns=[],rows=[])
   if rc:entry['error']={'phase':'prepare','code':rc,'message':lib.sqlite3_errmsg(d).decode()}

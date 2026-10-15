@@ -10,7 +10,8 @@ for(const entry of capture.cases)test(`ordered integration pinned ${entry.encodi
  const fixture=entry.physical==='nonipk'?`encoding-${encoding}`:`row-width-ipk-${{utf8:'utf-8',utf16le:'utf-16le',utf16be:'utf-16be'}[encoding]}`;
  const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
  const fixturePath=entry.physical==='nonipk'?new URL(`../fixtures/generations/${generation}/generated/${fixture}.db`,import.meta.url):new URL(`./fixtures/${fixture}.db`,import.meta.url);
- const bytes=fs.readFileSync(fixturePath);let db;const old=globalThis.fetch;
+ const actualFixture=entry.physical==='checkpoint'?new URL(`./fixtures/json-ordered-checkpoint/${{utf8:'UTF-8',utf16le:'UTF-16le',utf16be:'UTF-16be'}[encoding]}-corrected.sqlite`,import.meta.url):fixturePath;
+ const bytes=fs.readFileSync(actualFixture);let db;const old=globalThis.fetch;
  try{globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/rowid');globalThis.fetch=old;
  {
   let s;try{

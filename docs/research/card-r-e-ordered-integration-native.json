@@ -1805,6 +1805,60 @@
       ]
     },
     {
+      "id": "exact-checkpoint",
+      "physical": "checkpoint",
+      "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
       "id": "nonipk-json_each-dynamic",
       "physical": "nonipk",
       "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
@@ -3605,6 +3659,60 @@
       ]
     },
     {
+      "id": "exact-checkpoint",
+      "physical": "checkpoint",
+      "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
       "id": "nonipk-json_each-dynamic",
       "physical": "nonipk",
       "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
@@ -5400,6 +5508,60 @@
           {
             "type": "null",
             "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "exact-checkpoint",
+      "physical": "checkpoint",
+      "sql": "SELECT t.x,j.value FROM t JOIN json_each(t.js) j ORDER BY t.x,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "10"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "20"
           }
         ]
       ]
