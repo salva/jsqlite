@@ -1,0 +1,5408 @@
+{
+  "identity": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+  },
+  "cases": [
+    {
+      "id": "nonipk-json_each-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN json_each('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_each('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_each('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_each('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_each-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_each(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_each-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN json_each('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "[1,null]"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "[2,1]"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN json_tree('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_tree('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "a.b"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "[2,1]"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_tree('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_tree('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_tree-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_tree(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_tree-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN json_tree('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN jsonb_each('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_each('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_each('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_each('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_each-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_each(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_each-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN jsonb_each('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "blob",
+            "value": "3b133100"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "blob",
+            "value": "4b13321331"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN jsonb_tree('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_tree('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "a.b"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "blob",
+            "value": "4b13321331"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_tree('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_tree('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_tree-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_tree(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_tree-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN jsonb_tree('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN json_each('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_each('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_each('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_each('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_each-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_each(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_each-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN json_each('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "[1,null]"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "[2,1]"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN json_tree('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_tree('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "a.b"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "[2,1]"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_tree('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_tree('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_tree-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_tree(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_tree-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN json_tree('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN jsonb_each('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_each('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_each('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_each('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_each-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_each(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_each-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN jsonb_each('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "blob",
+            "value": "3b133100"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "blob",
+            "value": "4b13321331"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN jsonb_tree('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_tree('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "a.b"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "blob",
+            "value": "4b13321331"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_tree('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_tree('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_tree-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_tree(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_tree-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN jsonb_tree('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN json_each('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_each('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_each('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_each-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_each('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_each-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_each(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_each-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN json_each('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "[1,null]"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "[2,1]"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN json_tree('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_tree('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "a.b"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "[2,1]"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN json_tree('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-json_tree-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_tree('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_tree-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN json_tree(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-json_tree-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN json_tree('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN jsonb_each('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_each('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_each('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_each-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_each('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_each-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_each(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_each-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN jsonb_each('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-dynamic",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('['||t.rowid||',null]') j ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "blob",
+            "value": "3b133100"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-binary",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(jsonb('[1,2,null]')) j ORDER BY t.rowid DESC,j.key LIMIT 4 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-path",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('{\"a\":[2,1]}',CASE WHEN t.rowid>0 THEN '$.a' ELSE '$' END) j ORDER BY t.rowid,j.key LIMIT 4",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "blob",
+            "value": "4b13321331"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-quoted",
+      "physical": "nonipk",
+      "sql": "SELECT j.atom AS \"odd alias\",t.rowid AS \"odd alias\" FROM t1 t JOIN jsonb_tree('[2,1,1]') j ORDER BY 1 DESC,2 LIMIT 5",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "odd alias",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "atom"
+        },
+        {
+          "name": "odd alias",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-rootfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_tree('{\"a.b\":[2,1]}','$.\"a.b\"') j ORDER BY t.rowid,j.id LIMIT 3",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "a.b"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "blob",
+            "value": "4b13321331"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[0]"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\""
+          },
+          {
+            "type": "text",
+            "value": "$.\"a.b\"[1]"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-indexfields",
+      "physical": "nonipk",
+      "sql": "SELECT j.key,j.path,j.fullkey,j.value FROM t1 t JOIN jsonb_tree('[10,20]','$[#-1]') j ORDER BY t.rowid,j.id LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "key"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "path"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "fullkey"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "text",
+            "value": "$"
+          },
+          {
+            "type": "text",
+            "value": "$[#-1]"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-null",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree(NULL) j ON 1 ORDER BY t.rowid LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    },
+    {
+      "id": "nonipk-jsonb_tree-badtext",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_tree('bad') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_tree-badblob",
+      "physical": "nonipk",
+      "sql": "SELECT j.value FROM t1 t JOIN jsonb_tree(x'ff') j ORDER BY j.key LIMIT 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      }
+    },
+    {
+      "id": "nonipk-jsonb_tree-distinctprojection",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT j.atom FROM t1 t JOIN jsonb_tree('[null,2,2,1]') j ORDER BY j.key DESC LIMIT 2 OFFSET 1",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "atom"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ]
+    }
+  ]
+}
