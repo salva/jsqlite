@@ -280,6 +280,22 @@ Pinned expr.c:sqlite3ExprCodeGeneratedColumn/GetColumnOfTable → generated lowe
 
 ## JSON grouped identity metadata
 
+`select.c:selectInnerLoop/codeDistinct/computeLimitRegisters/generateSortTail` →
+`vdbe.ts:compileTableSelectProducer` mixed JSON projection, Found/IdxInsert,
+KeyInfo/Sorter and SelectDest; `json-mixed-ordered.test.mjs` four-module,
+three-encoding typed row/metadata/reset matrix.
+[Evidence](research/card-r-d-ordered-consumer.md).
+
+`wherecode.c:sqlite3WhereCodeOneLoopStart` prerequisite and outer-join deferral
+branches, plus `resolve.c:lookupName` and `whereexpr.c` source usage → mixed
+`compileTableSelectProducer` complete-scope binding before source-identity AND-term lowering:
+INNER/CROSS terms precede JSON/metadata Filter; inner-dependent terms remain
+residual. LEFT retains ON-match/WHERE/null-extension ownership. Public typed
+rows, full descriptors, step-error phase and repeated execution/reset controls:
+`json-mixed-readiness.test.mjs`, [native/source evidence](research/card-r-d-readiness.md).
+Visible/hidden name-collision prepare errors and qualified controls:
+`json-mixed-resolution*.test.mjs`, [resolution evidence](research/card-r-d-resolution.md).
+
 `json.c:jsonEachConnect` schema-owned virtual declaration and
 `select.c:columnTypeImpl` negative TK_COLUMN/iPKey/schema origin branches →
 `vdbe.ts:compileAggregateSelect` SELECT-private TableNode provenance

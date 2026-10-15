@@ -239,19 +239,36 @@ export function openJsonTableCursor(value:Mem,recursive:boolean,charge:(n:number
   const text=(x:string)=>{const m=new Mem();m.setText(te.encode(x),"utf-8");return m},integer=(x:bigint)=>{const m=new Mem();m.setInt64(x);return m},nil=()=>{const m=new Mem();m.setNull();return m};
   const size=(node:JsonNode)=>{const bounds=jsonbBounds.get(node);return bounds?bounds.end-bounds.start:encodeJsonb(node).length};
   let selectedId=0,selectedValueAt=0;
+  const positions=new WeakMap<JsonNode,number>();
   const valueStart=(node:JsonNode,fallback:number)=>jsonbBounds.get(node)?.start??fallback;
   // json.c jsonBlobChangePayloadSize selects the container header from its
   // actual payload size; text parse images do not invariably have one-byte headers.
   const contentStart=(node:JsonNode,at:number)=>at+(jsonbBounds.get(node)?jsonbSize(value.blobValue(),at)!.header:jsonbSize(encodeJsonb(node),0)!.header);
   const labelSize=(node:JsonNode,index:number,label:string)=>{const encoding=jsonbLabelEncodings.get(node)?.[index];return encoding?header(encoding.type,encoding.payload.length).length+encoding.payload.length:encodeJsonb({kind:"string",value:label}).length};
-  const locate=(node:JsonNode,id:number,valueAt:number):boolean=>{if(node===selected){selectedId=id;selectedValueAt=valueAt;return true}let at=contentStart(node,valueAt);if(node.kind==="array")for(const child of node.values){const childAt=valueStart(child,at);if(locate(child,childAt,childAt))return true;at=childAt+size(child)}else if(node.kind==="object")for(let i=0;i<node.entries.length;i++){const [label,child]=node.entries[i]!,labelAt=jsonbLabels.get(node)?.[i]??at,childAt=valueStart(child,labelAt+labelSize(node,i,label));if(locate(child,labelAt,childAt))return true;at=childAt+size(child)}return false};
+  const locate=(node:JsonNode,id:number,valueAt:number):boolean=>{if(node===selected){positions.set(node,valueAt);selectedId=id;selectedValueAt=valueAt;return true}let at=contentStart(node,valueAt);if(node.kind==="array")for(const child of node.values){const childAt=valueStart(child,at);if(locate(child,childAt,childAt)){positions.set(node,valueAt);return true};at=childAt+size(child)}else if(node.kind==="object")for(let i=0;i<node.entries.length;i++){const [label,child]=node.entries[i]!,labelAt=jsonbLabels.get(node)?.[i]??at,childAt=valueStart(child,labelAt+labelSize(node,i,label));if(locate(child,labelAt,childAt)){positions.set(node,valueAt);return true};at=childAt+size(child)}return false};
   if(selected)locate(document,0,0);
   const valueResult=(node:JsonNode):Mem=>{if(node.kind!=="array"&&node.kind!=="object")return scalarResult(node);if(!binaryContainers)return jsonTextResult(node);const bounds=jsonbBounds.get(node);if(!bounds)return jsonbResult(node);const out=new Mem();out.setBlob(value.blobValue().slice(bounds.start,bounds.end));return out};
   // json.c jsonEachColumn and json_type share the aJsonType label owner.
   const type=jsonTypeName;
   const row=(key:Mem,node:JsonNode,id:number,parent:number|null,fullkey:string,path:string,depth:number):readonly Mem[]=>{replace(inputBytes+parseBytes+(fullkey.length+path.length+rootPath.length)*2+(depth+1)*64);charge(1);return Object.freeze([key,valueResult(node),text(type(node)),node.kind==="array"||node.kind==="object"?nil():scalarResult(node),integer(BigInt(id)),parent===null?nil():integer(BigInt(parent)),text(fullkey),text(path),value,text(rootPath)])};
   function *walk(node:JsonNode,id:number,valueAt:number,parent:number|null,key:Mem,fullkey:string,path:string,depth:number):Generator<readonly Mem[]>{yield row(key,node,id,parent,fullkey,path,depth);if(!recursive)return;let at=contentStart(node,valueAt);if(node.kind==="array")for(let i=0;i<node.values.length;i++){const child=node.values[i]!,childAt=valueStart(child,at),childPath=`${fullkey}[${i}]`;yield*walk(child,childAt,childAt,id,integer(BigInt(i)),childPath,fullkey,depth+1);at=childAt+size(child)}else if(node.kind==="object")for(let i=0;i<node.entries.length;i++){const [label,child]=node.entries[i]!,childId=jsonbLabels.get(node)?.[i]??at,childAt=valueStart(child,childId+labelSize(node,i,label)),childPath=/^[A-Za-z][A-Za-z0-9]*$/.test(label)?`${fullkey}.${label}`:`${fullkey}.${quote(label)}`;yield*walk(child,childId,childAt,id,text(label),childPath,fullkey,depth+1);at=childAt+size(child)}}
-  function *rows():Generator<readonly Mem[]>{if(!selected)return;if(recursive){yield*walk(selected,selectedId,selectedValueAt,null,nil(),rootPath,rootPath,0);return}if(selected.kind!=="array"&&selected.kind!=="object"){yield row(nil(),selected,selectedId,null,rootPath,rootPath,0);return}let at=contentStart(selected,selectedValueAt);if(selected.kind==="array")for(let i=0;i<selected.values.length;i++){const node=selected.values[i]!,id=valueStart(node,at);yield row(integer(BigInt(i)),node,id,null,`${rootPath}[${i}]`,rootPath,1);at=id+size(node)}else for(let i=0;i<selected.entries.length;i++){const [key,node]=selected.entries[i]!,id=jsonbLabels.get(selected)?.[i]??at,childAt=valueStart(node,id+labelSize(selected,i,key));yield row(text(key),node,id,null,/^[A-Za-z][A-Za-z0-9]*$/.test(key)?`${rootPath}.${key}`:`${rootPath}.${quote(key)}`,rootPath,1);at=childAt+size(node)}}
+  // json.c jsonEachPathLength/JEACH_KEY: the first recursive row retains
+  // the selected path's final segment, not an unconditional NULL key. Match
+  // prefix payload position to the label/value position, including quoted dots.
+  let rootKey=nil(),rootParentPath=rootPath;
+  if(recursive&&selected&&rootPath.length>=2){
+   let n=rootPath.length;
+   while(n>1){n--;if(rootPath[n]!=="["&&rootPath[n]!==".")continue;
+    try{const prefix=jsonLookup(document,rootPath.slice(0,n)),at=prefix&&positions.get(prefix);
+     if(prefix&&at!==undefined&&contentStart(prefix,at)===selectedId)break;
+    }catch{/* A separator inside a quoted label is not a valid parent path. */}
+   }
+   rootParentPath=rootPath.slice(0,n);
+   const suffix=rootPath.slice(n);
+   if(suffix.startsWith("[")){const digits=/^[+-]?\d+/.exec(suffix.slice(1));rootKey=integer(digits?BigInt(digits[0]):0n)}
+   else rootKey=text(suffix.startsWith('."')?suffix.slice(2,-1):suffix.slice(1));
+  }
+  function *rows():Generator<readonly Mem[]>{if(!selected)return;if(recursive){yield*walk(selected,selectedId,selectedValueAt,null,rootKey,rootPath,rootParentPath,0);return}if(selected.kind!=="array"&&selected.kind!=="object"){yield row(nil(),selected,selectedId,null,rootPath,rootPath,0);return}let at=contentStart(selected,selectedValueAt);if(selected.kind==="array")for(let i=0;i<selected.values.length;i++){const node=selected.values[i]!,id=valueStart(node,at);yield row(integer(BigInt(i)),node,id,null,`${rootPath}[${i}]`,rootPath,1);at=id+size(node)}else for(let i=0;i<selected.entries.length;i++){const [key,node]=selected.entries[i]!,id=jsonbLabels.get(selected)?.[i]??at,childAt=valueStart(node,id+labelSize(selected,i,key));yield row(text(key),node,id,null,/^[A-Za-z][A-Za-z0-9]*$/.test(key)?`${rootPath}.${key}`:`${rootPath}.${quote(key)}`,rootPath,1);at=childAt+size(node)}}
   const iterator=rows();return{next(){if(closed)return null;const item=iterator.next();if(item.done){this.close();return null}return item.value},close(){if(!closed){closed=true;iterator.return?.(undefined);replace(0)}}};
  }catch(error){if(retained)replace(0);throw error}
 }

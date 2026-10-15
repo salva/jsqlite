@@ -1,0 +1,6812 @@
+{
+  "identity": {
+    "version": "3.53.4",
+    "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+  },
+  "cases": [
+    {
+      "id": "nonipk-json_each-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf8",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16le",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_each-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_each('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_each-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_each('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-json_tree-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN json_tree('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-json_tree-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN json_tree('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_each-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_each('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_each-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_each('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-where-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j WHERE t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-skip-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid<0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-exact",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-distinct",
+      "physical": "nonipk",
+      "sql": "SELECT DISTINCT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-on-survive-stream",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree(CASE WHEN t.rowid>0 THEN 'bad' ELSE '[]' END) j ON t.rowid>0 AND j.rowid>=0 LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    },
+    {
+      "id": "nonipk-jsonb_tree-valid-mixed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t JOIN jsonb_tree('[10,20]') j ON t.rowid>0 AND j.rowid>=0 WHERE t.rowid<3 AND j.atom=20 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "20"
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-on-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('[10]') j ON t.rowid<0 WHERE t.rowid<3 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ]
+      ],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-where-false",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('[10]') j ON t.rowid>0 WHERE j.rowid<0 ORDER BY t.rowid,j.key",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "resetCode": 0,
+      "repeatEndCode": 101
+    },
+    {
+      "id": "nonipk-jsonb_tree-left-malformed",
+      "physical": "nonipk",
+      "sql": "SELECT t.rowid,j.value FROM t1 t LEFT JOIN jsonb_tree('bad') j ON t.rowid<0 ORDER BY t.rowid,j.key LIMIT 2",
+      "encoding": "utf16be",
+      "columns": [
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t1",
+          "origin": "rowid"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        }
+      ],
+      "rows": [],
+      "error": {
+        "phase": "step",
+        "code": 1,
+        "message": "malformed JSON"
+      },
+      "resetCode": 1,
+      "repeatEndCode": 1
+    }
+  ]
+}
