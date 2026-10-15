@@ -54,6 +54,17 @@ Exact historical candidate identities and peer proposals are preserved in
 [reconciliation evidence](research/card-u-reconciliation/README.md), not promoted
 from dirty working bytes. Root owns subsequent roadmap and delivery decisions.
 
+## Current local package delivery
+
+The bounded browser ESM/declaration distributable is local **alpha.6**, tested
+source `a572862f74876f8c29a7ab4697cfb5e9fc842840`, not current HEAD or an
+evidence-only successor. [Package identity, acquisition and finite acceptance](research/card-v-a-alpha-six.md)
+and the [current quickstart](../README.md#private-local-alpha) distinguish the
+immutable artifact's historical README limitation from mutable guidance.
+Immediate public alpha.6 publication is **WITHDRAWN/DEFERRED**, not completed;
+historical public alpha.5 remains unchanged. This finite local acceptance is not
+beta, all-browser certification, full SQLite compatibility or project completion.
+
 ## Stage 0: Pin And Orient
 
 Use the verified latest-stable SQLite 3.53.4 full source/test archive selected by

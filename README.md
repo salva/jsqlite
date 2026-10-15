@@ -34,26 +34,29 @@ The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
 ## PRIVATE LOCAL alpha
 
-The local alpha packages the implemented, bounded read-only core; it is not full
-SQLite compatibility, arbitrary SQL-composition support or a public release.
-[Finite supported/gap/exclusion matrix](docs/research/card-v-private-alpha.md)
-and [current candidate evidence/identity](docs/research/card-v-a-alpha-five.md) identify the
-exact source, artifact and independent test boundaries. SPEC breadth is unchanged;
-unimplemented in-scope constructs remain temporary gaps, not new exclusions.
-The alpha.5 candidate includes accepted skipscan, joined aggregate, task scheduler
-and parser repairs, with exact-source finite readiness evidence. New versioned
-installed-demo and independent acceptance remain required; historical alpha.4
-acceptance is unchanged, not transferred to this artifact. Performance observations
-are finite tests, not workload-wide latency/heap guarantees or other-browser proof.
-Only private local consumption is authorized: no registry, public repository or
-external distribution. Final installed-artifact demo/review is tied to its digest.
+The current local distributable is **0.0.0-alpha.6**, a bounded read-only
+browser ESM package, not full SQLite compatibility or arbitrary SQL composition.
+[Exact artifact/source and package evidence](docs/research/card-v-a-alpha-six.md)
+identify the tested source, retained local acquisition path and finite independent
+acceptance. SPEC breadth is unchanged; untranslated in-scope constructs remain
+temporary gaps, not new exclusions. Performance observations are finite tests,
+not workload-wide latency/heap guarantees or other-browser proof.
+
+Immediate public alpha.6 publication is **WITHDRAWN/DEFERRED**, not completed.
+Historical [public alpha.5](https://github.com/salva/jsqlite/releases/tag/v0.0.0-alpha.5)
+has a different source/artifact and remains unchanged. Do not use its download as
+current-engine delivery. The immutable alpha.6 tarball contains a historical
+README still naming alpha.5; use this mutable guidance instead. Documentation
+successors (including evidence-only `b566e75a`) are not the tested packed source.
 
 ```sh
-# Use the full source identity in the release evidence, not HEAD or dirty source.
-python3 tools/package/local-alpha.py \
-  --commit <40-hex-release-source-commit> --version 0.0.0-alpha.5 --name alpha-local
-npm install --ignore-scripts --no-audit --no-fund \
-  "$SAIVAGE_CARD_WORK_ROOT/alpha-local/jsqlite2-0.0.0-alpha.5.tgz"
+# Local handoff only: obtain the retained tarball from the package evidence below.
+# Set ALPHA6_TGZ to that local file, not the historical public alpha.5 download.
+: "${ALPHA6_TGZ:?set to the retained jsqlite2-0.0.0-alpha.6.tgz}"
+printf '%s  %s\n' \
+  66dfc717f6b490b347f67064afea59a076d3c7ac462bde29e702c543949019d8 \
+  "$ALPHA6_TGZ" | sha256sum --check -
+npm install --ignore-scripts --no-audit --no-fund "$ALPHA6_TGZ"
 ```
 
 ```ts
