@@ -18,8 +18,10 @@ source columns; `select.c:selectInnerLoop/pushOntoSorter/generateSortTail` colle
 keys plus payload before draining to the destination. The existing shared VM
 path already does this after each metadata candidate, including unmatched LEFT
 payloads; it reserves cursors before sorter allocation and evaluates keys while
-physical and metadata row registers remain positioned. Thus removing only the
-metadata ORDER admission barrier is the owning fix, not a replacement evaluator.
+physical and metadata row registers remain positioned. Removing the metadata ORDER barrier repaired the original admission gap,
+not all result resolution: 41fb81de still resolved star ordinals before expansion.
+The later [expand-before-resolve repair](TVF-STAR-ORDER.md) corrects that semantic
+owner without replacing the evaluator.
 DISTINCT/LIMIT admission is intentionally unchanged. Existing bounded sorter
 representation/tradeoffs apply; no new algorithm substitution or generic-vtab
 claim. Metadata rowid stays temporary unsupported.
@@ -39,7 +41,7 @@ regression: INNER constant/correlated, unmatched LEFT, hidden arg/schema,
 NOCASE/DESC multi-key order, duplicate output aliases, table_xinfo, three
 encodings. `tvf-order.test.mjs` compares every typed cell and all metadata fields
 through public prepare/step/reset/finalize/close twice. They pass18/18.
-This finite matrix does not establish full ORDER grammar, star/ordinal expansion,
+This original finite matrix does not establish full ORDER grammar or star/ordinal expansion (the latter required the later [expand-before-resolve repair](TVF-STAR-ORDER.md)),
 all error precedence or exhaustive resources. Status record retains actual
 commands, changed-input verification and delivery identity. Existing boundary,
 ON/readiness, identity, binding and seven-family tests are retained unchanged.

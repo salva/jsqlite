@@ -6201,24 +6201,43 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     builder.reserveCursorsThrough(1);
     const sorter=select.hasOrderBy?builder.cursor():null,distinct=select.hasDistinct?builder.cursor():null;
     const limit=computeLimitRegisters(select,ops,allocate,parameters);
+    // select.c sqlite3SelectPrep expands before sqlite3ResolveSelectNames.
+    // This canonical visible list owns ORDER ordinals/aliases, projection,
+    // result metadata and destination width. Hidden metadata arg/schema stay
+    // explicitly bindable but do not occupy star result positions.
+    const projection=select.result.flatMap(result=>{
+      const tokens=result.tokens,star=tokens.at(-1)?.text==='*';
+      if(!metadata||!star)return [{result,tree:result.reduction?expressionFromReduction(result.reduction):null}];
+      const qualifier=tokens.length===3&&tokens[1]?.text==='.'?sqlName(tokens[0]!.text):null;
+      if(tokens.length!==1&&qualifier===null)return [{result,tree:null}];
+      const entries:{result:ExprNode;tree:Expression|null}[]=[];
+      for(const [item,names] of [[select.from.items[0]!,table.columns.map(col=>col.name)],[jsonItem,METADATA_MODULE_COLUMNS[jsonItem.tableName.toLowerCase()]!]] as const){
+       const alias=item.alias??item.tableName;if(qualifier!==null&&!sqliteIdentifierEqual(qualifier,alias))continue;
+       for(const name of names)entries.push({result:{kind:'tokens',tokens:[],alias:name,sourceText:name},tree:{kind:'column',index:0,name:`${JSON.stringify(alias)}.${JSON.stringify(name)}`}});
+      }
+      if(entries.length===0)throw new JSQLiteError('sqlite',`no such table: ${qualifier}`,{code:1});
+      return entries;
+    });
     const orderTrees=select.orderBy.map(term=>{
       if(!term.expr.reduction)throw new JSQLiteError("unsupported","this JSON order expression is not implemented",{unsupportedClassification:"temporary"});
       const resolveOrder=(tree:Expression):Expression=>{
       if(tree.kind==="collate")return{...tree,value:resolveOrder(tree.value)};
       if(tree.kind==="literal"&&typeof tree.value==="bigint"){
         const index=Number(tree.value)-1;
-        if(index<0||index>=select.result.length)throw new JSQLiteError("sqlite","ORDER BY term out of range",{code:1});
-        return bind(expressionFromReduction(select.result[index]!.reduction!),true);
+        if(index<0||index>=projection.length)throw new JSQLiteError("sqlite","ORDER BY term out of range",{code:1});
+        const resultTree=projection[index]!.tree;
+        if(!resultTree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});
+        return bind(resultTree,true);
       }
       if(tree.kind==="column"&&!tree.name.includes('.')){
-        const result=select.result.find(result=>result.alias&&sqliteIdentifierEqual(result.alias,sqlName(tree.name)));
-        if(result?.reduction)return bind(expressionFromReduction(result.reduction),true);
+        const entry=projection.find(({result})=>result.alias&&sqliteIdentifierEqual(result.alias,sqlName(tree.name)));
+        if(entry?.tree)return bind(entry.tree,true);
       }
       return bind(tree,true);
       };return resolveOrder(expressionFromReduction(term.expr.reduction));
     });
     if(sorter!==null)ops.push({code:"SorterOpen",p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTrees.length,keyFieldCount:orderTrees.length,terms:orderTrees.map((tree,i)=>({collation:collation(tree),desc:select.orderBy[i]!.descending,nullsLarge:select.orderBy[i]!.nulls==="last"?!select.orderBy[i]!.descending:select.orderBy[i]!.nulls==="first"?select.orderBy[i]!.descending:false}))})});
-    if(distinct!==null)ops.push({code:"OpenEphemeral",p1:distinct,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:select.result.length,keyFieldCount:select.result.length,terms:select.result.map(result=>({collation:collation(bind(expressionFromReduction(result.reduction!),true))}))})});
+    if(distinct!==null)ops.push({code:"OpenEphemeral",p1:distinct,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projection.length,keyFieldCount:projection.length,terms:projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return {collation:collation(bind(tree,true))};})})});
     ops.push({code:"OpenRead",p1:table.rootPage,p2:0});
     const outerRewind=ops.length;ops.push({code:"Rewind",p1:0,p2:0});
     const outerLoop=ops.length;
@@ -6266,21 +6285,6 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     let whereSkip:number|null=null;
     if(select.where&&!select.where.reduction)throw new JSQLiteError("unsupported","this JSON filter is not implemented",{unsupportedClassification:"temporary"});
     if(residualWhere){const test=compileExpressionTree(bind(residualWhere,true),ops,allocate,parameters,undefined,true);whereSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
-    // select.c selectExpander expands visible fields in source order; hidden
-    // metadata arg/schema are excluded from stars, but remain explicitly bindable.
-    const projection=select.result.flatMap(result=>{
-      const tokens=result.tokens,star=tokens.at(-1)?.text==='*';
-      if(!metadata||!star)return [{result,tree:result.reduction?expressionFromReduction(result.reduction):null}];
-      const qualifier=tokens.length===3&&tokens[1]?.text==='.'?sqlName(tokens[0]!.text):null;
-      if(tokens.length!==1&&qualifier===null)return [{result,tree:null}];
-      const entries:{result:ExprNode;tree:Expression|null}[]=[];
-      for(const [item,names] of [[select.from.items[0]!,table.columns.map(col=>col.name)],[jsonItem,METADATA_MODULE_COLUMNS[jsonItem.tableName.toLowerCase()]!]] as const){
-       const alias=item.alias??item.tableName;if(qualifier!==null&&!sqliteIdentifierEqual(qualifier,alias))continue;
-       for(const name of names)entries.push({result:{kind:'tokens',tokens:[],alias:name,sourceText:name},tree:{kind:'column',index:0,name:`${JSON.stringify(alias)}.${JSON.stringify(name)}`}});
-      }
-      if(entries.length===0)throw new JSQLiteError('sqlite',`no such table: ${qualifier}`,{code:1});
-      return entries;
-    });
     const outputTrees=projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return bind(tree,true)}),outputs=outputTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters)),out=registers+1;
     for(const output of outputs){registers++;ops.push({code:"Copy",p1:output,p2:registers});}
     const deliver=()=>{if(shared?.consume){builder.registers=registers;shared.consume(out,outputs.length);registers=builder.registers;}else emitSelectDestination(ops,shared?.destination??{kind:"output"},out,outputs.length);};
