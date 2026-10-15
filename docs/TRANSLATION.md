@@ -466,7 +466,13 @@ are logical accounting evidence, not universal native minima. [Owner correction]
 Explicit packed KeyInfo selects the private BLOBKEY arena; MakeRecord owns its
 serialized snapshot, Insert/balance consumes it, and selected persistent WR
 Case5 consumers deduplicate physical PK keys after residual tests. Legacy
-iterator/IN/window consumers are not wholesale migrated. [Selected consuming
+iterator/IN/window consumers are not wholesale migrated. Private overflow copies retain the
+native acquire/checkpoint/copy/unref sequence. A module-private WeakMap associates
+borrowed views with synchronous, revocation-checked bulk copies; only owned cursor
+scratch is a destination. No raw buffer is exported, no borrow spans a new await,
+and public readonly views/subviews remain charged and revoked. This removes
+per-byte Proxy dispatch, not page traversal, validation or work accounting.
+[Copy owner evidence](research/card-s-i/private-blobkey-copy-capability.md). [Selected consuming
 boundary](research/card-s-i/source-owner-comparison.md) and [acceptance matrix](research/card-s-i/acceptance-matrix.md).
 
 `window.c:sqlite3WindowRewrite`, `sqlite3WindowCodeInit`,

@@ -144,7 +144,12 @@ large Once/correlated reset schedules in `packed-public-resource.test.mjs` and
 cover the admitted-large-input caller contract;
 `expr.c:sqlite3ExprCodeIN` steps 3/6 → exact seek then NULL fallback (scalar first
 row only, vector traversal). `btree.c:First/Next/payload` → private cursor traversal
-and callback-scoped payload. No borrowed membership evaluator remains; unrelatedDISTINCT/set-operator cursors retain their own contracts. [Packed public evidence](research/card-m-packed-membership.md)
+and callback-scoped payload. `btree.c:IndexMoveto` overflow branch and
+`accessPayload/copyPayload/PagerGet/unref` map to `private-blobkey-pages.ts`
+overflow loops and module-private `copyBorrowedBytes`: same bounded page chain,
+checkpoint, copy and cleanup, with view liveness checked immediately before a
+native typed-array bulk copy. [Capability boundary and tests](research/card-s-i/private-blobkey-copy-capability.md).
+No borrowed membership evaluator remains; unrelated DISTINCT/set-operator cursors retain their own contracts. [Packed public evidence](research/card-m-packed-membership.md)
 and [source-control tests](../test/conformance/row-vector/structure.test.mjs) map
 these branches, not general storage/complexity parity.
 

@@ -61,6 +61,17 @@ export interface PrivateCellInfo {
 /** Borrowed bytes, not a native TypedArray export. Only explicitly bounded
  * read operations are exposed: no writes, ArrayBuffer, callback receiver or implicit copies.
  * Derived subviews and iterators share the acquisition's revocation token. */
+// Module-private copy authority, never an exported raw-buffer capability. The
+// closure shares the exact view's revocation check and performs no await or
+// user callback between validation and bounded copy. Subview admission remains
+// owned by borrowedBytes; this descriptor is part of that capability's charge.
+const nativeByteSet=Uint8Array.prototype.set;
+const borrowedCopies=new WeakMap<Uint8Array,(target:Uint8Array,offset:number)=>void>();
+function copyBorrowedBytes(target:Uint8Array,source:Uint8Array,offset=0):void{
+  const copy=borrowedCopies.get(source);
+  if(!copy)throw new Error("private copy requires a borrowed byte capability");
+  copy(target,offset);
+}
 function borrowedBytes(bytes:Uint8Array,live:()=>void,admitCapability:(charge:number)=>()=>void):Uint8Array{
   let view:Uint8Array;
   // Fixed whitelist below bounds this table: repeated property reads must not
@@ -101,7 +112,8 @@ function borrowedBytes(bytes:Uint8Array,live:()=>void,admitCapability:(charge:nu
     defineProperty(){live();throw new Error("borrowed byte definition prohibited")},
     getOwnPropertyDescriptor(target,key){live();const d=Reflect.getOwnPropertyDescriptor(target,key);if(d&&"value" in d&&typeof d.value!=="number")throw new Error("borrowed byte descriptor export prohibited");return d},
     ownKeys(target){live();return Reflect.ownKeys(target)}
-  });return view;
+  });borrowedCopies.set(view,(target,offset)=>{live();nativeByteSet.call(target,bytes,offset)});
+  return view;
 }
 /** Derived MemPage metadata. Bytes are authoritative; arena replacement invalidates this object.
  * btree.c:decodeFlags/btreeInitPage/computeFreeSpace/findCell/parseCellPtrIndex.
@@ -1460,7 +1472,7 @@ export class PrivateBlobkeyCursor {
           this.#overflow[i++]=next;const lease=operations.get(this.#arena)!.raw(this.#token!,next);let primary:unknown;
           try{
             next=get4(lease.bytes,0);const amount=Math.min(4092,cell.nPayload-written);
-            await control.checkpoint(amount);scratch.set(lease.bytes.subarray(4,4+amount),written);written+=amount;
+            await control.checkpoint(amount);copyBorrowedBytes(scratch,lease.bytes.subarray(4,4+amount),written);written+=amount;
           }catch(error){primary=error;throw error}
           finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
         }
@@ -1642,7 +1654,7 @@ export class PrivateBlobkeyCursor {
       while(written<cell.nPayload){
         await control.checkpoint(0);const lease=ops.raw(t,next);
         let primary:unknown;
-        try{const amount=Math.min(4092,cell.nPayload-written);await control.checkpoint(amount);bytes.set(lease.bytes.subarray(4,4+amount),written);written+=amount;if(written<cell.nPayload)next=get4(lease.bytes,0)}
+        try{const amount=Math.min(4092,cell.nPayload-written);await control.checkpoint(amount);copyBorrowedBytes(bytes,lease.bytes.subarray(4,4+amount),written);written+=amount;if(written<cell.nPayload)next=get4(lease.bytes,0)}
         catch(error){primary=error;throw error}
         finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
       }
@@ -1750,7 +1762,7 @@ export class PrivateBlobkeyCursor {
       while(written<cell.nPayload){
         await control.checkpoint(0);
         const lease=operations.get(this.#arena)!.raw(t,next);let primary:unknown;
-        try{const amount=Math.min(4092,cell.nPayload-written);await control.checkpoint(amount);packed.set(lease.bytes.subarray(4,4+amount),written);written+=amount;if(written<cell.nPayload)next=get4(lease.bytes,0)}
+        try{const amount=Math.min(4092,cell.nPayload-written);await control.checkpoint(amount);copyBorrowedBytes(packed,lease.bytes.subarray(4,4+amount),written);written+=amount;if(written<cell.nPayload)next=get4(lease.bytes,0)}
         catch(error){primary=error;throw error}finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
       }
       this.#saved=packed;this.#savedCharge=charge;pending=0;

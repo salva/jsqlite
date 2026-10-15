@@ -394,3 +394,21 @@ test('FAULT First/Next preserve terminal primary without control work',async()=>
   await assert.rejects(c.first(forbidden),e=>e===primary);await assert.rejects(c.next(forbidden),e=>e===primary);
  }finally{armed=false;c.close();arena.close();assert.equal(budget.usedBytes,0)}
 });
+
+test('overflow copy validates the borrowed capability once per bounded native bulk copy',async()=>{
+ const {arena,budget,cursor}=await open();arena.installPage(2,overflowFixture(3));const overflow=new Uint8Array(4096);overflow.fill(7,4,1515);arena.installPage(3,overflow);
+ const nativeSet=Uint8Array.prototype.set;let proxyCopies=0,bulkCopies=0,suspended=false;
+ // Instrument only this operation, not setup. A Proxy source makes TypedArray.set
+ // perform one observable property read per byte instead of a native bulk copy.
+ Uint8Array.prototype.set=function(source,offset){if(source.length===1511){if(ArrayBuffer.isView(source))bulkCopies++;else proxyCopies++}return nativeSet.call(this,source,offset)};
+ const m=new Mem();m.setBlob(new Uint8Array(1997).fill(7));const k=new UnpackedRecordKey([m],0,'seek',info);
+ try{
+  const r=await cursor.indexMoveto(k,{async checkpoint(units){if(units===1511){suspended=true;await Promise.resolve();assert.throws(()=>arena.acquireRaw(3),/busy|operation|active/);assert.equal(arena.referenceCount(3),1)}}});
+  assert.equal(r.res,0);assert.equal(k.eqSeen,true);assert.equal(suspended,true);assert.equal(proxyCopies,0);assert.equal(bulkCopies,0);assert.equal(arena.referenceCount(3),0);
+  // The optimized path did not turn public inspection into a raw export.
+  const lease=arena.acquireRaw(3),view=lease.bytes.subarray(4,1515);
+  try{assert.equal(ArrayBuffer.isView(view),false);assert.throws(()=>view.buffer,/prohibited/);
+  assert.throws(()=>{view[0]=99},/readonly|read.only|prohibited/);await Promise.resolve();assert.equal(view[0],7);
+  }finally{lease.release()}assert.throws(()=>view[0],/released/);assert.throws(()=>view.subarray(0,1),/released/);
+ }finally{Uint8Array.prototype.set=nativeSet;k.release();m.release();cursor.close();arena.close();assert.equal(budget.usedBytes,0)}
+});
