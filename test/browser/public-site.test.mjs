@@ -34,7 +34,7 @@ try {
   const page = await browser.newPage();
   const base = process.env.JSQLITE_SITE_URL || `http://127.0.0.1:${server.address().port}/jsqlite/`;
   await page.goto(base);
-  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.5/);
+  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.6/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
   async function run() {
     await page.locator('#run').click();

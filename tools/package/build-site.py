@@ -7,7 +7,7 @@ import tarfile
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-ALPHA = 'a3eb29659c793f630a9bd1a9c2b89836bf9bbe52'
+ALPHA = 'a572862f74876f8c29a7ab4697cfb5e9fc842840'
 OUT = ROOT / '_site'
 
 def run(*args, cwd=ROOT):
