@@ -7546,9 +7546,12 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   const projection=[...(physical?.columns.map(column=>`${quote(physicalItem!.alias??physicalItem!.tableName)}.${quote(column.name)}`)??[]),...(physical?[`${quote(physicalItem!.alias??physicalItem!.tableName)}.rowid`]:[]),...names.map(name=>`${quote(item.alias??item.tableName)}.${quote(name)}`),'NULL'];
   const parsed=parseSql(`SELECT ${projection.join(',')}`).statement;
   if(!parsed||parsed.kind!=='select')throw new JSQLiteError('internal','metadata aggregate payload projection missing');
-  const producer={...select,result:parsed.result,where:null,groupBy:[],orderBy:[],having:null,limit:null,offset:null,hasGroupBy:false,hasOrderBy:false,hasHaving:false,hasLimit:false,hasDistinct:false} as SelectNode;
+  const producer={...select,result:parsed.result,where:select.where,groupBy:[],orderBy:[],having:null,limit:null,offset:null,hasGroupBy:false,hasOrderBy:false,hasHaving:false,hasLimit:false,hasDistinct:false} as SelectNode;
   const input={first,rowIdentities:true,emit:(consume:()=>void)=>{compileTableSelectProducer(producer,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'output'},consume:(row,count)=>{for(let i=0;i<count;i++)builder.ops.push({code:'Copy',p1:row+i,p2:first+i});consume();}});}};
-  const compiled=compileAggregateSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...parent,builder,ops:builder.ops,parameters,linkedPlan,input,destination:parent?.destination??{kind:'output'}});
+  // The scan owns WHERE: hidden EQ initializes Filter, then its residual
+  // runs once before AggInfo input. Do not erase initialization or evaluate
+  // the original predicate again in the aggregate consumer (BestIndex omit).
+  const compiled=compileAggregateSelect({...select,where:null},schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...parent,builder,ops:builder.ops,parameters,linkedPlan,input,destination:parent?.destination??{kind:'output'}});
   if(!parent)builder.ops.push({code:'Halt'});
   return Object.freeze({...compiled,ops:parent?builder.ops:builder.finish(),registers:builder.registers});
  }
