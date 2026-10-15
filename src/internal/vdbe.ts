@@ -6435,12 +6435,14 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       ops.push({code:"SorterInsert",p1:sorter,keyStart,keyCount:keys.length,payload:outputStart,payloadCount:outputs.length});
     }else{
       let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}
-      emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,outputs.length);
+      if(shared?.consume){builder.registers=registers;shared.consume(outputStart,outputs.length);registers=builder.registers;}
+      else emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,outputs.length);
       let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}
       const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:0,rowStart,p2:loop});const halt=ops.length;(ops[rewind] as {p2:number}).p2=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
     }
     if(sorter!==null){
-      const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:0,rowStart,p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:outputStart,count:outputs.length});let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,outputs.length);let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}const advance=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=advance;ops.push({code:"SorterNext",p1:sorter,p2:sort+1});const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
+      const next=ops.length;if(predicateJump!==null)(ops[predicateJump] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:0,rowStart,p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:outputStart,count:outputs.length});let offsetSkip:number|null=null;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}if(shared?.consume){builder.registers=registers;shared.consume(outputStart,outputs.length);registers=builder.registers;}
+      else emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,outputs.length);let limitDone:number|null=null;if(limit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}const advance=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=advance;ops.push({code:"SorterNext",p1:sorter,p2:sort+1});const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
     }
     const columns=star?visibleColumns.map(name=>Object.freeze({name,declaredType:null,database:"main",table:jsonTableName,origin:name})):select.result.map((expression,index)=>metadata?(()=>{const tree=resultTrees[index]!;const origin=tree.kind==='register'?sourceColumns[tree.index-rowStart]??null:null;return {name:expression.alias??origin??expressionName(expression),declaredType:metadataColumnDeclaredType(origin),database:origin?'main':null,table:origin?jsonTableName:null,origin};})():jsonResultMetadata(expression,resultTrees[index]!,[rowStart],[jsonTableName]));
     builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
@@ -7524,6 +7526,33 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   return Object.freeze({...compiled,ops:parent?builder.ops:builder.finish(),registers:builder.registers});
  }
 
+ // pragma.c's eponymous module retains its declared source through AggInfo.
+ // This transient descriptor is a NameContext carrier only. MetadataFilter/Next
+ // below remain the row producer; no OpenRead of this module is emitted.
+ const metadataItem=select.from.items.at(-1),metadataModule=metadataItem?.tableName.toLowerCase();
+ if(!parent?.input&&schema&&metadataModule&&Object.hasOwn(METADATA_MODULE_COLUMNS,metadataModule)&&
+    (select.from.items.length===1||select.from.items.length===2)){
+  const item=metadataItem!,physicalItem=select.from.items.length===2?select.from.items[0]:undefined;
+  const physical=physicalItem?findSchemaTable(schema,physicalItem.tableName):undefined;
+  if(physicalItem&&!physical)throw new JSQLiteError('sqlite',`no such table: ${physicalItem.tableName}`,{code:1});
+  const names=[...METADATA_MODULE_COLUMNS[metadataModule]!,...metadataHiddenColumns(metadataModule)];
+  const columns=names.map(name=>Object.freeze({szEst:0,name,declaredType:metadataColumnDeclaredType(name),affinity:'blob' as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
+  const module=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:'table',name:item.tableName,tableName:item.tableName,rootPage:0,sql:'',columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
+  bindSchemaSourceProvenance(module,'main',item.tableName);
+  const linkedPlan=resolveTransientArm(select,schema.withTransientTable(module));
+  const builder=parent?.builder??new SelectProgramBuilder<Op>(),parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},first=builder.range((physical?physical.columns.length+1:0)+names.length+1);
+  builder.reserveCursorsThrough(1);
+  const quote=(name:string)=>'"'+name.replaceAll('"','""')+'"';
+  const projection=[...(physical?.columns.map(column=>`${quote(physicalItem!.alias??physicalItem!.tableName)}.${quote(column.name)}`)??[]),...(physical?[`${quote(physicalItem!.alias??physicalItem!.tableName)}.rowid`]:[]),...names.map(name=>`${quote(item.alias??item.tableName)}.${quote(name)}`),'NULL'];
+  const parsed=parseSql(`SELECT ${projection.join(',')}`).statement;
+  if(!parsed||parsed.kind!=='select')throw new JSQLiteError('internal','metadata aggregate payload projection missing');
+  const producer={...select,result:parsed.result,where:null,groupBy:[],orderBy:[],having:null,limit:null,offset:null,hasGroupBy:false,hasOrderBy:false,hasHaving:false,hasLimit:false,hasDistinct:false} as SelectNode;
+  const input={first,rowIdentities:true,emit:(consume:()=>void)=>{compileTableSelectProducer(producer,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'output'},consume:(row,count)=>{for(let i=0;i<count;i++)builder.ops.push({code:'Copy',p1:row+i,p2:first+i});consume();}});}};
+  const compiled=compileAggregateSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...parent,builder,ops:builder.ops,parameters,linkedPlan,input,destination:parent?.destination??{kind:'output'}});
+  if(!parent)builder.ops.push({code:'Halt'});
+  return Object.freeze({...compiled,ops:parent?builder.ops:builder.finish(),registers:builder.registers});
+ }
+
  // select.c retained SrcItem coroutine feeds the same grouped sorter capture.
  const groupedStream=!parent?.input&&select.hasGroupBy&&select.from.derived?.index===0&&select.from.items.length===1&&select.from.derived.select.hasCompound&&select.from.derived.select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all')?select.from.derived.select:undefined;
  const selectProgramBuilder=parent?.builder??new SelectProgramBuilder<Op>();const ops=parent?.ops??selectProgramBuilder.ops,parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()};const allocate=()=>selectProgramBuilder.register();
@@ -7625,6 +7654,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
  const resultLocation:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:reference=>{
   const index=aggregatePlan.sources.indexOf(reference.source),source=aggregateSources[index];
   if(!source){if(parent?.expressionBinding)return parent.expressionBinding.location(reference,0);return {kind:'cursor',cursor:parent?.cursorFor?.(reference.source)??reference.source.cursorId};}
+  if(Object.hasOwn(METADATA_MODULE_COLUMNS,source.item.tableName.toLowerCase())&&reference.columnIndex<0)throw new JSQLiteError('unsupported','metadata table-function rowid is not implemented',{unsupportedClassification:'temporary'});
   const payload=source.base+(reference.columnIndex<0?(parent?.input?.rowIdentities?source.table.columns.length:source.table.columns.findIndex((_,index)=>isIntegerPrimaryKeyAlias(source.table,index))):reference.columnIndex);
   return{kind:'cursor',cursor:source.cursor,payloadIndex:payload,aggregateColumn:{owner:columnOwner,iAgg:payload}};
  }};
