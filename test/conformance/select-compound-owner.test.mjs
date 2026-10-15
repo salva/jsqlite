@@ -180,7 +180,7 @@ test('filtered materialized CTE producer retains parent destination ownership',(
  // A filtered producer must not be excluded before the parent-owned
  // compileInnerTableSelect destination call. Other fallback consumers remain.
  assert.doesNotMatch(owner.slice(0,owner.indexOf('if(producer.from.items.length)expanded.set(')),/producer\.where\|\|/);
- assert.match(owner,/compileInnerTableSelect\(producer,expanded\.get\(source\.use\)!,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder,ops,parameters,destination\}\)/);
+ assert.match(owner,/compileInnerTableSelect\(producer,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder,ops,parameters,destination,cursorFor:source=>cursors\.get\(source\)!\}\)/);
  assert.doesNotMatch(fallback,/for\(const original of inner\.ops\)/);
 });
 

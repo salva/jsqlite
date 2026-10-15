@@ -15,7 +15,9 @@ test('table compound derived producer emits into enclosing coroutine destination
  assert.match(lowering,/builder=owner\?\.builder/);
  assert.match(lowering,/owner\?\.destination/);
  assert.match(lowering,/if\(!owner\)ops.push\(\{code:"Halt"\}\)/);
- assert.match(lowering,/isIntegerPrimaryKeyAlias\(item.table,item.column\)/);
+ // Projection binding owns rowid aliases; the table compound must not read
+ // a guessed physical column directly (selectInnerLoop -> sqlite3ExprCode).
+ assert.match(lowering,/bindResolvedExpression\(expressionFromReduction\(item.expression.reduction!\),resolvedExpressionCarrier\(item.plan,item.expression.reduction! as Reduction\),\(\)=>cursor,true\)/);
 });
 
 test('ordered scalar compound derived producer owns wide rows and multiple keys',()=>{
@@ -23,7 +25,10 @@ test('ordered scalar compound derived producer owns wide rows and multiple keys'
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered){',source.indexOf('function compileDerivedProducer('));
  const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
  assert.match(branch,/builder.range\(width\)/);
- assert.match(branch,/child.orderBy.map/);
+ // ORDER identity is resolved once by the shared per-arm alias/expression owner.
+ assert.match(branch,/resolveCompoundMergeOrder\(child,/);
+ const order=source.slice(source.indexOf('function resolveCompoundMergeOrder('),source.indexOf('function compileSimpleTableCompound('));
+ assert.match(order,/select.orderBy.map/);
  assert.match(branch,/emitSelectDestination\(ops,destination,row,width\)/);
  assert.doesNotMatch(branch,/child\.ops|relocateControlTargets/);
 });
@@ -108,10 +113,13 @@ test('aggregate ALL HAVING preserves semantic arm identity and destination owner
 test('physical compound DISTINCT filters each arm before destination and limits',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const begin=source.indexOf('  const scan=(item:typeof resolved[number]',source.indexOf('function compileSimpleTableCompound('));
- const branch=source.slice(begin,source.indexOf('\n',begin));
+ const branch=source.slice(begin,source.indexOf('  if(select.hasOrderBy)',begin));
  assert.match(branch,/item.arm.hasDistinct\?builder.cursor\(\):undefined/);
- assert.match(branch,/item.table.columns\[item.column\]!\.collation/);
- assert.ok(branch.indexOf('code:"Found"')<branch.indexOf('skip=emitResult()'));
+ // DISTINCT compares resolved projected values, not the source column when
+ // the projection carries COLLATE or is an expression.
+ assert.match(branch,/const collation=resolvedResultKeyTerms\(item.plan\)\[0\]!.collation/);
+ assert.ok(branch.indexOf('code:"Found"')>=0);
+ assert.ok(branch.indexOf('skip=emitResult()')>branch.indexOf('code:"Found"'));
  assert.match(branch,/\(ops\[duplicate\] as \{jump:number\}\).jump=next/);
 });
 
@@ -240,7 +248,12 @@ test('unordered retained sets recursively compose source merge coroutine graph',
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered){');
  assert.ok(start>=0);
  const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
- assert.match(branch,/emitMerge\(count-1/);
+ // select.c BalancedMerge recursively splits identical UNION/ALL suffixes;
+ // mixed prefixes remain left-associated, with immutable first/count ranges.
+ assert.match(branch,/operator==='union'\|\|operator==='union-all'/);
+ assert.match(branch,/rightCount=run>3\?Math.ceil\(run\/2\):1,leftCount=count-rightCount/);
+ assert.match(branch,/branchFirst=side===0\?firstArm:firstArm\+leftCount,branchCount=side===0\?leftCount:rightCount/);
+ assert.match(branch,/emitMerge\(branchFirst,branchCount,\{kind:'coroutine'/);
  assert.match(branch,/code:'CompareJump'/);
  assert.match(branch,/previous-key suppression precedes OFFSET/);
  assert.match(branch,/if\(root&&limit\)/);
