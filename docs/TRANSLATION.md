@@ -1,5 +1,9 @@
 # SQLite-to-TypeScript translation guide
 
+### Mixed JSON sources retain ordinary CTE identity
+
+The mixed JSON consumer binds lowered CTE descriptors through the existing transient Table/producer/private-cursor path; it must not look the CTE name up as a physical table. The aggregate adapter preserves that descriptor and linked origin plan. Unenrolled derived mixed-module sources decline with a typed temporary prepare gap before either adapter attempts catalog lookup. This bounded route eagerly materializes even when SQLite could flatten or coroutine: first-row work/latency and retained memory are not planner parity. [Boundary and source evidence](research/cte-module-owner/README.md).
+
 ### Ordinary materialized producer cursor ownership
 
 Table-backed ordinary CTE fills allocate physical input cursors from the enclosing

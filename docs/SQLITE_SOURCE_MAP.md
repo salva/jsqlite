@@ -1,5 +1,9 @@
 # SQLite source map
 
+## Ordinary CTE + mixed JSON source identity
+
+`select.c:resolveFromTermToCte` SrcItem Table/subquery/CteUse and tag-select-0488 → `cte.ts:lowerOrdinaryCtes`, `vdbe.ts:transientSourceTable`, mixed `compileTableSelectProducer` and aggregate module adapter. Tests: `cte-module-owner.test.mjs` (all encodings; metadata, two executions, aliases/LIMIT, empty/NULL LEFT, changed bindings/reset, derived/recursive temporary admission and CTE rowid rejection); `cte-module-resources.test.mjs` covers combined retained budgets and lifecycle. [Bounded adaptation and native evidence](research/cte-module-owner/README.md).
+
 ## Retained GROUP scalar destinations
 
 | Pinned upstream owner | Current TS owner | Tests/evidence |
