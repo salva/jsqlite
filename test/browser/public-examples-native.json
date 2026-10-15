@@ -1,0 +1,2266 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "version": "3.53.4",
+  "fixtureSha256": "7651ba378ac2fcd0dfc3c66fb101f7a7eed3ba39a612ec642b96e20702061f15",
+  "cases": [
+    {
+      "id": "albums",
+      "sql": "SELECT a.AlbumId, a.Title, t.TrackId,\n       t.Name AS track\nFROM Album AS a JOIN Track AS t\n  ON t.AlbumId = a.AlbumId\nORDER BY a.AlbumId, t.TrackId\nLIMIT 3",
+      "columns": [
+        "AlbumId",
+        "Title",
+        "TrackId",
+        "track"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock We Salute You"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock (We Salute You)"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock We Salute You"
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "value": "Put The Finger On You"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "For Those About To Rock We Salute You"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "value": "Let's Get It Up"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "artists",
+      "sql": "SELECT ArtistId, Name\nFROM Artist\nORDER BY Name\nLIMIT 20",
+      "columns": [
+        "ArtistId",
+        "Name"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "43"
+          },
+          {
+            "type": "text",
+            "value": "A Cor Do Som"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "value": "AC/DC"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "230"
+          },
+          {
+            "type": "text",
+            "value": "Aaron Copland & London Symphony Orchestra"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "202"
+          },
+          {
+            "type": "text",
+            "value": "Aaron Goldberg"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "214"
+          },
+          {
+            "type": "text",
+            "value": "Academy of St. Martin in the Fields & Sir Neville Marriner"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "215"
+          },
+          {
+            "type": "text",
+            "value": "Academy of St. Martin in the Fields Chamber Ensemble & Sir Neville Marriner"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "222"
+          },
+          {
+            "type": "text",
+            "value": "Academy of St. Martin in the Fields, John Birch, Sir Neville Marriner & Sylvia McNair"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "257"
+          },
+          {
+            "type": "text",
+            "value": "Academy of St. Martin in the Fields, Sir Neville Marriner & Thurston Dart"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "239"
+          },
+          {
+            "type": "text",
+            "value": "Academy of St. Martin in the Fields, Sir Neville Marriner & William Bennett"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "text",
+            "value": "Accept"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "260"
+          },
+          {
+            "type": "text",
+            "value": "Adrian Leaper & Doreen de Feis"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "value": "Aerosmith"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "161"
+          },
+          {
+            "type": "text",
+            "value": "Aerosmith & Sierra Leone's Refugee Allstars"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "197"
+          },
+          {
+            "type": "text",
+            "value": "Aisha Duo"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "text",
+            "value": "Alanis Morissette"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "206"
+          },
+          {
+            "type": "text",
+            "value": "Alberto Turco & Nova Schola Gregoriana"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "value": "Alice In Chains"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "252"
+          },
+          {
+            "type": "text",
+            "value": "Amy Winehouse"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "209"
+          },
+          {
+            "type": "text",
+            "value": "Anne-Sophie Mutter, Herbert Von Karajan & Wiener Philharmoniker"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "243"
+          },
+          {
+            "type": "text",
+            "value": "Antal Doráti & London Symphony Orchestra"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "long-tracks",
+      "sql": "SELECT Name AS track,\n       ROUND(Milliseconds / 60000.0, 1) AS minutes,\n       Composer\nFROM Track\nWHERE Milliseconds >= 600000\n  AND MediaTypeId <> 3\nORDER BY Milliseconds DESC, TrackId\nLIMIT 10",
+      "columns": [
+        "track",
+        "minutes",
+        "Composer"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "Dazed And Confused"
+          },
+          {
+            "type": "real",
+            "value": 26.9
+          },
+          {
+            "type": "text",
+            "value": "Jimmy Page"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Space Truckin'"
+          },
+          {
+            "type": "real",
+            "value": 19.9
+          },
+          {
+            "type": "text",
+            "value": "Blackmore/Gillan/Glover/Lord/Paice"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Dazed And Confused"
+          },
+          {
+            "type": "real",
+            "value": 18.6
+          },
+          {
+            "type": "text",
+            "value": "Jimmy Page/Led Zeppelin"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "We've Got To Get Together/Jingo"
+          },
+          {
+            "type": "real",
+            "value": 17.8
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Funky Piano"
+          },
+          {
+            "type": "real",
+            "value": 15.6
+          },
+          {
+            "type": "null",
+            "value": null
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Going Down / Highway Star"
+          },
+          {
+            "type": "real",
+            "value": 15.2
+          },
+          {
+            "type": "text",
+            "value": "Gillan/Glover/Lord/Nix - Blackmore/Paice"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "My Funny Valentine (Live)"
+          },
+          {
+            "type": "real",
+            "value": 15.1
+          },
+          {
+            "type": "text",
+            "value": "Miles Davis"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Santana Jam"
+          },
+          {
+            "type": "real",
+            "value": 14.7
+          },
+          {
+            "type": "text",
+            "value": "Carlos Santana"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "The Sun Road"
+          },
+          {
+            "type": "real",
+            "value": 14.7
+          },
+          {
+            "type": "text",
+            "value": "Terry Bozzio, Steve Stevens, Tony Levin"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Whole Lotta Love"
+          },
+          {
+            "type": "real",
+            "value": 14.4
+          },
+          {
+            "type": "text",
+            "value": "John Bonham/John Paul Jones/Robert Plant/Willie Dixon"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "classical",
+      "sql": "SELECT p.Name AS playlist, t.Name AS track,\n       ROUND(t.Milliseconds / 60000.0, 1) AS minutes\nFROM Playlist AS p\nJOIN PlaylistTrack AS pt ON pt.PlaylistId = p.PlaylistId\nJOIN Track AS t ON t.TrackId = pt.TrackId\nWHERE p.Name = 'Classical'\nORDER BY t.Name, t.TrackId\nLIMIT 20",
+      "columns": [
+        "playlist",
+        "track",
+        "minutes"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "\"Eine Kleine Nachtmusik\" Serenade In G, K. 525: I. Allegro"
+          },
+          {
+            "type": "real",
+            "value": 5.8
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "24 Caprices, Op. 1, No. 24, for Solo Violin, in A Minor"
+          },
+          {
+            "type": "real",
+            "value": 4.4
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "3 Gymnopédies: No.1 - Lent Et Grave, No.3 - Lent Et Douloureux"
+          },
+          {
+            "type": "real",
+            "value": 6.4
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "A Midsummer Night's Dream, Op.61 Incidental Music: No.7 Notturno"
+          },
+          {
+            "type": "real",
+            "value": 6.5
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Act IV, Symphony"
+          },
+          {
+            "type": "real",
+            "value": 6.1
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Adagio for Strings from the String Quartet, Op. 11"
+          },
+          {
+            "type": "real",
+            "value": 9.9
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Adios nonino"
+          },
+          {
+            "type": "real",
+            "value": 4.8
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Aria Mit 30 Veränderungen, BWV 988 \"Goldberg Variations\": Aria"
+          },
+          {
+            "type": "real",
+            "value": 2.0
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Ave Maria"
+          },
+          {
+            "type": "real",
+            "value": 5.6
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Canon and Gigue in D Major: I. Canon"
+          },
+          {
+            "type": "real",
+            "value": 4.5
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Carmen: Overture"
+          },
+          {
+            "type": "real",
+            "value": 2.2
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Carmina Burana: O Fortuna"
+          },
+          {
+            "type": "real",
+            "value": 2.6
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Cavalleria Rusticana \\ Act \\ Intermezzo Sinfonico"
+          },
+          {
+            "type": "real",
+            "value": 4.1
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concert pour 4 Parties de V**les, H. 545: I. Prelude"
+          },
+          {
+            "type": "real",
+            "value": 1.8
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concerto No. 1 in E Major, RV 269 \"Spring\": I. Allegro"
+          },
+          {
+            "type": "real",
+            "value": 3.3
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concerto No.2 in F Major, BWV1047, I. Allegro"
+          },
+          {
+            "type": "real",
+            "value": 5.1
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concerto for 2 Violins in D Minor, BWV 1043: I. Vivace"
+          },
+          {
+            "type": "real",
+            "value": 3.2
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concerto for Cello and Orchestra in E minor, Op. 85: I. Adagio - Moderato"
+          },
+          {
+            "type": "real",
+            "value": 8.1
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concerto for Clarinet in A Major, K. 622: II. Adagio"
+          },
+          {
+            "type": "real",
+            "value": 6.6
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "text",
+            "value": "Concerto for Piano No. 2 in F Minor, Op. 21: II. Larghetto"
+          },
+          {
+            "type": "real",
+            "value": 9.3
+          }
+        ]
+      ]
+    },
+    {
+      "id": "genres",
+      "sql": "SELECT g.Name AS genre, COUNT(*) AS tracks,\n       ROUND(SUM(t.Milliseconds) / 3600000.0, 1) AS hours\nFROM Genre AS g\nJOIN Track AS t ON t.GenreId = g.GenreId\nGROUP BY g.GenreId, g.Name\nORDER BY tracks DESC, genre\nLIMIT 10",
+      "columns": [
+        "genre",
+        "tracks",
+        "hours"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "Rock"
+          },
+          {
+            "type": "integer",
+            "value": "1297"
+          },
+          {
+            "type": "real",
+            "value": 102.3
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Latin"
+          },
+          {
+            "type": "integer",
+            "value": "579"
+          },
+          {
+            "type": "real",
+            "value": 37.5
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Metal"
+          },
+          {
+            "type": "integer",
+            "value": "374"
+          },
+          {
+            "type": "real",
+            "value": 32.2
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Alternative & Punk"
+          },
+          {
+            "type": "integer",
+            "value": "332"
+          },
+          {
+            "type": "real",
+            "value": 21.6
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Jazz"
+          },
+          {
+            "type": "integer",
+            "value": "130"
+          },
+          {
+            "type": "real",
+            "value": 10.5
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "TV Shows"
+          },
+          {
+            "type": "integer",
+            "value": "93"
+          },
+          {
+            "type": "real",
+            "value": 55.4
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Blues"
+          },
+          {
+            "type": "integer",
+            "value": "81"
+          },
+          {
+            "type": "real",
+            "value": 6.1
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Classical"
+          },
+          {
+            "type": "integer",
+            "value": "74"
+          },
+          {
+            "type": "real",
+            "value": 6.0
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Drama"
+          },
+          {
+            "type": "integer",
+            "value": "64"
+          },
+          {
+            "type": "real",
+            "value": 45.8
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "R&B/Soul"
+          },
+          {
+            "type": "integer",
+            "value": "61"
+          },
+          {
+            "type": "real",
+            "value": 3.7
+          }
+        ]
+      ]
+    },
+    {
+      "id": "countries",
+      "sql": "SELECT BillingCountry AS country,\n       COUNT(*) AS invoices,\n       ROUND(SUM(Total), 2) AS sales,\n       ROUND(AVG(Total), 2) AS average_order\nFROM Invoice\nGROUP BY BillingCountry\nORDER BY sales DESC, country\nLIMIT 10",
+      "columns": [
+        "country",
+        "invoices",
+        "sales",
+        "average_order"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "USA"
+          },
+          {
+            "type": "integer",
+            "value": "91"
+          },
+          {
+            "type": "real",
+            "value": 523.06
+          },
+          {
+            "type": "real",
+            "value": 5.75
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Canada"
+          },
+          {
+            "type": "integer",
+            "value": "56"
+          },
+          {
+            "type": "real",
+            "value": 303.96
+          },
+          {
+            "type": "real",
+            "value": 5.43
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "France"
+          },
+          {
+            "type": "integer",
+            "value": "35"
+          },
+          {
+            "type": "real",
+            "value": 195.1
+          },
+          {
+            "type": "real",
+            "value": 5.57
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Brazil"
+          },
+          {
+            "type": "integer",
+            "value": "35"
+          },
+          {
+            "type": "real",
+            "value": 190.1
+          },
+          {
+            "type": "real",
+            "value": 5.43
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Germany"
+          },
+          {
+            "type": "integer",
+            "value": "28"
+          },
+          {
+            "type": "real",
+            "value": 156.48
+          },
+          {
+            "type": "real",
+            "value": 5.59
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "United Kingdom"
+          },
+          {
+            "type": "integer",
+            "value": "21"
+          },
+          {
+            "type": "real",
+            "value": 112.86
+          },
+          {
+            "type": "real",
+            "value": 5.37
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Czech Republic"
+          },
+          {
+            "type": "integer",
+            "value": "14"
+          },
+          {
+            "type": "real",
+            "value": 90.24
+          },
+          {
+            "type": "real",
+            "value": 6.45
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Portugal"
+          },
+          {
+            "type": "integer",
+            "value": "14"
+          },
+          {
+            "type": "real",
+            "value": 77.24
+          },
+          {
+            "type": "real",
+            "value": 5.52
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "India"
+          },
+          {
+            "type": "integer",
+            "value": "13"
+          },
+          {
+            "type": "real",
+            "value": 75.26
+          },
+          {
+            "type": "real",
+            "value": 5.79
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Chile"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 46.62
+          },
+          {
+            "type": "real",
+            "value": 6.66
+          }
+        ]
+      ]
+    },
+    {
+      "id": "customers",
+      "sql": "SELECT c.CustomerId, c.FirstName, c.LastName, c.Country,\n       COUNT(*) AS orders,\n       ROUND(SUM(i.Total), 2) AS spending\nFROM Customer AS c\nJOIN Invoice AS i ON i.CustomerId = c.CustomerId\nGROUP BY c.CustomerId, c.FirstName, c.LastName, c.Country\nORDER BY spending DESC, c.CustomerId\nLIMIT 10",
+      "columns": [
+        "CustomerId",
+        "FirstName",
+        "LastName",
+        "Country",
+        "orders",
+        "spending"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "6"
+          },
+          {
+            "type": "text",
+            "value": "Helena"
+          },
+          {
+            "type": "text",
+            "value": "Holý"
+          },
+          {
+            "type": "text",
+            "value": "Czech Republic"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 49.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "26"
+          },
+          {
+            "type": "text",
+            "value": "Richard"
+          },
+          {
+            "type": "text",
+            "value": "Cunningham"
+          },
+          {
+            "type": "text",
+            "value": "USA"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 47.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "57"
+          },
+          {
+            "type": "text",
+            "value": "Luis"
+          },
+          {
+            "type": "text",
+            "value": "Rojas"
+          },
+          {
+            "type": "text",
+            "value": "Chile"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 46.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "45"
+          },
+          {
+            "type": "text",
+            "value": "Ladislav"
+          },
+          {
+            "type": "text",
+            "value": "Kovács"
+          },
+          {
+            "type": "text",
+            "value": "Hungary"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 45.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "46"
+          },
+          {
+            "type": "text",
+            "value": "Hugh"
+          },
+          {
+            "type": "text",
+            "value": "O'Reilly"
+          },
+          {
+            "type": "text",
+            "value": "Ireland"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 45.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "24"
+          },
+          {
+            "type": "text",
+            "value": "Frank"
+          },
+          {
+            "type": "text",
+            "value": "Ralston"
+          },
+          {
+            "type": "text",
+            "value": "USA"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 43.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "28"
+          },
+          {
+            "type": "text",
+            "value": "Julia"
+          },
+          {
+            "type": "text",
+            "value": "Barnett"
+          },
+          {
+            "type": "text",
+            "value": "USA"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 43.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "37"
+          },
+          {
+            "type": "text",
+            "value": "Fynn"
+          },
+          {
+            "type": "text",
+            "value": "Zimmermann"
+          },
+          {
+            "type": "text",
+            "value": "Germany"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 43.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "value": "Astrid"
+          },
+          {
+            "type": "text",
+            "value": "Gruber"
+          },
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 42.62
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "25"
+          },
+          {
+            "type": "text",
+            "value": "Victor"
+          },
+          {
+            "type": "text",
+            "value": "Stevens"
+          },
+          {
+            "type": "text",
+            "value": "USA"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 42.62
+          }
+        ]
+      ]
+    },
+    {
+      "id": "monthly",
+      "sql": "SELECT strftime('%Y-%m', InvoiceDate) AS month,\n       COUNT(*) AS invoices,\n       ROUND(SUM(Total), 2) AS sales\nFROM Invoice\nGROUP BY strftime('%Y-%m', InvoiceDate)\nORDER BY month DESC\nLIMIT 12",
+      "columns": [
+        "month",
+        "invoices",
+        "sales"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "2025-12"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 38.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-11"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 49.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-10"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-09"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-08"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-07"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-06"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-05"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-04"
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "real",
+            "value": 33.66
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-03"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-02"
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "real",
+            "value": 27.72
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "2025-01"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "real",
+            "value": 37.62
+          }
+        ]
+      ]
+    },
+    {
+      "id": "album-insights",
+      "sql": "SELECT a.Title AS album, COUNT(*) AS tracks,\n       ROUND(SUM(t.Milliseconds) / 60000.0, 1) AS total_minutes,\n       ROUND(AVG(t.UnitPrice), 2) AS average_price,\n       SUM(CASE WHEN t.Milliseconds > 300000\n                THEN 1 ELSE 0 END) AS tracks_over_5_minutes\nFROM Album AS a\nJOIN Track AS t ON t.AlbumId = a.AlbumId\nWHERE a.AlbumId BETWEEN 1 AND 20\nGROUP BY a.AlbumId, a.Title\nHAVING COUNT(*) >= 5\nORDER BY total_minutes DESC, album\nLIMIT 10",
+      "columns": [
+        "album",
+        "tracks",
+        "total_minutes",
+        "average_price",
+        "tracks_over_5_minutes"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "Big Ones"
+          },
+          {
+            "type": "integer",
+            "value": "15"
+          },
+          {
+            "type": "real",
+            "value": 73.5
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Alcohol Fueled Brewtality Live! [Disc 1]"
+          },
+          {
+            "type": "integer",
+            "value": "13"
+          },
+          {
+            "type": "real",
+            "value": 67.7
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Audioslave"
+          },
+          {
+            "type": "integer",
+            "value": "14"
+          },
+          {
+            "type": "real",
+            "value": 65.5
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Chemical Wedding"
+          },
+          {
+            "type": "integer",
+            "value": "11"
+          },
+          {
+            "type": "real",
+            "value": 61.6
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Jagged Little Pill"
+          },
+          {
+            "type": "integer",
+            "value": "13"
+          },
+          {
+            "type": "real",
+            "value": 57.5
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Facelift"
+          },
+          {
+            "type": "integer",
+            "value": "12"
+          },
+          {
+            "type": "real",
+            "value": 54.2
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Out Of Exile"
+          },
+          {
+            "type": "integer",
+            "value": "12"
+          },
+          {
+            "type": "real",
+            "value": 53.7
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Body Count"
+          },
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "real",
+            "value": 53.2
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Warner 25 Anos"
+          },
+          {
+            "type": "integer",
+            "value": "14"
+          },
+          {
+            "type": "real",
+            "value": 48.4
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "The Best Of Billy Cobham"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "real",
+            "value": 44.7
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "unsold",
+      "sql": "SELECT t.TrackId, t.Name AS track\nFROM Track AS t\nWHERE NOT EXISTS (\n  SELECT 1 FROM InvoiceLine AS il\n  WHERE il.TrackId = t.TrackId\n)\nORDER BY t.TrackId\nLIMIT 10",
+      "columns": [
+        "TrackId",
+        "track"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "text",
+            "value": "Let's Get It Up"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "11"
+          },
+          {
+            "type": "text",
+            "value": "C.O.D."
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "17"
+          },
+          {
+            "type": "text",
+            "value": "Let There Be Rock"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "18"
+          },
+          {
+            "type": "text",
+            "value": "Bad Boy Boogie"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "22"
+          },
+          {
+            "type": "text",
+            "value": "Whole Lotta Rosie"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "23"
+          },
+          {
+            "type": "text",
+            "value": "Walk On Water"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "27"
+          },
+          {
+            "type": "text",
+            "value": "Dude (Looks Like A Lady)"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "29"
+          },
+          {
+            "type": "text",
+            "value": "Cryin'"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "33"
+          },
+          {
+            "type": "text",
+            "value": "The Other Side"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "34"
+          },
+          {
+            "type": "text",
+            "value": "Crazy"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "invoice-ranking",
+      "sql": "SELECT BillingCountry AS country, InvoiceId, Total,\n       ROW_NUMBER() OVER (\n         PARTITION BY BillingCountry\n         ORDER BY Total DESC, InvoiceId\n       ) AS country_rank\nFROM Invoice\nORDER BY country, country_rank\nLIMIT 20",
+      "columns": [
+        "country",
+        "InvoiceId",
+        "Total",
+        "country_rank"
+      ],
+      "rows": [
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "348"
+          },
+          {
+            "type": "real",
+            "value": 13.86
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "403"
+          },
+          {
+            "type": "real",
+            "value": 8.91
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "164"
+          },
+          {
+            "type": "real",
+            "value": 5.94
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "142"
+          },
+          {
+            "type": "real",
+            "value": 3.96
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "119"
+          },
+          {
+            "type": "real",
+            "value": 1.98
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "337"
+          },
+          {
+            "type": "real",
+            "value": 1.98
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Argentina"
+          },
+          {
+            "type": "integer",
+            "value": "216"
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "250"
+          },
+          {
+            "type": "real",
+            "value": 13.86
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "305"
+          },
+          {
+            "type": "real",
+            "value": 8.91
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "66"
+          },
+          {
+            "type": "real",
+            "value": 5.94
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "44"
+          },
+          {
+            "type": "real",
+            "value": 3.96
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "21"
+          },
+          {
+            "type": "real",
+            "value": 1.98
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "239"
+          },
+          {
+            "type": "real",
+            "value": 1.98
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Australia"
+          },
+          {
+            "type": "integer",
+            "value": "118"
+          },
+          {
+            "type": "real",
+            "value": 0.99
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "89"
+          },
+          {
+            "type": "real",
+            "value": 18.86
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "144"
+          },
+          {
+            "type": "real",
+            "value": 8.91
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "318"
+          },
+          {
+            "type": "real",
+            "value": 5.94
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "296"
+          },
+          {
+            "type": "real",
+            "value": 3.96
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "78"
+          },
+          {
+            "type": "real",
+            "value": 1.98
+          },
+          {
+            "type": "integer",
+            "value": "5"
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "value": "Austria"
+          },
+          {
+            "type": "integer",
+            "value": "273"
+          },
+          {
+            "type": "real",
+            "value": 1.98
+          },
+          {
+            "type": "integer",
+            "value": "6"
+          }
+        ]
+      ]
+    },
+    {
+      "id": "types",
+      "sql": "SELECT 42 AS integer_value,\n       3.5 AS real_value,\n       NULL AS null_value,\n       X'CAFE' AS blob_value",
+      "columns": [
+        "integer_value",
+        "real_value",
+        "null_value",
+        "blob_value"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "42"
+          },
+          {
+            "type": "real",
+            "value": 3.5
+          },
+          {
+            "type": "null",
+            "value": null
+          },
+          {
+            "type": "blob",
+            "value": "cafe"
+          }
+        ]
+      ]
+    }
+  ]
+}

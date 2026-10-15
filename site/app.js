@@ -1,9 +1,21 @@
+import { examples } from './examples.js';
+
 const $ = id => document.getElementById(id);
-const examples = {
-  albums: `SELECT a.AlbumId, a.Title, t.TrackId,\n       t.Name AS track\nFROM Album AS a JOIN Track AS t\n  ON t.AlbumId = a.AlbumId\nORDER BY a.AlbumId, t.TrackId\nLIMIT 3`,
-  artists: 'SELECT ArtistId, Name\nFROM Artist\nORDER BY Name\nLIMIT 20',
-  types: "SELECT 42 AS integer_value,\n       3.5 AS real_value,\n       NULL AS null_value,\n       X'CAFE' AS blob_value",
-};
+const groups = new Map();
+for (const example of examples) {
+  let group = groups.get(example.group);
+  if (!group) {
+    group = document.createElement('optgroup'); group.label = example.group;
+    groups.set(example.group, group); $('example').append(group);
+  }
+  const option = document.createElement('option');
+  option.value = example.id; option.textContent = example.label; group.append(option);
+}
+function selectExample() {
+  const example = examples.find(entry => entry.id === $('example').value);
+  $('sql').value = example.sql;
+  $('example-description').textContent = example.description;
+}
 let worker, deadline, started;
 function setStatus(text, error = false) { $('status').textContent = text; $('status').classList.toggle('error', error); }
 function stop() { clearTimeout(deadline); worker?.terminate(); worker = undefined; $('run').disabled = false; $('cancel').disabled = true; }
@@ -20,7 +32,7 @@ function render(result) {
   $('results').append(table);
   setStatus(`${result.rows.length} row${result.rows.length === 1 ? '' : 's'} returned · executed in your browser`);
 }
-$('example').addEventListener('change', () => { $('sql').value = examples[$('example').value]; });
+$('example').addEventListener('change', selectExample);
 $('run').addEventListener('click', () => {
   stop(); $('run').disabled = true; $('cancel').disabled = false; $('timing').textContent = ''; setStatus('Fetching database and running query…'); started = performance.now();
   worker = new Worker(new URL('worker.js', import.meta.url), { type: 'module' });
@@ -31,4 +43,4 @@ $('run').addEventListener('click', () => {
   worker.postMessage({ sql: $('sql').value });
 });
 $('cancel').addEventListener('click', () => { stop(); setStatus('Cancelled: the disposable query worker was terminated.'); });
-$('sql').value = examples.albums; $('run').disabled = false; setStatus('Ready. Choose an example or edit the SQL.');
+selectExample(); $('run').disabled = false; setStatus('Ready. Choose an example or edit the SQL.');

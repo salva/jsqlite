@@ -6,6 +6,8 @@ import { readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { resolve, extname } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { examples } from '../../site/examples.js';
 
 const { chromium } = await import(process.env.JSQLITE_PLAYWRIGHT
   ? pathToFileURL(process.env.JSQLITE_PLAYWRIGHT).href : 'playwright');
@@ -36,6 +38,11 @@ try {
   await page.goto(base);
   assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.6/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
+  const native = JSON.parse(await readFile(new URL('./public-examples-native.json', import.meta.url), 'utf8'));
+  const pin = JSON.parse(await readFile(new URL('../../reference/sqlite/manifest.json', import.meta.url), 'utf8'));
+  assert.equal(native.sourceId, pin.sqliteSourceId);
+  assert.equal(native.fixtureSha256, createHash('sha256').update(await readFile(resolve(root, 'assets/chinook.sqlite'))).digest('hex'));
+  assert.ok(examples.length >= 10, 'Offer a varied catalog, not just a few syntax probes');
   async function run() {
     await page.locator('#run').click();
     await page.waitForFunction(() => !document.getElementById('run').disabled);
@@ -66,6 +73,18 @@ try {
   ];
   assert.deepEqual(await page.locator('tbody td').allTextContents(), expected.flat());
   console.log(`Original Chinook query: ${Date.now() - started} ms including worker/open/prepare/render; ten native-matching rows`);
+  for (const example of examples) {
+    const oracle = native.cases.find(entry => entry.id === example.id);
+    assert.equal(oracle?.sql, example.sql, `${example.id}: native evidence must match exact SQL`);
+    await page.locator('#example').selectOption(example.id);
+    assert.equal(await page.locator('#example-description').innerText(), example.description);
+    assert.equal(await page.locator('#sql').inputValue(), example.sql);
+    assert.match(await run(), /^\d+ rows? returned/, example.id);
+    assert.deepEqual(await page.locator('thead th').allTextContents(), oracle.columns, `${example.id}: columns`);
+    assert.deepEqual(await page.locator('tbody td').allTextContents(), oracle.rows.flat().map(cell => cell.value === null ? 'NULL' : cell.type === 'blob' ? `X'${cell.value}'` : String(cell.value)), `${example.id}: rows`);
+    assert.deepEqual(await page.locator('tbody td').evaluateAll(cells => cells.map(cell => cell.title)), oracle.rows.flat().map(cell => cell.type), `${example.id}: storage classes`);
+    console.log(`Example ${example.id}: ${oracle.rows.length} native-matching rows`);
+  }
   await page.locator('#sql').fill('SELECT nope FROM missing_table');
   assert.match(await run(), /no such table/);
   await page.locator('#example').selectOption('albums');

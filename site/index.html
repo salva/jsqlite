@@ -20,7 +20,8 @@
     <section id="demo" class="demo">
       <div class="section-heading"><div><p class="eyebrow">LIVE PLAYGROUND</p><h2>Meet your next query.</h2></div><p>A real SQLite music database.<br>Actual results, computed on your device.</p></div>
       <div class="playground">
-        <div class="editor"><label for="example">Choose an example</label><select id="example"><option value="albums">Albums & tracks</option><option value="artists">Browse artists</option><option value="types">SQLite value types</option></select>
+        <div class="editor"><label for="example">Choose an example</label><select id="example" aria-describedby="example-description"></select>
+          <p id="example-description" class="hint"></p>
           <label for="sql">SQL <span>Editable · one statement at a time</span></label><textarea id="sql" spellcheck="false" rows="10" aria-describedby="demo-note"></textarea>
           <div class="actions"><button id="run" disabled>Run query</button><button id="cancel" disabled class="quiet">Cancel</button></div>
           <p id="demo-note">The browser fetches a bundled 1 MB Chinook database, then executes SQL in a dedicated worker. No SQL is sent to a backend. Demo limit: 1,000 rows and 60 seconds per run.</p>

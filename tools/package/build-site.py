@@ -38,7 +38,11 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     worker_text = (OUT / 'worker.js').read_text().replace("'./assets/query.js'", repr('./assets/' + query_name))
     worker_name = 'worker-' + hashlib.sha256(worker_text.encode()).hexdigest()[:12] + '.js'
     (OUT / worker_name).write_text(worker_text)
+    examples = (OUT / 'examples.js').read_bytes()
+    examples_name = 'examples-' + hashlib.sha256(examples).hexdigest()[:12] + '.js'
+    (OUT / examples_name).write_bytes(examples)
     app_text = (OUT / 'app.js').read_text().replace("'worker.js'", repr(worker_name))
+    app_text = app_text.replace("'./examples.js'", repr('./' + examples_name))
     app_name = 'app-' + hashlib.sha256(app_text.encode()).hexdigest()[:12] + '.js'
     (OUT / app_name).write_text(app_text)
     css = (OUT / 'style.css').read_bytes()
