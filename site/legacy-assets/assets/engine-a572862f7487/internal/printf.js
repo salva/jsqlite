@@ -1,0 +1,318 @@
+// SQL-facing subset of SQLite 3.53.4 src/printf.c:sqlite3_str_vappendf.
+// Parsing, argument consumption, padding and conversions are kept here rather
+// than delegated to host printf/Intl. C allocation is represented by bounded
+// string accumulation at the caller.
+import { JSQLiteError } from "../index.js";
+import { sqliteFpDecode } from "./mem.js";
+import { asUtf8 } from "./ordinary-scalars.js";
+const utf8 = new TextEncoder();
+function text(v) { if (!v || v.initialStorageClass === "null")
+    return null; return v.textValue(); }
+function integer(v) { return !v || v.initialStorageClass === "null" ? 0n : v.integerValue(); }
+function real(v) { return !v || v.initialStorageClass === "null" ? 0 : v.realValue(); }
+function decimalDigits(value, iRound, mxRound) {
+    const decoded = sqliteFpDecode(value, iRound, mxRound);
+    return { negative: decoded.negative, digits: decoded.digits, exponent: decoded.exponent };
+}
+function roundedDigits(digits, keep) {
+    if (keep < 0)
+        keep = 0;
+    let out = digits.slice(0, keep).padEnd(keep, "0");
+    if ((digits[keep] ?? "0") >= "5") {
+        let n = BigInt(out || "0") + 1n;
+        out = n.toString().padStart(keep, "0");
+        if (out.length > keep)
+            return { digits: out.slice(0, keep), carry: true };
+    }
+    return { digits: out, carry: false };
+}
+function fixed(value, precision, alternate, mxRound = 16) {
+    if (!Number.isFinite(value))
+        return value < 0 ? "-Inf" : "Inf";
+    let { negative, digits, exponent } = decimalDigits(value, -precision, mxRound);
+    let body;
+    if (exponent >= 0) {
+        const before = digits.slice(0, exponent + 1).padEnd(exponent + 1, "0"), after = digits.slice(exponent + 1).padEnd(precision, "0");
+        body = before + (precision || alternate ? "." + after : "");
+    }
+    else
+        body = "0" + (precision || alternate ? "." + "0".repeat(-exponent - 1) + digits.padEnd(Math.max(0, precision + exponent + 1), "0") : "");
+    return negative ? "-" + body : body;
+}
+function exponential(value, precision, alternate, upper, mxRound = 16) {
+    if (!Number.isFinite(value))
+        return value < 0 ? (upper ? "-INF" : "-Inf") : (upper ? "INF" : "Inf");
+    let { negative, digits, exponent } = decimalDigits(value, precision + 1, mxRound);
+    const fraction = digits.slice(1).padEnd(precision, "0");
+    const e = `${upper ? "E" : "e"}${exponent < 0 ? "-" : "+"}${Math.abs(exponent).toString().padStart(2, "0")}`;
+    return (negative ? "-" : "") + digits[0] + (precision || alternate ? "." + fraction : "") + e;
+}
+function generic(value, precision, alternate, alt2, upper) {
+    if (precision === 0)
+        precision = 1;
+    if (!Number.isFinite(value))
+        return exponential(value, precision - 1, alternate, upper).replace(/[eE].*/, "");
+    const d = decimalDigits(value, precision, alt2 ? 20 : 16);
+    let result = d.exponent < -4 || d.exponent >= precision ? exponential(value, precision - 1, alternate || alt2, upper, alt2 ? 20 : 16) : fixed(value, Math.max(0, precision - d.exponent - 1), alternate || alt2, alt2 ? 20 : 16);
+    if (!alternate) {
+        const split = result.search(/[eE]/), suffix = split < 0 ? "" : result.slice(split), head = split < 0 ? result : result.slice(0, split);
+        result = head.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, alt2 ? ".0" : "") + suffix;
+    }
+    return result;
+}
+function ordinal(n) { const magnitude = n < 0n ? -n : n, x = Number(magnitude % 10n), teen = Number((magnitude / 10n) % 10n) === 1; return teen || x < 1 || x > 3 ? "th" : x === 1 ? "st" : x === 2 ? "nd" : "rd"; }
+function unsigned64(n) { return BigInt.asUintN(64, n); }
+export function sqliteFormat(formatValue, args, control) {
+    if (formatValue.initialStorageClass === "null")
+        return null;
+    const format = new TextDecoder().decode(asUtf8(formatValue)).split("\0", 1)[0];
+    let used = 0, result = "", resultBytes = 0;
+    const fail = () => { throw new JSQLiteError("limit", "string or blob too big"); };
+    const admit = (bytes) => { if (!Number.isSafeInteger(bytes) || bytes < 0 || bytes > control.maxBytes - resultBytes)
+        fail(); };
+    const repeat = (unit, count) => { const unitBytes = utf8.encode(unit).length; if (!Number.isSafeInteger(count) || count < 0 || count > Math.floor((control.maxBytes - resultBytes) / unitBytes))
+        fail(); control.charge?.(Math.max(1, Math.ceil(count * unitBytes / 256))); control.check?.(); return unit.repeat(count); };
+    const append = (part) => { const bytes = utf8.encode(part).length; admit(bytes); result += part; resultBytes += bytes; control.charge?.(Math.max(1, Math.ceil(bytes / 256))); control.check?.(); };
+    const pad = (value, width, left, zero, prefixLength = 0, displayBytes = true) => { const length = displayBytes ? utf8.encode(value).length : [...value].length, n = Math.max(0, width - length); if (!n)
+        return value; admit(utf8.encode(value).length + n); const padding = repeat(zero ? "0" : " ", n); if (left)
+        return value + padding; if (zero)
+        return value.slice(0, prefixLength) + padding + value.slice(prefixLength); return padding + value; };
+    const boundedDimension = (value) => { if (!Number.isSafeInteger(value) || value < 0 || value > control.maxBytes - resultBytes)
+        fail(); return value; };
+    const scanCheckpoint = (amount) => { if (amount > 0) {
+        control.charge?.(Math.ceil(amount / 256));
+        control.check?.();
+    } };
+    const truncate = (input, limit, characters) => {
+        const nul = input.indexOf("\0"), value = nul < 0 ? input : input.slice(0, nul);
+        if (limit < 0) {
+            let checkpoint = 0;
+            for (const character of value) {
+                checkpoint += characters ? 1 : utf8.encode(character).length;
+                if (checkpoint >= 256) {
+                    scanCheckpoint(checkpoint);
+                    checkpoint = 0;
+                }
+            }
+            scanCheckpoint(checkpoint);
+            return value;
+        }
+        let end = 0, seen = 0, checkpoint = 0;
+        for (const character of value) {
+            const units = characters ? 1 : utf8.encode(character).length;
+            if (seen + units > limit) {
+                scanCheckpoint(checkpoint);
+                return characters || seen === limit ? value.slice(0, end) : new TextDecoder().decode(utf8.encode(value.slice(0, end + character.length)).slice(0, limit));
+            }
+            seen += units;
+            end += character.length;
+            checkpoint += units;
+            if (checkpoint >= 256) {
+                scanCheckpoint(checkpoint);
+                checkpoint = 0;
+            }
+        }
+        scanCheckpoint(checkpoint);
+        return value.slice(0, end);
+    };
+    for (let i = 0; i < format.length;) {
+        if (format[i] !== "%") {
+            const start = i;
+            while (i < format.length && format[i] !== "%")
+                i++;
+            append(format.slice(start, i));
+            continue;
+        }
+        i++;
+        if (i === format.length) {
+            append("%");
+            break;
+        }
+        if (format[i] === "%") {
+            append("%");
+            i++;
+            continue;
+        }
+        let left = false, plus = false, blank = false, alternate = false, alt2 = false, zero = false, comma = false;
+        for (;; i++) {
+            const c = format[i];
+            if (c === "-")
+                left = true;
+            else if (c === "+")
+                plus = true;
+            else if (c === " ")
+                blank = true;
+            else if (c === "#")
+                alternate = true;
+            else if (c === "!")
+                alt2 = true;
+            else if (c === "0")
+                zero = true;
+            else if (c === ",")
+                comma = true;
+            else
+                break;
+        }
+        let width = 0;
+        if (format[i] === "*") {
+            let dynamic = Number(BigInt.asIntN(32, integer(args[used++])));
+            i++;
+            if (dynamic < 0) {
+                left = true;
+                dynamic = dynamic >= -2147483647 ? -dynamic : 0;
+            }
+            width = Math.min(dynamic, 100000000);
+        }
+        else {
+            let parsed = 0;
+            while (/\d/.test(format[i] ?? "")) {
+                parsed = (parsed * 10 + Number(format[i++])) >>> 0;
+            }
+            width = Math.min(parsed & 0x7fffffff, 100000000);
+        }
+        let precision = -1;
+        if (format[i] === ".") {
+            i++;
+            precision = 0;
+            if (format[i] === "*") {
+                precision = Number(BigInt.asIntN(32, integer(args[used++])));
+                i++;
+                if (precision < 0)
+                    precision = precision >= -2147483647 ? -precision : -1;
+            }
+            else {
+                let parsed = 0;
+                while (/\d/.test(format[i] ?? "")) {
+                    parsed = (parsed * 10 + Number(format[i++])) >>> 0;
+                }
+                precision = parsed & 0x7fffffff;
+            }
+            if (precision > 100000000)
+                precision = 100000000;
+        }
+        while (format[i] === "l")
+            i++;
+        const conversion = format[i++];
+        if (!conversion)
+            break;
+        const arg = () => args[used++];
+        let rendered = "", numeric = false;
+        if ("diuoxXr".includes(conversion)) {
+            numeric = true;
+            const signed = conversion === "d" || conversion === "i" || conversion === "r", raw = integer(arg()), negative = signed && raw < 0n, n = signed ? (negative ? -raw : raw) : unsigned64(raw), base = conversion === "o" ? 8 : conversion.toLowerCase() === "x" ? 16 : 10;
+            rendered = n.toString(base) + (conversion === "r" ? ordinal(n) : "");
+            if (conversion === "X")
+                rendered = rendered.toUpperCase();
+            if (precision === 0 && n === 0n)
+                rendered = "";
+            if (precision > rendered.length) {
+                admit(precision + 3);
+                rendered = repeat("0", precision - rendered.length) + rendered;
+            }
+            if (comma && conversion !== "r" && (conversion === "d" || conversion === "i" || conversion === "u")) {
+                const groups = Math.floor((rendered.length - 1) / 3);
+                admit(rendered.length + groups);
+                let grouped = "";
+                for (let at = 0; at < rendered.length; at++) {
+                    if (at && ((rendered.length - at) % 3 === 0))
+                        grouped += ",";
+                    grouped += rendered[at];
+                }
+                rendered = grouped;
+            }
+            let prefix = negative ? "-" : plus ? "+" : blank ? " " : "";
+            if (alternate && n !== 0n)
+                prefix += conversion === "o" ? "0" : conversion === "x" ? "0x" : conversion === "X" ? "0X" : "";
+            rendered = prefix + rendered;
+            rendered = pad(rendered, width, left, zero && precision < 0, prefix.length);
+        }
+        else if ("feEgG".includes(conversion)) {
+            numeric = true;
+            const v = real(arg());
+            let p = precision < 0 ? 6 : Math.min(precision, 100000);
+            if (conversion.toLowerCase() === "g")
+                p = Math.min(p, alt2 ? 20 : 16);
+            boundedDimension(Math.max(width, p));
+            const upper = conversion === conversion.toUpperCase(), kind = conversion.toLowerCase();
+            if (Number.isFinite(v)) {
+                const exponent = decimalDigits(v, kind === "f" ? -p : kind === "g" ? p : p + 1, alt2 ? 20 : 16).exponent, temporary = kind === "f" ? Math.max(exponent + 1, 1) + p + 12 : p + 16;
+                admit(Math.max(width, temporary));
+            }
+            if (Number.isNaN(v))
+                rendered = zero ? "null" : "NaN";
+            else if (!Number.isFinite(v) && !zero)
+                rendered = (v < 0 ? "-" : plus ? "+" : blank ? " " : "") + (upper ? "INF" : "Inf");
+            else if (!Number.isFinite(v)) {
+                const sign = v < 0 ? "-" : plus ? "+" : blank ? " " : "", magnitude = kind === "e" ? `9${p || alternate || alt2 ? "." + repeat("0", p) : ""}${upper ? "E" : "e"}+999` : kind === "g" ? `9${p > 1 ? "." + repeat("0", p - 1) : ""}${upper ? "E" : "e"}+999` : `9${repeat("0", 999)}${p || alternate || alt2 ? "." + repeat("0", p) : ""}`;
+                rendered = sign + magnitude;
+            }
+            else {
+                rendered = kind === "f" ? fixed(v, p, alternate || alt2, alt2 ? 20 : 16) : kind === "e" ? exponential(v, p, alternate || alt2, upper, alt2 ? 20 : 16) : generic(v, p, alternate, alt2, upper);
+                if (alt2 && kind !== "g") {
+                    const split = rendered.search(/[eE]/), suffix = split < 0 ? "" : rendered.slice(split), head = split < 0 ? rendered : rendered.slice(0, split);
+                    rendered = head.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, ".0") + suffix;
+                }
+                if (v >= 0 && (plus || blank))
+                    rendered = (plus ? "+" : " ") + rendered;
+            }
+            if (comma && kind === "f") {
+                const sign = /^[+ -]/.test(rendered) ? rendered[0] : "", rest = sign ? rendered.slice(1) : rendered, [whole = "", ...tail] = rest.split("."), groups = Math.floor((whole.length - 1) / 3);
+                admit(rendered.length + groups);
+                rendered = sign + whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (tail.length ? "." + tail : "");
+            }
+            rendered = pad(rendered, width, left, zero, rendered[0] === "-" || rendered[0] === "+" || rendered[0] === " " ? 1 : 0);
+        }
+        else if (conversion === "s" || conversion === "z") {
+            const s = truncate(text(arg()) ?? "", precision, alt2);
+            rendered = pad(s, width, left, false, 0, !alt2);
+        }
+        else if (conversion === "c") {
+            const input = text(arg()) ?? "\0", nul = input.indexOf("\0"), s = nul < 0 ? input : input.slice(0, nul), one = [...s][0] ?? "\0", count = precision > 0 ? precision : 1;
+            admit(utf8.encode(one).length * count);
+            rendered = repeat(one, count);
+            rendered = pad(rendered, width, left, false, 0, false);
+        }
+        else if (conversion === "q" || conversion === "Q" || conversion === "w") {
+            const v = arg(), nullArg = !v || v.initialStorageClass === "null";
+            let value = truncate(nullArg ? (conversion === "Q" ? "NULL" : "(NULL)") : text(v), precision, alt2), quote = conversion === "w" ? '"' : "'", extra = 0, scanned = 0;
+            for (const character of value) {
+                if (character === quote)
+                    extra++;
+                if (++scanned >= 256) {
+                    scanCheckpoint(scanned);
+                    scanned = 0;
+                }
+            }
+            scanCheckpoint(scanned);
+            admit(utf8.encode(value).length + extra + (conversion === "Q" && !nullArg ? 2 : 0));
+            value = value.replaceAll(quote, quote + quote);
+            if (conversion === "Q" && !nullArg)
+                value = `'${value}'`;
+            rendered = pad(value, width, left, false, 0, !alt2);
+        }
+        else if (conversion === "p") {
+            rendered = "0x" + unsigned64(integer(arg())).toString(16);
+            rendered = pad(rendered, width, left, zero, 2);
+        }
+        else if (conversion === "n") {
+            continue;
+        }
+        else
+            break;
+        if (numeric || rendered)
+            append(rendered);
+    }
+    return result;
+}
+export function sqliteRound(value, digits) {
+    if (value.initialStorageClass === "null" || digits?.initialStorageClass === "null")
+        return null;
+    let n = digits ? Number(digits.integerValue()) : 0;
+    n = Math.max(0, Math.min(30, n));
+    let r = value.realValue();
+    if (r < -4503599627370496 || r > 4503599627370496)
+        return r;
+    if (n === 0)
+        return Math.trunc(r + (r < 0 ? -0.5 : 0.5));
+    return Number(fixed(r, n, true));
+}

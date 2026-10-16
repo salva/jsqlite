@@ -7,7 +7,9 @@ import tarfile
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-ALPHA = 'a572862f74876f8c29a7ab4697cfb5e9fc842840'
+ALPHA = '57b498caac4e337172eb07ccfa9812ef338d5fd7'
+PACKAGE = ROOT / 'tools/package/releases/jsqlite2-0.0.0-alpha.7.tgz'
+PACKAGE_SHA256 = '0e1da3bf5ccb385e182e37429cc8aa3ed7301aca6bf876cd14079d114d07a0fd'
 OUT = ROOT / '_site'
 
 def run(*args, cwd=ROOT):
@@ -22,11 +24,15 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
         subprocess.run(['git', 'archive', ALPHA], cwd=ROOT, stdout=stream, check=True)
     with tarfile.open(archive) as stream:
         stream.extractall(source, filter='data')
-    run('npm', 'ci', '--ignore-scripts', '--no-audit', '--no-fund', cwd=source)
-    run('npm', 'run', 'build', cwd=source)
+    # Deploy the independently accepted package bytes, not a fresh compilation.
+    assert hashlib.sha256(PACKAGE.read_bytes()).hexdigest() == PACKAGE_SHA256
+    with tarfile.open(PACKAGE) as package:
+        package.extractall(source / 'packed', filter='data')
     if OUT.exists():
         shutil.rmtree(OUT)
-    shutil.copytree(ROOT / 'site', OUT)
+    shutil.copytree(ROOT / 'site', OUT, ignore=shutil.ignore_patterns('legacy-assets'))
+    # Cached alpha.6 workers/imports remain available at their immutable URLs.
+    shutil.copytree(ROOT / 'site/legacy-assets', OUT, dirs_exist_ok=True)
     query = (source / 'examples/browser/query.js').read_text()
     engine_name = 'engine-' + ALPHA[:12]
     query = query.replace("'../../dist/index.js'", repr('./' + engine_name + '/index.js'))
@@ -51,8 +57,8 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     html = (OUT / 'index.html').read_text().replace('src="app.js"', f'src="{app_name}"').replace('href="style.css"', f'href="{css_name}"')
     (OUT / 'index.html').write_text(html)
     assets = OUT / 'assets'
-    assets.mkdir()
-    shutil.copytree(source / 'dist', assets / engine_name)
+    assets.mkdir(exist_ok=True)
+    shutil.copytree(source / 'packed/package/dist', assets / engine_name)
     for name in ['chinook.sqlite', 'CHINOOK-LICENSE.md']:
         shutil.copyfile(source / 'examples/browser' / name, assets / name)
     (assets / query_name).write_text(query)

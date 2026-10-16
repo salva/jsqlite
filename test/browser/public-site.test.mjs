@@ -36,7 +36,7 @@ try {
   const page = await browser.newPage();
   const base = process.env.JSQLITE_SITE_URL || `http://127.0.0.1:${server.address().port}/jsqlite/`;
   await page.goto(base);
-  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.6/);
+  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.7/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
   const native = JSON.parse(await readFile(new URL('./public-examples-native.json', import.meta.url), 'utf8'));
   const pin = JSON.parse(await readFile(new URL('../../reference/sqlite/manifest.json', import.meta.url), 'utf8'));

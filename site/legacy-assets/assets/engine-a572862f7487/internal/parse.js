@@ -1,0 +1,600 @@
+import { encodeSql, tokenize } from "./tokenize.js";
+import { lemonTables, tokenIds } from "../generated/parser-tables.js";
+import { keywordTable } from "../generated/keyword-table.js";
+import { lemonParse } from "./lemon-runtime.js";
+function triggerUpsert(node) {
+    if (!node || node.kind !== "reduction" || node.children.length === 0)
+        return null;
+    const field = (name) => direct(node, `${name} ::=`) ?? null;
+    const wheres = node.children.filter(child => child.kind === "reduction" && child.signature.startsWith("where_opt ::="));
+    const target = field("sortlist"), expressions = field("setlist");
+    return Object.freeze({ target, targetWhere: target ? wheres[0] ?? null : null, expressions, where: expressions ? wheres[target ? 1 : 0] ?? null : null, next: triggerUpsert(field("upsert")) });
+}
+function triggerStep(reduction) {
+    if (reduction.kind !== "reduction")
+        throw new SqlParseError("generated trigger step is missing");
+    const field = (name) => direct(reduction, `${name} ::=`) ?? null;
+    const select = field("select");
+    const operation = select && !field("xfullname") ? "select" : reduction.signature.includes("insert_cmd") ? "insert" : reduction.signature.startsWith("trigger_cmd ::= UPDATE") ? "update" : reduction.signature.startsWith("trigger_cmd ::= DELETE") ? "delete" : null;
+    if (!operation)
+        throw new SqlParseError("unsupported generated trigger step production");
+    return Object.freeze({ operation, select, where: field("where_opt"), expressions: field("setlist"), target: field("xfullname"), from: field("from"), upsert: triggerUpsert(field("upsert")), tokens: leaves(reduction), reduction: deepFreeze(reduction) });
+}
+export class SqlParseError extends Error {
+}
+export class SqlUnsupportedError extends Error {
+}
+const tokenKindNames = { id: "ID", integer: "INTEGER", float: "FLOAT", string: "STRING", blob: "BLOB", variable: "VARIABLE" };
+const punctuationNames = { ";": "SEMI", "(": "LP", ")": "RP", ",": "COMMA", "=": "EQ", "==": "EQ", "!=": "NE", "<>": "NE", ">": "GT", "<=": "LE", "<": "LT", ">=": "GE", "+": "PLUS", "-": "MINUS", "*": "STAR", "/": "SLASH", "%": "REM", "||": "CONCAT", "->": "PTR", "->>": "PTR", "&": "BITAND", "|": "BITOR", "~": "BITNOT", "<<": "LSHIFT", ">>": "RSHIFT", ".": "DOT" };
+function byteToCodeUnit(sql, byte) { let b = 0, i = 0; for (const s of sql) {
+    if (b === byte)
+        return i;
+    b += new TextEncoder().encode(s).length;
+    i += s.length;
+} if (b === byte)
+    return i; throw Error("token ended inside UTF-8 scalar"); }
+function terminal(t) { if (t.kind === "keyword") {
+    const name = keywordTable.get(t.text.toUpperCase());
+    return name === undefined ? undefined : tokenIds[name];
+} const name = tokenKindNames[t.kind] ?? punctuationNames[t.text]; return name === undefined ? undefined : tokenIds[name]; }
+/** Port of tokenize.c getToken()/analyze{Window,Over,Filter}Keyword(). */
+function contextualTerminals(tokens) {
+    const raw = tokens.map(terminal), id = tokenIds.ID;
+    const identifier = (token) => token === id || token === tokenIds.STRING || token === tokenIds.JOIN_KW || token === tokenIds.WINDOW || token === tokenIds.OVER || (token !== undefined && (lemonTables.fallback[token] ?? 0) === id);
+    const out = [];
+    let previous = -1;
+    for (let i = 0; i < raw.length; i++) {
+        const token = raw[i], next = raw[i + 1], afterNext = raw[i + 2];
+        let adapted = token;
+        if (token === tokenIds.WINDOW)
+            adapted = identifier(next) && afterNext === tokenIds.AS ? token : id;
+        else if (token === tokenIds.OVER)
+            adapted = previous === tokenIds.RP && (next === tokenIds.LP || identifier(next)) ? token : id;
+        else if (token === tokenIds.FILTER)
+            adapted = previous === tokenIds.RP && next === tokenIds.LP ? token : id;
+        out.push(adapted);
+        previous = adapted ?? -1;
+    }
+    return out;
+}
+function leaves(v) {
+    const out = [], stack = v ? [v] : [];
+    while (stack.length) {
+        const node = stack.pop();
+        if (node.kind === "terminal") {
+            if (node.value)
+                out.push(node.value);
+        }
+        else
+            for (let i = node.children.length - 1; i >= 0; i--)
+                stack.push(node.children[i]);
+    }
+    return out;
+}
+function exactSource(tokens, sqlBytes) { const first = tokens[0], last = tokens.at(-1); return first && last ? new TextDecoder().decode(sqlBytes.subarray(first.startByte, last.endByte)) : undefined; }
+/** build.c sqlite3AddColumn dequotes the complete type span before storing
+ * metadata or calling AffinityType. util.c sqlite3Dequote stops at the first
+ * undoubled closing quote; it does not reconstruct or normalize type tokens. */
+function declaredTypeSource(tokens, sqlBytes) {
+    const source = exactSource(tokens, sqlBytes);
+    if (source === undefined)
+        return null;
+    const canonical = (value) => ["ANY", "BLOB", "INT", "INTEGER", "REAL", "TEXT"].find(type => type.toLowerCase() === value.toLowerCase()) ?? value;
+    const first = source[0];
+    if (!first || !['"', "'", '`', '['].includes(first))
+        return canonical(source);
+    const quote = first === '[' ? ']' : first;
+    let result = '';
+    for (let i = 1; i < source.length; i++) {
+        if (source[i] === quote) {
+            if (source[i + 1] !== quote)
+                break;
+            i++;
+        }
+        result += source[i];
+    }
+    return canonical(result);
+}
+function find(v, p) {
+    const stack = v ? [v] : [];
+    while (stack.length) {
+        const node = stack.pop();
+        if (node.kind !== "reduction")
+            continue;
+        if (p(node.signature))
+            return node;
+        for (let i = node.children.length - 1; i >= 0; i--)
+            stack.push(node.children[i]);
+    }
+}
+function findAll(v, p, out = []) {
+    const stack = v ? [v] : [];
+    while (stack.length) {
+        const node = stack.pop();
+        if (node.kind !== "reduction")
+            continue;
+        if (p(node.signature))
+            out.push(node);
+        for (let i = node.children.length - 1; i >= 0; i--)
+            stack.push(node.children[i]);
+    }
+    return out;
+}
+function direct(v, prefix) { if (v.kind === "terminal")
+    return; for (const child of v.children)
+    if (child.kind === "reduction" && child.signature.startsWith(prefix))
+        return child; }
+function sqlIdentifier(token) { if (!token)
+    throw new SqlParseError("generated schema name is missing"); const value = token.text; if (value[0] === "[" && value.at(-1) === "]")
+    return value.slice(1, -1); if ((value[0] === '"' || value[0] === "`") && value.at(-1) === value[0])
+    return value.slice(1, -1).replaceAll(value[0] + value[0], value[0]); return value; }
+// parse.y DEFAULT owns the TK_SPAN passed to build.c sqlite3AddDefaultValue.
+// Parentheses delimit the span but interior whitespace/comments are preserved.
+function defaultSpan(constraint, bytes) {
+    const tokens = leaves(constraint).slice(1), first = tokens[0], last = tokens.at(-1);
+    const parenthesized = first.text === "(" && last.text === ")";
+    return new TextDecoder().decode(bytes.subarray(parenthesized ? first.endByte : first.startByte, parenthesized ? last.startByte : last.endByte)).replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, "");
+}
+function ddlColumns(root, sqlBytes) {
+    const entries = findAll(root, s => s.startsWith("columnlist ::=") && s.includes("columnname carglist")).map(declaration => {
+        const column = direct(declaration, "columnname ::="), args = direct(declaration, "carglist ::=");
+        if (!column || !args)
+            throw new SqlParseError("generated column action is incomplete");
+        const nameNode = direct(column, "nm ::="), typeNode = direct(column, "typetoken ::="), nameToken = leaves(nameNode)[0], rawTypeTokens = leaves(typeNode), generatedAt = rawTypeTokens.findIndex(token => token.text.toUpperCase() === "GENERATED"), typeTokens = generatedAt < 0 ? rawTypeTokens : rawTypeTokens.slice(0, generatedAt), constraints = findAll(args, s => s.startsWith("ccons ::="));
+        const expression = (prefix) => { const constraint = constraints.find(c => c.kind === "reduction" && c.signature.startsWith(prefix)); if (!constraint)
+            return null; const expr = find(constraint, s => s.startsWith("expr ::=")); if (expr) {
+            const tokens = leaves(expr);
+            return { kind: "tokens", tokens, reduction: expr, sourceText: prefix === "ccons ::= DEFAULT" ? defaultSpan(constraint, sqlBytes) : exactSource(tokens, sqlBytes) };
+        } const tokens = leaves(constraint).slice(1); if (tokens[0]?.text === "(" && tokens.at(-1)?.text === ")")
+            tokens.splice(tokens.length - 1, 1), tokens.splice(0, 1); if (!tokens.length)
+            throw new SqlParseError("generated column expression is missing"); return { kind: "tokens", tokens, sourceText: prefix === "ccons ::= DEFAULT" ? defaultSpan(constraint, sqlBytes) : exactSource(tokens, sqlBytes) }; };
+        const has = (prefix) => constraints.some(c => c.kind === "reduction" && c.signature.startsWith(prefix));
+        const collate = constraints.find(c => c.kind === "reduction" && c.signature.startsWith("ccons ::= COLLATE"));
+        const generated = constraints.find(c => c.kind === "reduction" && (c.signature.startsWith("ccons ::= GENERATED") || c.signature.startsWith("ccons ::= AS generated")));
+        const generatedWords = generated ? leaves(generated).map(t => t.text.toUpperCase()) : [];
+        return { offset: nameToken?.startByte ?? 0, value: Object.freeze({ name: sqlIdentifier(nameToken), declaredType: declaredTypeSource(typeTokens, sqlBytes), defaultExpr: expression("ccons ::= DEFAULT"), generatedExpr: expression("ccons ::= GENERATED") ?? expression("ccons ::= AS generated"), notNull: has("ccons ::= NOT NULL"), primaryKey: has("ccons ::= PRIMARY KEY"), primaryKeyDescending: constraints.some(c => c.kind === "reduction" && c.signature.startsWith("ccons ::= PRIMARY KEY") && leaves(c).some(t => t.text.toUpperCase() === "DESC")), unique: has("ccons ::= UNIQUE"), collation: collate ? sqlIdentifier(leaves(collate)[1]) : null, generatedStorage: generated ? (generatedWords.includes("STORED") ? "stored" : "virtual") : null }) };
+    });
+    return Object.freeze(entries.sort((a, b) => a.offset - b.offset).map(entry => entry.value));
+}
+function selectListItems(root) {
+    const out = [], stack = [root];
+    while (stack.length) {
+        const node = stack.pop();
+        if (node.kind !== "reduction")
+            continue;
+        if (node !== root && node.signature.startsWith("oneselect ::="))
+            continue;
+        if (node.signature === "selcollist ::= sclp scanpt expr scanpt as" || node.signature === "selcollist ::= sclp scanpt STAR" || node.signature === "selcollist ::= sclp scanpt nm DOT STAR")
+            out.push(node);
+        for (let i = node.children.length - 1; i >= 0; i--)
+            stack.push(node.children[i]);
+    }
+    return out;
+}
+function expressionList(node) {
+    const out = [], stack = node.kind === "reduction" ? [...node.children].reverse() : [];
+    while (stack.length) {
+        const child = stack.pop();
+        if (child.kind !== "reduction")
+            continue;
+        if (child.signature.startsWith("nexprlist ::=")) {
+            for (let i = child.children.length - 1; i >= 0; i--)
+                stack.push(child.children[i]);
+        }
+        else if (child.signature.startsWith("expr ::=") || child.signature.startsWith("term ::="))
+            out.push({ kind: "tokens", tokens: leaves(child), reduction: child });
+    }
+    return Object.freeze(out);
+}
+const noJoin = Object.freeze({ inner: true, cross: false, natural: false, left: false, right: false, outer: false, error: false });
+function joinFlags(node) { const words = leaves(node).map(t => t.text.toUpperCase()), names = words.filter(w => w !== "JOIN" && w !== ","); return Object.freeze({ inner: words.includes(",") || names.length === 0 || names.includes("INNER"), cross: names.includes("CROSS"), natural: names.includes("NATURAL"), left: names.includes("LEFT") || names.includes("FULL"), right: names.includes("RIGHT") || names.includes("FULL"), outer: names.includes("OUTER"), error: names.some(w => !["INNER", "CROSS", "NATURAL", "LEFT", "RIGHT", "FULL", "OUTER"].includes(w)) }); }
+function frozenSource(items, tokens, flattenedDerived, derived, derivedSources = []) { const out = [...tokens]; Object.defineProperties(out, { items: { value: Object.freeze([...items]), enumerable: true }, tokens: { value: Object.freeze([...tokens]), enumerable: true }, ...(flattenedDerived ? { flattenedDerived: { value: flattenedDerived, enumerable: true } } : {}), ...(derived ? { derived: { value: derived, enumerable: true } } : {}), ...(derivedSources.length ? { derivedSources: { value: Object.freeze([...derivedSources]), enumerable: true } } : {}) }); return Object.freeze(out); }
+/** Translation of parse.y stl_prefix/seltablist semantic actions and sqlite3SrcListShiftJoinType(). */
+function sourceList(node) {
+    if (!node)
+        return frozenSource([], []);
+    // select.c:flattenSubquery case 1. Admit only a deliberately small safe
+    // single-source projection. Retaining the generated Select semantic avoids
+    // reparsing SQL; every other shape continues to reject atomically.
+    // parse.y gives a derived SrcItem only the Select that is an immediate
+    // child of seltablist ::= stl_prefix LP select RP as on_using. A SELECT
+    // inside ON, a table-function argument, or an earlier prefix belongs to
+    // its expression/previous SrcItem, never to this source's pSelect.
+    const nested = direct(node, "select ::=");
+    if (nested) {
+        const select = nested.kind === "reduction" ? nested.semantic : undefined;
+        const ownAs = direct(node, "as ::="), aliases = leaves(ownAs);
+        const projected = select?.result.map(expr => expr.alias ?? (expr.tokens.length === 1 && ["id", "keyword"].includes(expr.tokens[0].kind) ? sqlIdentifier(expr.tokens[0]) : null));
+        // flattenSubquery restrictions represented by this parser permit a simple
+        // projection over one or more ordinary FROM terms.  Do not require a single
+        // inner term: that incorrectly rejects the pinned aggregate-over-derived-join
+        // route even though flattening only splices the inner SrcList into the parent.
+        // An expression or renamed projection is not an identity SrcList splice,
+        // even without an outer alias or with several inner sources. Retain its
+        // EList for select.c:substExpr lowering; otherwise outer WHERE reads the
+        // underlying columns instead of the projected expression (join8-3030).
+        const directProjection = !!select && select.result.every(expr => expr.tokens.length === 1 && ["id", "keyword"].includes(expr.tokens[0].kind) && (!expr.alias || expr.alias === sqlIdentifier(expr.tokens[0])));
+        // select.c:flattenSubquery restriction (25): window SELECTs retain their
+        // generated Select owner and are consumed through a subquery destination.
+        const hasWindow = !!select && select.result.some(expr => { const visit = (part) => part.kind === 'reduction' && (part.signature.startsWith('over_clause ::= OVER') || part.children.some(visit)); return !!expr.reduction && visit(expr.reduction); });
+        // Upstream resolves the generated Select while its pWith frame is pushed,
+        // before flattenSubquery can splice its SrcList. This parser otherwise
+        // flattens eagerly, so retain WITH owners until lowerOrdinaryCtes() performs
+        // the equivalent innermost-first searchWith resolution.
+        const safe = !!select && !select.with && !hasWindow && aliases.length <= 1 && select.arms.length === 1 && select.from.items.length > 0 && !select.hasDistinct && !select.hasGroupBy && !select.hasHaving && !select.hasOrderBy && !select.hasLimit && !select.hasCompound && !select.hasValues && !select.hasSubquery && projected?.every((name) => name !== null) && directProjection && (!aliases.length || select.from.items.length === 1 && directProjection);
+        if (!safe) {
+            // parse.y's SrcItem owns the generated Select when flattenSubquery is
+            // ineligible. Preserve it for sqlite3Select's materialization destination.
+            const prefix = direct(node, "stl_prefix ::="), priorNode = prefix ? direct(prefix, "seltablist ::=") : undefined;
+            if (!select)
+                throw new SqlUnsupportedError("this FROM subquery shape is not implemented");
+            const prior = priorNode ? sourceList(priorNode) : frozenSource([], []), alias = aliases.length ? sqlIdentifier(aliases.at(-1)) : null, name = alias ?? "(subquery)", preceding = direct(prefix, "joinop ::="), onUsing = direct(node, "on_using ::="), onExpr = onUsing ? direct(onUsing, "expr ::=") : undefined, idlist = onUsing ? direct(onUsing, "idlist ::=") : undefined, using = idlist ? Object.freeze(leaves(idlist).filter(t => t.text !== ",").map(sqlIdentifier)) : null;
+            const item = Object.freeze({ databaseName: null, tableName: name, arguments: null, alias, indexedBy: null, notIndexed: false, on: onExpr ? Object.freeze({ kind: "tokens", tokens: Object.freeze(leaves(onExpr)), reduction: onExpr }) : null, using, joinFromLeft: joinFlags(preceding), leftOfRightJoin: false, cursorId: null, table: null });
+            const items = Object.freeze([...prior.items, item]);
+            const derived = Object.freeze({ index: items.length - 1, select, alias });
+            return frozenSource(items, leaves(node), undefined, derived, [...(prior.derivedSources ?? (prior.derived ? [prior.derived] : [])), derived]);
+        }
+        const flattenedItems = aliases.length === 1 ? select.from.items.map((item, index) => index === 0 ? Object.freeze({ ...item, alias: sqlIdentifier(aliases[0]) }) : item) : select.from.items;
+        return frozenSource(flattenedItems, leaves(node), Object.freeze({ select }));
+    }
+    const items = [];
+    let retained;
+    const append = (list) => { const prefix = direct(list, "stl_prefix ::="); if (prefix?.kind === "reduction" && prefix.signature !== "stl_prefix ::=") {
+        const prior = direct(prefix, "seltablist ::=");
+        if (prior) {
+            retained = sourceList(prior);
+            items.push(...retained.items);
+        }
+    } const reductions = list.kind === "reduction" ? list.children.filter((c) => c.kind === "reduction") : []; const names = reductions.filter(c => c.signature.startsWith("nm ::=")); if (!names.length)
+        throw new SqlParseError("generated FROM source name is missing"); const first = sqlIdentifier(leaves(names[0])[0]), dbnm = reductions.find(c => c.signature.startsWith("dbnm ::=")), dbToken = leaves(dbnm).find(t => t.text !== "."), as = reductions.find(c => c.signature.startsWith("as ::=")), asToken = leaves(as).find(t => t.text.toUpperCase() !== "AS"), indexed = reductions.find(c => c.signature.startsWith("indexed_by ::=")), indexedTokens = leaves(indexed), notIndexed = indexedTokens.some(t => t.text.toUpperCase() === "NOT"), onUsing = reductions.find(c => c.signature.startsWith("on_using ::=")), onExpr = onUsing ? direct(onUsing, "expr ::=") : undefined, idlist = onUsing ? direct(onUsing, "idlist ::=") : undefined, preceding = prefix ? direct(prefix, "joinop ::=") : undefined; const using = idlist ? Object.freeze(leaves(idlist).filter(t => t.text !== ",").map(sqlIdentifier)) : null; const argumentsNode = reductions.find(c => c.signature.startsWith("exprlist ::=")), argumentsList = argumentsNode ? expressionList(argumentsNode) : null; items.push(Object.freeze({ databaseName: dbToken ? first : null, tableName: dbToken ? sqlIdentifier(dbToken) : first, arguments: argumentsList, alias: asToken ? sqlIdentifier(asToken) : null, indexedBy: indexedTokens.length && !notIndexed ? sqlIdentifier(indexedTokens.at(-1)) : null, notIndexed, on: onExpr ? Object.freeze({ kind: "tokens", tokens: Object.freeze(leaves(onExpr)), reduction: onExpr }) : null, using, joinFromLeft: items.length ? joinFlags(preceding) : noJoin, leftOfRightJoin: false, cursorId: null, table: null })); };
+    append(node);
+    const rightmost = items.reduce((n, item, i) => item.joinFromLeft.right ? i : n, -1), shifted = rightmost < 0 ? items : items.map((item, i) => i < rightmost ? Object.freeze({ ...item, leftOfRightJoin: true }) : item);
+    return frozenSource(shifted, leaves(node), undefined, retained?.derived, retained?.derivedSources);
+}
+function armAction(one, operatorFromPrior, sqlBytes) {
+    const from = direct(one, "from ::="), fromList = from ? find(from, s => s.startsWith("seltablist ::=")) : undefined, where = direct(one, "where_opt ::=");
+    const result = selectListItems(one).map(item => { if (item.kind !== "reduction")
+        throw new SqlParseError("generated result expression is missing"); const expr = item.signature.endsWith("expr scanpt as") ? item.children[2] : undefined; const tokens = expr ? leaves(expr) : item.children.slice(2).flatMap(leaves); if (!tokens.length)
+        throw new SqlParseError("generated result expression is missing"); const asNode = expr ? item.children[4] : undefined, asTokens = leaves(asNode); const alias = asTokens.length ? sqlIdentifier(asTokens.at(-1)) : undefined; return Object.freeze({ kind: "tokens", tokens, ...(expr ? { reduction: expr } : {}), ...(exactSource(tokens, sqlBytes) !== undefined ? { sourceText: exactSource(tokens, sqlBytes) } : {}), ...(alias !== undefined ? { alias } : {}) }); }).sort((a, b) => (a.tokens[0]?.startByte ?? 0) - (b.tokens[0]?.startByte ?? 0));
+    const present = (prefix, empty) => { const node = direct(one, prefix); return node?.kind === "reduction" && node.signature !== empty; };
+    const expr = where ? find(where, s => s.startsWith("expr ::=")) : undefined;
+    const havingNode = direct(one, "having_opt ::="), havingExpr = havingNode ? direct(havingNode, "expr ::=") : undefined;
+    const groupNode = direct(one, "groupby_opt ::="), groupList = groupNode ? direct(groupNode, "nexprlist ::=") : undefined, groupBy = groupList ? expressionList(groupList) : Object.freeze([]);
+    return { groupBy, having: havingExpr ? Object.freeze({ kind: "tokens", tokens: leaves(havingExpr), reduction: havingExpr }) : null, result: Object.freeze(result), from: sourceList(fromList), where: expr ? Object.freeze({ kind: "tokens", tokens: leaves(expr), reduction: expr }) : null, hasDistinct: present("distinct ::=", "distinct ::="), hasGroupBy: present("groupby_opt ::=", "groupby_opt ::="), hasHaving: present("having_opt ::=", "having_opt ::="), origin: "select", valuesRows: null, operatorFromPrior };
+}
+function semanticOf(child, owner) { if (child?.kind !== "reduction" || child.semantic === undefined)
+    throw new SqlParseError(`generated ${owner} child semantic is missing`); return child.semantic; }
+function linkedArms(drafts) { return Object.freeze(drafts.map((arm, i) => Object.freeze({ ...arm, prior: i ? i - 1 : null, next: i + 1 < drafts.length ? i + 1 : null }))); }
+/** select.c:flattenSubquery moves the inner WHERE into the parent with AND. */
+function andFlattenedPredicates(inner, outer) {
+    if (!inner)
+        return outer;
+    if (!outer)
+        return inner;
+    if (!inner.reduction || !outer.reduction)
+        throw new SqlParseError("generated flattened predicate lost its reduction");
+    const at = inner.tokens.at(-1)?.endByte ?? 0, and = Object.freeze({ kind: "keyword", text: "AND", startByte: at, endByte: at });
+    const reduction = Object.freeze({ kind: "reduction", rule: -1, signature: "expr ::= expr AND expr", children: Object.freeze([inner.reduction, Object.freeze({ kind: "terminal", tokenId: tokenIds.AND, value: and }), outer.reduction]) });
+    return Object.freeze({ kind: "tokens", tokens: Object.freeze([...inner.tokens, and, ...outer.tokens]), reduction });
+}
+/** Translation of parse.y frame_opt actions and window.c:sqlite3WindowAlloc(). */
+export function windowFrame(window) {
+    const frame = window ? direct(window, "frame_opt ::=") : undefined;
+    if (frame?.kind !== "reduction" || frame.signature === "frame_opt ::=")
+        return Object.freeze({ type: "range", start: Object.freeze({ kind: "unbounded", expr: null }), end: Object.freeze({ kind: "current", expr: null }), exclusion: null, implicit: true });
+    const words = leaves(frame).map(token => token.text.toUpperCase());
+    const boundary = (prefix) => {
+        const wrappers = [];
+        const collect = (node) => { if (node.kind !== "reduction")
+            return; if (node.signature.startsWith("frame_bound ::="))
+            wrappers.push({ node, words: leaves(node).map(token => token.text.toUpperCase()) }); node.children.forEach(collect); };
+        collect(frame);
+        let bound;
+        const wrapper = find(frame, signature => signature.startsWith(prefix));
+        const candidate = wrapper ? find(wrapper, signature => signature.startsWith("frame_bound ::=")) : undefined;
+        if (candidate?.kind === "reduction")
+            bound = candidate;
+        else if (wrapper?.kind === "reduction")
+            bound = wrapper;
+        // Some generated reductions inline one/both wrappers. Positional fallback is
+        // only valid after the source-specific frame_bound_s/e subtree was searched.
+        if (!bound)
+            bound = prefix.startsWith("frame_bound_e") ? wrappers[1]?.node : wrappers[0]?.node;
+        if (!bound)
+            throw new SqlParseError("generated window frame boundary is missing");
+        const boundWords = leaves(bound).map(token => token.text.toUpperCase());
+        const kind = boundWords.includes("UNBOUNDED") ? "unbounded" : boundWords.includes("PRECEDING") ? "preceding" : boundWords.includes("FOLLOWING") ? "following" : "current";
+        const expression = bound.kind === "reduction" ? bound.children.find(child => child.kind === "reduction" && (child.signature.startsWith("expr ::=") || child.signature.startsWith("term ::="))) : undefined;
+        const expr = expression && expression.kind === "reduction" ? Object.freeze({ kind: "tokens", tokens: Object.freeze(leaves(expression)), reduction: expression }) : null;
+        // window.c sqlite3WindowAlloc preserves offset kind/expression even for 0:
+        // ROWS/GROUPS may yield equal frames, but countdown/delete ownership differs
+        // from CURRENT and RANGE numeric affinity distinguishes nonnumeric keys.
+        return Object.freeze({ kind, expr });
+    };
+    const exclusion = words.includes("TIES") ? "ties" : words.includes("GROUP") ? "group" : words.includes("OTHERS") ? "no-others" : words.includes("CURRENT") && words.includes("EXCLUDE") ? "current-row" : null;
+    const start = boundary("frame_bound_s ::=");
+    const between = words.includes("BETWEEN");
+    const end = between ? boundary("frame_bound_e ::=") : Object.freeze({ kind: "current", expr: null });
+    // sqlite3WindowAlloc rejects boundary-type order before allocating Window;
+    // zero offsets do not erase the type or bypass this diagnostic.
+    if ((start.kind === 'current' && end.kind === 'preceding') ||
+        (start.kind === 'following' && (end.kind === 'preceding' || end.kind === 'current')))
+        throw new SqlParseError('unsupported frame specification');
+    return Object.freeze({ type: words.includes("ROWS") ? "rows" : words.includes("GROUPS") ? "groups" : "range", start, end, exclusion, implicit: false });
+}
+/** parse.y sortlist / expr.c sqlite3ExprListSetSortOrder: flags belong to
+ * the appended ExprList item, not to an aggregate-function owner subtree. */
+export function sortTermsForWindow(node) {
+    const terms = [];
+    const visit = (item) => {
+        if (item.kind !== "reduction")
+            return;
+        const prior = item.children.find(c => c.kind === "reduction" && c.signature.startsWith("sortlist ::="));
+        if (prior)
+            visit(prior);
+        const expr = item.children.find(c => c.kind === "reduction" && !c.signature.startsWith("sortlist ::=") && !c.signature.startsWith("sortorder ::=") && !c.signature.startsWith("nulls ::="));
+        if (!expr || expr.kind !== "reduction")
+            throw new SqlParseError("generated window ORDER BY expression is missing");
+        const nullWords = leaves(direct(item, "nulls ::=")).map(t => t.text.toUpperCase());
+        terms.push(Object.freeze({ expr: Object.freeze({ kind: "tokens", tokens: Object.freeze(leaves(expr)), reduction: expr }), descending: leaves(direct(item, "sortorder ::=")).some(t => t.text.toUpperCase() === "DESC"), nulls: nullWords.includes("FIRST") ? "first" : nullWords.includes("LAST") ? "last" : null }));
+    };
+    visit(node);
+    return Object.freeze(terms);
+}
+function selectAction(semantic, all, sqlBytes, withModel = null) {
+    const one = semantic.rightmost, arms = linkedArms(semantic.arms), hasValues = arms.some(arm => arm.origin === "values");
+    // parse.y accepts this only through error recovery. ORDER/LIMIT tokens before a
+    // later compound arm are never owned by the rightmost oneselect and must not be
+    // silently dropped into a partial-arm program.
+    if (arms.length > 1) {
+        const rightmost = arms.at(-1).result[0].tokens[0].startByte;
+        // An ORDER/LIMIT owned by a parenthesized expression subquery in an earlier
+        // result or a FROM SrcItem is not an arm-local compound clause. parse.y
+        // retains those Select owners; only otherwise-unowned tokens recover.
+        // parse.y WITH owns each CTE Select independently of the outer pPrior
+        // chain. Their ORDER/LIMIT clauses cannot become misplaced outer clauses.
+        const cteTokenStarts = (withModel?.ctes ?? []).flatMap(cte => cte.select.tokens.map(token => token.startByte));
+        const expressionTokenStarts = new Set([...cteTokenStarts, ...arms.flatMap(arm => [
+                ...arm.result.flatMap(result => result.tokens.map(token => token.startByte)),
+                ...(arm.from.derivedSources ?? (arm.from.derived ? [arm.from.derived] : [])).flatMap(source => source.select.tokens.map(token => token.startByte)),
+            ])]);
+        const misplaced = all.find(t => t.startByte < rightmost && !expressionTokenStarts.has(t.startByte) && (t.text.toUpperCase() === "ORDER" || t.text.toUpperCase() === "LIMIT"));
+        if (misplaced)
+            throw new SqlParseError(`${misplaced.text.toUpperCase()} BY clause should come after ${arms.at(-1).operatorFromPrior.toUpperCase().replace("-", " ")} not before`);
+    }
+    const from = direct(one, "from ::="), fromList = from ? find(from, s => s.startsWith("seltablist ::=")) : undefined, where = direct(one, "where_opt ::=");
+    const result = selectListItems(one).map(item => { if (item.kind !== "reduction")
+        throw new SqlParseError("generated result expression is missing"); const expr = item.signature.endsWith("expr scanpt as") ? item.children[2] : undefined; const tokens = expr ? leaves(expr) : item.children.slice(2).flatMap(leaves); if (!tokens.length)
+        throw new SqlParseError("generated result expression is missing"); const asNode = expr ? item.children[4] : undefined, asTokens = leaves(asNode); const alias = asTokens.length ? sqlIdentifier(asTokens.at(-1)) : undefined; return { kind: "tokens", tokens, ...(expr ? { reduction: expr } : {}), ...(exactSource(tokens, sqlBytes) !== undefined ? { sourceText: exactSource(tokens, sqlBytes) } : {}), ...(alias === undefined ? {} : { alias }) }; }).sort((a, b) => (a.tokens[0]?.startByte ?? 0) - (b.tokens[0]?.startByte ?? 0));
+    const present = (prefix, empty) => { const node = direct(one, prefix); return node?.kind === "reduction" && node.signature !== empty; };
+    const groupNode = direct(one, "groupby_opt ::="), groupList = groupNode ? direct(groupNode, "nexprlist ::=") : undefined, groupBy = groupList ? expressionList(groupList) : Object.freeze([]), havingNode = direct(one, "having_opt ::="), havingExpr = havingNode ? direct(havingNode, "expr ::=") : undefined;
+    const windowClause = direct(one, "window_clause ::="), windowDefinitions = windowClause ? findAll(windowClause, s => s.startsWith("windowdefn ::=")).map(node => { const window = direct(node, "window ::="), partList = window ? direct(window, "nexprlist ::=") : undefined, order = window ? direct(window, "orderby_opt ::=") : undefined, sort = order ? direct(order, "sortlist ::=") : window ? direct(window, "sortlist ::=") : undefined; const orderTerms = sort ? sortTermsForWindow(sort) : Object.freeze([]), orderBy = orderTerms.map(term => term.expr); const windowLeaves = window ? leaves(window) : [], baseToken = window?.kind === "reduction" && window.signature.startsWith("window ::= nm") ? windowLeaves[0] : undefined; return Object.freeze({ name: sqlIdentifier(leaves(node)[0]), baseName: baseToken ? sqlIdentifier(baseToken) : null, hasFrame: (() => { const frame = window ? direct(window, "frame_opt ::=") : undefined; return frame?.kind === 'reduction' && frame.signature !== "frame_opt ::="; })(), frame: windowFrame(window), frameError: (() => { const frame = window ? direct(window, "frame_opt ::=") : undefined; if (frame?.kind !== "reduction")
+            return null; const frameWords = leaves(frame).map(token => token.text.toUpperCase()); if (frame.signature.startsWith("frame_opt ::= range_or_rows BETWEEN")) {
+            const bounds = frame.children.filter(child => child.kind === "reduction" && (child.signature.startsWith("frame_bound_s ::=") || child.signature.startsWith("frame_bound_e ::="))), words = bounds.map(bound => leaves(bound).map(token => token.text.toUpperCase())), start = words[0] ?? [], end = words[1] ?? [];
+            if ((start.includes("CURRENT") && end.includes("PRECEDING")) || (start.includes("FOLLOWING") && (end.includes("PRECEDING") || end.includes("CURRENT"))))
+                return "unsupported frame specification";
+        } const offset = find(frame, s => s === "frame_bound ::= expr PRECEDING|FOLLOWING"); if (frameWords.includes("RANGE") && offset && orderBy.length !== 1)
+            return "RANGE with offset PRECEDING/FOLLOWING requires one ORDER BY expression"; return null; })(), partitionBy: partList ? expressionList(partList) : Object.freeze([]), orderBy: Object.freeze(orderBy), orderTerms }); }) : [], windowNames = windowDefinitions.map(definition => definition.name);
+    const orderNode = direct(one, "orderby_opt ::="), sortList = orderNode ? direct(orderNode, "sortlist ::=") : undefined;
+    const orderBy = sortList ? findAll(sortList, s => s.startsWith("sortlist ::=")).map(item => { const expr = item.kind === "reduction" ? item.children.find(c => c.kind === "reduction" && !c.signature.startsWith("sortlist ::=") && !c.signature.startsWith("sortorder ::=") && !c.signature.startsWith("nulls ::=")) : undefined; if (!expr || expr.kind !== "reduction")
+        throw new SqlParseError("generated ORDER BY expression is missing"); const nullWords = leaves(direct(item, "nulls ::=")).map(t => t.text.toUpperCase()); return Object.freeze({ expr: { kind: "tokens", tokens: leaves(expr), reduction: expr }, descending: leaves(direct(item, "sortorder ::=")).some(t => t.text.toUpperCase() === "DESC"), nulls: nullWords.includes("FIRST") ? "first" : nullWords.includes("LAST") ? "last" : null }); }).sort((a, b) => (a.expr.tokens[0]?.startByte ?? 0) - (b.expr.tokens[0]?.startByte ?? 0)) : [];
+    const limitNode = direct(one, "limit_opt ::="), limitExprs = limitNode?.kind === "reduction" ? limitNode.children.filter(c => c.kind === "reduction") : [];
+    let limit = null, offset = null;
+    if (limitExprs.length) {
+        const comma = leaves(limitNode).some(t => t.text === ",");
+        const first = { kind: "tokens", tokens: leaves(limitExprs[0]), reduction: limitExprs[0] }, second = limitExprs[1] ? { kind: "tokens", tokens: leaves(limitExprs[1]), reduction: limitExprs[1] } : null;
+        if (comma) {
+            offset = first;
+            limit = second;
+        }
+        else {
+            limit = first;
+            offset = second;
+        }
+    }
+    const left = arms[0];
+    const outerWhere = (() => { const expr = where ? find(where, s => s.startsWith("expr ::=")) : undefined; return expr ? { kind: "tokens", tokens: leaves(expr), reduction: expr } : null; })();
+    const flattened = left.from.flattenedDerived;
+    // flattenSubquery case 1 splices the inner SrcList and combines predicates;
+    // preserving both reductions keeps ordinary expression lowering as the owner.
+    const effectiveFrom = flattened ? frozenSource(flattened.select.from.items, left.from.tokens, flattened) : left.from, effectiveWhere = flattened ? andFlattenedPredicates(flattened.select.where, outerWhere) : outerWhere;
+    // flattenSubquery substitutes the subquery result expressions for a parent
+    // wildcard. Keeping the underlying table wildcard would expose source order
+    // instead of the derived table's ordered projection (for example c,b).
+    const parentStar = left.result.length === 1 && left.result[0].tokens.length === 1 && left.result[0].tokens[0].text === "*";
+    const effectiveResult = flattened && parentStar ? flattened.select.result : left.result;
+    return { kind: "select", result: effectiveResult, from: effectiveFrom, where: effectiveWhere, groupBy, having: havingExpr ? { kind: "tokens", tokens: leaves(havingExpr), reduction: havingExpr } : null, orderBy: Object.freeze(orderBy), windowNames: Object.freeze(windowNames), windowDefinitions: Object.freeze(windowDefinitions), limit, offset, hasDistinct: present("distinct ::=", "distinct ::="), hasGroupBy: present("groupby_opt ::=", "groupby_opt ::="), hasHaving: present("having_opt ::=", "having_opt ::="), hasOrderBy: present("orderby_opt ::=", "orderby_opt ::="), hasLimit: present("limit_opt ::=", "limit_opt ::="), hasCompound: arms.length > 1, hasValues, hasSubquery: !flattened && findAll(one, s => s === "seltablist ::= stl_prefix LP select RP as on_using" || s === "expr ::= LP select RP" || s === "expr ::= expr in_op LP select RP" || s === "expr ::= EXISTS LP select RP").length > 0, with: withModel, arms, tokens: all };
+}
+function schemaName(node) { const token = leaves(node)[0]; return token ? sqlIdentifier(token) : null; }
+function ddlAction(root, all, sqlBytes) {
+    const candidates = [["TABLE", "create_table ::="], ["INDEX", "cmd ::= createkw uniqueflag INDEX"], ["VIEW", "cmd ::= createkw temp VIEW"], ["TRIGGER", "cmd ::= createkw trigger_decl"]];
+    const matched = candidates.map(([kind, prefix]) => ({ kind, ddl: find(root, s => s.startsWith(prefix)) })).find(x => x.ddl);
+    if (!matched)
+        return;
+    const kindWord = matched.kind, ddl = matched.ddl;
+    const words = all.map(t => t.text.toUpperCase()), options = findAll(root, s => s.startsWith("table_option ::="));
+    const sortlist = kindWord === "INDEX" ? find(ddl, s => s.startsWith("sortlist ::=")) : undefined;
+    const indexTerms = sortlist ? findAll(sortlist, s => s.startsWith("sortlist ::=")).map(item => { const expr = direct(item, "expr ::="); if (!expr)
+        throw new SqlParseError("generated index expression is missing"); const exprTokens = leaves(expr), collateAt = exprTokens.findIndex(t => t.text.toUpperCase() === "COLLATE"), nullWords = leaves(direct(item, "nulls ::=")).map(t => t.text.toUpperCase()); return Object.freeze({ expr: { kind: "tokens", tokens: collateAt < 0 ? exprTokens : exprTokens.slice(0, collateAt), reduction: expr }, descending: leaves(direct(item, "sortorder ::=")).some(t => t.text.toUpperCase() === "DESC"), collation: collateAt < 0 ? null : sqlIdentifier(exprTokens[collateAt + 1]), nulls: nullWords.includes("FIRST") ? "first" : nullWords.includes("LAST") ? "last" : null }); }).sort((a, b) => (a.expr.tokens[0]?.startByte ?? 0) - (b.expr.tokens[0]?.startByte ?? 0)) : [];
+    const names = ddl.kind === "reduction" ? ddl.children.filter(c => c.kind === "reduction" && c.signature.startsWith("nm ::=")) : [];
+    const viewList = kindWord === "VIEW" ? find(ddl, s => s.startsWith("eidlist_opt ::= LP eidlist RP")) : undefined;
+    const viewColumns = viewList ? findAll(viewList, s => s.startsWith("eidlist ::=")).flatMap(item => { const own = direct(item, "nm ::="); return own ? [sqlIdentifier(leaves(own)[0])] : []; }).reverse() : [];
+    const selected = kindWord === "VIEW" ? find(ddl, s => s.startsWith("select ::=")) : undefined, tableArgs = kindWord === "TABLE" ? find(root, s => s.startsWith("create_table_args ::= AS select")) : undefined, tableSelected = tableArgs ? find(tableArgs, s => s.startsWith("select ::=")) : undefined;
+    const where = kindWord === "INDEX" ? find(ddl, s => s.startsWith("where_opt ::= WHERE")) : undefined, whereExpr = where ? find(where, s => s.startsWith("expr ::=")) : undefined;
+    const tablePrimary = find(root, s => s.startsWith("tcons ::= PRIMARY KEY")), primaryKey = tablePrimary ? findAll(tablePrimary, s => s.startsWith("sortlist ::=")).map(x => direct(x, "expr ::=")).filter((x) => !!x).map(x => sqlIdentifier(leaves(x)[0])).reverse() : [];
+    const primaryKeyTerms = tablePrimary ? findAll(find(tablePrimary, s => s.startsWith("sortlist ::=")), s => s.startsWith("sortlist ::=")).map(item => { const expr = direct(item, "expr ::="); if (!expr)
+        throw new SqlParseError("generated PRIMARY KEY term is missing"); const exprTokens = leaves(expr), collateAt = exprTokens.findIndex(t => t.text.toUpperCase() === "COLLATE"), nullWords = leaves(direct(item, "nulls ::=")).map(t => t.text.toUpperCase()); return Object.freeze({ expr: { kind: "tokens", tokens: collateAt < 0 ? exprTokens : exprTokens.slice(0, collateAt), reduction: expr }, descending: leaves(direct(item, "sortorder ::=")).some(t => t.text.toUpperCase() === "DESC"), collation: collateAt < 0 ? null : sqlIdentifier(exprTokens[collateAt + 1]), nulls: nullWords.includes("FIRST") ? "first" : nullWords.includes("LAST") ? "last" : null }); }).sort((a, b) => (a.expr.tokens[0]?.startByte ?? 0) - (b.expr.tokens[0]?.startByte ?? 0)) : [];
+    const tableUniqueTerms = findAll(root, s => s.startsWith("tcons ::= UNIQUE")).map(constraint => { const list = find(constraint, s => s.startsWith("sortlist ::=")); if (!list)
+        return Object.freeze([]); return Object.freeze(findAll(list, s => s.startsWith("sortlist ::=")).map(item => { const expr = direct(item, "expr ::="); if (!expr)
+        throw new SqlParseError("generated UNIQUE term is missing"); const exprTokens = leaves(expr), collateAt = exprTokens.findIndex(t => t.text.toUpperCase() === "COLLATE"), nullWords = leaves(direct(item, "nulls ::=")).map(t => t.text.toUpperCase()); return Object.freeze({ expr: { kind: "tokens", tokens: collateAt < 0 ? exprTokens : exprTokens.slice(0, collateAt), reduction: expr }, descending: leaves(direct(item, "sortorder ::=")).some(t => t.text.toUpperCase() === "DESC"), collation: collateAt < 0 ? null : sqlIdentifier(exprTokens[collateAt + 1]), nulls: nullWords.includes("FIRST") ? "first" : nullWords.includes("LAST") ? "last" : null }); }).sort((a, b) => (a.expr.tokens[0]?.startByte ?? 0) - (b.expr.tokens[0]?.startByte ?? 0))); });
+    const implicitConstraints = findAll(root, s => s.startsWith("ccons ::= PRIMARY KEY") || s.startsWith("ccons ::= UNIQUE") || s.startsWith("tcons ::= PRIMARY KEY") || s.startsWith("tcons ::= UNIQUE")).map(constraint => {
+        const tokens = leaves(constraint), primary = constraint.kind === "reduction" && constraint.signature.includes("PRIMARY KEY");
+        const inline = constraint.kind === "reduction" && constraint.signature.startsWith("ccons");
+        let terms;
+        if (inline) {
+            const declaration = findAll(root, s => s.startsWith("columnlist ::=") && s.includes("columnname carglist")).find(node => leaves(direct(node, "carglist ::=")).some(token => token === tokens[0]));
+            const name = declaration ? leaves(direct(direct(declaration, "columnname ::="), "nm ::="))[0] : undefined;
+            if (!name)
+                throw new SqlParseError("implicit constraint column missing");
+            terms = Object.freeze([{ expr: { kind: "tokens", tokens: [name] }, descending: primary && tokens.some(t => t.text.toUpperCase() === "DESC"), collation: null, nulls: null }]);
+        }
+        else {
+            terms = primary ? primaryKeyTerms : tableUniqueTerms.find(group => group.every(term => tokens.includes(term.expr.tokens[0]))) ?? [];
+        }
+        const onError = leaves(find(constraint, s => s.startsWith("onconf ::="))).map(token => token.text.toLowerCase()).find(word => ["rollback", "abort", "fail", "ignore", "replace"].includes(word)) ?? "default";
+        return { onError, position: tokens[0]?.startByte ?? 0, primary, terms };
+    }).sort((a, b) => a.position - b.position).map(({ primary, terms, onError }) => Object.freeze({ primary, terms, onError }));
+    const columnDeclarations = findAll(root, s => s.startsWith("columnlist ::=") && s.includes("columnname carglist")).map(node => { const column = direct(node, "columnname ::="), name = column ? sqlIdentifier(leaves(direct(column, "nm ::="))[0]) : null, tokens = leaves(node); return { name, start: tokens[0]?.startByte ?? 0, end: tokens.at(-1)?.endByte ?? 0 }; }).filter((x) => x.name !== null);
+    const containingColumn = (node) => { if (node.kind !== "reduction")
+        return null; for (const declaration of findAll(root, s => s.startsWith("columnlist ::=") && s.includes("columnname carglist"))) {
+        const args = direct(declaration, "carglist ::=");
+        if (args && find(args, s => s === node.signature) === node) {
+            const column = direct(declaration, "columnname ::=");
+            return column ? sqlIdentifier(leaves(direct(column, "nm ::="))[0]) : null;
+        }
+    } return null; };
+    const listNames = (node) => node ? Object.freeze(findAll(node, s => s.startsWith("eidlist ::=")).flatMap(item => { const own = direct(item, "nm ::="); return own ? [{ name: sqlIdentifier(leaves(own)[0]), at: leaves(own)[0]?.startByte ?? 0 }] : []; }).sort((a, b) => a.at - b.at).map(item => item.name)) : Object.freeze([]);
+    const constraintName = (node) => { const start = leaves(node)[0]?.startByte ?? 0; const declarations = findAll(root, s => s === "ccons ::= CONSTRAINT nm" || s === "tcons ::= CONSTRAINT nm").map(item => ({ item, end: leaves(item).at(-1)?.endByte ?? 0 })).filter(item => item.end <= start).sort((a, b) => b.end - a.end); const prior = declarations[0]; if (!prior)
+        return null; const between = all.filter(token => token.startByte >= prior.end && token.endByte <= start); if (between.some(token => token.text === ","))
+        return null; const name = direct(prior.item, "nm ::="); return name ? sqlIdentifier(leaves(name)[0]) : null; };
+    const checks = kindWord === "TABLE" ? findAll(root, s => s.startsWith("ccons ::= CHECK") || s.startsWith("tcons ::= CHECK")).map(node => { const expr = find(node, s => s.startsWith("expr ::=")); if (!expr)
+        throw new SqlParseError("generated CHECK expression is missing"); return Object.freeze({ name: constraintName(node), columnName: containingColumn(node), expr: Object.freeze({ kind: "tokens", tokens: Object.freeze(leaves(expr)), reduction: expr }), tokens: Object.freeze(leaves(node)) }); }).sort((a, b) => (a.tokens[0]?.startByte ?? 0) - (b.tokens[0]?.startByte ?? 0)) : [];
+    const foreignKeyNodes = kindWord === "TABLE" ? findAll(root, s => s.startsWith("ccons ::= REFERENCES") || s.startsWith("tcons ::= FOREIGN KEY")) : [];
+    const columnForeignKeyDeferral = (node) => { const column = containingColumn(node), end = leaves(node).at(-1)?.endByte ?? 0; if (!column)
+        return Object.freeze([]); const prior = foreignKeyNodes.filter(candidate => containingColumn(candidate) === column && (leaves(candidate).at(-1)?.endByte ?? 0) < end).sort((a, b) => (leaves(b).at(-1)?.endByte ?? 0) - (leaves(a).at(-1)?.endByte ?? 0))[0]; if (prior)
+        return Object.freeze([]); const clause = findAll(root, s => s.startsWith("ccons ::= defer_subclause")).filter(candidate => containingColumn(candidate) === column && (leaves(candidate)[0]?.startByte ?? -1) >= end).sort((a, b) => (leaves(a)[0]?.startByte ?? 0) - (leaves(b)[0]?.startByte ?? 0))[0]; if (!clause)
+        return Object.freeze([]); const intervening = foreignKeyNodes.some(candidate => containingColumn(candidate) === column && (leaves(candidate)[0]?.startByte ?? 0) > end && (leaves(candidate)[0]?.startByte ?? 0) < (leaves(clause)[0]?.startByte ?? 0)); return intervening ? Object.freeze([]) : Object.freeze(leaves(clause)); };
+    const foreignKeys = foreignKeyNodes.map(node => { const ownTokens = leaves(node), tableForm = node.kind === "reduction" && node.signature.startsWith("tcons ::="); const tokens = tableForm ? ownTokens : Object.freeze([...ownTokens, ...columnForeignKeyDeferral(node)]); const names = findAll(node, s => s.startsWith("nm ::=")); const tableNode = tableForm ? names.find(n => (leaves(n)[0]?.startByte ?? 0) > (tokens.find(t => t.text.toUpperCase() === "REFERENCES")?.startByte ?? -1)) : names[0]; if (!tableNode)
+        throw new SqlParseError("generated REFERENCES table is missing"); const lists = findAll(node, s => s.startsWith("eidlist ::=")).sort((a, b) => (leaves(a)[0]?.startByte ?? 0) - (leaves(b)[0]?.startByte ?? 0)); const referencesAt = tokens.find(t => t.text.toUpperCase() === "REFERENCES")?.startByte ?? -1; const localList = lists.filter(list => (leaves(list)[0]?.startByte ?? 0) < referencesAt).sort((a, b) => leaves(b).length - leaves(a).length)[0]; const local = tableForm ? listNames(localList) : Object.freeze([containingColumn(node)]); const referencedList = find(node, s => s.startsWith("eidlist_opt ::= LP eidlist RP")); const words = tokens.map(t => t.text.toUpperCase()); const action = (kind) => { const at = words.findIndex((word, index) => word === "ON" && words[index + 1] === kind); if (at < 0)
+        return "no-action"; const pair = words.slice(at + 2, at + 4).join(" "); if (pair === "SET NULL")
+        return "set-null"; if (pair === "SET DEFAULT")
+        return "set-default"; if (words[at + 2] === "CASCADE")
+        return "cascade"; if (words[at + 2] === "RESTRICT")
+        return "restrict"; return "no-action"; }; return Object.freeze({ name: constraintName(node), columns: local, referencedTable: sqlIdentifier(leaves(tableNode)[0]), referencedColumns: referencedList ? listNames(find(referencedList, s => s.startsWith("eidlist ::="))) : null, onDelete: action("DELETE"), onUpdate: action("UPDATE"), deferrable: words.some((word, index) => word === "DEFERRABLE" && words[index - 1] !== "NOT"), initiallyDeferred: words.some((word, index) => word === "DEFERRABLE" && words[index - 1] !== "NOT") && words.some((word, index) => word === "INITIALLY" && words[index + 1] === "DEFERRED"), tokens: Object.freeze(tokens) }); }).sort((a, b) => (a.tokens[0]?.startByte ?? 0) - (b.tokens[0]?.startByte ?? 0));
+    const triggerDecl = kindWord === "TRIGGER" ? find(ddl, s => s.startsWith("trigger_decl ::=")) : undefined;
+    let trigger = null;
+    if (triggerDecl) {
+        const nameNode = direct(triggerDecl, "nm ::="), target = direct(triggerDecl, "fullname ::="), event = direct(triggerDecl, "trigger_event ::="), time = direct(triggerDecl, "trigger_time ::="), whenNode = direct(triggerDecl, "when_clause ::="), whenExpr = whenNode ? direct(whenNode, "expr ::=") : undefined;
+        const ids = event ? find(event, s => s.startsWith("idlist ::=")) : undefined;
+        const steps = findAll(ddl, s => s.startsWith("trigger_cmd ::=")).sort((a, b) => (leaves(a)[0]?.startByte ?? 0) - (leaves(b)[0]?.startByte ?? 0));
+        const eventWord = leaves(event)[0]?.text.toLowerCase();
+        if (!nameNode || !target || !eventWord || !["insert", "update", "delete"].includes(eventWord))
+            throw new SqlParseError("generated trigger declaration is missing");
+        const database = direct(triggerDecl, "dbnm ::="), databaseTokens = leaves(database), temporary = leaves(direct(triggerDecl, "temp ::=")).length !== 0;
+        trigger = Object.freeze({ databaseName: databaseTokens.length ? sqlIdentifier(leaves(nameNode)[0]) : null, temporary, name: databaseTokens.length ? sqlIdentifier(databaseTokens.at(-1)) : sqlIdentifier(leaves(nameNode)[0]), tableName: sqlIdentifier(leaves(target).at(-1)), timing: leaves(time).some(t => t.text.toUpperCase() === "AFTER") ? "after" : leaves(time).some(t => t.text.toUpperCase() === "INSTEAD") ? "instead" : "before", event: eventWord, updateColumns: Object.freeze(ids ? findAll(ids, s => s.startsWith("idlist ::=")).flatMap(n => { const nm = direct(n, "nm ::="); return nm ? [sqlIdentifier(leaves(nm)[0])] : []; }).reverse() : []), when: whenExpr ? Object.freeze({ kind: "tokens", tokens: leaves(whenExpr), reduction: deepFreeze(whenExpr) }) : null, steps: Object.freeze(steps.map(triggerStep)) });
+    }
+    return { trigger, kind: `create-${kindWord.toLowerCase()}`, name: trigger?.name ?? schemaName(names[0] ?? find(ddl, s => s.startsWith("nm ::="))), tokens: all, columns: kindWord === "TABLE" ? ddlColumns(root, sqlBytes) : Object.freeze([]), checks: Object.freeze(checks), foreignKeys: Object.freeze(foreignKeys), viewColumns: Object.freeze(viewColumns), strict: options.some(option => leaves(option).some(token => token.text.toUpperCase() === "STRICT")), withoutRowid: options.some(option => option.kind === "reduction" && option.signature.startsWith("table_option ::= WITHOUT") && leaves(option).some(token => token.text.toUpperCase() === "ROWID")), indexTerms: Object.freeze(indexTerms), implicitConstraints: Object.freeze(implicitConstraints), tableUniqueTerms: Object.freeze(tableUniqueTerms), tableName: kindWord === "INDEX" ? schemaName(names.at(-1)) : null, select: selected ? semanticOf(selected, "view select") : null, indexWhere: whereExpr ? { kind: "tokens", tokens: leaves(whereExpr), reduction: whereExpr } : null, tableAsSelect: tableSelected ? semanticOf(tableSelected, "table AS select") : null, primaryKey: Object.freeze(primaryKey), primaryKeyTerms: Object.freeze(primaryKeyTerms), indexUnique: kindWord === "INDEX" && leaves(direct(ddl, "uniqueflag ::=")).some(t => t.text.toUpperCase() === "UNIQUE") };
+}
+function deepFreeze(value) {
+    const stack = [value], seen = new Set();
+    while (stack.length) {
+        const node = stack.pop();
+        if (!node || typeof node !== "object" || seen.has(node))
+            continue;
+        seen.add(node);
+        stack.push(...Object.values(node));
+        Object.freeze(node);
+    }
+    return value;
+}
+function productionAction(signature, children, sqlBytes) {
+    const root = { kind: "reduction", rule: -1, signature, children };
+    // parse.y allocates Window while reducing frame_opt/window, before resolver
+    // callbacks or containing SELECT/DDL construction. Validate inline and named
+    // definitions alike; preserve offset types even when the expression is zero.
+    if (signature.startsWith("window ::="))
+        windowFrame(root);
+    // parse.y typetoken/typename lengths span raw SQL, not joined tokens.
+    if (signature.startsWith("typetoken ::="))
+        return exactSource(leaves(root), sqlBytes) ?? "";
+    if (signature === "wqas ::= AS")
+        return "any";
+    if (signature === "wqas ::= AS MATERIALIZED")
+        return "materialized";
+    if (signature === "wqas ::= AS NOT MATERIALIZED")
+        return "not-materialized";
+    if (signature === "wqitem ::= withnm eidlist_opt wqas LP select RP") {
+        const name = sqlIdentifier(leaves(children[0])[0]), aliases = leaves(children[1]).filter(token => token.text !== "," && token.text !== "(" && token.text !== ")").map(sqlIdentifier);
+        return Object.freeze({ name, columns: aliases.length ? Object.freeze(aliases) : null, select: semanticOf(children[4], "CTE select"), materialization: semanticOf(children[2], "CTE materialization") });
+    }
+    if (signature === "wqlist ::= wqitem")
+        return Object.freeze([semanticOf(children[0], "WITH item")]);
+    if (signature === "wqlist ::= wqlist COMMA wqitem")
+        return Object.freeze([...semanticOf(children[0], "WITH list"), semanticOf(children[2], "WITH item")]);
+    if (signature === "values ::= VALUES LP nexprlist RP") {
+        const list = direct(root, "nexprlist ::=");
+        if (!list)
+            throw new SqlParseError("generated VALUES row is missing");
+        return Object.freeze([expressionList(list)]);
+    }
+    if (signature === "mvalues ::= values COMMA LP nexprlist RP" || signature === "mvalues ::= mvalues COMMA LP nexprlist RP") {
+        const prior = semanticOf(children[0], "mvalues");
+        const list = children[3];
+        if (list?.kind !== "reduction")
+            throw new SqlParseError("generated VALUES row is missing");
+        return Object.freeze([...prior, expressionList(list)]);
+    }
+    if (signature === "oneselect ::= values" || signature === "oneselect ::= mvalues") {
+        const rows = semanticOf(children[0], "oneselect VALUES");
+        const arm = Object.freeze({ result: rows[0], from: sourceList(undefined), where: null, having: null, groupBy: Object.freeze([]), hasDistinct: false, hasGroupBy: false, hasHaving: false, origin: "values", valuesRows: rows, operatorFromPrior: null });
+        return Object.freeze({ arms: Object.freeze([arm]), rightmost: root });
+    }
+    if (signature.startsWith("oneselect ::= SELECT "))
+        return Object.freeze({ arms: Object.freeze([Object.freeze(armAction(root, null, sqlBytes))]), rightmost: root });
+    if (signature === "selectnowith ::= oneselect")
+        return semanticOf(children[0], "selectnowith");
+    if (signature === "selectnowith ::= selectnowith multiselect_op oneselect") {
+        const left = semanticOf(children[0], "compound left"), right = semanticOf(children[2], "compound right");
+        const words = leaves(children[1]).map(t => t.text.toUpperCase()).join(" "), operator = words === "UNION ALL" ? "union-all" : words === "UNION" ? "union" : words === "INTERSECT" ? "intersect" : "except";
+        if (right.arms.length !== 1)
+            throw new SqlParseError("generated compound right arm is incomplete");
+        const arm = Object.freeze({ ...right.arms[0], operatorFromPrior: operator });
+        return Object.freeze({ arms: Object.freeze([...left.arms, arm]), rightmost: right.rightmost });
+    }
+    if (signature === "select ::= selectnowith")
+        return deepFreeze(selectAction(semanticOf(children[0], "select"), leaves(root), sqlBytes));
+    if (signature === "select ::= WITH wqlist selectnowith" || signature === "select ::= WITH RECURSIVE wqlist selectnowith") {
+        const recursive = signature.includes(" RECURSIVE "), listIndex = recursive ? 2 : 1, selectIndex = recursive ? 3 : 2, ctes = semanticOf(children[listIndex], "WITH list"), seen = new Set();
+        for (const cte of ctes) {
+            const key = cte.name.replace(/[A-Z]/g, c => c.toLowerCase());
+            if (seen.has(key))
+                throw new SqlParseError(`duplicate WITH table name: ${cte.name}`);
+            seen.add(key);
+        }
+        return deepFreeze(selectAction(semanticOf(children[selectIndex], "select"), leaves(root), sqlBytes, Object.freeze({ recursive, ctes })));
+    }
+    // parse.y cmd PRAGMA owns names/argument, not an Expr or parameter.
+    if (signature.startsWith("cmd ::= PRAGMA ")) {
+        const dequote = (token) => token.text[0] === "'" ? token.text.slice(1, -1).replaceAll("''", "'") : sqlIdentifier(token);
+        const first = leaves(children[1])[0], second = leaves(children[2]).at(-1);
+        // parse.y plus_num returns the number terminal, not the PLUS leaf.
+        const value = children[4] ? leaves(children[4]) : [];
+        return Object.freeze({ kind: "pragma", name: dequote(second ?? first), database: second ? dequote(first) : null,
+            argument: value.length ? (signature.includes("minus_num") ? "-" + value.filter(t => t.text !== "-").map(t => t.text).join("") : dequote(value.find(t => t.text !== "+"))) : null });
+    }
+    if (signature.startsWith("cmd ::= select"))
+        return semanticOf(children[0], "cmd select");
+    if (signature.startsWith("cmd ::= create_table") || signature.startsWith("cmd ::= createkw uniqueflag INDEX") || signature.startsWith("cmd ::= createkw temp VIEW") || signature.startsWith("cmd ::= createkw trigger_decl")) {
+        // Stored-DDL adaptation alone consumes descendant tokens. In particular,
+        // parse.y nexprlist appends ExprList; do not flatten every growing prefix.
+        const tokens = leaves(root);
+        const ddl = ddlAction(root, tokens, sqlBytes);
+        if (ddl)
+            return deepFreeze(ddl);
+    }
+}
+function action(root, tokens) { const cmd = find(root, s => s.startsWith("cmd ::=")); if (cmd?.kind === "reduction" && cmd.semantic)
+    return cmd.semantic; throw new SqlParseError(`near "${tokens[0].text}": syntax error`); }
+export function parseSql(sql, limits = 16 * 1024 * 1024) { const options = typeof limits === "number" ? { maxSqlBytes: limits } : limits; const maxSqlBytes = options.maxSqlBytes ?? 16 * 1024 * 1024, maxWorkUnits = options.maxWorkUnits ?? 10_000_000, maxParserDepth = options.maxParserDepth ?? 2500, maxExpressionDepth = options.maxExpressionDepth ?? 1000; let bytes; try {
+    bytes = encodeSql(sql);
+}
+catch (e) {
+    throw new SqlParseError(e.message);
+} if (bytes.length > maxSqlBytes)
+    throw new RangeError("SQL exceeds maxSqlBytes"); const sig = tokenize(bytes).filter(t => t.kind !== "space" && t.kind !== "comment" && t.kind !== "eof"); if (!sig.length)
+    return { statement: null, tailOffset: bytes.length, tailCodeUnit: sql.length, lemon: null }; const illegal = sig.find(t => t.kind === "illegal"); if (illegal)
+    throw new SqlParseError(`unrecognized token: "${illegal.text}"`); const tokens = sig, ids = contextualTerminals(tokens); if (ids.some(x => x === undefined))
+    throw new SqlParseError(`unrecognized token: "${tokens[ids.findIndex(x => x === undefined)].text}"`); const sentinel = { kind: "punct", startByte: bytes.length, endByte: bytes.length, text: ";" }, lemon = lemonParse([...ids, tokenIds.SEMI, 0], [...tokens, sentinel], { maxWorkUnits, maxParserDepth, maxExpressionDepth }, (signature, children) => productionAction(signature, children, bytes), true); const semi = tokens[lemon.statementEndInput ?? tokens.length]; if (!lemon.accepted || !lemon.value) {
+    const at = lemon.errorInput ?? tokens.length, token = tokens[at];
+    throw new SqlParseError(token ? `near "${token.text}": syntax error` : "incomplete input");
+} const statement = action(lemon.value, tokens); const tailOffset = semi?.endByte ?? bytes.length; return { statement, tailOffset, tailCodeUnit: byteToCodeUnit(sql, tailOffset), lemon }; }
