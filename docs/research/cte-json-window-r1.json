@@ -1,0 +1,10 @@
+[
+ {"id":"malformed-module","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value"},
+ {"id":"null-module-value","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('null') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn"},
+ {"id":"empty","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value"},
+ {"id":"null-argument","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each(NULL) j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value"},
+ {"id":"typed-peers","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,\"a\",\"A\"]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn"},
+ {"id":"left-null","sql":"WITH c AS (SELECT t.x,j.value FROM t LEFT JOIN json_each('[]') j ON 1) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn"},
+ {"id":"default-frame","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,2]') j) SELECT x,value,sum(value) OVER (PARTITION BY x ORDER BY value) AS total FROM c ORDER BY x,value"},
+ {"id":"collation-frame","sql":"WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[\"a\",\"A\",\"b\"]') j) SELECT x,value,count(*) OVER (PARTITION BY x ORDER BY value COLLATE NOCASE ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS n FROM c ORDER BY x,value"}
+]

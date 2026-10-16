@@ -1,0 +1,6306 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "581d968a5356e366d813e4f9529b3e0507598dbfb2de4897e9f7300ec5019555",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "sha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "cases": [
+        {
+          "id": "malformed-module",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "id": "null-module-value",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('null') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "null-argument",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each(NULL) j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "typed-peers",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,\"a\",\"A\"]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "left-null",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t LEFT JOIN json_each('[]') j ON 1) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "default-frame",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,2]') j) SELECT x,value,sum(value) OVER (PARTITION BY x ORDER BY value) AS total FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "total",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "collation-frame",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[\"a\",\"A\",\"b\"]') j) SELECT x,value,count(*) OVER (PARTITION BY x ORDER BY value COLLATE NOCASE ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS n FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "n",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "cases": [
+        {
+          "id": "malformed-module",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "id": "null-module-value",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('null') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "null-argument",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each(NULL) j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "typed-peers",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,\"a\",\"A\"]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "left-null",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t LEFT JOIN json_each('[]') j ON 1) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "default-frame",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,2]') j) SELECT x,value,sum(value) OVER (PARTITION BY x ORDER BY value) AS total FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "total",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "collation-frame",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[\"a\",\"A\",\"b\"]') j) SELECT x,value,count(*) OVER (PARTITION BY x ORDER BY value COLLATE NOCASE ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS n FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "n",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "cases": [
+        {
+          "id": "malformed-module",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "id": "null-module-value",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('null') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "empty",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "null-argument",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each(NULL) j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "typed-peers",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,\"a\",\"A\"]') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "5"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "left-null",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t LEFT JOIN json_each('[]') j ON 1) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,rn",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "rn",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "default-frame",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[null,1.5,1.5,2]') j) SELECT x,value,sum(value) OVER (PARTITION BY x ORDER BY value) AS total FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "total",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff8000000000000"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4008000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "real",
+                    "ieee754be": "4014000000000000"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        },
+        {
+          "id": "collation-frame",
+          "sql": "WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('[\"a\",\"A\",\"b\"]') j) SELECT x,value,count(*) OVER (PARTITION BY x ORDER BY value COLLATE NOCASE ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS n FROM c ORDER BY x,value",
+          "prepare": 0,
+          "columns": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "n",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101,
+              "error": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
