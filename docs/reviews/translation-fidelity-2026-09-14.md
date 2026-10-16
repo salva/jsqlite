@@ -1,5 +1,9 @@
 ## Current packed expression membership disposition
 
+## Metadata caller regression disposition
+
+Independent l7 rejected exact2b2 for deleted five-family producers/resident binding and ordered mixed callers. The corrected candidate restores these alongside genuine declarations; author verification is finite, not independent acceptance or whole-audit closure. See [restoration evidence](../research/card-m-f-k-production-integration.md#metadata-family-restoration).
+
 ## Scoped reviewer-repair integration
 
 The joined no-source/UNION ALL EXISTS projection and mixed physical/module rowid metadata repairs are integrated as a bounded candidate, not independent acceptance or whole-audit closure. The former preserves prepare validation while suppressing runtime EList; the latter preserves IPK/implicit rowid versus independent module identity and COLLATE metadata. Current residual accounting distinguishes missing fixture inputs from the repaired diagnostic expectation assumption; no global-green claim. [Exact input inventory and verification](../research/card-m-f-k-production-integration.md#reviewer-repair-integration).

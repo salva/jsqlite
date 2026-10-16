@@ -1,4 +1,4 @@
-import {TABLE_INFO_COLUMNS,TABLE_XINFO_COLUMNS,metadataColumnDeclaredType} from './pragma.ts';
+import {METADATA_MODULE_COLUMNS,metadataHiddenColumns,metadataColumnDeclaredType} from './pragma.ts';
 import {jsonTableDeclaration} from './json-table-plan.ts';
 import {integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
 import {sortTermsForWindow,windowFrame,type OrderTermNode,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
@@ -40,8 +40,8 @@ export interface JsonModuleSourceSchema {
 }
 function moduleSourceSchema(name:string):JsonModuleSourceSchema|undefined {
  const folded=sqliteAsciiFold(name);
- const metadata=folded==='pragma_table_info'?TABLE_INFO_COLUMNS:folded==='pragma_table_xinfo'?TABLE_XINFO_COLUMNS:undefined;
- if(metadata)return Object.freeze({kind:'metadata-module',name:folded,tableName:folded,columns:Object.freeze([...metadata,'arg','schema'].map(name=>Object.freeze({name,hidden:name==='arg'||name==='schema',declaredType:metadataColumnDeclaredType(name),affinity:'blob' as const,szEst:1,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:'BINARY',generatedStorage:null,checks:Object.freeze([])})))});
+ const metadata=METADATA_MODULE_COLUMNS[folded];
+ if(metadata)return Object.freeze({kind:'metadata-module',name:folded,tableName:folded,columns:Object.freeze([...metadata,...metadataHiddenColumns(folded)].map(name=>Object.freeze({name,hidden:name==='arg'||name==='schema',declaredType:metadataColumnDeclaredType(name),affinity:'blob' as const,szEst:1,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:'BINARY',generatedStorage:null,checks:Object.freeze([])})))});
  const declaration=jsonTableDeclaration(name);if(!declaration)return undefined;
  return Object.freeze({kind:'json-module',name:declaration.name,tableName:declaration.name,columns:Object.freeze(declaration.columns.map(column=>Object.freeze({...column,szEst:1,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:'BINARY',generatedStorage:null,checks:Object.freeze([])}))) });
 }

@@ -12,7 +12,7 @@ for(const image of native.encodings)for(const c of image.cases)test(`${image.enc
  try{
   db=await open('https://example.test/tvf-bind');
   assert.throws(()=>db.prepare('SELECT * FROM pragma_database_list(1)'),e=>e.code===1&&/max 0/.test(e.message));
-  assert.throws(()=>db.prepare('SELECT arg FROM pragma_database_list'),e=>e.kind==='unsupported');s=db.prepare(c.sql).statement;
+  assert.throws(()=>db.prepare('SELECT arg FROM pragma_database_list'),e=>e.kind==='sqlite'&&e.code===1&&/no such column: arg/.test(e.message));s=db.prepare(c.sql).statement;
   const metadata=Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i));
   assert.equal(s.parameterCount,c.runs[0].bindings.length);
   for(const run of c.runs){

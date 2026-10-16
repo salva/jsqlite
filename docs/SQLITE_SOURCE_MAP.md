@@ -386,3 +386,7 @@ Ordered filtered/projected single-output ordinary table arms use resolved scan d
 ### Ordered mixed metadata consumers
 
 `select.c:selectInnerLoop/pushOntoSorter/generateSortTail`, `resolve.c:resolveOrderGroupBy` and `wherecode.c` ready-term/LEFT completion map to the shared mixed-source `compileSelect` binder, candidate subroutine, SorterInsert and drain/destination in `vdbe.ts`. Metadata retains `MetadataFilter/Next` and the shared catalog producer, not JSON identity. Bounded admission, comparison and native-backed tests: [TVF-ORDER](research/card-e-n-pragma-red/TVF-ORDER.md). DISTINCT/LIMIT joins, metadata identity and database_list joins remain deferred.
+
+### Metadata module declaration and resident caller restoration
+
+`pragma.c:pragmaVtabConnect/pragmaVtabFilter` and registry Result0/Result1/SchemaOpt → `pragma.ts:METADATA_MODULE_COLUMNS/metadataHiddenColumns/metadataSource`; `resolve.ts:moduleSourceSchema` enrolls all seven genuine declarations. `index.ts:setMetadataDatabases` binds connection resident main/temp state. `select.c:sqlite3SelectPrep` visible expansion and ORDER resolution → mixed metadata canonical projection in `vdbe.ts`; MetadataFilter/Next appends only declared hidden payload. Tests: retained `card-e-n-pragma-red` tvf-five/db/order/star-order/bindings/admission/boundaries and `test/conformance/metadata-restoration.test.mjs`. [Bounded evidence and qualifications](research/card-m-f-k-production-integration.md#metadata-family-restoration).
