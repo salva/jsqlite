@@ -1,3 +1,7 @@
+### Mixed module predicate readiness
+
+The mixed physical/module producer resolves WHERE/ON against both declarations before partitioning bound dependencies. INNER/CROSS physical-ready conjuncts execute once before module arguments/Filter and are removed from inner residual evaluation. Module-dependent terms retain inner-row positioning; LEFT match/null-extension ordering is unchanged. Child Select dependencies remain conservatively residual. This bounded readiness translation follows `resolve.c:lookupName`, `select.c:sqlite3SelectPrep` and `wherecode.c:sqlite3WhereCodeOneLoopStart` prereqAll/notReady and TERM_CODED ownership, not a general virtual-table planner substitution. Tests: `json-mixed-readiness.test.mjs`, `json-mixed-resolution-controls.test.mjs`, `json-mixed-resolution.test.mjs`. Revision-bound author evidence and remaining acceptance obligations: [[card:card-m-f-k]] accepted status615/622.
+
 ### Linked JSON module enrollment and selected rows
 
 ### Joined expression destination and mixed row identity

@@ -6384,12 +6384,33 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if(jsonItem.on&&!jsonItem.on.reduction)throw new JSQLiteError("unsupported","this JSON join predicate is not implemented",{unsupportedClassification:"temporary"});
     let residualOn=jsonItem.on?.reduction?expressionFromReduction(jsonItem.on.reduction):null;
     const outerSkips:number[]=[];
-    if(metadata&&!left){
+    // resolve.c resolves the complete SrcList before wherecode.c tests
+    // prereqAll/notReady. Availability must not change name resolution.
+    if(residualWhere)residualWhere=bind(residualWhere,true);
+    if(residualOn)residualOn=bind(residualOn,true);
+    const innerDependent=(tree:Expression):boolean=>{
+      switch(tree.kind){
+        case 'register':return tree.index===jsonIdentity||(tree.index>=rowStart&&tree.index<rowStart+sourceColumns.length);
+        case 'column':return tree.cursor!==0;
+        case 'unary':case 'collate':case 'cast':return innerDependent(tree.value);
+        case 'binary':return innerDependent(tree.left)||innerDependent(tree.right);
+        case 'call':return tree.args.some(innerDependent);
+        case 'vector':return tree.fields.some(innerDependent);
+        case 'in-list':return innerDependent(tree.left)||tree.values.some(innerDependent);
+        case 'between':return innerDependent(tree.value)||innerDependent(tree.lower)||innerDependent(tree.upper);
+        case 'case':return !!tree.operand&&innerDependent(tree.operand)||tree.pairs.some(pair=>pair.some(innerDependent))||!!tree.otherwise&&innerDependent(tree.otherwise);
+        // A child Select owns a separate NameContext; do not infer its
+        // correlation from the enclosing expression's shallow dependencies.
+        case 'scalar-subquery':case 'in-subquery':case 'aggregate':return true;
+        default:return false;
+      }
+    };
+    if(!left){
       const readyTerms=(predicate:Expression|null):Expression|null=>{
         const terms:Expression[]=[];const split=(tree:Expression):void=>{if(tree.kind==='binary'&&tree.op==='AND'){split(tree.left);split(tree.right);}else terms.push(tree);};if(predicate)split(predicate);
         const residual:Expression[]=[];
-        for(const term of terms){let bound:Expression;try{bound=bind(term,false);}catch(error){if(error instanceof JSQLiteError&&error.kind==='sqlite'&&error.message.startsWith('no such column:')){residual.push(term);continue;}throw error;}
-          const test=compileExpressionTree(bound,ops,allocate,parameters,undefined,true);outerSkips.push(ops.length);ops.push({code:'IfNot',p1:test,p2:0});
+        for(const term of terms){if(innerDependent(term)){residual.push(term);continue;}
+          const test=compileExpressionTree(term,ops,allocate,parameters,undefined,true);outerSkips.push(ops.length);ops.push({code:'IfNot',p1:test,p2:0});
         }
         return residual.reduce<Expression|null>((left,right)=>left?{kind:'binary',op:'AND',left,right}:right,null);
       };
