@@ -276,10 +276,19 @@ test('late bounded peer exclusion scan consumes shared registers and labels',()=
 test('late sliding and following drains consume shared control labels',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=text.indexOf('    if(sharedSliding&&!pendingEndRows){');
- assert.ok(start>=0);
- const body=text.slice(start,text.indexOf('    const cachedDirectOffset=',start));
- assert.doesNotMatch(body,/\(ops\[(?:filterJump|skip|done|ready)/);
- assert.match(body,/builder\.jump/);
+ const following=text.indexOf('    if(sharedFollowing&&!pendingEndRows){',start);
+ const end=text.indexOf('    const cachedDirectOffset=',following);
+ assert.ok(start>=0&&following>start&&end>following);
+ // Pending-end frames own their own drain. Check each non-pending drain,
+ // so one branch's shared labels cannot mask raw patching in the other.
+ for(const body of [text.slice(start,following),text.slice(following,end)]){
+  assert.doesNotMatch(body,/\(ops\[(?:filterJump|skip|done|ready)/);
+  assert.match(body,/builder\.jump/);
+  assert.match(body,/builder\.jump\(afterStep,/);
+  assert.match(body,/builder\.mark\(afterStep\)/);
+  assert.match(body,/builder\.jump\(done,/);
+  assert.match(body,/builder\.mark\(done\)/);
+ }
 });
 
 test('joined producer owns ordered and direct destination exits through shared labels',()=>{

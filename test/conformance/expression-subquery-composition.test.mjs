@@ -36,3 +36,16 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} aggr
   db.closeDeferred();db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));await admitted(db);
  }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
 });
+
+// pragma.c declares eponymous columns before select.c analyzes AggInfo.
+// The correlated Filter must feed that same aggregate owner on every outer row.
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} correlated metadata module feeds grouped AggInfo and resets`,async()=>{
+ const server=await serve(encoding);let db,s;try{db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  s=db.prepare("SELECT p.name,count(*) AS n FROM t1 JOIN pragma_table_info(CASE WHEN t1.a>0 THEN 't1' ELSE 'missing' END) p GROUP BY p.name ORDER BY p.name").statement;
+  assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i)),[
+   {name:'name',declaredType:null,database:'main',table:'pragma_table_info',origin:'name'},
+   {name:'n',declaredType:null,database:null,table:null,origin:null}]);
+  for(let run=0;run<3;run++){assert.deepEqual(await rows(s),[['a',4n],['b',4n],['c',4n]]);if(run<2)s.reset();}
+  s.finalize();s=undefined;await admitted(db);
+ }finally{try{s?.finalize();}finally{try{db?.close();}finally{await new Promise(resolve=>server.close(resolve));}}}
+});

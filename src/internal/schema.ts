@@ -25,6 +25,8 @@ export class SchemaStateError extends Error {
 
 export interface ColumnNode {
   readonly name: string;
+  /** build.c COLFLAG_HIDDEN: explicit lookup retains this declaration. */
+  readonly hidden?: boolean;
   readonly szEst: number;
   readonly declaredType: string | null;
   readonly affinity: "blob" | "text" | "numeric" | "integer" | "real" | "flexnum";

@@ -389,7 +389,8 @@ test('constant derived aggregate nested source resolves before scalar metadata e
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
-  const [sql,names,expected]=cases[0];const stmt=db.prepare(sql).statement;
+  for(const [sql,names,expected] of cases.slice(0,5)){
+  const stmt=db.prepare(sql).statement;
   try{
    assert.deepEqual(Array.from({length:stmt.columnCount},(_,i)=>stmt.columnMetadata(i).name),names);
    for(let execution=0;execution<2;execution++){
@@ -397,6 +398,7 @@ test('constant derived aggregate nested source resolves before scalar metadata e
     assert.deepEqual(rows,expected);stmt.reset();
    }
   }finally{stmt.finalize()}
+  }
  }finally{db?.closeDeferred();await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()))}
 });
 test('view transient resolution clears circular state and preserves explicit width errors',()=>{
@@ -518,7 +520,10 @@ test('nonaggregate joined child consumes enclosing builder at scan and sorter dr
  // ownership stays with the enclosing builder, not a relocated child program.
  assert.match(producer,/owner\?owner\.builder\.range\(Math\.max\(1,expanded\.result\.length\)\)/);
  assert.match(producer,/emitSelectDestination\(ops,owner\.destination,resultStart,expanded\.result\.length\)/);
- assert.match(caller,/compileInnerTableSelect\(nested,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder:selectProgramBuilder/);
+ assert.match(caller,/compileWideSubquery\(expression,expanded,selectProgramBuilder,resultOps,parameters/);
+ const wide=text.slice(text.indexOf('function compileWideSubquery('),text.indexOf('function compileWideSubquery(')+18000);
+ assert.match(wide,/const preparedOwner=\{\.\.\.owner/);
+ assert.match(wide,/compileInnerTableSelect\(child,plan!,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,preparedOwner\)/);
 });
 test('grouped scalar child consumes enclosing aggregate builder and destination',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
@@ -534,7 +539,9 @@ test('flattenable derived and view grouped children consume the aggregate parent
  assert.match(caller,/flattenableGroupedDerived\|\|groupedView/);
  assert.match(caller,/compileAggregateSelect\(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder:selectProgramBuilder/);
  assert.match(aggregate,/return compileAggregateSelect\(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent\)/);
- assert.match(aggregate,/return compileAggregateSelect\(flattenImmutableView\(select,view\),schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent\)/);
+ assert.match(aggregate,/const flattened=flattenImmutableView\(select,view\)/);
+ assert.match(aggregate,/const preparedParent=parent\?\{\.\.\.parent,linkedPlan:resolveTransientArm\(flattened,schema!\)\}/);
+ assert.match(aggregate,/return compileAggregateSelect\(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,preparedParent\)/);
 });
 test('grouped result sorter binds unprojected ORDER group keys from saved accumulator state',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');

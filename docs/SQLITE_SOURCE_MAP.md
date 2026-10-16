@@ -1,3 +1,22 @@
+## Linked JSON module enrollment and selected execution
+
+- `select.c:selectExpander/cannotBeFunction`, `json.c:jsonEachConnect` → `resolve.ts:expandAndResolveSelect`, `json-table-plan.ts:jsonTableDeclaration`: genuine module declaration, catalog precedence, callable rejection and hidden-column metadata. Tests: `json-module-enrollment`, `hidden-source-expansion`.
+- `where.c:whereLoopAddVirtualOne/whereLoopAddVirtual/whereLoopInsert`, `json.c:jsonEachBestIndex` → `where-json-loops.ts`, `where-plan.ts`: linked hidden constraints, usable-mask retries, shared dominance/budget insertion and selected argv. Tests: `json-virtual-candidates`, `json-table-plan`. IN/LIMIT virtual terms/orderByConsumed remain unmapped here.
+- `expr.c:sqlite3CodeSubselect`, `select.c:selectInnerLoop`, `wherecode.c:sqlite3WhereCodeOneLoopStart` → `vdbe.ts:compileWideSubquery/compileInnerTableSelect`: linked outer storage/readiness, conditional Once, normalized LIMIT, shared Mem/Set/Exists, register payload/rowid, OFFSET and common module cleanup. Mixed AggInfo captures selected rows; retained physical input materializes into an actual ephemeral cursor before reading. Tests: `correlated-json-exists`, `scalar-linked-context`, `json-aggregate-paths`.
+
+Current bounded evidence and remaining validation gaps: [integration evidence](research/card-m-f-k-production-integration.md), [[card:card-m-f-k]] status. This mapping is not a general virtual-table compatibility claim.
+
+
+## Aggregate immutable-view substitution
+
+`select.c:substExpr/substSelect` column-owner substitution →
+`vdbe.ts:compileAggregateSelect` immutable-view branch re-resolves the substituted
+SELECT via `resolveTransientArm`, retaining the shared VM/destination but replacing
+obsolete expression carriers. Public nested-view/aggregate destination and
+source-control coverage: `test/conformance/select-scalar-child.test.mjs`.
+[Bounded working-tree evidence](research/card-m-f-k-production-integration.md).
+
+
 # SQLite source map
 
 ## Ordinary CTE + mixed JSON source identity

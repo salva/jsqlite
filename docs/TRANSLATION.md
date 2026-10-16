@@ -1,3 +1,14 @@
+### Linked JSON module enrollment and selected rows
+
+`expandAndResolveSelect` enrolls genuine `JsonModuleSourceSchema` declarations after catalog/transient/view lookup, preserving callable catalog rejection and hidden-field rules. The four ASCII-folded module names expose eight visible fields, two explicit-only hidden fields and independent rowid; visible declared types are NULL, hidden types empty. No module declaration supplies a physical root page or indexes.
+
+`where-json-loops.ts` translates the usable hidden-EQ BestIndex candidates and dependency-mask retries into ordinary WhereLoop insertion and path selection. WHERE then source-ordered ON constraints precede linked function arguments; residuals, affinity barriers and join ownership remain intact. Selected argv require positioned, not merely lexically visible, sources. IN/LIMIT virtual terms and orderByConsumed are not implemented by this candidate adapter; this is not complete virtual-table planner parity.
+
+`compileWideSubquery` retains linked plans, parent binding, conditional Once and shared Mem/Set/Exists destinations. `compileInnerTableSelect` publishes ten register-backed fields plus independent rowid per module occurrence, with common close on exhaustion or scalar/Exists early return. Prepared LIMIT guards precede Filter; WHERE and OFFSET precede publication; Exists validates but never executes EList. Nested scalar emitters inherit positioned outer bindings. Physical-left/module-right CROSS/INNER/LEFT paths share selected-loop readiness and unmatched-row nulling. Aggregate input captures the same selected row into AggInfo; retained physical producers fill genuine ephemeral storage before scanning, rather than opening resolution-only rootPage=0 descriptors against the database.
+
+Source owners: `select.c:selectExpander/selectInnerLoop`, `expr.c:sqlite3CodeSubselect`, `where.c:whereLoopAddVirtual/whereLoopInsert`, `wherecode.c:sqlite3WhereCodeOneLoopStart`, `json.c:jsonEachBestIndex/jsonEachFilter`. Tests: `correlated-json-exists.test.mjs`, `json-virtual-candidates.test.mjs`, `json-table-plan.test.mjs`, `scalar-linked-context.test.mjs`, `hidden-source-expansion.test.mjs`, `json-module-enrollment.test.mjs`. Bounded integration and unresolved full-suite evidence: [production integration](research/card-m-f-k-production-integration.md), [[card:card-m-f-k]] status. These receipts do not establish zero remaining lowering gaps or general JSON compatibility.
+
+
 # SQLite-to-TypeScript translation guide
 
 ### Mixed JSON sources retain ordinary CTE identity
@@ -19,10 +30,46 @@ advancing frontier. No cursor invariant is suppressed.
 
 ## Read-only metadata PRAGMA (bounded consumers)
 
-`PRAGMA [main.]table_info` and `table_xinfo` accept omitted, parenthesized or `=` table-name arguments through pinned Lemon command semantics. Immutable catalog columns lower to ordinary VDBE literal loads/ResultRow, preserving logical declaration order, compact visible cid, generated hidden 2/3, PK ordinal and retained default span. Explicit temp is empty; absent databases error. Views derive names and types at prepare through the existing stored-view SELECT expansion/resolution owner, without executing rows. View columns do not inherit base PK, notnull, defaults or generated hidden flags; explicit names, duplicate-name disambiguation, nested/circular views and NONE versus BLOB affinity follow the same source graph. `index_list`, `index_info`, `index_xinfo` and `foreign_key_list` consume the same linked catalog graph: linked index order/origin/partial flags, logical column ordinals versus physical suffix fields, expression/rowid sentinels, key bits/collations/direction (Index.azColl spelling retained separately from folded KeyInfo lookup), and reverse-declaration FK order/actions. WITHOUT ROWID table names may denote their PK index.  `database_list` reports the resident immutable memory snapshot as main with empty filename (not the Fetch URL or native-oracle path); explicit temp PRAGMA preparation opens an empty temp metadata state, subsequently listed with empty filename. Unknown names absent from the pinned pragma registry prepare as zero-column no-ops, even with arguments; known untranslated names remain unsupported. No mutating or extension operation is enabled. This is bounded common metadata coverage, not arbitrary PRAGMA support. Source/verification and outstanding coverage: [card-e-n repair evidence](research/card-e-n-pragma-red/REPAIR.md) and [VIEW derivation](research/card-e-n-pragma-red/VIEW.md).
+`PRAGMA [main.]table_info` and `table_xinfo` accept omitted, parenthesized or `=` table-name arguments through pinned Lemon command semantics. Immutable catalog columns lower to ordinary VDBE literal loads/ResultRow, preserving logical declaration order, compact visible cid, generated hidden 2/3, PK ordinal and retained default span. Explicit temp is empty; absent databases error. Views derive names and types at prepare through the existing stored-view SELECT expansion/resolution owner, without executing rows. View columns do not inherit base PK, notnull, defaults or generated hidden flags; explicit names, duplicate-name disambiguation, nested/circular views and NONE versus BLOB affinity follow the same source graph. Bounded `pragma_table_info`/`pragma_table_xinfo` SELECT consumers enroll genuine module declarations (visible untyped columns plus hidden `arg`/`schema`) before aggregate analysis. Their existing MetadataFilter/Next producer feeds shared AggInfo for single-source or physical-rowid-table plus module aggregation; modules are never synthetic B-trees. This is not general virtual-table planner support: other shapes remain unadmitted. [Repair and native comparison evidence](research/card-m-f-k-production-integration.md#metadata-aggregate-declaration-repair). `index_list`, `index_info`, `index_xinfo` and `foreign_key_list` consume the same linked catalog graph: linked index order/origin/partial flags, logical column ordinals versus physical suffix fields, expression/rowid sentinels, key bits/collations/direction (Index.azColl spelling retained separately from folded KeyInfo lookup), and reverse-declaration FK order/actions. WITHOUT ROWID table names may denote their PK index.  `database_list` reports the resident immutable memory snapshot as main with empty filename (not the Fetch URL or native-oracle path); explicit temp PRAGMA preparation opens an empty temp metadata state, subsequently listed with empty filename. Unknown names absent from the pinned pragma registry prepare as zero-column no-ops, even with arguments; known untranslated names remain unsupported. Table-valued pragma functions remain unimplemented. No mutating or extension operation is enabled. This is bounded common metadata coverage, not arbitrary PRAGMA support. Source/verification and outstanding coverage: [card-e-n repair evidence](research/card-e-n-pragma-red/REPAIR.md) and [VIEW derivation](research/card-e-n-pragma-red/VIEW.md).
 
-`SELECT` admits bounded `pragma_table_info`, `pragma_table_xinfo`, `pragma_index_list`, `pragma_index_info`, `pragma_index_xinfo`, `pragma_foreign_key_list` and sole-source `pragma_database_list` sources: sole-source projection/filter/order, positional or usable hidden `arg`/`schema` equality arguments, and physical-table/catalog-left INNER or LEFT correlation. A shared real Table/Column/view metadata producer feeds statement-owned Filter/Next cursors and ordinary expression, predicate and ResultRow owners, without nested public prepares. Ready outer INNER WHERE/ON terms run before correlated Filter; LEFT ON and NULL completion stay separate from WHERE. Visible types are absent; hidden argument columns retain native empty declared types. Runtime schema errors and reset/finalize follow the common VM lifecycle. Explicit temp is empty; attached schemas, metadata rowid, generated outer-column binding, distinct/limited joins, broader join shapes remain temporarily unsupported. Database_list has no hidden arguments, is sole-source only, and retains empty-text memory filenames; mixed metadata stars include visible fields only. Their canonical expanded result list precedes ORDER ordinal/alias resolution and also owns projection, output metadata and destination width. Ordered mixed metadata joins reuse the shared SELECT sorter/destination after Filter/Next and LEFT completion; the metadata cursor remains the row-state owner. Bounded sole-source and physical-left metadata GROUP/HAVING consumers retain the module NameContext descriptor through AggInfo and feed the existing group sorter from that same producer, not a catalog OpenRead. The scan selects hidden EQ inputs before Filter and evaluates residual WHERE once before aggregate input; the aggregate consumer does not repeat that predicate. See [GROUP source comparison and finite evidence](research/card-e-n-pragma-red/TVF-GROUP.md). See [ordered-join source comparison and finite evidence](research/card-e-n-pragma-red/TVF-ORDER.md). This is not generic virtual-table admission. See [TVF source and finite verification](research/card-e-n-pragma-red/TVF.md) and [independent assessment](research/card-e-n-pragma-red/independent-tvf-assessment.md).
+### Represented joined scalar IN residual
 
+Joined correlated scalar IN uses the shared packed SRT_Set/IN membership path,
+including resolved outer references after right-join NULL extension. Per-row child
+production is not cached as uncorrelated; typed membership preserves empty/NULL
+fallback ordering. `right-nested.test.mjs` checks represented in-left rows,
+metadata and reset in three encodings against the pinned oracle, replacing an
+obsolete temporary-rejection expectation without expanding runtime admission.
+[Bounded integration evidence](research/card-w-current-integration-outcome.md#nested-residual-expectation-reconciliation-approved900-overlay)
+records source comparisons and fresh native corroboration; arbitrary nested IN
+composition remains unestablished.
+
+### Case5 residual ownership
+
+Pinned `wherecode.c` Case5 propagates recursive `untestedTerms` before disabling
+the owned OR parent: fully tested selected parents omit repeated common-body truth;
+unready arm terms retain their residual for the later ready frontier. Other
+conjuncts remain independently owned. `vdbe.ts:emitJoinedOr` checks arm dependency
+masks at that frontier and records only owned parent identities; the ordinary OR
+consumer removes only selected parent terms after arm truth evaluation before
+dedup/Gosub. This is not blanket TERM_CODED omission for all predicates.
+Current source/control evidence is retained in
+[Case5 owner evidence](research/card-s-g/IMPLEMENTATION.md) and
+`test/conformance/or-residual-contract.test.mjs`; native joined/OR companions
+remain bounded evidence, not arbitrary correlated-OR completeness.
+
+### Positional stat1 range ownership
+
+Represented skipscan uses the shared WHERE candidate/positional-prefix consumers,
+not a precomputed distinct-prefix evaluator. Linked NOTNULL virtual bounds retain
+their parent dependencies and suppress ordinary SQL NULL guards; zero-key starts
+use Rewind/Last and already-positioned skipped prefixes avoid redundant seeks.
+Current source/control mappings and bounded caller exclusions are in
+[Linked NOTNULL range owner](SQLITE_SOURCE_MAP.md#linked-notnull-range-owner) and
+[the public contract](api.md). [Owner evidence](research/card-s-g/IMPLEMENTATION.md)
+preserves historical disabled-caller checkpoints separately from current paths;
+[bounded integration evidence](research/card-w-current-integration-outcome.md)
+does not imply general optimizer or STAT4 sample parity.
 
 ## Authority and current use
 
@@ -342,6 +389,15 @@ No general AggInfo/analyzer completeness follows from bounded source/saved-phase
 migration. Represented GROUP/ORDER/DISTINCT/LIMIT and join/derived/CTE compositions
 are admitted only through their actual semantic branches.
 
+No-FROM expression callers enroll retained derived/CTE source metadata through
+`resolveTransientArm` before handing a linked plan to the aggregate owner;
+transient aliases are not catalog tables. Immutable-view aggregate substitution
+rebuilds the linked plan for the transformed SELECT while retaining the enclosing
+builder/destination; pre-substitution expression carriers cannot bind replaced
+column reductions. Producer LIMIT/OFFSET stays in the
+coroutine, distinct from the consumer destination limiter. Focused evidence and
+remaining composition gaps are in [the integration record](research/card-m-f-k-production-integration.md).
+
 Retained single-source GROUP/aggregate producers, including zero-source GROUP
 without an aggregate EList call, use the shared aggregate owner and
 SRT_Coroutine feeding parent Mem/Exists destinations. GROUP is an aggregate
@@ -365,7 +421,8 @@ join resolver rather than independent derived-table metadata resolution. Source
 and all-encoding scalar/vector/EXISTS controls: [R1 repair evidence](research/card-m-packed-independent-review.md#r1-repair--srcitem-production-ownership). Empty scalar is NULL, EXISTS is INTEGER boolean, and IN preserves
 NULL/empty/negation semantics. Linked `compileWideSubquery` IN destinations now
 use explicit packed KeyInfo, SRT_Set MakeRecord/IdxInsert and private BLOBKEY;
-CodeIN probes exact non-NULL keys then traverses records for NULL fallback;scalar fallback checks only the first sorted row (expr.c step 6), vector fallback
+CodeIN probes exact non-NULL keys then traverses records for NULL fallback;
+scalar fallback checks only the first sorted row (expr.c step 6), vector fallback
 continues after definite field mismatches. InSet requires packed cursors: the
 superseded borrowed membership evaluator has been removed, including aggregate
 join-key/projection and table LIMIT callers. Auxiliary compound set cursors remain
@@ -380,14 +437,11 @@ native heap parity. [Conditional admission matrix and coordination](research/car
 snapshot work/cancellation/deadline checks before copying borrowed packed inputs;
 copying cannot yield until the immutable snapshot exists, then insertion resumes
 normal asynchronous checkpoints. [Large-input repair evidence](research/card-m-packed-independent-review.md#large-packed-snapshot-control-repair)
-bounds this copy-before-await adaptation, not native allocation/latency parity. Public VDBE private control also supplies synchronous
-snapshot work/cancellation/deadline checks before copying borrowed packed inputs;
-copying cannot yield until the immutable snapshot exists, then insertion resumes
-normal asynchronous checkpoints. [Large-input repair evidence](research/card-m-packed-independent-review.md#large-packed-snapshot-control-repair)
 bounds this copy-before-await adaptation, not native allocation/latency parity. NULL fallback decodes exactly KeyInfo width with
 RawRecordReader inside the payload callback, rejecting extra/missing fields without
 an unbounded intermediate decoded array. LHS admission conservatively covers owned copy
-plus UTF encoding expansion and numeric text scratch. Packed Set record temporariesare dead after IdxInsert and refunded after awaited insertion, including errors;
+plus UTF encoding expansion and numeric text scratch. Packed Set record temporaries
+are dead after IdxInsert and refunded after awaited insertion, including errors;
 non-Set packed callers retain their own register contract. Shared MakeRecord
 admits conservative transient conversion scratch before live affinity/encoding
 mutation, retains it through packing, and refunds it on every exit. Output/input

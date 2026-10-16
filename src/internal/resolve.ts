@@ -1,3 +1,5 @@
+import {TABLE_INFO_COLUMNS,TABLE_XINFO_COLUMNS,metadataColumnDeclaredType} from './pragma.ts';
+import {jsonTableDeclaration} from './json-table-plan.ts';
 import {integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
 import {sortTermsForWindow,windowFrame,type OrderTermNode,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
 import type {ColumnNode,TableNode,ViewNode} from './schema.ts';
@@ -9,7 +11,7 @@ import type {SqlToken} from './tokenize.ts';
 // alias hides both schema spellings, just as it hides ordinary table names.
 function sourceNameMatches(source: ResolvedSource, name: string): boolean {
  return sqliteIdentifierEqual(source.alias??source.tableName,name)
-  || (!source.alias && source.table.rootPage===1 && sqliteIdentifierEqual(source.table.name,'sqlite_master')
+  || (!source.alias && source.table.kind==='table' && source.table.rootPage===1 && sqliteIdentifierEqual(source.table.name,'sqlite_master')
       && (sqliteIdentifierEqual(name,'sqlite_schema') || sqliteIdentifierEqual(name,'sqlite_master')));
 }
 export class NameResolutionError extends Error {
@@ -29,7 +31,21 @@ export function transientColumnNames(names:readonly string[]):readonly string[]{
 }
 
 export interface ResolutionSchema {readonly tables:ReadonlyMap<string,TableNode>;readonly views?:ReadonlyMap<string,ViewNode>;readonly viewMetadata?:boolean;readonly check?:()=>void}
-export interface ResolvedSource extends Omit<SourceItem,'cursorId'|'table'>{readonly cursorId:number;readonly table:TableNode}
+export interface JsonModuleSourceSchema {
+ readonly kind:'json-module'|'metadata-module';
+ readonly name:string;
+ readonly tableName:string;
+ readonly columns:readonly ColumnNode[];
+ readonly noVisibleRowid?:boolean;
+}
+function moduleSourceSchema(name:string):JsonModuleSourceSchema|undefined {
+ const folded=sqliteAsciiFold(name);
+ const metadata=folded==='pragma_table_info'?TABLE_INFO_COLUMNS:folded==='pragma_table_xinfo'?TABLE_XINFO_COLUMNS:undefined;
+ if(metadata)return Object.freeze({kind:'metadata-module',name:folded,tableName:folded,columns:Object.freeze([...metadata,'arg','schema'].map(name=>Object.freeze({name,hidden:name==='arg'||name==='schema',declaredType:metadataColumnDeclaredType(name),affinity:'blob' as const,szEst:1,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:'BINARY',generatedStorage:null,checks:Object.freeze([])})))});
+ const declaration=jsonTableDeclaration(name);if(!declaration)return undefined;
+ return Object.freeze({kind:'json-module',name:declaration.name,tableName:declaration.name,columns:Object.freeze(declaration.columns.map(column=>Object.freeze({...column,szEst:1,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:'BINARY',generatedStorage:null,checks:Object.freeze([])}))) });
+}
+export interface ResolvedSource extends Omit<SourceItem,'cursorId'|'table'>{readonly cursorId:number;readonly table:TableNode|JsonModuleSourceSchema}
 export interface ResultColumnDescriptor {readonly name:string;readonly declaredType:string|null;readonly database:string|null;readonly table:string|null;readonly origin:string|null;readonly affinity:ColumnNode['affinity']|null;readonly collation:string}
 export interface ResolvedColumnRef {readonly source:ResolvedSource;readonly columnIndex:number;readonly name:string}
 export interface ResolvedResult {readonly name:string;readonly expression:ExprNode;readonly source:ResolvedSource|null;readonly columnIndex:number|null;readonly mergedSources:readonly ResolvedColumnRef[]|null;readonly resolution:'direct'|'coalesce'|'expression';readonly descriptor:ResultColumnDescriptor}
@@ -203,7 +219,7 @@ function hasAggregate(expression:ExprNode):boolean{
  return expression.reduction?visit(expression.reduction):false;
 }
 function identifier(text:string):string{if(text[0]==='['&&text.at(-1)===']')return text.slice(1,-1);if((text[0]==='"'||text[0]==='`')&&text.at(-1)===text[0])return text.slice(1,-1).replaceAll(text[0]+text[0],text[0]);return text;}
-function integerPrimaryKeyIndex(table:TableNode):number{const column=integerPrimaryKeyColumn(table);return column===null?-1:table.columns.indexOf(column);}
+function integerPrimaryKeyIndex(table:TableNode|JsonModuleSourceSchema):number{if(table.kind!=='table')return -1;const column=integerPrimaryKeyColumn(table);return column===null?-1:table.columns.indexOf(column);}
 
 function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved:ResolvedColumnRef;mergedSources:readonly ResolvedColumnRef[]|null}|null{
  let expressionTokens=[...expression.tokens];
@@ -213,7 +229,7 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
  if(expressionTokens.length===1&&['string','integer','float','blob','variable'].includes(expressionTokens[0]!.kind)||expressionTokens.length===1&&expressionTokens[0]!.kind==='keyword'&&sqliteAsciiFold(expressionTokens[0]!.text)==='null')return null;
  const words=expressionTokens.map(t=>t.text);let database:string|null=null,qualifier:string|null=null,name:string;if(words.length===1)name=identifier(words[0]!);else if(words.length===3&&words[1]==='.') {qualifier=identifier(words[0]!);name=identifier(words[2]!);}else if(words.length===5&&words[1]==='.'&&words[3]==='.') {database=identifier(words[0]!);qualifier=identifier(words[2]!);name=identifier(words[4]!);}else return null;
  const eligible=qualifier===null?sources:sources.filter(s=>sourceNameMatches(s,qualifier!)&&(!database||(!s.alias&&sqliteIdentifierEqual(s.databaseName??'main',database))));let found:{source:ResolvedSource;columnIndex:number;name:string}[]=[];const rowidCandidates:{source:ResolvedSource;columnIndex:number;name:string}[]=[];
- for(const source of eligible){const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at>=0)found.push({source,columnIndex:at===integerPrimaryKeyIndex(source.table)?-1:at,name:source.table.columns[at]!.name});else if(!source.table.withoutRowid&&!source.table.noVisibleRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))rowidCandidates.push({source,columnIndex:-1,name});}
+ for(const source of eligible){const at=source.table.columns.findIndex(c=>sqliteIdentifierEqual(c.name,name));if(at>=0)found.push({source,columnIndex:at===integerPrimaryKeyIndex(source.table)?-1:at,name:source.table.columns[at]!.name});else if((source.table.kind!=='table'||!source.table.withoutRowid)&&!source.table.noVisibleRowid&&['rowid','_rowid_','oid'].some(x=>sqliteIdentifierEqual(x,name))&&!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name)))rowidCandidates.push({source,columnIndex:-1,name});}
  // resolve.c:lookupName retains rowid candidates only when no real column
  // matched anywhere in the current NameContext.
  if(found.length===0)found=rowidCandidates;
@@ -254,7 +270,7 @@ function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDes
  if(producer){const child=producer.result[resolved.columnIndex]?.descriptor;return Object.freeze({name,declaredType:child?.declaredType??null,database:child?.database??null,table:child?.table??null,origin:child?.origin??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});}
  // A recursive ephemeral source has no physical schema provenance. Without
  // a linked subquery producer, columnTypeImpl cannot identify an origin table.
- if(resolved.source.table.rootPage===0&&!schemaSourceProvenance.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
+ if(resolved.source.table.kind==='table'&&resolved.source.table.rootPage===0&&!schemaSourceProvenance.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
  // select.c:columnTypeImpl uses iPKey for negative TK_COLUMN addressing,
  // not the spelling used to reach that rowid (rowid/_rowid_/oid).
  const columnIndex=resolved.columnIndex<0?integerPrimaryKeyIndex(resolved.source.table):resolved.columnIndex;
@@ -529,8 +545,8 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  // resolve.c resolveSelectStep resolves LIMIT/OFFSET with an empty context:
  // neither this SELECT's sources nor an outer correlated frame is visible.
  for(const expression of [select.limit,select.offset])if(expression)resolveAgainstSources(expression,[],[],false,true,true,[],[],limitContext);
- const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const view=schema.views?.get(sqliteAsciiFold(item.tableName));const table=transientTables.get(cursorOffset)??findSchemaTable(schema,item.tableName)??(view?resolvedViewTable(view,schema):undefined);if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(item.indexedBy!==null&&!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!)))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
- for(let i=1;i<bound.length;i++){const source=bound[i]!,left=bound.slice(0,i);if(source.joinFromLeft.natural){if(source.on||source.using)throw new NameResolutionError('a NATURAL join may not have an ON or USING clause');(source as unknown as {using:readonly string[]}).using=Object.freeze(source.table.columns.filter(column=>left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,column.name)))).map(column=>column.name));}if(source.using)for(const name of source.using){if(!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))||!left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))))throw new NameResolutionError(`cannot join using column ${name} - column not present in both tables`);try{direct({kind:'tokens',tokens:Object.freeze([{kind:'id',text:name,startByte:0,endByte:name.length}])},left);}catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('ambiguous column name:'))throw new NameResolutionError(`ambiguous reference to ${name} in USING()`);throw error;}}}
+ const bound=select.from.items.map((item,cursorOffset)=>{const cursorId=cursorBase+cursorOffset;if(item.databaseName&&!sqliteIdentifierEqual(item.databaseName,'main'))throw new NameResolutionError(`no such table: ${item.databaseName}.${item.tableName}`);const view=schema.views?.get(sqliteAsciiFold(item.tableName));const catalogTable=findSchemaTable(schema,item.tableName);if(item.arguments!==null&&!transientTables.has(cursorOffset)&&(catalogTable&&!schemaSourceProvenance.has(catalogTable)||view))throw new NameResolutionError(`'${item.tableName}' is not a function`);const table=transientTables.get(cursorOffset)??catalogTable??(view?resolvedViewTable(view,schema):moduleSourceSchema(item.tableName));if(!table)throw new NameResolutionError(`no such table: ${item.databaseName?`${item.databaseName}.`:''}${item.tableName}`);if(table.kind!=='table'&&(item.arguments?.length??0)>2)throw new NameResolutionError(`too many arguments on ${item.tableName}() - max 2`);if(item.indexedBy!==null&&(table.kind!=='table'||!table.indexes.some(index=>sqliteIdentifierEqual(index.name,item.indexedBy!))))throw new NameResolutionError(`no such index: ${item.indexedBy}`);return {...item,cursorId,table} as ResolvedSource;});
+ for(let i=1;i<bound.length;i++){const source=bound[i]!,left=bound.slice(0,i);if(source.joinFromLeft.natural){if(source.on||source.using)throw new NameResolutionError('a NATURAL join may not have an ON or USING clause');(source as unknown as {using:readonly string[]}).using=Object.freeze(source.table.columns.filter(column=>!column.hidden&&left.some(candidate=>candidate.table.columns.some(c=>!c.hidden&&sqliteIdentifierEqual(c.name,column.name)))).map(column=>column.name));}if(source.using)for(const name of source.using){if(!source.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))||!left.some(candidate=>candidate.table.columns.some(c=>sqliteIdentifierEqual(c.name,name))))throw new NameResolutionError(`cannot join using column ${name} - column not present in both tables`);try{direct({kind:'tokens',tokens:Object.freeze([{kind:'id',text:name,startByte:0,endByte:name.length}])},left);}catch(error){if(error instanceof NameResolutionError&&error.message.startsWith('ambiguous column name:'))throw new NameResolutionError(`ambiguous reference to ${name} in USING()`);throw error;}}}
  const sources=Object.freeze(bound.map(source=>Object.freeze(source)));
  const columnUses:ResolvedColumnUse[]=[];
  const context:NameContext={sources,pNext:outer,columnUses,aliasUses:new Map(),aggregateUses:new Map(),nRef:0},nested:ResolvedSelect[]=[];
@@ -601,11 +617,16 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  const scanWindowReferences=(node:import('./lemon-runtime.ts').LemonValue<import('./tokenize.ts').SqlToken>):void=>{if(node.kind==='terminal')return;if(node.signature==='over_clause ::= OVER nm'){const token=node.children.flatMap(child=>child.kind==='reduction'?child.children:[]).find(child=>child.kind==='terminal'&&child.value);if(token?.kind==='terminal'&&token.value)activateWindow(identifier(token.value.text));}else if(node.signature==='over_clause ::= OVER LP window RP'){const window=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('window ::='));if(window?.kind==='reduction'&&window.signature.startsWith('window ::= nm')){const token=window.children.flatMap(child=>child.kind==='reduction'?child.children:[]).find(child=>child.kind==='terminal'&&child.value);if(token?.kind==='terminal'&&token.value)activateWindow(identifier(token.value.text));}}node.children.forEach(scanWindowReferences);};
  for(const expression of [...select.result,...select.groupBy,...select.orderBy.map(term=>term.expr),...(select.where?[select.where]:[]),...(select.having?[select.having]:[])])if(expression.reduction)scanWindowReferences(expression.reduction);
  for(const definition of activeWindowDefinitions){for(const expression of definition.partitionBy){const nested=firstWindowName(expression);if(nested)throw new NameResolutionError(`misuse of window function ${nested}()`);resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);}for(const expression of definition.orderBy){const nested=firstWindowName(expression);if(nested)throw new NameResolutionError(`misuse of window function ${nested}()`);resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);}}
- for(const expression of select.result){const tokens=expression.tokens,star=tokens.length===1&&tokens[0]!.text==='*',qualifiedStar=tokens.length===3&&tokens[1]!.text==='.'&&tokens[2]!.text==='*';if(star||qualifiedStar){const qualifier=qualifiedStar?identifier(tokens[0]!.text):null,selected=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.table.name,qualifier));if(!selected.length)throw new NameResolutionError(`no such table: ${qualifier}`);for(const source of selected)source.table.columns.forEach((column,columnIndex)=>{if(qualifier===null&&source.using?.some(name=>sqliteIdentifierEqual(name,column.name)))return;const participates=sources.slice(1).some(rhs=>rhs.joinFromLeft.right&&rhs.using?.some(name=>sqliteIdentifierEqual(name,column.name)));if(participates){const match=direct({kind:'tokens',tokens:Object.freeze([{...tokens[0]!,text:column.name,kind:'id' as const}])},sources);if(match){output.push(result(expression,match.resolved,column.name,match.mergedSources));return;}}output.push(result(expression,{source,columnIndex:columnIndex===integerPrimaryKeyIndex(source.table)?-1:columnIndex,name:column.name},column.name));});continue;}const bareWindow=bareBuiltinWindowName(expression);if(bareWindow)throw new NameResolutionError(`misuse of window function ${bareWindow}()`);const match=lookupName(expression,context,context,expression.reduction as ExprReduction|undefined);if(!match)resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);const resolved=match?.resolved??null,name=expression.alias??(resolved?resolvedResultColumnName(resolved):null)??expression.sourceText??tokens.map(t=>t.text).join(' ');output.push(result(expression,resolved,name,match?.mergedSources??null));}
+ for(const expression of select.result){const tokens=expression.tokens,star=tokens.length===1&&tokens[0]!.text==='*',qualifiedStar=tokens.length===3&&tokens[1]!.text==='.'&&tokens[2]!.text==='*';if(star||qualifiedStar){const qualifier=qualifiedStar?identifier(tokens[0]!.text):null,selected=qualifier===null?sources:sources.filter(s=>sqliteIdentifierEqual(s.alias??s.table.name,qualifier));if(!selected.length)throw new NameResolutionError(`no such table: ${qualifier}`);for(const source of selected)source.table.columns.forEach((column,columnIndex)=>{if(column.hidden)return;if(qualifier===null&&source.using?.some(name=>sqliteIdentifierEqual(name,column.name)))return;const participates=sources.slice(1).some(rhs=>rhs.joinFromLeft.right&&rhs.using?.some(name=>sqliteIdentifierEqual(name,column.name)));if(participates){const match=direct({kind:'tokens',tokens:Object.freeze([{...tokens[0]!,text:column.name,kind:'id' as const}])},sources);if(match){output.push(result(expression,match.resolved,column.name,match.mergedSources));return;}}output.push(result(expression,{source,columnIndex:columnIndex===integerPrimaryKeyIndex(source.table)?-1:columnIndex,name:column.name},column.name));});continue;}const bareWindow=bareBuiltinWindowName(expression);if(bareWindow)throw new NameResolutionError(`misuse of window function ${bareWindow}()`);const match=lookupName(expression,context,context,expression.reduction as ExprReduction|undefined);if(!match)resolveAgainstSources(expression,sources,[],false,false,false,select.windowNames,select.windowDefinitions,context,resolveNested);const resolved=match?.resolved??null,name=expression.alias??(resolved?resolvedResultColumnName(resolved):null)??expression.sourceText??tokens.map(t=>t.text).join(' ');output.push(result(expression,resolved,name,match?.mergedSources??null));}
  if(select.having){if(!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError('HAVING clause on a non-aggregate query');resolveAgainstSources(select.having,sources,select.result,false,false,true,select.windowNames,select.windowDefinitions,context,resolveNested);}
  // resolve.c retains NC_AllowAgg after aggregate result/GROUP classification.
  // A WHERE aggregate without AggInfo then fails at expr.c codegen, not here.
  if(select.where)resolveAgainstSources(select.where,sources,select.result,true,!select.groupBy.length&&!select.result.some(hasAggregate),true,select.windowNames,select.windowDefinitions,context,resolveNested);
+ // resolve.c:resolveSelectStep resolves pFuncArg in this SELECT's linked
+ // NameContext after WHERE. Argument-only outer references must mark the
+ // child correlated before expr.c chooses Once versus per-row execution.
+ for(const source of sources)for(const argument of source.arguments??[])
+  resolveAgainstSources(argument,sources,select.result,!select.groupBy.length&&!select.result.some(hasAggregate),!select.groupBy.length&&!select.result.some(hasAggregate),true,select.windowNames,select.windowDefinitions,context,resolveNested);
  for(let i=1;i<sources.length;i++){const source=sources[i]!;if(!source.on)continue;resolveAgainstSources(source.on,sources,select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer){try{resolveAgainstSources(source.on,sources.slice(0,i+1),select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);}catch(error){if(error instanceof NameResolutionError)throw new NameResolutionError('ON clause references tables to its right');throw error;}}}
  for(let i=0;i<select.groupBy.length;i++){
   const expression=select.groupBy[i]!,parsed=groupByInteger(expression);
@@ -933,11 +954,11 @@ export function resolvedExpressionDeclaredType(expression:LemonValue<SqlToken>,p
 // ephemeral producer tables even though neither has a physical btree root.
 // Bind provenance to the SELECT-private table identity, not SQL spellings or
 // output expressions. Producer-derived origins still use their linked plan.
-const schemaSourceProvenance=new WeakMap<TableNode,{readonly database:string;readonly table:string}>();
+const schemaSourceProvenance=new WeakMap<TableNode|JsonModuleSourceSchema,{readonly database:string;readonly table:string}>();
 export function bindSchemaSourceProvenance(table:TableNode,database:string,name:string):void{
  freezeTransientTable(table);schemaSourceProvenance.set(table,Object.freeze({database,table:name}));
 }
-const transientProducerPlans=new WeakMap<TableNode,ResolvedSelect>();
+const transientProducerPlans=new WeakMap<TableNode|JsonModuleSourceSchema,ResolvedSelect>();
 export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{freezeTransientTable(table);transientProducerPlans.set(table,producer);}
 
 /** resolve.c linked lookup results retained through expression code generation.
@@ -1003,6 +1024,8 @@ export type ResolvedExpressionLocation =
  | {readonly kind:'cursor';readonly cursor:number;readonly payloadIndex?:number;readonly physicalColumnIndex?:number;readonly aggregateColumn?:{owner:AggregateColumnOwner;iAgg:number}}
  | {readonly kind:'register';readonly register:number;readonly phase:'producer-row'|'source-row'};
 export interface ResolvedExpressionBinding {
+ /** Sources positioned at this emission site, not merely lexically visible. */
+ readonly positionedSources?:ReadonlySet<ResolvedSource>;
  /** Already-enrolled AggInfo output; absent for source argument binding. */
  readonly aggregateOutput?:(reduction:ExprReduction)=>number|undefined;
  readonly location:(reference:ResolvedColumnRef,selectDepth:number)=>ResolvedExpressionLocation;
