@@ -396,3 +396,11 @@ Ordered filtered/projected single-output ordinary table arms use resolved scan d
 ### Metadata module declaration and resident caller restoration
 
 `pragma.c:pragmaVtabConnect/pragmaVtabFilter` and registry Result0/Result1/SchemaOpt → `pragma.ts:METADATA_MODULE_COLUMNS/metadataHiddenColumns/metadataSource`; `resolve.ts:moduleSourceSchema` enrolls all seven genuine declarations. `index.ts:setMetadataDatabases` binds connection resident main/temp state. `select.c:sqlite3SelectPrep` visible expansion and ORDER resolution → mixed metadata canonical projection in `vdbe.ts`; MetadataFilter/Next appends only declared hidden payload. Tests: retained `card-e-n-pragma-red` tvf-five/db/order/star-order/bindings/admission/boundaries and `test/conformance/metadata-restoration.test.mjs`. [Bounded evidence and qualifications](research/card-m-f-k-production-integration.md#metadata-family-restoration).
+
+### Metadata singleton destination correction
+
+`select.c:selectInnerLoop` SelectDest → `vdbe.ts:compileTableSelectProducer`
+singleton and mixed consume callbacks with register high-water synchronization,
+including sorter drain. Filter/Next retains iteration ownership; shared AggInfo
+retains aggregate semantics. Native typed/full-metadata/reset coverage:
+`test/conformance/metadata-destination.test.mjs`; [evidence and boundaries](research/metadata-destination-correction.md).
