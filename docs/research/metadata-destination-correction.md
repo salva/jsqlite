@@ -27,13 +27,22 @@ all three encoding harnesses. It finalizes every prepared statement, resets afte
 each run and closes each connection. Existing hidden-EQ regression passes as part
 of the focused suite, retaining source selection/residual WHERE ownership.
 
-Focused existing 177 tests: 174 pass, three pre-existing identity boundary tests
-fail because they expect metadata rowid rejection, now admitted by current parent;
-the failed assert leaves an unfinalized statement and cleanup masks it with busy.
-Unmodified parent GROUP baseline proc-cf661e49e464 is 12 pass/12 fail, including
-these same three boundary failures plus nine destination regressions. The repair
-removes those nine failures without changing unrelated identity admission. Do not
-report the full 177 suite green or silently rewrite its old boundary expectations.
+Focused existing 177 tests on 883a531: 174 passed, three identity-boundary tests
+failed. Independent review223 and accepted RED139 established these were real
+wrong-row admission, not stale expectations: grouped metadata rowid consumed a
+synthetic NULL slot and returned (NULL,3) instead of native (1,1),(2,1),(3,1).
+The destination correction remains necessary but does not resolve identity.
+The subsequent boundary repair rejects metadata identity in shared name lookup
+before aggregate enrollment and in singleton binding, retaining the documented
+temporary boundary for rowid/_rowid_/oid. Physical and JSON identity remain
+independent. Pinned pragma.c Clear/Next/xRowid owns a real cursor counter; no
+counter is fabricated here. This bounded gap is not a platform constraint.
+Regression `metadata-identity-boundary.test.mjs` covers projected, count-only
+WHERE, group-only, joined, LEFT and correlated uses across all encodings, with
+try/finally cleanup so successful unexpected prepare cannot cause BUSY masking.
+Detailed current repair commands/results: [[card:card-e-n]] status (RED139 and
+subsequent repair record); independent oracle provenance: [[card:card-e-l]]
+status223. Existing original native receipts remain immutable.
 
 Typecheck passes. Broad composition/JSON/rowid/schema/STRICT command in
 proc-3f25032ec16c passes 2600/2600. This finite slice is not generic virtual-table

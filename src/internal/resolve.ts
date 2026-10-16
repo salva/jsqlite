@@ -1,3 +1,4 @@
+import {JSQLiteError} from '../index.ts';
 import {METADATA_MODULE_COLUMNS,metadataHiddenColumns,metadataColumnDeclaredType} from './pragma.ts';
 import {jsonTableDeclaration} from './json-table-plan.ts';
 import {integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
@@ -233,6 +234,11 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
  // resolve.c:lookupName retains rowid candidates only when no real column
  // matched anywhere in the current NameContext.
  if(found.length===0)found=rowidCandidates;
+ // pragma.c has a real cursor iRowid, but our finite metadata producer does
+ // not expose it yet. Reject at lookup ownership, before any aggregate or
+ // correlated caller can consume its reserved (non-identity) payload slot.
+ // Real columns still shadow rowid aliases, as in resolve.c:lookupName.
+ if(found.length===1&&found[0]!.columnIndex<0&&found[0]!.source.table.kind==='metadata-module')throw new JSQLiteError('unsupported','metadata table-function row identity is not implemented');
  // lookupName/tableAndColumnIndex: an unqualified USING name denotes one
  // merged column. RIGHT selects the RHS; INNER/LEFT retain the left-most.
  let mergedSources:readonly ResolvedColumnRef[]|null=null;

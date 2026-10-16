@@ -6615,6 +6615,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!,qualifier=parts.length>1?parts.at(-2)!:null;
         if(qualifier&&!sqliteIdentifierEqual(qualifier,source.alias??source.tableName))throw new JSQLiteError('sqlite',`no such column: ${tree.name}`,{code:1});
         const index=sourceColumns.findIndex(column=>sqliteIdentifierEqual(column,name));
+        if(index<0&&metadata&&["rowid","_rowid_","oid"].some(alias=>sqliteIdentifierEqual(alias,name)))throw new JSQLiteError('unsupported','metadata table-function row identity is not implemented');
         if(index<0&&rowIdentity!==undefined&&["rowid","_rowid_","oid"].some(alias=>sqliteIdentifierEqual(alias,name)))return {kind:"register",index:rowIdentity};
         if(index<0)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});
         return {kind:"register",index:rowStart+index};

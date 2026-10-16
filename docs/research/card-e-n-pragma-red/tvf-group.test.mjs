@@ -20,7 +20,7 @@ for(const image of native.encodings)for(const c of image.cases)test(image.encodi
 for(const image of native.encodings)test(image.encoding+' physical identity payload and metadata identity boundary',async()=>{
  const old=globalThis.fetch;globalThis.fetch=async()=>new Response(Buffer.from(image.base64,'base64'));let db,s;
  try{db=await open('https://fixture.invalid/group-identity');
- assert.throws(()=>db.prepare("SELECT p.rowid,count(*) FROM pragma_table_info('t') p GROUP BY p.rowid"),e=>e.kind==='unsupported');
+ try{assert.throws(()=>{s=db.prepare("SELECT p.rowid,count(*) FROM pragma_table_info('t') p GROUP BY p.rowid").statement;},e=>e.kind==='unsupported');}finally{s?.finalize();s=undefined;}
  s=db.prepare("SELECT t.rowid,p.name,count(*) FROM t JOIN pragma_table_info(t.nm) p ON p.cid=0 GROUP BY t.rowid,p.name ORDER BY t.rowid").statement;
  const rows=[];while(await s.step()==='row')rows.push(Array.from({length:s.columnCount},(_,i)=>s.column(i)));
  assert.deepEqual(rows,[[1n,'x',1n],[2n,'x',1n],[3n,'x',1n]]);
