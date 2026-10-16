@@ -2735,7 +2735,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   // the schema here, so resolve before scalar lowering can misclassify the owner.
   if(selectHasWindow(select)){
     if(select.hasCompound&&schema&&database){
-      const compound=owner?.destination?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:owner.builder,parameters:owner.parameters,destination:owner.destination}):compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+      const compound=owner?.destination?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...owner,destination:owner.destination}):compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
       if(compound){if('ops' in compound)return compound;
       return Object.freeze({columns:compound.columns,ops:owner!.builder.ops,registers:owner!.builder.registers,parameters:Object.freeze(owner!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});}
     }
@@ -2762,7 +2762,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
   }
   rejectUnsupportedSelectClauses(singleton?{...select,hasDistinct:false}:select);
   if(select.hasCompound&&!select.hasOrderBy&&schema&&database&&select.arms.some(arm=>arm.from.items.length||arm.where!==null||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving)&&select.arms.slice(1).every(arm=>arm.operatorFromPrior==='union-all')){
-    const compound=owner?.destination?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:owner.builder,parameters:owner.parameters,destination:owner.destination}):compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    const compound=owner?.destination?compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...owner,destination:owner.destination}):compileCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
     if(compound){if('ops' in compound)return compound;
       return Object.freeze({columns:compound.columns,ops:owner!.builder.ops,registers:owner!.builder.registers,parameters:Object.freeze(owner!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});}
   }
@@ -4918,9 +4918,11 @@ export function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,d
   return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:columns!,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
+type CompoundSelectOwner={builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;linkedPlan?:ReturnType<typeof expandAndResolveSelect>;expressionBinding?:ResolvedExpressionBinding;sharedLimit?:LimitRegisters;scalarPrepared?:boolean};
+
 export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program|undefined;
-export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): {columns:Program['columns']}|undefined;
-export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']}|undefined {
+export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:CompoundSelectOwner): {columns:Program['columns']}|undefined;
+export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:CompoundSelectOwner):Program|{columns:Program['columns']}|undefined {
   if(!select.hasCompound||select.arms.slice(1).some(arm=>arm.operatorFromPrior!=="union-all"))return undefined;
   // select.c:multiSelect uses the merge destination for ORDER BY. Keep that
   // independently admitted route until its coroutine consumer is migrated.
@@ -4941,7 +4943,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops;
   const parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};retainSelectParameters(select,parameters);
   const destination:SelectDest=owner?.destination??{kind:'output'};
-  const limit=computeLimitRegisters(select,ops,()=>builder.register(),parameters),stops:number[]=[];
+  const limit=owner?.sharedLimit??(owner?.scalarPrepared?undefined:computeLimitRegisters(select,ops,()=>builder.register(),parameters)),stops:number[]=[];
   const emitRow=(first:number,count:number)=>{
     let skip=-1;if(limit?.offset!==undefined){skip=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}
     emitSelectDestination(ops,destination,first,count);
@@ -4955,10 +4957,15 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   // Lowered CTEs are not schema tables; materialize the represented producer
   // in this builder, then scan an independent reader for each arm.
   const cteCursors=new Map<object,number>();
-  for(const arm of arms){
+  for(const [armIndex,arm] of arms.entries()){
+    // resolveSelectStep keeps pOuterNC across pPrior; consume the linked arm
+    // instead of resolving its EList/WHERE in an empty outer NameContext.
+    const linkedArm=owner?.linkedPlan?.compoundArms?.[armIndex];
+    const resolveArm=()=>linkedArm??expandAndResolveSelect(arm,schema,null,builder.cursors);
+    const scalarOwner={builder,parameters,emitRow,destination,...(linkedArm?{linkedPlan:linkedArm}:{}),...(owner?.expressionBinding?{expressionBinding:owner.expressionBinding}:{}),scalarPrepared:true};
     if(selectHasWindow(arm)){
       let expanded:ReturnType<typeof expandAndResolveSelect>;
-      try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+      try{expanded=resolveArm()}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       const compiled=compileWindowSelectLowering(expanded,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,parameters,destination});
       if(compiled.program.columns.length!==width)throw new JSQLiteError('unsupported','window compound arm is not fully represented',{unsupportedClassification:'temporary'});
       columns??=compiled.program.columns;
@@ -5007,7 +5014,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
       continue;
     }
     if(selectHasAggregate(arm)||arm.hasGroupBy||arm.hasHaving){
-      const result=compileAggregateSelect(arm,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,compoundLimit:{registers:limit,stops}});
+      const result=compileAggregateSelect(arm,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,...(linkedArm?{linkedPlan:linkedArm}:{}),...(owner?.expressionBinding?{expressionBinding:owner.expressionBinding}:{}),scalarPrepared:true,compoundLimit:{registers:limit,stops}});
       columns??=result.columns;
     }else if(arm.from.derived){
       // select.c flattenSubquery restrictions (4),(13)-(15): this retained
@@ -5017,13 +5024,13 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
       columns??=produced.columns;
     }else if(arm.from.items.length||arm.where){
       let expanded:ReturnType<typeof expandAndResolveSelect>;
-      try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}
+      try{expanded=resolveArm()}
       catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       columns??=Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})));
-      if(expanded.sources.length)compileInnerTableSelect(arm,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,compoundLimit:{registers:limit,stops}});
+      if(expanded.sources.length)compileInnerTableSelect(arm,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,...(owner?.expressionBinding?{expressionBinding:owner.expressionBinding}:{}),scalarPrepared:true,compoundLimit:{registers:limit,stops}});
       else {
         if(!arm.hasValues&&!arm.hasGroupBy&&!arm.hasHaving){
-          compileScalarSelect(arm,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow});
+          compileScalarSelect(arm,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,scalarOwner);
         }else{
           const allocate=()=>builder.register();let skip=-1;
           if(arm.where?.reduction){const predicate=compileExpressionTree(expressionFromReduction(arm.where.reduction),ops,allocate,parameters);skip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});}
@@ -5038,12 +5045,12 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
       // its single row. Otherwise a bare unknown column becomes a late VM
       // expression instead of an atomic prepare error.
       let expanded:ReturnType<typeof expandAndResolveSelect>;
-      try{expanded=expandAndResolveSelect(arm,schema,null,builder.cursors)}
+      try{expanded=resolveArm()}
       catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
       // multiSelectValues/selectInnerLoop owns every VALUES EList. Keep
       // scalar subquery hooks and lexical resolution in the shared row owner.
       if(arm.hasGroupBy||arm.hasHaving)throw new JSQLiteError('unsupported','zero-source grouped compound arm is not represented',{unsupportedClassification:'temporary'});
-      const compiled=compileScalarSelect(arm,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow});
+      const compiled=compileScalarSelect(arm,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,scalarOwner);
       columns??=compiled.columns;
     }
   }
