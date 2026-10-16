@@ -102,6 +102,16 @@ for case in m['upstreamCases']+m['companionCases']:
  operations=sequence(case,fixture)
  expected_attempt=next({'index':i,'key':operation['key'],'op':operation['op']} for i,operation in enumerate(operations) if operation['op']=='prepare')
  cases.append({'id':case,'credit':'upstream' if case in m['upstreamCases'] else 'no-credit-companion','fixture':fixture,'setup':[], 'operations':operations,'expected':{'disposition':'unimplemented-temporary','attempted':expected_attempt,'error':{'name':'JSQLiteError','kind':'unsupported','code':None,'extendedCode':None,'unsupportedClassification':'temporary'}}})
+# Retain the four allocated prepare/tail and empty-step assertions. These are
+# operation-phase observations, not additional upstream or prepare16 credit.
+allocated = {'capi3c.test:capi3c-' + suffix for suffix in ('1.1', '1.4', '2.1', '2.2')}
+for c in cases:
+ if c['id'] not in allocated: continue
+ prepare_op = next(o for o in c['operations'] if o['op'] == 'prepare')
+ prepare_op['assertion'] = dict(phase='prepare', tail='SELECT 10' if c['id'].endswith(('1.4', '2.2')) else '', columnCount=1,
+   metadata=dict(name='name', declaredType='TEXT', database='main', table='sqlite_master', origin='name'))
+ c['operations'].insert(-1, op('emptyStep', 'step', assertion=dict(phase='step', result='done', rowCount=0)))
+ c['expected'] = dict(disposition='completed', error=None, attempted=None)
 # Current diagnostic expectations are distinct from the retained Stage2 baseline.
 errors={
  'close.test:close-1.4.3':dict(operation='prepare',kind='misuse',code=None,extendedCode=None,message='connection is closed'),
@@ -110,7 +120,7 @@ errors={
 }
 for c in cases:
  c['diagnosticExpected']=dict(disposition='observed-error',error=errors[c['id']]) if c['id'] in errors else dict(disposition='completed')
-out={'schema':'jsqlite-ts-cases/1','cases':cases,'expectationAuthority':'expected retains historical Stage2 unimplemented baseline; diagnosticExpected owns current sequence observations, no compatibility credit'}; rendered=json.dumps(out,indent=2)+'\n'; target=root/'test/conformance/cases/stage2-ts.json'
+out={'schema':'jsqlite-ts-cases/1','cases':cases,'expectationAuthority':'expected retains Stage2 baseline except four allocated prepare/tail and empty-step assertions; diagnosticExpected owns other current sequence observations, no additional compatibility credit'}; rendered=json.dumps(out,indent=2)+'\n'; target=root/'test/conformance/cases/stage2-ts.json'
 p=argparse.ArgumentParser(); p.add_argument('--check',action='store_true'); args=p.parse_args()
 if args.check:
  if not target.exists() or target.read_text()!=rendered:
