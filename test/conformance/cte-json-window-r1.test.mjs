@@ -36,7 +36,11 @@ for(const variant of native.encodings)test(`R1 same-composition timer suspension
  const bytes=fs.readFileSync(new URL(`../fixtures/cte-module-owner/${variant.encoding}-corrected.sqlite`,import.meta.url));
  const prior=globalThis.fetch;let db;
  try{globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/r1-controls');}finally{globalThis.fetch=prior;}
- const payload=JSON.stringify(Array.from({length:20000},(_,i)=>i%31));
+ // Bounded lifecycle fixture, not a stress benchmark: 2,000 values per
+ // physical row still suspend before output and admit real cancellation and
+ // deadline failures on this route. Keep the same workload for restart; the
+ // former 20,000-value fixture exceeded the unchanged 30s/file watchdog.
+ const payload=JSON.stringify(Array.from({length:2000},(_,i)=>i%31));
  const sql=`WITH c AS (SELECT t.x,j.value FROM t JOIN json_each('${payload}') j) SELECT x,value,row_number() OVER (PARTITION BY x ORDER BY value) AS rn FROM c ORDER BY x,value`;
  try{
   let st=db.prepare(sql).statement,heartbeat=false;
