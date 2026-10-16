@@ -6384,10 +6384,40 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if(jsonItem.on&&!jsonItem.on.reduction)throw new JSQLiteError("unsupported","this JSON join predicate is not implemented",{unsupportedClassification:"temporary"});
     let residualOn=jsonItem.on?.reduction?expressionFromReduction(jsonItem.on.reduction):null;
     const outerSkips:number[]=[];
-    // resolve.c resolves the complete SrcList before wherecode.c tests
-    // prereqAll/notReady. Availability must not change name resolution.
-    if(residualWhere)residualWhere=bind(residualWhere,true);
-    if(residualOn)residualOn=bind(residualOn,true);
+    // whereexpr.c:exprSelectUsage collects referenced cursor identities through
+    // child Selects; local child cursors are not this loop's prerequisites.
+    // wherecode.c delays TERM_VARSELECT to a second pass at the same ready
+    // level, not until the next source is positioned.
+    let predicatePlan:ReturnType<typeof expandAndResolveSelect>|undefined;
+    const hasChild=(tree:Expression):boolean=>{
+      switch(tree.kind){
+        case 'scalar-subquery':case 'in-subquery':return true;
+        case 'unary':case 'collate':case 'cast':return hasChild(tree.value);
+        case 'binary':return hasChild(tree.left)||hasChild(tree.right);
+        case 'call':return tree.args.some(hasChild);
+        case 'vector':return tree.fields.some(hasChild);
+        case 'in-list':return hasChild(tree.left)||tree.values.some(hasChild);
+        case 'between':return hasChild(tree.value)||hasChild(tree.lower)||hasChild(tree.upper);
+        case 'case':return !!tree.operand&&hasChild(tree.operand)||tree.pairs.some(pair=>pair.some(hasChild))||!!tree.otherwise&&hasChild(tree.otherwise);
+        default:return false;
+      }
+    };
+    if(residualWhere&&hasChild(residualWhere)||residualOn&&hasChild(residualOn)){
+      try{predicatePlan=expandAndResolveSelect(select,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+    }
+    const moduleSource=predicatePlan?.sources[1];
+    const predicateBinding=(inner:boolean):ResolvedExpressionBinding=>({policy:'scalar',positionedSources:new Set(predicatePlan?.sources.filter(source=>inner||source!==moduleSource)),location:ref=>ref.source===moduleSource?{kind:'register',register:ref.columnIndex<0?jsonIdentity:rowStart+ref.columnIndex,phase:'source-row'}:{kind:'cursor',cursor:0}});
+    const bindPredicate=(tree:Expression,reduction:LemonValue<SqlToken>):Expression=>predicatePlan&&reduction.kind==='reduction'?bindResolvedExpression(tree,resolvedExpressionCarrier(predicatePlan,reduction),()=>0,true,predicateBinding(true)):bind(tree,true);
+    // Resolve the complete SrcList before prereqAll/notReady partitioning.
+    if(residualWhere)residualWhere=bindPredicate(residualWhere,select.where!.reduction!);
+    if(residualOn)residualOn=bindPredicate(residualOn,jsonItem.on!.reduction!);
+    const childDependent=(plan:ReturnType<typeof expandAndResolveSelect>|undefined):boolean=>!plan||plan.columnUses.some(use=>use.source===moduleSource||use.mergedSources?.some(ref=>ref.source===moduleSource))||plan.nested.some(childDependent)||!!plan.compoundArms?.some(childDependent);
+    const compilePredicate=(tree:Expression,inner:boolean):number=>compileExpressionTree(tree,ops,allocate,parameters,expression=>{
+      builder.registers=registers;
+      const result=compileWideSubquery(expression,expression.resolved,builder,ops,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},predicateBinding(inner));
+      registers=builder.registers;
+      return result;
+    },true);
     const innerDependent=(tree:Expression):boolean=>{
       switch(tree.kind){
         case 'register':return tree.index===jsonIdentity||(tree.index>=rowStart&&tree.index<rowStart+sourceColumns.length);
@@ -6399,18 +6429,19 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         case 'in-list':return innerDependent(tree.left)||tree.values.some(innerDependent);
         case 'between':return innerDependent(tree.value)||innerDependent(tree.lower)||innerDependent(tree.upper);
         case 'case':return !!tree.operand&&innerDependent(tree.operand)||tree.pairs.some(pair=>pair.some(innerDependent))||!!tree.otherwise&&innerDependent(tree.otherwise);
-        // A child Select owns a separate NameContext; do not infer its
-        // correlation from the enclosing expression's shallow dependencies.
-        case 'scalar-subquery':case 'in-subquery':case 'aggregate':return true;
+        case 'scalar-subquery':return childDependent(tree.resolved);
+        case 'in-subquery':return innerDependent(tree.left)||childDependent(tree.resolved);
+        case 'aggregate':return true;
         default:return false;
       }
     };
     if(!left){
       const readyTerms=(predicate:Expression|null):Expression|null=>{
         const terms:Expression[]=[];const split=(tree:Expression):void=>{if(tree.kind==='binary'&&tree.op==='AND'){split(tree.left);split(tree.right);}else terms.push(tree);};if(predicate)split(predicate);
-        const residual:Expression[]=[];
-        for(const term of terms){if(innerDependent(term)){residual.push(term);continue;}
-          const test=compileExpressionTree(term,ops,allocate,parameters,undefined,true);outerSkips.push(ops.length);ops.push({code:'IfNot',p1:test,p2:0});
+        const residual=terms.filter(innerDependent),ready=terms.filter(term=>!innerDependent(term));
+        // TERM_VARSELECT is deferred to another pass at this same ready level.
+        for(const term of [...ready.filter(term=>!hasChild(term)),...ready.filter(hasChild)]){
+          const test=compilePredicate(term,false);outerSkips.push(ops.length);ops.push({code:'IfNot',p1:test,p2:0});
         }
         return residual.reduce<Expression|null>((left,right)=>left?{kind:'binary',op:'AND',left,right}:right,null);
       };
@@ -6422,7 +6453,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const innerRewind=ops.length;
     ops.push(metadata?{code:"MetadataFilter",p1:1,input,...(root===undefined?{}:{database:root}),schema,module:jsonItem.tableName.toLowerCase(),rowStart,p2:0}:{code:"JsonTableRewind",p1:1,input,...(root===undefined?{}:{root}),recursive:jsonItem.tableName.toLowerCase().endsWith("tree"),binaryContainers:jsonItem.tableName.toLowerCase().startsWith("jsonb_"),rowStart,rowIdentity:jsonIdentity,p2:0});
     const innerLoop=ops.length;let onSkip:number|null=null;
-    if(residualOn){const test=compileExpressionTree(bind(residualOn,true),ops,allocate,parameters,undefined,true);onSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
+    if(residualOn){const test=compilePredicate(residualOn,true);onSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
     if(matched!==null)ops.push({code:"Integer",p1:1n,p2:matched});
     const call=ops.length;ops.push({code:"Gosub",p1:returnReg,p2:0});
     const innerNext=ops.length;if(onSkip!==null)(ops[onSkip] as {p2:number}).p2=innerNext;
@@ -6436,7 +6467,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const consume=ops.length;(ops[call] as {p2:number}).p2=consume;if(extendedCall!==null)(ops[extendedCall] as {p2:number}).p2=consume;
     let whereSkip:number|null=null;
     if(select.where&&!select.where.reduction)throw new JSQLiteError("unsupported","this JSON filter is not implemented",{unsupportedClassification:"temporary"});
-    if(residualWhere){const test=compileExpressionTree(bind(residualWhere,true),ops,allocate,parameters,undefined,true);whereSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
+    if(residualWhere){const test=compilePredicate(residualWhere,true);whereSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
     const outputTrees=projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return bind(tree,true)}),outputs=outputTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters)),out=registers+1;
     for(const output of outputs){registers++;ops.push({code:"Copy",p1:output,p2:registers});}
     const deliver=()=>{if(shared?.consume){builder.registers=registers;shared.consume(out,outputs.length);registers=builder.registers;}else emitSelectDestination(ops,shared?.destination??{kind:"output"},out,outputs.length);};
