@@ -16,3 +16,48 @@ const malformed=[
 ];
 for(const bad of malformed) assert.throws(()=>validateResults([c("a")],bad));
 console.log("TS accounting requires real open success, exact prepare failure, identities, and unattempted suffixes");
+
+// The generator must not erase the four allocated operation-phase assertions
+// while retaining historical unsupported expectations for the other 43 lanes.
+const { readFileSync } = await import('node:fs');
+const manifest = JSON.parse(readFileSync(new URL('./cases/stage2-initial.json', import.meta.url)));
+const generated = JSON.parse(readFileSync(new URL('./cases/stage2-ts.json', import.meta.url)));
+const ids = [...manifest.upstreamCases, ...manifest.companionCases];
+assert.doesNotThrow(() => validateCaseData(generated, ids, manifest.companionCases));
+const allocated = generated.cases.filter(c => c.expected.disposition === 'completed');
+assert.deepEqual(allocated.map(c => c.id), ['1.1', '1.4', '2.1', '2.2'].map(s => `capi3c.test:capi3c-${s}`));
+assert.equal(generated.cases.length - allocated.length, 43);
+// Current diagnostics must not silently promote the retained baseline. The four
+// allocated prepare/tail lanes are the only exception, even when a current
+// sequence is expected to complete without error.
+assert.equal(generated.cases.filter(c => c.credit === 'upstream').length, 38);
+assert.equal(generated.cases.filter(c => c.credit === 'no-credit-companion').length, 9);
+for (const lane of generated.cases) {
+  assert.ok(lane.diagnosticExpected, `missing diagnostic authority: ${lane.id}`);
+  if (allocated.includes(lane)) continue;
+  const index = lane.operations.findIndex(o => o.op === 'prepare');
+  assert.deepEqual(lane.expected, {
+    disposition: 'unimplemented-temporary',
+    attempted: {index, key: lane.operations[index].key, op: 'prepare'},
+    error: {name: 'JSQLiteError', kind: 'unsupported', code: null,
+      extendedCode: null, unsupportedClassification: 'temporary'},
+  });
+}
+assert.deepEqual(generated.cases.filter(c => c.diagnosticExpected.disposition === 'observed-error').map(c => c.id),
+  ['close.test:close-1.4.3', 'capi3c.test:capi3c-1.5', 'capi3c.test:capi3c-2.3']);
+for (const lane of allocated) {
+  const prepare = lane.operations.find(o => o.op === 'prepare');
+  assert.deepEqual(prepare.assertion, {
+    phase: 'prepare', tail: lane.id.endsWith('1.4') || lane.id.endsWith('2.2') ? 'SELECT 10' : '',
+    columnCount: 1,
+    metadata: {name: 'name', declaredType: 'TEXT', database: 'main', table: 'sqlite_master', origin: 'name'},
+  });
+  assert.deepEqual(lane.operations.find(o => o.op === 'step').assertion,
+    {phase: 'step', result: 'done', rowCount: 0});
+}
+for (const original of allocated) {
+  const bad = structuredClone(generated);
+  delete bad.cases.find(c => c.id === original.id).operations.find(o => o.op === 'step').assertion;
+  assert.throws(() => validateCaseData(bad, ids, manifest.companionCases), /missing source assertions/);
+}
+console.log('Stage2 preserves 38+9 identities and four allocated prepare/empty-step assertion lanes');

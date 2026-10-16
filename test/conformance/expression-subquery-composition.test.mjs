@@ -19,7 +19,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} inde
   assert.deepEqual(await rows(s),[[1n,2n,12n],[3n,1n,33n],[5n,0n,null],[7n,0n,null]]);s.reset();assert.deepEqual(await rows(s),[[1n,2n,12n],[3n,1n,33n],[5n,0n,null],[7n,0n,null]]);s.finalize();s=undefined;
   s=db.prepare('SELECT a,(SELECT count(*) FROM t2 WHERE x=t1.a)+(SELECT count(*) FROM t2 WHERE x=t1.a) FROM t1 WHERE t1.a=1').statement;
   assert.deepEqual(await rows(s),[[1n,4n]],'qualified outer binding composes across independent aggregate children');s.finalize();s=undefined;await admitted(db);
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
+ }finally{try{s?.finalize();}finally{try{db?.close();}finally{await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}}}
 });
 
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} aggregate correlated EXISTS honors inner equality join, reset, limits, and cleanup`,async()=>{
@@ -34,7 +34,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} aggr
   await assert.rejects(s.step(),e=>e.kind==='limit'&&e.message==='statement exceeds maxWorkUnits');assert.throws(()=>s.finalize(),e=>e.kind==='limit'&&e.message==='statement exceeds maxWorkUnits');s=undefined;
   assert.doesNotThrow(()=>db.prepare('SELECT 1').statement.finalize(),'first error cleanup restores operation admission even though the connection limit remains');
   db.closeDeferred();db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));await admitted(db);
- }finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}
+ }finally{try{s?.finalize();}finally{try{db?.close();}finally{await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}}}
 });
 
 // pragma.c declares eponymous columns before select.c analyzes AggInfo.
@@ -48,4 +48,27 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} corr
   for(let run=0;run<3;run++){assert.deepEqual(await rows(s),[['a',4n],['b',4n],['c',4n]]);if(run<2)s.reset();}
   s.finalize();s=undefined;await admitted(db);
  }finally{try{s?.finalize();}finally{try{db?.close();}finally{await new Promise(resolve=>server.close(resolve));}}}
+});
+
+// select.c:selectInnerLoop excludes EList execution for SRT_Exists, including
+// the joined no-SrcItem fallback (ORDER BY selects that lowering route).
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} joined no-source EXISTS skips values but validates projection`,async()=>{
+ const server=await serve(encoding);let db,s;try{
+  db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
+  const prefix='SELECT t1.a, EXISTS(',suffix=') FROM t1 JOIN t2 ON x=a';
+  const cases=[
+   ["SELECT json('bad') ORDER BY 1",[[1n,1n],[1n,1n],[3n,1n]]],
+   ["SELECT json('bad') WHERE t1.a=1 ORDER BY 1",[[1n,1n],[1n,1n],[3n,0n]]],
+   ["SELECT json('bad') ORDER BY 1 LIMIT 0",[[1n,0n],[1n,0n],[3n,0n]]],
+   ["SELECT json('bad') ORDER BY 1 LIMIT 1 OFFSET 1",[[1n,0n],[1n,0n],[3n,0n]]],
+   ["SELECT json('bad') UNION ALL SELECT json('bad') LIMIT 1 OFFSET 1",[[1n,1n],[1n,1n],[3n,1n]]],
+   ["SELECT json('bad') UNION ALL SELECT json('bad') LIMIT 1 OFFSET 2",[[1n,0n],[1n,0n],[3n,0n]]],
+   ["SELECT json('bad') WHERE 0 UNION ALL SELECT json('bad')",[[1n,1n],[1n,1n],[3n,1n]]],
+  ];
+  for(const [child,expected] of cases){s=db.prepare(prefix+child+suffix).statement;assert.deepEqual(await rows(s),expected);s.reset();assert.deepEqual(await rows(s),expected);s.finalize();s=undefined;}
+  assert.throws(()=>db.prepare(prefix+'SELECT missing_column ORDER BY 1 LIMIT 0'+suffix),e=>e.kind==='sqlite'&&/no such column/.test(e.message));
+  s=db.prepare("SELECT t1.a,(SELECT json('bad') ORDER BY 1) FROM t1 JOIN t2 ON x=a").statement;
+  await assert.rejects(()=>rows(s),e=>e.kind==='sqlite'&&/malformed JSON/.test(e.message));
+  try{s.finalize();}catch(e){assert.match(e.message,/malformed JSON/);}s=undefined;await admitted(db);
+ }finally{try{s?.finalize();}finally{try{db?.close();}finally{await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));}}}
 });

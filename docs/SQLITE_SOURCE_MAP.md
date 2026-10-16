@@ -1,5 +1,10 @@
 ## Linked JSON module enrollment and selected execution
 
+## Joined destination and row identity closure
+
+`select.c:selectInnerLoop` SRT_Exists / `multiSelect` TK_ALL → `vdbe.ts:resolvedScalarSubqueryEmitter` no-source/compound branches: prepare validation, projection suppression, WHERE/OFFSET/shared LIMIT/Once/source-order presence exit. All-encoding/reset/error controls: `expression-subquery-composition.test.mjs`. `select.c:columnType/sqlite3GenerateColumnNames` negative column/IPK and COLLATE branches → `jsonResultMetadata` and mixed producer independent module-rowid caller; tests `json-mixed-ordered.test.mjs`, `json-table-functions.test.mjs`. [Scoped integration evidence](research/card-m-f-k-production-integration.md#reviewer-repair-integration). JSON planner modules remain production dependencies; experiment copies are excluded from this delivery.
+
+
 - `select.c:selectExpander/cannotBeFunction`, `json.c:jsonEachConnect` → `resolve.ts:expandAndResolveSelect`, `json-table-plan.ts:jsonTableDeclaration`: genuine module declaration, catalog precedence, callable rejection and hidden-column metadata. Tests: `json-module-enrollment`, `hidden-source-expansion`.
 - `where.c:whereLoopAddVirtualOne/whereLoopAddVirtual/whereLoopInsert`, `json.c:jsonEachBestIndex` → `where-json-loops.ts`, `where-plan.ts`: linked hidden constraints, usable-mask retries, shared dominance/budget insertion and selected argv. Tests: `json-virtual-candidates`, `json-table-plan`. IN/LIMIT virtual terms/orderByConsumed remain unmapped here.
 - `expr.c:sqlite3CodeSubselect`, `select.c:selectInnerLoop`, `wherecode.c:sqlite3WhereCodeOneLoopStart` → `vdbe.ts:compileWideSubquery/compileInnerTableSelect`: linked outer storage/readiness, conditional Once, normalized LIMIT, shared Mem/Set/Exists, register payload/rowid, OFFSET and common module cleanup. Mixed AggInfo captures selected rows; retained physical input materializes into an actual ephemeral cursor before reading. Tests: `correlated-json-exists`, `scalar-linked-context`, `json-aggregate-paths`.

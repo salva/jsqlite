@@ -1,5 +1,10 @@
 ### Linked JSON module enrollment and selected rows
 
+### Joined expression destination and mixed row identity
+
+Joined no-source and admitted UNION ALL EXISTS children validate result expressions at prepare, but emit presence rather than result-value operations. WHERE precedes OFFSET; normalized LIMIT/Once and shared compound counters retain source-order early exit. Scalar Mem destinations still evaluate their projection (`select.c:selectInnerLoop`, SRT_Exists and `multiSelect` TK_ALL). Mixed JSON/physical metadata maps negative physical indexes through the declared IPK before implicit rowid, keeps module rowid in its independent register including LEFT null-extension, and gives COLLATE expression-span/alias names with NULL type/origins. This is not general virtual-table planner parity. [Integration inventory and evidence](research/card-m-f-k-production-integration.md#reviewer-repair-integration).
+
+
 `expandAndResolveSelect` enrolls genuine `JsonModuleSourceSchema` declarations after catalog/transient/view lookup, preserving callable catalog rejection and hidden-field rules. The four ASCII-folded module names expose eight visible fields, two explicit-only hidden fields and independent rowid; visible declared types are NULL, hidden types empty. No module declaration supplies a physical root page or indexes.
 
 `where-json-loops.ts` translates the usable hidden-EQ BestIndex candidates and dependency-mask retries into ordinary WhereLoop insertion and path selection. WHERE then source-ordered ON constraints precede linked function arguments; residuals, affinity barriers and join ownership remain intact. Selected argv require positioned, not merely lexically visible, sources. IN/LIMIT virtual terms and orderByConsumed are not implemented by this candidate adapter; this is not complete virtual-table planner parity.

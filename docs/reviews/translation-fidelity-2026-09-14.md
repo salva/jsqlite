@@ -1,5 +1,10 @@
 ## Current packed expression membership disposition
 
+## Scoped reviewer-repair integration
+
+The joined no-source/UNION ALL EXISTS projection and mixed physical/module rowid metadata repairs are integrated as a bounded candidate, not independent acceptance or whole-audit closure. The former preserves prepare validation while suppressing runtime EList; the latter preserves IPK/implicit rowid versus independent module identity and COLLATE metadata. Current residual accounting distinguishes missing fixture inputs from the repaired diagnostic expectation assumption; no global-green claim. [Exact input inventory and verification](../research/card-m-f-k-production-integration.md#reviewer-repair-integration).
+
+
 Expression InSet is packed-only; scalar/vector borrowed membership fallback has
 been removed. Enforcing ownership exposed table LIMIT/aggregate/join-key producers
 missed by earlier revision-bound migration reports. These now use shared packed

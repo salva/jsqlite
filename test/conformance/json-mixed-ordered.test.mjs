@@ -26,3 +26,27 @@ for(const entry of capture.cases)test(`ordered mixed JSON pinned ${entry.encodin
  }
  }finally{globalThis.fetch=old;db?.close();}
 });
+
+// select.c:columnType and sqlite3GenerateColumnNames map XN_ROWID through
+// iPKey; DESC inline PK (d) is not an alias, table-constraint PK (t) is.
+// Expected metadata independently checked with the pinned library APIs.
+for(const encoding of ['utf8','utf16le','utf16be'])test(`mixed JSON rowid metadata identity ${encoding}`,async()=>{
+ const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
+ for(const table of ['t1','d','t']){
+  const path=table==='t1'?new URL(`../fixtures/generations/${generation}/generated/encoding-${encoding}.db`,import.meta.url):new URL(`./fixtures/row-width-ipk-${{utf8:'utf-8',utf16le:'utf-16le',utf16be:'utf-16be'}[encoding]}.db`,import.meta.url);
+  const bytes=fs.readFileSync(path),old=globalThis.fetch;let db,s;
+  try{
+   globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/rowid');globalThis.fetch=old;
+   s=db.prepare(`SELECT p.rowid,p._rowid_,p.oid,p.rowid AS named,p.rowid COLLATE BINARY,j.rowid,j.rowid COLLATE BINARY FROM ${table} p JOIN json_each('[1]') j`).statement;
+   const origin=table==='t'?'id':'rowid';
+   const physical={name:origin,declaredType:'INTEGER',database:'main',table,origin};
+   const computed=name=>({name,declaredType:null,database:null,table:null,origin:null});
+   const expected=[physical,physical,physical,{...physical,name:'named'},computed('p.rowid COLLATE BINARY'),{name:'rowid',declaredType:'INTEGER',database:'main',table:'json_each',origin:'rowid'},computed('j.rowid COLLATE BINARY')];
+   for(let pass=0;pass<2;pass++){
+    assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i)),expected);
+    while(await s.step()==='row'){assert.equal(s.columnType(0),'integer');assert.equal(s.column(0),s.column(1));assert.equal(s.column(0),s.column(2));assert.equal(s.column(0),s.column(3));assert.equal(s.column(0),s.column(4));assert.equal(s.column(5),0n);assert.equal(s.column(6),0n);}
+    if(!pass)s.reset();
+   }
+  }finally{globalThis.fetch=old;try{s?.finalize();}finally{db?.close();}}
+ }
+});

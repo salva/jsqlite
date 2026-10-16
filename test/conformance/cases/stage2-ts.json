@@ -36,6 +36,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -73,6 +76,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -114,6 +120,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -155,6 +164,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -201,6 +213,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -246,6 +261,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -287,6 +305,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -332,6 +353,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -382,6 +406,16 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "observed-error",
+        "error": {
+          "operation": "prepare",
+          "kind": "misuse",
+          "code": null,
+          "extendedCode": null,
+          "message": "connection is closed"
+        }
       }
     },
     {
@@ -431,6 +465,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -479,6 +516,9 @@
         "disposition": "completed",
         "error": null,
         "attempted": null
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -527,6 +567,9 @@
         "disposition": "completed",
         "error": null,
         "attempted": null
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -559,6 +602,16 @@
           "code": null,
           "extendedCode": null,
           "unsupportedClassification": "temporary"
+        }
+      },
+      "diagnosticExpected": {
+        "disposition": "observed-error",
+        "error": {
+          "operation": "prepare",
+          "kind": "sqlite",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "no such column: namex"
         }
       }
     },
@@ -608,6 +661,9 @@
         "disposition": "completed",
         "error": null,
         "attempted": null
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -656,6 +712,9 @@
         "disposition": "completed",
         "error": null,
         "attempted": null
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -688,6 +747,16 @@
           "code": null,
           "extendedCode": null,
           "unsupportedClassification": "temporary"
+        }
+      },
+      "diagnosticExpected": {
+        "disposition": "observed-error",
+        "error": {
+          "operation": "prepare",
+          "kind": "sqlite",
+          "code": 1,
+          "extendedCode": 1,
+          "message": "no such column: namex"
         }
       }
     },
@@ -727,6 +796,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -791,6 +863,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -828,6 +903,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -865,6 +943,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -902,6 +983,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -954,6 +1038,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1006,6 +1093,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1058,6 +1148,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1110,6 +1203,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1147,6 +1243,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1184,6 +1283,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1222,6 +1324,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1260,6 +1365,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1298,6 +1406,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1336,6 +1447,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1374,6 +1488,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1412,6 +1529,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1449,6 +1569,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1486,6 +1609,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1523,6 +1649,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1560,6 +1689,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1597,6 +1729,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1678,6 +1813,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1750,6 +1888,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1831,6 +1972,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1903,6 +2047,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -1968,6 +2115,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -2061,6 +2211,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -2139,6 +2292,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -2190,6 +2346,9 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     },
     {
@@ -2227,7 +2386,11 @@
           "extendedCode": null,
           "unsupportedClassification": "temporary"
         }
+      },
+      "diagnosticExpected": {
+        "disposition": "completed"
       }
     }
-  ]
+  ],
+  "expectationAuthority": "expected retains Stage2 baseline except four allocated prepare/tail and empty-step assertions; diagnosticExpected owns other current sequence observations, no additional compatibility credit"
 }

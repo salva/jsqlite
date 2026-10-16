@@ -2248,11 +2248,11 @@ function expressionName(expression: SelectNode["result"][number]): string {
  * column. Keep expressionName() for computed expressions: its exact UTF-8
  * source span, including comments and spacing, is observable metadata. */
 function jsonResultMetadata(expression:SelectNode["result"][number],tree:Expression,starts:readonly number[],tables:readonly string[],physical?:TableNode,rowIdentities:readonly (number|undefined)[]=[]):ColumnMetadata {
-  // select.c separates sqlite3GenerateColumnNames (which skips COLLATE)
-  // from columnType (which does not). Preserve names, not column origins.
+  // select.c:sqlite3GenerateColumnNames skips COLLATE for srcName lookup,
+  // but the result retains its full expression span unless explicitly aliased.
+  // columnType does not unwrap COLLATE, so origins and declared type are NULL.
   if(tree.kind==="collate"){
-    const named=jsonResultMetadata(expression,tree.value,starts,tables,physical,rowIdentities);
-    return Object.freeze({name:named.name,declaredType:null,database:null,table:null,origin:null});
+    return Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null});
   }
   // select.c:columnType and sqlite3GenerateColumnNames canonicalize all three
   // rowid spellings. Cursor identity is not a declared JSON field or JSON id.
@@ -2261,7 +2261,13 @@ function jsonResultMetadata(expression:SelectNode["result"][number],tree:Express
       return Object.freeze({name:expression.alias??"rowid",declaredType:"INTEGER",database:"main",table:tables[source]!,origin:"rowid"});
   }
   if(tree.kind==="register")for(let source=0;source<starts.length;source++){const index=tree.index-starts[source]!;if(index>=0&&index<JSON_TABLE_COLUMNS.length){const origin=JSON_TABLE_COLUMNS[index]!;return Object.freeze({name:expression.alias??origin,declaredType:index>=JSON_EACH_COLUMNS.length?"":null,database:"main",table:tables[source]!,origin});}}
-  if(physical&&tree.kind==="column"&&tree.cursor===0&&tree.index>=0){const column=physical.columns[tree.index];if(column)return Object.freeze({name:expression.alias??column.name,declaredType:column.declaredType,database:"main",table:physical.tableName,origin:column.name});}
+  if(physical&&tree.kind==="column"&&tree.cursor===0){
+    // select.c:columnType/sqlite3GenerateColumnNames map XN_ROWID through
+    // iPKey before choosing a declared column or the implicit rowid metadata.
+    const column=tree.index<0?integerPrimaryKeyColumn(physical):physical.columns[tree.index];
+    if(column)return Object.freeze({name:expression.alias??column.name,declaredType:column.declaredType,database:"main",table:physical.tableName,origin:column.name});
+    if(tree.index<0)return Object.freeze({name:expression.alias??"rowid",declaredType:"INTEGER",database:"main",table:physical.tableName,origin:"rowid"});
+  }
   return Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null});
 }
 
@@ -4050,17 +4056,32 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
     if(expression.select.hasCompound){
       const plans=entry.plan.compoundArms;
       if(!plans||expression.select.arms.some(arm=>arm.operatorFromPrior&&arm.operatorFromPrior!=='union-all')||plans.some(plan=>plan.source.hasGroupBy||plan.source.hasHaving||selectHasAggregate(plan.source)||plan.sources.some(source=>!source.table)))throw new JSQLiteError('unsupported','this correlated scalar compound is not implemented',{unsupportedClassification:'temporary'});
-      emitScalarCompoundMerge(expression.select,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,builder,parameters,expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},(_arm,_emitRow,destination)=>{
+      const compoundDestination:SelectDest=expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result};
+      const emitArm=(_arm:SelectNode,_emitRow:(first:number,count:number)=>void,destination:SelectDest)=>{
         const plan=plans.find(plan=>plan.source.result[0]!.reduction===_arm.result[0]!.reduction)!,local=new Map(plan.sources.map(source=>[source,builder.cursor()]));
         const armBinding:ResolvedExpressionBinding={policy:'scalar',location:ref=>local.has(ref.source)?{kind:'cursor',cursor:local.get(ref.source)!}:outerBinding?.location(ref,0)??{kind:'cursor',cursor:ref.source.cursorId}};
-        if(plan.sources.length)compileInnerTableSelect(plan.source,plan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination,scalarPrepared:true,expressionBinding:armBinding,cursorFor:source=>local.get(source)??source.cursorId});
+        if(plan.sources.length)compileInnerTableSelect(plan.source,plan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination,scalarPrepared:true,...(expression.exists?{sharedLimit:preparedLimit}:{}),expressionBinding:armBinding,cursorFor:source=>local.get(source)??source.cursorId});
         else {
           const child=resolvedScalarSubqueryEmitter(plan,builder,parameters,environment,armBinding);
           const bind=(reduction:Reduction)=>bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(plan,reduction),source=>source.cursorId,true,armBinding);
           const end=builder.label();if(plan.source.where){const predicate=compileExpressionTree(bind(plan.source.where.reduction! as Reduction),ops,allocate,parameters,child);builder.jump(end,{code:'IfNot',p1:predicate,p2:0},(op,pc)=>({...op,p2:pc}));}
-          const value=compileExpressionTree(bind(plan.source.result[0]!.reduction! as Reduction),ops,allocate,parameters,child);emitSelectDestination(ops,destination,value,1);builder.mark(end);builder.resolveLabel(end);
+          if(destination.kind==='exists'&&offset!==undefined)builder.jump(end,{code:'IfPos',p1:offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc}));
+          // select.c:selectInnerLoop does not produce EList values for SRT_Exists.
+          const value=destination.kind==='exists'?0:compileExpressionTree(bind(plan.source.result[0]!.reduction! as Reduction),ops,allocate,parameters,child);emitSelectDestination(ops,destination,value,1);builder.mark(end);builder.resolveLabel(end);
         }
-      },{plans,limit:preparedLimit});
+      };
+      if(expression.exists){
+        // multiSelect TK_ALL without ORDER BY passes the same Exists destination
+        // and LIMIT to each arm; a merge coroutine would evaluate unused EList.
+        const stops:number[]=[];
+        for(const plan of plans){
+          emitArm(plan.source,()=>{},compoundDestination);
+          // Each qualifying arm stores 1; false WHERE leaves the initial 0.
+          ops.push({code:'IfNot',p1:result,p2:ops.length+2});
+          stops.push(ops.length);ops.push({code:'Goto',p2:0});
+        }
+        for(const stop of stops)(ops[stop] as {p2:number}).p2=ops.length;
+      }else emitScalarCompoundMerge(expression.select,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,builder,parameters,compoundDestination,emitArm,{plans,limit:preparedLimit});
       (ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
     }
     if(tree.kind!=='aggregate'&&!expression.select.hasGroupBy&&!expression.select.hasHaving){
@@ -4074,7 +4095,8 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
         const end=builder.label();
         if(expression.select.where){const predicate=compileExpressionTree(bind(expression.select.where.reduction! as Reduction),ops,allocate,parameters,compileJoinSubquery);builder.jump(end,{code:'IfNot',p1:predicate,p2:0},(op,pc)=>({...op,p2:pc}));}
         if(offset!==undefined)builder.jump(end,{code:'IfPos',p1:offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc}));
-        const value=compileExpressionTree(bind(item.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);
+        // Resolution validated EList already; SRT_Exists observes presence only.
+        const value=expression.exists?0:compileExpressionTree(bind(item.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);
         emitSelectDestination(ops,expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},value,1);
         builder.mark(end);builder.resolveLabel(end);
       }else       compileInnerTableSelect(expression.select,entry.plan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,ops,parameters,destination:expression.exists?{kind:'exists',register:result}:{kind:'mem',register:result},scalarPrepared:true,sharedLimit:preparedLimit,...(binding?{expressionBinding:binding}:{}),cursorFor});
@@ -6399,7 +6421,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       const advance=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=advance;ops.push({code:"SorterNext",p1:sorter,p2:loop});
     }
     const halt=ops.length;if(empty!==null)(ops[empty] as {emptyJump:number}).emptyJump=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
-    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>metadata?(()=>{const tree=outputTrees[index]!;if(tree.kind==='register'){const origin=sourceColumns[tree.index-rowStart]??null;return {name:result.alias??origin??expressionName(result),declaredType:metadataColumnDeclaredType(origin),database:origin?'main':null,table:origin?jsonItem.tableName:null,origin};}if(tree.kind==='column'){const col=tree.index===-1?table.columns.find(column=>column.primaryKeyPosition===1):table.columns[tree.index??-1];return {name:result.alias??col?.name??expressionName(result),declaredType:col?.declaredType??null,database:'main',table:table.name,origin:col?.name??null};}return{name:result.alias??expressionName(result),declaredType:null,database:null,table:null,origin:null};})():(()=>{const tree=outputTrees[index]!;if(retainedColumns&&tree.kind==='column'&&tree.index>=0){const origin=retainedColumns[tree.index]!;return {...origin,name:result.alias??table.columns[tree.index]!.name};}return jsonResultMetadata(result,tree,[rowStart],[jsonItem.tableName],table);})())),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>metadata?(()=>{const tree=outputTrees[index]!;if(tree.kind==='register'){const origin=sourceColumns[tree.index-rowStart]??null;return {name:result.alias??origin??expressionName(result),declaredType:metadataColumnDeclaredType(origin),database:origin?'main':null,table:origin?jsonItem.tableName:null,origin};}if(tree.kind==='column'){const col=tree.index===-1?table.columns.find(column=>column.primaryKeyPosition===1):table.columns[tree.index??-1];return {name:result.alias??col?.name??expressionName(result),declaredType:col?.declaredType??null,database:'main',table:table.name,origin:col?.name??null};}return{name:result.alias??expressionName(result),declaredType:null,database:null,table:null,origin:null};})():(()=>{const tree=outputTrees[index]!;if(retainedColumns&&tree.kind==='column'&&tree.index>=0){const origin=retainedColumns[tree.index]!;return {...origin,name:result.alias??table.columns[tree.index]!.name};}return jsonResultMetadata(result,tree,[rowStart],[jsonItem.tableName],table,[jsonIdentity]);})())),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
   if(select.from.items.length===2&&select.from.items.every(item=>jsonNames.has(item.tableName.toLowerCase()))){
     if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError("unsupported","this correlated JSON table composition is not implemented",{unsupportedClassification:"temporary"});
