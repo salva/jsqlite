@@ -339,6 +339,10 @@ Pinned expr.c:sqlite3ExprCodeGeneratedColumn/GetColumnOfTable → generated lowe
   `vdbe.ts`; lifted terminals retain lexical bindings, generated result ordinals
   own descriptors, ephemeral recursive sources have no physical origin.
   [Eight-case pinned typed/metadata parity](research/recursive-group-window/README.md).
+  `select.c:sqlite3ColumnsFromExprList` direct-column naming and SRT_Coroutine
+  producer ownership map to `transientSourceTable` and retained-source
+  `compileWindowSelectLowering`/`compileInnerTableSelect` for CTE/module input.
+  [Composition tests and boundary](research/cte-json-window-composition.md).
 
 ## JSON grouped identity metadata
 

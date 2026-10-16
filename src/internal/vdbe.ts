@@ -5400,7 +5400,10 @@ function compileTableCompoundProducer(select:SelectNode,schema:SchemaGraph,datab
 // columns come from the leftmost producer. This metadata walk emits no code
 // and never substitutes or moves producer LIMIT/predicates into consumers.
 function transientSourceTable(producer:SelectNode,name:string,schema:SchemaGraph,cteNames=false):import('./schema.ts').TableNode{
-  const metadata=compoundArmColumns(producer,schema),names=uniqueTransientColumnNames(cteNames&&producer.result.length===metadata.length?producer.result.map(item=>item.alias??expressionName(item)):metadata.map(column=>column.name)),collations=transientResultCollations(producer,schema);
+  // select.c sqlite3ColumnsFromExprList uses a resolved column name for
+  // TK_COLUMN (including qualified references), not its SQL source span.
+  // Keep non-column spans/CTE explicit aliases, including VALUES renames.
+  const metadata=compoundArmColumns(producer,schema),names=uniqueTransientColumnNames(cteNames&&producer.result.length===metadata.length?producer.result.map((item,index)=>item.alias??(item.reduction&&expressionFromReduction(item.reduction).kind==='column'?metadata[index]!.name:expressionName(item))):metadata.map(column=>column.name)),collations=transientResultCollations(producer,schema);
   const affinityPlans=producer.arms.map(arm=>resolveTransientArm({...producer,result:arm.result,from:arm.from,where:arm.where,hasCompound:false,arms:Object.freeze([arm])},schema));
   const affinities=metadata.map((_,index)=>resolvedCompoundAffinity(affinityPlans,index));
   const table:import('./schema.ts').TableNode={integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:'table',name:name,tableName:name,rootPage:0,sql:'',columns:metadata.map((column,index)=>({szEst:0,name:names[index]!,declaredType:transientDeclaredType((affinityPlans[0]!.result[index]!.expression.reduction?resolvedExpressionDeclaredType(affinityPlans[0]!.result[index]!.expression.reduction!,affinityPlans[0]!):resolvedResultColumn(affinityPlans[0]!.result[index]!)?.declaredType??null),affinities[index]!),affinity:affinities[index]!,collation:collations[index]!,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,generatedStorage:null,checks:[]})),indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[]};
@@ -6709,12 +6712,15 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const derived=select.from.derived;
   // Window rewrite owns the outer ORDER/FILTER before ordinary flatten/scan
   // admission. A retained source supplies rows to its existing coroutine.
-  if(derived&&derived.index===0&&select.from.items.length===1&&selectHasWindow(select)&&!select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!select.where&&derived.select.from.items.length===1&&!derived.select.from.derived&&!selectHasWindow(derived.select)&&!derived.select.hasDistinct&&!derived.select.hasValues){
+  if(derived&&derived.index===0&&select.from.items.length===1&&selectHasWindow(select)&&!select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!select.where&&derived.select.from.items.length>=1&&!derived.select.from.derived&&!selectHasWindow(derived.select)&&!derived.select.hasDistinct&&!derived.select.hasValues){
     // select.c flattenSubquery runs before window rewrite. Preserve the
     // represented bounded ordinary derived route rather than inventing a
     // second aggregate scan over its synthetic transient schema root.
     const flattened=flattenOrdinaryDerived(select);
-    if(!flattened.from.derived&&!selectHasAggregate(derived.select))return compileTableSelect(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
+    // A multi-source producer keeps its SrcItem/module argument ownership:
+    // feed the existing shared inner-loop SRT_Coroutine, not a flattened
+    // Window expression through the ordinary module scalar emitter.
+    if(derived.select.from.items.length===1&&!flattened.from.derived&&!selectHasAggregate(derived.select))return compileTableSelect(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
     const resolved=resolveTransientArm(select,schema),builder=shared?.builder??new SelectProgramBuilder<Op>();
     const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,...(shared?{parameters:shared.parameters}:{}),destination:shared?.destination??{kind:'output'},retainedSource:derived.select});
     if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','retained window expression lowering is not implemented',{unsupportedClassification:'temporary'});

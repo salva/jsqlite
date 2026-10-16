@@ -5168,6 +5168,14 @@ The metadata-only origin-g exclusion is not a value waiver. The reproduced INTEG
 
 [Isolated candidate evidence and remaining boundaries](../research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.
 
+### Retained CTE/module Window producer seam
+
+The original beta CTE JSON row_number composition now feeds the existing
+retained-source coroutine instead of the derived-shape guard. Direct transient
+column names come from resolved producer metadata, preserving aliases and
+computed/VALUES names. Standalone direct module Window dispatch remains a
+separate unsupported composition. [Exact evidence and bounded tests](../research/cte-json-window-composition.md).
+
 ### Recursive grouped Window projection carrier correction
 
 The MAIN b417ac4 recursive grouped/correlated Window crash is a generated
