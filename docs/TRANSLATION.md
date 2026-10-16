@@ -1,4 +1,11 @@
 
+
+Shared physical scalar planning does not yet supply metadata Filter production
+for correlated scalar aggregate expressions (for example count(*)+sum(cid)).
+This remains a temporary public prepare gap, not a SQL error or platform
+constraint. The inner/shared planner converts only its typed unsupported error
+to JSQLiteError; other failures retain their owners. Existing module/AggInfo,
+JSON and CTE support is unchanged. [Source boundary and tests](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 Metadata identity admission is checked at the shared resolved source descriptor
 before aggregate/correlated lowering and at singleton binding. Metadata
 rowid/_rowid_/oid remain temporarily unsupported, including predicate-only and

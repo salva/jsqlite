@@ -1,4 +1,14 @@
 
+
+## Shared scalar metadata admission
+
+`expr.c:sqlite3CodeSubselect` SRT_Mem and `pragma.c:pragmaVtabFilter` map to
+shared scalar lowering and the finite metadata producer respectively. Their
+correlated scalar aggregate-expression composition lacks Filter production in
+`vdbe.ts:compileInnerTableSelect`; its `planWhere` call converts only
+`WherePlanningUnsupportedError` to public temporary unsupported. Existing
+singleton conversion and module/AggInfo ownership are unchanged. Regression:
+`metadata-scalar-error.test.mjs`. [Evidence and boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 ## Metadata identity admission boundary
 
 `resolve.c:lookupName` selects real columns before implicit rowid candidates;

@@ -10,6 +10,28 @@ and recover the caller's high-water afterward. Both direct emission and sorter
 drain use this contract. Predicate, offset, limit and cursor-close ordering remain
 unchanged. No payload/metadata reshuffling or unsupported downgrade is involved.
 
+## Shared scalar planner admission boundary
+
+Pinned `expr.c:sqlite3CodeSubselect` chooses SRT_Mem and delegates to
+`sqlite3Select`; metadata scans still require `pragma.c:pragmaVtabFilter` and
+its statement-owned Next/Column state. The TS shared physical scalar producer
+currently cannot supply that metadata Filter path for a correlated scalar
+aggregate expression such as count(*)+sum(cid). This is missing machinery, not
+a browser constraint or an alternative evaluator. Existing supported module
+aggregate and JSON/CTE compositions remain admitted. `compileInnerTableSelect`
+converts only `WherePlanningUnsupportedError` from planning to the public
+JSQLiteError temporary unsupported boundary, retaining the planner message and
+null SQLite codes; all other errors propagate unchanged. The singleton planner
+already performs the analogous conversion. No successful query is downgraded
+and no native SQL diagnostic is fabricated.
+
+Regression `metadata-scalar-error.test.mjs` checks the exact public class,
+message, kind/classification/codes across all encodings, then SELECT1 with
+reset/finalize/close after rejection. RED and independent oracle provenance:
+[[card:card-e-n]] accepted148 and [[card:card-e-l]] accepted226 (native18/36,
+separate supported adjacency15/30); repair commands/results in current card
+status. Native receipts are reused, not recaptured.
+
 ## Evidence
 
 Accepted RED: [[card:card-e-n]] `record:///status.md?card=card-e-n&v=129`.

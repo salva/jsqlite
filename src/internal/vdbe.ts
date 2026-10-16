@@ -4258,7 +4258,15 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const multiOrder=resolvedWhereOrder(expanded);
   // wherecode.c:codeINTerm admits a per-slot RHS cursor after its
   // prerequisites are positioned; the selected loop below lowers each slot.
-  multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...((source.table.kind==='table'&&source.table.withoutRowid)?[]:[ROWID_NEEDED])])),orderBy:multiOrder,externalAvailable:owner?.expressionBinding?.positionedSources??new Set(),planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
+  try {
+    multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...((source.table.kind==='table'&&source.table.withoutRowid)?[]:[ROWID_NEEDED])])),orderBy:multiOrder,externalAvailable:owner?.expressionBinding?.positionedSources??new Set(),planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
+  } catch(error) {
+    // Shared scalar/CTE callers use this producer too. Preserve the same
+    // public admission boundary as the singleton planner, without hiding
+    // corruption, limit, resolution or other non-planner failures.
+    if(error instanceof WherePlanningUnsupportedError)throw new JSQLiteError('unsupported',error.message,{unsupportedClassification:error.classification});
+    throw error;
+  }
   whereAccounting=Object.freeze({plannerCandidates:multiWhere.plannerCandidates,plannerPaths:multiWhere.plannerPaths});
   const multiOrderConsumed=rightLevels.length===0&&!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
   const sorterCursor=owner?owner.builder.cursor():expanded.sources.length,distinctCursor=owner?owner.builder.cursor():sorterCursor+1,rightMatchCursor=owner?owner.builder.cursor():distinctCursor+1;
