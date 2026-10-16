@@ -2788,13 +2788,16 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       return Object.freeze({database,maxRows,ops:owner?mergeBuilder.ops:Object.freeze(mergeBuilder.ops),registers:mergeBuilder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(mergeParameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
     const compoundBuilder=owner?.builder??new SelectProgramBuilder<Op>(),ops=compoundBuilder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
-    const limit=computeLimitRegisters(select,ops,()=>compoundBuilder.register(),parameters),haltJumps:number[]=[];
-    // multiSelect TK_ALL compiles each arm to the same output destination;
-    // common LIMIT/OFFSET belong to the compound, never an individual row.
-    for(const arm of select.arms)for(const expressions of arm.valuesRows??[arm.result]){
-      const rowSelect={...select,result:expressions,from:arm.from,where:arm.where,hasCompound:false,hasValues:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,arms:Object.freeze([{...arm,result:expressions,origin:'select' as const,valuesRows:null}])};
-      if(schema){try{expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
-      compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{...owner,builder:compoundBuilder,parameters,emitRow:(first,count)=>{
+    const limit=owner?.sharedLimit??(owner?.scalarPrepared?undefined:computeLimitRegisters(select,ops,()=>compoundBuilder.register(),parameters)),haltJumps:number[]=[];
+    // multiSelect TK_ALL owns the shared LIMIT/OFFSET, not each singleton arm.
+    // resolveSelectStep retains pOuterNC across pPrior. Consume those linked
+    // arm plans rather than resolving an EList again without its outer context.
+    const {sharedLimit:_sharedLimit,...rowOwner}=owner??{};
+    for(const [armIndex,arm] of select.arms.entries())for(const expressions of arm.valuesRows??[arm.result]){
+      const rowSelect={...select,result:expressions,from:arm.from,where:arm.where,hasCompound:false,hasValues:false,hasOrderBy:false,orderBy:Object.freeze([]),limit:null,offset:null,hasLimit:false,arms:Object.freeze([{...arm,result:expressions,origin:'select' as const,valuesRows:null}])};
+      let armPlan=owner?.linkedPlan?.compoundArms?.[armIndex];
+      if(!armPlan&&schema){try{armPlan=expandAndResolveSelect(rowSelect,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}}
+      compileScalarSelect(rowSelect,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{...rowOwner,...(armPlan?{linkedPlan:armPlan}:{}),scalarPrepared:true,builder:compoundBuilder,parameters,emitRow:(first,count)=>{
         const skip=limit?.offset!==undefined?ops.length:-1;if(skip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});
         if(owner)owner.emitRow(first,count);else emitSelectDestination(ops,{kind:'output'},first,count);
         if(limit){haltJumps.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}

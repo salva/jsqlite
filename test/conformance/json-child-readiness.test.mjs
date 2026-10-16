@@ -6,7 +6,7 @@ import {open} from '../../src/index.ts';
 // pass. Native prepare=0, DONE=101/reset=0 for false physical/constant
 // children; module-dependent children step/reset/finalize=1 malformed JSON.
 const generation=JSON.parse(fs.readFileSync(new URL('../fixtures/CURRENT.json',import.meta.url))).generationId;
-for(const encoding of ['utf8','utf16le','utf16be'])for(const predicate of ['t.rowid<0','(SELECT t.rowid)<0','(SELECT (SELECT t.rowid))<0','(SELECT 1)<0','(SELECT j.value)<0','(SELECT value)<0'])test(`linked child readiness ${encoding} ${predicate}`,async()=>{
+for(const encoding of ['utf8','utf16le','utf16be'])for(const predicate of ['t.rowid<0','(SELECT t.rowid)<0','(SELECT (SELECT t.rowid))<0','(SELECT 1)<0','(SELECT t.rowid UNION ALL SELECT t.rowid)<0','(SELECT (SELECT t.rowid) UNION ALL SELECT t.rowid)<0','(SELECT t.rowid UNION ALL SELECT j.value)<0','(SELECT j.value UNION ALL SELECT t.rowid)<0','(SELECT t.rowid UNION ALL SELECT t.rowid LIMIT 0) IS NULL','(SELECT t.rowid UNION ALL SELECT t.rowid LIMIT 1 OFFSET 2) IS NULL','(SELECT t.rowid FROM t1 t LIMIT 1)<0','(SELECT value FROM t1 a,t1 b)<0','(SELECT j.value)<0','(SELECT value)<0'])test(`linked child readiness ${encoding} ${predicate}`,async()=>{
  const bytes=fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/encoding-${encoding}.db`,import.meta.url));
  const old=globalThis.fetch;let db,s;
  try{
@@ -16,7 +16,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])for(const predicate of ['t.ro
    {name:'rowid',declaredType:'INTEGER',database:'main',table:'t1',origin:'rowid'},
    {name:'value',declaredType:null,database:'main',table:'json_each',origin:'value'},
   ]);
-  if(predicate.includes('value')){
+  if(predicate.includes('value')||predicate.endsWith('IS NULL')){
    let saved;await assert.rejects(s.step(),e=>{saved=e;return e.kind==='sqlite'&&e.code===1&&e.message==='malformed JSON'});
    assert.throws(()=>s.reset(),e=>e===saved);
    await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.code===1&&e.message==='malformed JSON');
