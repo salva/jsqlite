@@ -13,7 +13,19 @@ composition or lifecycle acceptance. Bound/rebound arguments, retained reset,
 clearBindings, pre-step cancellation/reuse and SRT_Set private-entry exhaustion
 have finite public controls in `metadata-scalar-bind.test.mjs`, compared to the
 pinned `scalar-bind-native.json` receipt for typed result/reset behavior. These
-controls do not establish volatile evaluation counts or mid-execution cancellation.
+bind controls alone do not establish volatile evaluation counts or mid-execution cancellation.
+Separate [invocation controls](../test/conformance/metadata-scalar-invocation.test.mjs),
+with the [native capture](../tools/oracle/capture-metadata-scalar-invocation.py) and
+[receipt](research/card-e-n-pragma-red/scalar-invocation-native.json), compare exact
+calls for Once, correlated and conditional invocation and skipped branches across
+bind/reset cycles in all encodings, including INTEGER/NULL and full metadata.
+Public cancellation observes a checkpoint after correlated child progress and
+checks saved-error identity, reset and reuse. Native deterministic callbacks do
+not establish RNG parity or native AbortSignal behavior; these are representative
+controls, not exhaustive interruption or budget schedules. Bounded combined-input
+acceptance is recorded for a745aa62 in [[card:card-e-l]]
+`record:///status.md?card=card-e-l&v=254`; root original18/expanded36 remains a
+separate [[card:card-w]] gate.
 The typed unsupported conversion remains
 for genuinely unsupported plans. Remaining breadth is an implementation gap, not
 platform constraints. [Scalar delivery evidence](research/metadata-scalar-delivery.md).

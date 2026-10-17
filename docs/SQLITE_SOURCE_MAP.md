@@ -16,8 +16,20 @@ pass in three encodings, not exhaustive compatibility. Typed planner rejection s
 public. Regressions: `metadata-scalar-error.test.mjs` (execution expectation)
 and `metadata-scalar-filter.test.mjs` (native controls), plus
 `metadata-scalar-bind.test.mjs` (bound/rebound/reset, cancellation and private
-SRT_Set budget controls; pinned `scalar-bind-native.json`). Evaluation counts
-and mid-execution cancellation remain outside this finite evidence.
+SRT_Set budget controls; pinned `scalar-bind-native.json`). These bind controls
+alone do not establish evaluation counts or mid-execution cancellation.
+`expr.c:sqlite3CodeSubselect` conditional Once/reset and correlated invocation →
+[metadata-scalar-invocation.test.mjs](../test/conformance/metadata-scalar-invocation.test.mjs),
+with [capture-metadata-scalar-invocation.py](../tools/oracle/capture-metadata-scalar-invocation.py)
+and [scalar-invocation-native.json](research/card-e-n-pragma-red/scalar-invocation-native.json):
+exact counts for Once/correlated/conditional/skipped branches, repeated bind/reset,
+INTEGER/NULL and full metadata across encodings. Public checkpoints after child
+progress check cancellation/saved-error/reset/reuse; deterministic native callbacks
+are not RNG parity or native AbortSignal semantics, nor exhaustive interruption or
+budget-schedule coverage. Bounded combined artifact a745aa62 is accepted in
+[[card:card-e-l]] `record:///status.md?card=card-e-l&v=254`; root original18/expanded36
+remains a separate [[card:card-w]] gate.
+[Scalar delivery evidence](research/metadata-scalar-delivery.md).
 [Evidence and boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 
 ## Metadata identity admission boundary
