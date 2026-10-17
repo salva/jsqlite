@@ -1,4 +1,5 @@
 import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
+import {VdbeHostAdmission} from '../../src/internal/vdbe-host-admission.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,8 +14,19 @@ test('public large partition seek accounts visits, host yields, aborts/deadlines
  const bytes=fs.readFileSync(new URL('../fixtures/endpoint-seek/partition.db',import.meta.url));
  const server=http.createServer((q,r)=>{r.writeHead(200,{'Content-Length':String(bytes.length)});r.end(bytes)});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
- const original=EphemeralIndexCursor.prototype.seekRowid,yieldTask=ExecutionTaskScheduler.prototype.yield,now=Date.now;
+ const original=EphemeralIndexCursor.prototype.seekRowid,yieldTask=ExecutionTaskScheduler.prototype.yield,admit=VdbeHostAdmission.prototype.checkpoint,now=Date.now;
  let mode='normal',visits=0,active=false,hostYields=0,controller;
+ // Seek suspension/control probe, not a real-clock cadence test. Make each
+ // in-seek admission eligible under the production 4ms policy, retaining the
+ // real scheduler/task, lookup, charges and continuation. Outside the seek
+ // (including the budget search) leave the ordinary admission clock intact.
+ let admissionTime=performance.now();
+ VdbeHostAdmission.prototype.checkpoint=function(){
+  if(!active)return admit.call(this);
+  const clock=this.now;
+  this.now=()=>admissionTime=Math.max(admissionTime,clock())+4;
+  try{return admit.call(this)}finally{this.now=clock}
+ };
  EphemeralIndexCursor.prototype.seekRowid=async function(rowid,control){active=true;try{return await original.call(this,rowid,{checkpoint:async(units=0)=>{visits+=units;if(mode==='deadline'&&visits===260)Date.now=()=>now()+100000;await control.checkpoint(units);}})}finally{active=false;}};
  ExecutionTaskScheduler.prototype.yield=async function(){
   const duringSeek=active;
@@ -43,5 +55,5 @@ test('public large partition seek accounts visits, host yields, aborts/deadlines
   visits=0;await prefix();mode='deadline';
   await assert.rejects(s.step({timeoutMs:10000}),e=>e.kind==='timeout');assert.equal(visits,260);
   Date.now=now;assert.throws(()=>s.reset(),e=>e.kind==='timeout');mode='normal';visits=0;await prefix();assert.equal(await s.step(),'row');s.finalize();s=undefined;
- }finally{Date.now=now;ExecutionTaskScheduler.prototype.yield=yieldTask;EphemeralIndexCursor.prototype.seekRowid=original;try{s?.finalize()}catch{}db?.close();await new Promise(r=>server.close(r));}
+ }finally{Date.now=now;VdbeHostAdmission.prototype.checkpoint=admit;ExecutionTaskScheduler.prototype.yield=yieldTask;EphemeralIndexCursor.prototype.seekRowid=original;try{s?.finalize()}catch{}db?.close();await new Promise(r=>server.close(r));}
 });
