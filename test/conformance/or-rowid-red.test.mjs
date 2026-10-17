@@ -10,6 +10,7 @@ import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {planWhere,wherePathSolver,btreeLoops,orArmClause,orRuntimeArmClause,ROWID_NEEDED} from '../../src/internal/where-plan.ts';
 import {BtreeDatabase,btreeFromConnection} from '../../src/internal/btree.ts';
 import {compileTableSelect} from '../../src/internal/vdbe.ts';
+import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
 import {SelectProgramBuilder} from '../../src/internal/select-program.ts';
 const capture=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-f-or/native.json',import.meta.url)));
 const decode=c=>c.type==='null'?null:c.type==='integer'?BigInt(c.value):c.type==='real'?Buffer.from(c.ieee754be,'hex').readDoubleBE():c.type==='text'?Buffer.from(c.utf8Hex,'hex').toString():Uint8Array.from(Buffer.from(c.hex,'hex'));
@@ -463,22 +464,47 @@ for(const v of capture.variants){
 
 
 for(const v of capture.variants){
- test(`${v.id}: selected OR timer cancellation during suspended execution`,async()=>withDb(v,async db=>{
+ test(`${v.id}: selected OR controlled timer cancellation during real production suspension`,async()=>withDb(v,async db=>{
   const st=db.prepare("SELECT hex(zeroblob(1048576)) FROM o WHERE a=1 OR b='beta'").statement;
-  const abort=new AbortController();let fired=false;
-  const timer=setTimeout(()=>{fired=true;abort.abort('host timer')},0);
+  const abort=new AbortController();let fired=false,timer,completedTasks=0;
+  const originalYield=ExecutionTaskScheduler.prototype.yield;
+  // vdbe.c check_for_interrupt checks a delivered interrupt, not timer-before-port
+  // ordering. Hold an actual admitted VM suspension AFTER production transport.
+  // This covers eligible-suspension cancellation, not timer latency/fairness.
+  // See docs/research/card-t-d-vm-admission-disposition.md and card-t status153.
+  ExecutionTaskScheduler.prototype.yield=async function(){
+   await originalYield.call(this);
+   completedTasks++;
+   assert.equal(abort.signal.aborted,false,'signal initially live after production task');
+   assert.equal(privateAccounting(st).orBranchStarts,1,'selected branch entered before suspension');
+   assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse','connection excluded while VM suspended');
+   await new Promise((resolve,reject)=>{
+    timer=setTimeout(()=>{
+     try{
+      assert.equal(abort.signal.aborted,false,'timer, not preabort, delivers cancellation');
+      assert.equal(fired,false,'one controlled timer callback');
+      fired=true;abort.abort('host timer');resolve();
+     }catch(error){reject(error)}
+    },0);
+   });
+   // Return normally: the production checkpoint must discover the signal.
+  };
   try{
-   const primary=await st.step({signal:abort.signal}).then(()=>null,e=>e);
+   let primary;
+   try{primary=await st.step({signal:abort.signal}).then(()=>null,e=>e)}
+   finally{ExecutionTaskScheduler.prototype.yield=originalYield;clearTimeout(timer)}
+   assert.equal(completedTasks,1,'one actual production task completed');
    assert.equal(fired,true);assert.equal(primary?.kind,'cancelled');
    assert.equal(privateAccounting(st).orBranchStarts,1,'selected branch active before host cancellation');
    await assert.rejects(st.step(),e=>e===primary);assert.throws(()=>st.reset(),e=>e===primary);
+   assert.equal(await st.step(),'row','reset permits real execution on ordinary scheduler');st.reset();
    const deadline=await st.step({timeoutMs:20}).then(()=>null,e=>e);
    assert.equal(deadline?.kind,'timeout');
    assert.equal(privateAccounting(st).orBranchStarts,1,'deadline reached after selected branch entry');
    assert.throws(()=>st.reset(),e=>e===deadline);
    const work=await st.step({maxWorkUnits:100}).then(()=>null,e=>e);assert.equal(work?.kind,'limit');
    assert.throws(()=>st.reset(),e=>e===work);
-  }finally{clearTimeout(timer);st.finalize()}
+  }finally{ExecutionTaskScheduler.prototype.yield=originalYield;clearTimeout(timer);st.finalize()}
  }));
 }
 

@@ -75,6 +75,29 @@ type Expression =
  | {kind:"register";index:number;affinity?:MemAffinity;collation?:BuiltinCollation}
  | {kind:"case";operand:Expression|null;pairs:[Expression,Expression][];otherwise:Expression|null};
 
+/** expr.c TK_AGG_COLUMN/useSortingIdx: register leaves from this producer
+ * become reads of its owning sorter row, at every expression depth. Keep
+ * affinity/collation and unrelated (outer/parameter) registers unchanged.
+ * Linked SELECTs retain their independent NameContext; only the IN lhs belongs
+ * to this expression's positioned row.
+ */
+function bindSorterSnapshot(tree:Expression,source:number,width:number,snapshot:number):Expression {
+ const bind=(value:Expression):Expression=>bindSorterSnapshot(value,source,width,snapshot);
+ switch(tree.kind){
+  case "register":return tree.index>=source&&tree.index<source+width?{...tree,index:snapshot+tree.index-source}:tree;
+  case "unary":case "collate":case "cast":return {...tree,value:bind(tree.value)};
+  case "binary":return {...tree,left:bind(tree.left),right:bind(tree.right)};
+  case "vector":return {...tree,fields:tree.fields.map(bind)};
+  case "call":return {...tree,args:tree.args.map(bind)};
+  case "aggregate":return {...tree,args:tree.args.map(bind),filter:tree.filter&&bind(tree.filter),orderBy:tree.orderBy.map(term=>({...term,expression:bind(term.expression)}))};
+  case "in-list":return {...tree,left:bind(tree.left),values:tree.values.map(bind)};
+  case "in-subquery":return {...tree,left:bind(tree.left)};
+  case "between":return {...tree,value:bind(tree.value),lower:bind(tree.lower),upper:bind(tree.upper)};
+  case "case":return {...tree,operand:tree.operand&&bind(tree.operand),pairs:tree.pairs.map(([when,then])=>[bind(when),bind(then)]),otherwise:tree.otherwise&&bind(tree.otherwise)};
+  case "variable":case "mem":case "literal":case "column":case "scalar-subquery":return tree;
+ }
+}
+
 // expr.c sqlite3ExprVectorSize: scalar consumers remain width one.
 function expressionVectorWidth(value:Expression):number {
  return value.kind==='vector'?value.fields.length:value.kind==='scalar-subquery'&&!value.exists?(value.resolved?.result.length??value.select.result.length):1;
@@ -144,6 +167,8 @@ type Op =
   | { readonly code:"MetadataNext";readonly p1:number;readonly rowStart:number;readonly rowIdentity?:number;readonly p2:number }
   | { readonly code: "JsonTableRewind"; readonly p1:number; readonly input?:number; readonly root?:number; readonly recursive:boolean; readonly binaryContainers:boolean; readonly rowStart:number; readonly columns?:ReadonlySet<number>; readonly rowIdentity?:number; readonly p2:number }
   | { readonly code:'MetadataClose';readonly p1:number }
+  | { readonly code:"JsonTableColumn";readonly p1:number;readonly column:number;readonly p2:number }
+  | { readonly code:"JsonTableNullColumn";readonly p1:number;readonly column:number;readonly p2:number }
   | { readonly code: "JsonTableClose"; readonly p1:number }
   | { readonly code: "PrivateCursorClose"; readonly p1:number }
   | { readonly code: "JsonTableNext"; readonly p1:number; readonly rowStart:number; readonly columns?:ReadonlySet<number>; readonly rowIdentity?:number; readonly p2:number }
@@ -6731,7 +6756,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       const sorter=builder.cursor(),keyCount=groupTrees.length,keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:keyCount,keyFieldCount:keyCount,terms:groupTrees.map(group=>({collation:collation(group)}))}),states=groupedEntries.map(entry=>entry?allocate():0),sorted=registers+1;registers+=keyCount+rowWidth;const saved=registers+1;registers+=keyCount;ops.push({code:"SorterOpen",p1:sorter,keyInfo});const rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:jsonCursor,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}const keys=groupTrees.map(group=>compileExpressionTree(group,ops,allocate,parameters)),record=registers+1;registers+=keyCount+rowWidth;keys.forEach((key,index)=>ops.push({code:"Copy",p1:key,p2:record+index}));for(let i=0;i<rowWidth;i++)ops.push({code:"Copy",p1:rowStart+i,p2:record+keyCount+i});ops.push({code:"SorterInsert",p1:sorter,keyStart:record,keyCount,payload:record,payloadCount:keyCount+rowWidth});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:sorted,count:keyCount+rowWidth});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});
       const havingTree=select.having?.reduction?bindColumns(expressionFromReduction(select.having.reduction)):null;
       const finalized=(tree:Expression):Expression=>{if(tree.kind==="aggregate"){const index=groupedEntries.findIndex(entry=>entry!==null&&entry.name===tree.name&&entry.args.length===tree.args.length&&entry.args.every((arg,i)=>sameExpression(arg,tree.args[i]!)));if(index<0)throw new JSQLiteError("unsupported",`this ${jsonTableName} HAVING aggregate is not projected`,{unsupportedClassification:"temporary"});return{kind:"register",index:states[index]!};}if(tree.kind==="unary")return{...tree,value:finalized(tree.value)};if(tree.kind==="vector")return {...tree,fields:tree.fields.map(finalized)};if(tree.kind==="binary")return{...tree,left:finalized(tree.left),right:finalized(tree.right)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:finalized(tree.value)};if(tree.kind==="call")return{...tree,args:tree.args.map(finalized)};return tree;};
-      const emitSteps=()=>groupedEntries.forEach((entry,index)=>{if(entry){const args=entry.args.map(arg=>{const rebound=arg.kind==="register"?{kind:"register",index:sorted+keyCount+(arg.index-rowStart)} as Expression:arg;return compileExpressionTree(rebound,ops,allocate,parameters)});ops.push({code:"AggStep",name:entry.name,args,p2:states[index]!,collation:entry.collation});}}),emitGroup=()=>{groupedEntries.forEach((entry,index)=>{if(entry)ops.push({code:"AggFinal",name:entry.name,p1:states[index]!})});let reject:number|null=null;if(havingTree){const test=compileExpressionTree(finalized(havingTree),ops,allocate,parameters);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const out=registers+1;for(let i=0;i<resultTrees.length;i++){registers++;const tree=resultTrees[i]!,source=tree.kind==="aggregate"?states[i]!:saved+groupTrees.findIndex(group=>group.kind==="register"&&tree.kind==="register"&&group.index===tree.index);ops.push({code:"Copy",p1:source,p2:out+i});}emitSelectDestination(ops,shared?.destination??{kind:"output"},out,resultTrees.length);if(reject!==null)(ops[reject] as {p2:number}).p2=ops.length;};
+      const emitSteps=()=>groupedEntries.forEach((entry,index)=>{if(entry){const args=entry.args.map(arg=>{const rebound=bindSorterSnapshot(arg,rowStart,rowWidth,sorted+keyCount);return compileExpressionTree(rebound,ops,allocate,parameters)});ops.push({code:"AggStep",name:entry.name,args,p2:states[index]!,collation:entry.collation});}}),emitGroup=()=>{groupedEntries.forEach((entry,index)=>{if(entry)ops.push({code:"AggFinal",name:entry.name,p1:states[index]!})});let reject:number|null=null;if(havingTree){const test=compileExpressionTree(finalized(havingTree),ops,allocate,parameters);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const out=registers+1;for(let i=0;i<resultTrees.length;i++){registers++;const tree=resultTrees[i]!,source=tree.kind==="aggregate"?states[i]!:saved+groupTrees.findIndex(group=>group.kind==="register"&&tree.kind==="register"&&group.index===tree.index);ops.push({code:"Copy",p1:source,p2:out+i});}emitSelectDestination(ops,shared?.destination??{kind:"output"},out,resultTrees.length);if(reject!==null)(ops[reject] as {p2:number}).p2=ops.length;};
       const step=ops.length;emitSteps();const advance=ops.length;ops.push({code:"SorterNext",p1:sorter,p2:0},{code:"Goto",p2:0});const nextRow=ops.length;(ops[advance] as {p2:number}).p2=nextRow;ops.push({code:"SorterData",p1:sorter,p2:sorted,count:keyCount+rowWidth});const compare=ops.length;ops.push({code:"CompareGroup",left:sorted,right:saved,count:keyCount,keyInfo,jump:step});emitGroup();ops.push({code:"AggReset",registers:states.filter(Boolean)});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});ops.push({code:"Goto",p2:step});const finish=ops.length;(ops[advance+1] as {p2:number}).p2=finish;emitGroup();const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:jsonTableName,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
     }
     const aggregateOnly=resultTrees.length>0&&resultTrees.every(tree=>tree.kind==="aggregate"&&!tree.distinct&&!tree.filter&&!tree.orderBy.length);
@@ -6758,7 +6783,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const skipExistsProjection=sorter===null&&shared?.destination.kind==="exists"?ops.length:null;
     if(skipExistsProjection!==null)ops.push({code:"Goto",p2:0});
     if(star)visibleColumns.forEach((_,i)=>demandedColumns.add(i));
-    const outputs=star?visibleColumns.map((_,i)=>rowStart+i):resultTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters));
+    const outputs=star?visibleColumns.map((_,i)=>compileExpressionTree({kind:"register",index:rowStart+i},ops,allocate,parameters)):resultTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters));
     // ResultRow and sorter payloads require contiguous registers.
     const contiguous=outputs.every((value,index)=>value===outputs[0]!+index);let outputStart=outputs[0]!;
     if(!contiguous){outputStart=registers+1;for(const value of outputs){registers++;ops.push({code:"Copy",p1:value,p2:registers});}}
@@ -8710,6 +8735,27 @@ function aggregateResult(cell:Mem,name:string,encoding:DatabaseEncoding,maxResul
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
 function range(): never { throw new JSQLiteError("sqlite", "column or parameter index out of range", { code: 25 }); }
 
+/** Final instruction selection for the ten positional module bindings. This
+ * preserves instruction addresses (including coroutine/branch destinations).
+ * The compiler allocates each source occurrence a disjoint row range; only
+ * reads of that range are columns. Copies of delivered/saved rows stay Copy.
+ */
+function finalizeJsonColumnReads(program:Program):Program {
+  const columns=new Map<number,{cursor:number;column:number}>();
+  for(const op of program.ops)if(op.code==="JsonTableRewind")for(let i=0;i<JSON_TABLE_COLUMNS.length;i++){
+    const register=op.rowStart+i,prior=columns.get(register);
+    if(prior&&prior.cursor!==op.p1)throw new JSQLiteError("internal","overlapping JSON source register identity");
+    columns.set(register,{cursor:op.p1,column:i});
+  }
+  if(!columns.size)return program;
+  const ops=program.ops.map((op):Op=>{
+    if(op.code==="Copy"){const source=columns.get(op.p1);if(source){if(columns.has(op.p2))throw new JSQLiteError("internal","JSON column destination aliases a source binding");return {code:"JsonTableColumn",p1:source.cursor,column:source.column,p2:op.p2};}}
+    if(op.code==="Null"){const source=columns.get(op.p2);if(source)return {code:"JsonTableNullColumn",p1:source.cursor,column:source.column,p2:op.p2};}
+    return op;
+  });
+  return Object.freeze({...program,ops:Object.freeze(ops)});
+}
+
 export class VdbeStatement implements Statement {
   #program: Program;
   #registers: Mem[];
@@ -8727,6 +8773,7 @@ export class VdbeStatement implements Statement {
   #tableSeekCursors = new Map<number, TableCursor>();
   #metadataCursors=new Map<number,{rows:Generator<readonly MetadataValue[]>;hidden:readonly (string|null)[];rowIdentity:bigint}>();
   #jsonCursors = new Map<number,JsonTableCursor>();
+  #jsonNullColumns = new Map<number,Set<number>>();
   #cursorRoots = new Map<number, number>();
   #records = new Map<number, ReturnType<typeof decodeRecord>>();
   // Aggregate programs can retain a decoded row after Next moves the btree
@@ -8756,7 +8803,7 @@ export class VdbeStatement implements Statement {
   #expired=false;
   readonly recompile:((bindings:readonly Mem[],check:()=>void)=>Program)|undefined;
   constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void, recompile?: (bindings:readonly Mem[],check:()=>void)=>Program) {
-    this.recompile=recompile;this.#program = program; this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
+    this.recompile=recompile;this.#program = finalizeJsonColumnReads(program); this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
     this.#bindings = program.parameters.map(() => new Mem());
     this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
@@ -8794,7 +8841,7 @@ export class VdbeStatement implements Statement {
         if(replacement.parameters.length!==this.#bindings.length)throw new JSQLiteError("internal","reprepare parameter count changed");
         const registers=Array.from({length:replacement.registers+1},()=>new Mem());
         this.#halt();for(const value of this.#registers)value.release();
-        this.#program=replacement;this.#registers=registers;this.#pc=0;this.#expired=false;
+        this.#program=finalizeJsonColumnReads(replacement);this.#registers=registers;this.#pc=0;this.#expired=false;
         this.#inverseAggregates=new Set(replacement.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
         const plan=replacement.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};
       }
@@ -8842,12 +8889,13 @@ export class VdbeStatement implements Statement {
             // jsonEachFilter resets even plan 0 (no usable JSON constraint).
             this.#jsonCursors.get(op.p1)?.close();
             this.#jsonCursors.delete(op.p1);
+            this.#jsonNullColumns.delete(op.p1);
             if(op.input===undefined){this.#pc=op.p2;break;}
             const input=this.#registers[op.input]!,root=op.root===undefined?"$":this.#registers[op.root]!.initialStorageClass==="null"?null:this.#registers[op.root]!.textValue();
             const charge=(units:number)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}};
-            const cursor=openJsonTableCursor(input,op.recursive,charge,root??"$",op.binaryContainers,(oldBytes,newBytes)=>this.#privateBytes.replace(oldBytes,newBytes,"JSON table cursor exceeds private-state byte limit"),op.columns);this.#jsonCursors.set(op.p1,cursor);
+            const cursor=openJsonTableCursor(input,op.recursive,charge,root??"$",op.binaryContainers,(oldBytes,newBytes)=>this.#privateBytes.replace(oldBytes,newBytes,"JSON table cursor exceeds private-state byte limit"),op.columns,true);this.#jsonCursors.set(op.p1,cursor);
             const row=root===null?null:cursor.next();if(op.rowIdentity!==undefined)this.#registers[op.rowIdentity]!.setInt64(0n);if(row===null){cursor.close();this.#jsonCursors.delete(op.p1);this.#pc=op.p2;break;}
-            for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);
+            for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++){this.#registers[op.rowStart+i]!.setNull();}
             break;
           }
           case "PrivateCursorClose": {
@@ -8866,11 +8914,12 @@ export class VdbeStatement implements Statement {
             // an unopened cursor is a no-op; release before outer continuation.
             this.#jsonCursors.get(op.p1)?.close();
             this.#jsonCursors.delete(op.p1);
+            this.#jsonNullColumns.delete(op.p1);
             break;
           }
           case "JsonTableNext": {
             const cursor=this.#jsonCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","advance on unopened JSON table cursor");const row=cursor.next();
-            if(row){if(op.rowIdentity!==undefined)this.#registers[op.rowIdentity]!.setInt64(this.#registers[op.rowIdentity]!.integerValue()+1n);for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++)this.#registers[op.rowStart+i]!.copyFrom(row[i]!);this.#pc=op.p2;}else this.#jsonCursors.delete(op.p1);
+            if(row){this.#jsonNullColumns.delete(op.p1);if(op.rowIdentity!==undefined)this.#registers[op.rowIdentity]!.setInt64(this.#registers[op.rowIdentity]!.integerValue()+1n);for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++){this.#registers[op.rowStart+i]!.setNull();}this.#pc=op.p2;}else this.#jsonCursors.delete(op.p1);
             break;
           }
           case "MustBeInt": {
@@ -9253,6 +9302,17 @@ export class VdbeStatement implements Statement {
           case "Null": {
             this.#registers[op.p2]!.setNull();break;
           }
+          case "JsonTableNullColumn": {
+            let columns=this.#jsonNullColumns.get(op.p1);if(!columns)this.#jsonNullColumns.set(op.p1,columns=new Set());columns.add(op.column);this.#registers[op.p2]!.setNull();break;
+          }
+          case "JsonTableColumn": {
+            // vdbe.c OP_VColumn: null extension precedes xColumn, and the
+            // result destination owns its bytes before any later cursor move.
+            const target=this.#registers[op.p2]!;
+            if(this.#jsonNullColumns.get(op.p1)?.has(op.column)){target.setNull();break;}
+            const cursor=this.#jsonCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","column on unopened JSON table cursor");
+            const value=cursor.column!(op.column);this.#chargeValue(value,options,limit,started);target.copyFrom(value);break;
+          }
           case "Copy": {const source=this.#registers[op.p1]!;this.#chargeValue(source,options,limit,started);this.#registers[op.p2]!.copyFrom(source);break;}
           case "Once": if(this.#once.has(op.p1))this.#pc=op.p2;else this.#once.add(op.p1); break;
           case "Gosub": this.#registers[op.p1]!.setInt64(BigInt(this.#pc));this.#pc=op.p2;break;
@@ -9403,7 +9463,7 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
-    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateKeys.clear();

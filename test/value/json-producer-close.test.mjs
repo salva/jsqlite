@@ -321,12 +321,15 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    {builder,parameters:{maximum:0,names:[],named:new Map()},destination:{kind:'mem',register:output,width:1}});
   const rewind=builder.ops.find(op=>op.code==='JsonTableRewind');
   assert.ok(rewind?.input!==undefined);
+  // Producer slots identify columns, not materialized values. Read while
+  // positioned into an owning destination that survives xClose (OP_VColumn).
   const empty={...rewind,input:undefined,p2:3};
   const ops=[{code:'String',p1:'[1,2]',p2:rewind.input},
-   {...rewind,p2:8},empty,{code:'Integer',p1:7n,p2:output},
+   {...rewind,p2:9},empty,{code:'Integer',p1:7n,p2:output},
    {code:'ResultRow',p1:output,p2:1},
-   {...rewind,p2:8},{code:'JsonTableClose',p1:rewind.p1},
-   {code:'ResultRow',p1:rewind.rowStart+1,p2:1},{code:'Halt'}];
+   {...rewind,p2:9},{code:'JsonTableColumn',p1:rewind.p1,column:1,p2:output},
+   {code:'JsonTableClose',p1:rewind.p1},
+   {code:'ResultRow',p1:output,p2:1},{code:'Halt'}];
   const budgets=new Set(),replace=PrivateStateByteBudget.prototype.replace;
   PrivateStateByteBudget.prototype.replace=function(...args){budgets.add(this);return replace.apply(this,args)};
   const statement=new VdbeStatement({...program,ops,registers:builder.registers},()=>{},()=>()=>{},()=>{});
@@ -351,10 +354,12 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    {maxEntries:100,maxKeyBytes:10000,maxBytes:1000000},
    {builder,parameters:{maximum:0,names:[],named:new Map()},destination:{kind:'mem',register:output,width:1}});
   const rewind=builder.ops.find(op=>op.code==='JsonTableRewind');assert.ok(rewind?.input!==undefined);
-  const ops=[{code:'String',p1:'[1,2]',p2:rewind.input},{...rewind,p2:6},
-   {code:'ResultRow',p1:rewind.rowStart+1,p2:1},
-   {code:'String',p1:'malformed',p2:rewind.input},{...rewind,p2:6},
-   {code:'ResultRow',p1:rewind.rowStart+1,p2:1},{code:'Halt'}];
+  const ops=[{code:'String',p1:'[1,2]',p2:rewind.input},{...rewind,p2:8},
+   {code:'JsonTableColumn',p1:rewind.p1,column:1,p2:output},
+   {code:'ResultRow',p1:output,p2:1},
+   {code:'String',p1:'malformed',p2:rewind.input},{...rewind,p2:8},
+   {code:'JsonTableColumn',p1:rewind.p1,column:1,p2:output},
+   {code:'ResultRow',p1:output,p2:1},{code:'Halt'}];
   const events=[],budgets=new Set(),replace=PrivateStateByteBudget.prototype.replace;
   PrivateStateByteBudget.prototype.replace=function(oldBytes,newBytes,...rest){
    events.push([oldBytes,newBytes,this.usedBytes]);budgets.add(this);
@@ -388,11 +393,16 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    {maxEntries:100,maxKeyBytes:10000,maxBytes:1000000},
    {builder,parameters:{maximum:0,names:[],named:new Map()},destination:{kind:'mem',register:output,width:2}});
   const rewind=builder.ops.find(op=>op.code==='JsonTableRewind');assert.ok(rewind?.input!==undefined);
-  const ops=[{code:'String',p1:'[1,2]',p2:rewind.input},{...rewind,p2:8},
-   {code:'ResultRow',p1:rewind.rowStart,p2:2},
-   {code:'String',p1:'[9,8]',p2:rewind.input},{...rewind,p2:8},
-   {code:'ResultRow',p1:rewind.rowStart,p2:2},
-   {code:'JsonTableNext',p1:rewind.p1,p2:5,rowStart:rewind.rowStart},
+  const saved=builder.range(2);
+  const ops=[{code:'String',p1:'[1,2]',p2:rewind.input},{...rewind,p2:12},
+   {code:'JsonTableColumn',p1:rewind.p1,column:0,p2:saved},
+   {code:'JsonTableColumn',p1:rewind.p1,column:1,p2:saved+1},
+   {code:'ResultRow',p1:saved,p2:2},
+   {code:'String',p1:'[9,8]',p2:rewind.input},{...rewind,p2:12},
+   {code:'JsonTableColumn',p1:rewind.p1,column:0,p2:saved},
+   {code:'JsonTableColumn',p1:rewind.p1,column:1,p2:saved+1},
+   {code:'ResultRow',p1:saved,p2:2},
+   {code:'JsonTableNext',p1:rewind.p1,p2:7,rowStart:rewind.rowStart},
    {code:'JsonTableClose',p1:rewind.p1},{code:'Halt'}];
   const events=[],budgets=new Set(),replace=PrivateStateByteBudget.prototype.replace;
   PrivateStateByteBudget.prototype.replace=function(oldBytes,newBytes,...rest){

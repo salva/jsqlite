@@ -83,7 +83,7 @@ The mixed physical/module producer resolves WHERE/ON against both declarations b
 
 ## Linked JSON module enrollment and selected execution
 
-- `json.c:jsonEachColumn` / `select.c:selectInnerLoop` requested values → `vdbe.ts:jsonColumnDemand`, legacy resolved binders, JsonTableRewind → `json.ts:openJsonTableCursor` demanded conversion. Ten positional slots remain; undemanded fields are NULL through sourceRow/AggInfo snapshots, explicit hidden TEXT/BLOB retains owning Mem copies. Static source demand is not per-callback laziness. Tests: `json-hidden-demand.test.mjs`, `json-hidden-consumers.test.mjs`; boundaries/evidence: [column demand](research/card-r-d-hidden-demand.md).
+- `json.c:jsonEachColumn` / `select.c:selectInnerLoop` requested values → `vdbe.ts:jsonColumnDemand`, legacy resolved binders, JsonTableRewind → `json.ts:openJsonTableCursor` demanded conversion. Ten positional slots remain; undemanded fields are NULL through sourceRow/AggInfo snapshots, explicit hidden TEXT/BLOB retains owning Mem copies. Final `finalizeJsonColumnReads` instruction selection maps each occurrence’s producer-slot reads to `JsonTableColumn` (null-extension writes to `JsonTableNullColumn`), preserving instruction addresses and ordinary owning snapshot Copies. `openJsonTableCursor.column` converts only executed reads; Rewind/Next position traversal. See [runtime-demand correction](research/card-r-d-lazy-column-repair.md). Handcrafted VM consumers read into separate owning registers before ResultRow/Close; Next targets include those reads. Direct cursor eager defaults do not apply to VM producer slots. Tests: `json-producer-close.test.mjs`; [caller audit/evidence](research/card-r-d-lifecycle-callers.md). Tests: `json-hidden-demand.test.mjs`, `json-hidden-consumers.test.mjs`; boundaries/evidence: [column demand](research/card-r-d-hidden-demand.md).
 
 ## Joined destination and row identity closure
 
@@ -507,3 +507,5 @@ Pinned metadata/typed rows and reset comparisons:60 variants/180 native runs;
 no new upstream assertion credit or denominator change. Direct controls include
 admission and suspended cancellation/deadline recovery. See
 [finite evidence](research/direct-json-window/README.md).
+
+- `expr.c:TK_AGG_COLUMN/useSortingIdx`, `select.c:updateAccumulator` grouped sorter drain → `vdbe.ts:bindSorterSnapshot` recursively selects saved register leaves for module aggregate arguments before expression lowering; producer conversion occurs before Next/EOF, drain Copies retain ownership. Tests: `json-grouped-snapshot.test.mjs` (nested arithmetic/CASE/COALESCE/cast/IN/BETWEEN, four modules, TEXT/actual JSONB, all public encodings, reset). [Evidence and bounded guarantees](research/card-r-d-grouped-snapshot.md).
