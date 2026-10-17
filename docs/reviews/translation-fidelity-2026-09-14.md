@@ -5205,3 +5205,12 @@ and distinct multiple-recursive owners. SQL outer joins, repeated references to
 one declaration and unrepresented joined compound/window inputs remain gaps. Source
 comparison, exact encoding/reset/metadata observations and residual evidence
 limits are in [recursive join evidence](../research/recursive-join/README.md).
+
+
+## Direct JSON Window finite correction
+
+The standalone single-source JSON Window exclusion is superseded for the
+represented shared WHERE coroutine route. Register-backed columns/independent
+rowid replace invalid B-tree consumers. Native60-variant finite evidence and
+remaining boundaries: [receipt](../research/direct-json-window/README.md).
+No exhaustive compatibility or independent approval claim.

@@ -750,3 +750,15 @@ Current source/control mappings and bounded caller exclusions are in
 preserves historical disabled-caller checkpoints separately from current paths;
 [bounded integration evidence](research/card-w-current-integration-outcome.md)
 does not imply general optimizer or STAT4 sample parity.
+
+
+## Direct JSON Window input
+
+Single-source JSON each/tree Window inputs now consume the original shared WHERE
+coroutine with source-identity register locations and independent rowid, rather
+than B-tree Column/Rowid. Existing window rewrite/frame owners remain unchanged.
+This is bounded progressive admission, not arbitrary module/window support.
+Pinned metadata/typed rows and reset comparisons:60 variants/180 native runs;
+no new upstream assertion credit or denominator change. Direct controls include
+admission and suspended cancellation/deadline recovery. See
+[finite evidence](research/direct-json-window/README.md).

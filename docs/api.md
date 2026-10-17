@@ -562,3 +562,15 @@ Represented REAL generated values report REAL including integral values after co
 [Isolated candidate evidence and remaining boundaries](research/card-t-generated-real/README.md). Candidate pending independent review; not MAIN incorporation.
 
 Represented stat1 positional skip-scan is supported through the existing ordinary, joined and recursive-OR callers, including represented LEFT ON-OR. This is a bounded access-path contract, not general optimizer equivalence: RIGHT/FULL skipscan, general STAT4 sample-parity, transformed EXISTS producer admission, vectors/subquery-IN and arbitrary cross-feature composition are not established by this slice. There is no public planner, ordering, timing or work-count guarantee. Internal selection and strict-prefix evidence is retained in [source mapping](SQLITE_SOURCE_MAP.md#linked-notnull-range-owner) and [owner research](research/card-s-g/IMPLEMENTATION.md); callers must continue to use explicit ORDER BY for ordered results.
+
+
+## Direct JSON Window input
+
+Single-source JSON each/tree Window inputs now consume the original shared WHERE
+coroutine with source-identity register locations and independent rowid, rather
+than B-tree Column/Rowid. Existing window rewrite/frame owners remain unchanged.
+This is bounded progressive admission, not arbitrary module/window support.
+Pinned metadata/typed rows and reset comparisons:60 variants/180 native runs;
+no new upstream assertion credit or denominator change. Direct controls include
+admission and suspended cancellation/deadline recovery. See
+[finite evidence](research/direct-json-window/README.md).

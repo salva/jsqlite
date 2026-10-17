@@ -1,0 +1,4697 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_each",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_each",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM json_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_each",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_each",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_each",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each(jsonb('[10,20]')) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_each",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each('[]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_each",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each(NULL) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_tree",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_tree",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_tree",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree(jsonb('[10,20]')) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_tree",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "json_tree",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree(NULL) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_each",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_each",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_each",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each(jsonb('[10,20]')) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_each",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_each",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each(NULL) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_tree",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_tree",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_tree",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree(jsonb('[10,20]')) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_tree",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "module": "jsonb_tree",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree(NULL) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_each",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_each",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM json_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_each",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_each",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_each",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each(jsonb('[10,20]')) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_each",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each('[]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_each",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each(NULL) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_tree",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_tree",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_tree",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree(jsonb('[10,20]')) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_tree",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "json_tree",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree(NULL) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_each",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_each",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_each",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each(jsonb('[10,20]')) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_each",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_each",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each(NULL) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_tree",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_tree",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_tree",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree(jsonb('[10,20]')) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_tree",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "module": "jsonb_tree",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree(NULL) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_each",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_each",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM json_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_each",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_each",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_each",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each(jsonb('[10,20]')) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_each",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each('[]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_each",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_each(NULL) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_tree",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_tree",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "json_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_tree",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree(jsonb('[10,20]')) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_tree",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree('[]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "json_tree",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM json_tree(NULL) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_each",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_each",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[10,20]') ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "0"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_each",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each(jsonb('[10,20]')) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_each",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each('[]') ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_each",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_each(NULL) ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_each",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_tree",
+      "shape": "probe",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_tree",
+      "shape": "hidden",
+      "sql": "SELECT json,root,rowid,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[10,20]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "json",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "json"
+        },
+        {
+          "name": "root",
+          "declaredType": "",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "root"
+        },
+        {
+          "name": "rowid",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "rowid"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "text",
+              "value": "[10,20]"
+            },
+            {
+              "type": "text",
+              "value": "$"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_tree",
+      "shape": "jsonb",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree(jsonb('[10,20]')) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "type": "integer",
+              "value": "10"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20"
+            },
+            {
+              "type": "integer",
+              "value": "2"
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_tree",
+      "shape": "empty",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree('[]') WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "module": "jsonb_tree",
+      "shape": "sql-null",
+      "sql": "SELECT value,row_number() OVER (ORDER BY key) AS rn FROM jsonb_tree(NULL) WHERE type='integer' ORDER BY key",
+      "columns": [
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "jsonb_tree",
+          "origin": "value"
+        },
+        {
+          "name": "rn",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        [],
+        [],
+        []
+      ]
+    }
+  ]
+}

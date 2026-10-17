@@ -667,6 +667,7 @@ export function compileWindowSelectLowering(
   const sourceInit=ops.length;ops.push({code:"InitCoroutine",p1:sourceCoroutine,p2:0,p3:0});
   const sourceStart=ops.length;(ops[sourceInit] as {p3:number}).p3=sourceStart;
   let groupedPayload:number|null=null;
+  const moduleRows=new Map<ResolvedSource,{first:number;rowid:number}>();
   if(owner?.retainedSource){
     // select.c tag-select-0482: retained SrcItem feeds this window rewrite
     // on the same Parse, with child LIMIT owned by the child SELECT.
@@ -750,7 +751,7 @@ export function compileWindowSelectLowering(
     builder.registers=Math.max(builder.registers,registers);
     builder.reserveCursorsThrough(Math.max(nextApplicationCursor,...sorterCursors));
     if(resolved.sources.length){
-      compileInnerTableSelect(inputSelect,resolved,database,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:0},consumeRow:()=>ops.push({code:'Yield',p1:sourceCoroutine,p2:0})});
+      compileInnerTableSelect(inputSelect,resolved,database,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:0},consumeRow:()=>ops.push({code:'Yield',p1:sourceCoroutine,p2:0}),sourceRow:(source,first,rowid)=>{if(source.table.kind==='json-module')moduleRows.set(source,{first,rowid});}});
     }else ops.push({code:'Yield',p1:sourceCoroutine,p2:0});
     registers=builder.registers;
     nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
@@ -806,6 +807,8 @@ export function compileWindowSelectLowering(
               if(column<0)throw new JSQLiteError('unsupported','window producer expression column is not represented',{unsupportedClassification:'temporary'});
               return {kind:'register',register:setup[index-1]!.regNew+column,phase:'producer-row'};
             }
+            const module=moduleRows.get(ref.source);
+            if(module)return {kind:'register',register:ref.columnIndex<0?module.rowid:module.first+ref.columnIndex,phase:'source-row'};
             return groupedPayload!==null&&(owner?.retainedSource||recursiveProducer)
               ?{kind:'register',register:groupedPayload+ref.columnIndex,phase:'producer-row'}
               :{kind:'cursor',cursor:ref.source.cursorId};
@@ -817,6 +820,8 @@ export function compileWindowSelectLowering(
         }
         allProducerExpressionsRepresented=false;ops.push({code:'Null',p2:target});return;
       }
+      const module=moduleRows.get(binding.source);
+      if(index===0&&module){ops.push({code:'Copy',p1:binding.columnIndex<0?module.rowid:module.first+binding.columnIndex,p2:target});return;}
       const column=binding.columnIndex<0||isIntegerPrimaryKeyAlias(binding.source.table,binding.columnIndex)?-1:binding.columnIndex;
       if(column<0)ops.push({code:"Rowid",p1:binding.source.cursorId,p2:target});else ops.push({code:"Column",p1:column,p2:target,p3:binding.source.cursorId,affinity:binding.source.table.columns[column]!.affinity});
     };
@@ -6338,6 +6343,14 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // json.c's eponymous-only JSON table cursors.  Inputs are evaluated by the
   // ordinary expression VM, then xFilter-shaped state is owned by the statement.
   const jsonNames=new Set(["json_each","json_tree","jsonb_each","jsonb_tree"]);
+  // WindowRewrite owns the outer ORDER/LIMIT. Keep the genuine module SrcItem
+  // on its shared WHERE coroutine instead of the scalar-only module shortcut.
+  if(selectHasWindow(select)&&select.from.items.length===1&&jsonNames.has(select.from.items[0]!.tableName.toLowerCase())){
+    const resolved=expandAndResolveSelect(select,schema);
+    const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,shared);
+    if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','window functions are not implemented',{unsupportedClassification:'temporary'});
+    return Object.freeze({...compilation.program,database,maxRows});
+  }
   const metadataNames=new Set(Object.keys(METADATA_MODULE_COLUMNS)),privateNames=new Set([...jsonNames,...metadataNames]);
   if(select.from.items.length===2&&!privateNames.has(select.from.items[0]!.tableName.toLowerCase())&&privateNames.has(select.from.items[1]!.tableName.toLowerCase())){
     if(select.hasGroupBy||select.hasHaving||(metadataNames.has(select.from.items[1]!.tableName.toLowerCase())&&(select.hasDistinct||select.hasLimit)))throw new JSQLiteError("unsupported","this mixed JSON table composition is not implemented",{unsupportedClassification:"temporary"});
