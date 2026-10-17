@@ -6,8 +6,9 @@ producer receives the linked argument carrier and positioned parent binding;
 Filter/Next feeds the existing consume destination. Correlated count(*)+sum(cid)
 now passes the exact three-encoding reproducer. Zero-source GROUP BY (including
 nonaggregate ELists) delegates to AggInfo with the linked binding and Mem/Exists/Set
-destination; EXISTS omits runtime EList and irrelevant result ordering, and grouped
-OFFSET without DISTINCT/result sorting precedes projection. [Scoped source comparison
+destination; EXISTS omits runtime EList and irrelevant result DISTINCT/ordering
+(`select.c` IgnorableDistinct), so grouped OFFSET without effective DISTINCT/result
+sorting precedes projection. Mem/Set retain DISTINCT-before-OFFSET semantics. [Scoped source comparison
 and controls](research/grouped-scalar-correction.md) cover FIRST/LIMIT, empty/NULL/HAVING,
 bind/reset and nested arguments, not exhaustive composition. Nested metadata IN now binds its lhs from the positioned module row
 while retaining the rhs SELECT's independent linked producer/destination. The

@@ -22,9 +22,13 @@ The TS correction uses existing AggInfo/group-sorter machinery, not a new evalua
 - `resolvedScalarSubqueryEmitter`'s aggregate branch retains Exists rather than
   always choosing Mem. Grouped linked result metadata comes from resolved
   descriptors, not a nonexistent local physical source for outer columns.
-- Group emission suppresses runtime EList for Exists, omits its result sorter,
-  and moves OFFSET before projection when no DISTINCT/result sorter intervenes.
-  DISTINCT and sorted projection ordering remain unchanged.
+- AggInfo derives effective result clauses from its destination, matching
+  `select.c:7637–7656` IgnorableDistinct: Exists suppresses both result DISTINCT
+  and ORDER processing, together with runtime EList. Grouped and ungrouped
+  output therefore never DISTINCT-compare unproduced registers. OFFSET precedes
+  projection when no effective DISTINCT/result sorter intervenes; Mem/Set keep
+  their DISTINCT-before-OFFSET publication semantics. Resolution, GROUP/HAVING,
+  aggregate-local DISTINCT and shared LIMIT/error cleanup remain owned as before.
 
 Other `compileScalarSelect` consumers include standalone SELECT, compound arms,
 zero-source derived/aggregate inputs and recursive row producers. The focused
@@ -48,6 +52,11 @@ witness; empty input; NULL; HAVING false/NULL/true/error; ordinal versus arithme
 GROUP; LIMIT zero/OFFSET; skipped malformed-JSON projection and Exists ORDER;
 correlated physical-parent destinations; nested grouped scalar composition;
 prepare-time invalid ordinal/missing column; integer/null rebind and reset.
+F4 adds the multi-group DISTINCT/Exists/OFFSET witness, constant-projection
+Mem/Exists/Set contrasts (only Exists ignores DISTINCT), bound/exhausted OFFSET,
+empty/HAVING cardinality, lazy projection, HAVING errors, prepare rejection and
+ungrouped aggregate destination controls. These extend, rather than replace,
+the original 16 native queries; the receipt now has 25 queries per encoding.
 Additional API-only controls check clearBindings, pre-step cancellation/reset,
 saved private-entry error identity, finalization and fresh connection recovery.
 They do not prove mid-execution cancellation or exhaustive resource schedules.

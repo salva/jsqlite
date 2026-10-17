@@ -1,6 +1,6 @@
 {
   "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
-  "librarySha256": "8d3a57c33418e6273e85046b7a8b664ad47827660658dfacef0136416c9f48f3",
+  "librarySha256": "43f3f6090f1876601a26aa0bae0ac55ca303f9b3c201193e7102f2bfec43f793",
   "variants": [
     {
       "encoding": "UTF-8",
@@ -979,6 +979,446 @@
         },
         {
           "sql": "SELECT EXISTS(SELECT missing GROUP BY 1+0) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit, 9 IN (SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x LIMIT 1 OFFSET ?1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t WHERE 0 GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING x>1 LIMIT 1 OFFSET 1) AS hit, EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING x>2 LIMIT 1 OFFSET 1) AS exhausted",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "exhausted",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT json('bad') FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS hit, 3 IN (SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING json('bad') LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT missing FROM t GROUP BY x LIMIT 1 OFFSET 1) AS invalid",
           "prepare": 1,
           "message": "no such column: missing"
         }
@@ -1963,6 +2403,446 @@
           "sql": "SELECT EXISTS(SELECT missing GROUP BY 1+0) AS invalid",
           "prepare": 1,
           "message": "no such column: missing"
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit, 9 IN (SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x LIMIT 1 OFFSET ?1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t WHERE 0 GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING x>1 LIMIT 1 OFFSET 1) AS hit, EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING x>2 LIMIT 1 OFFSET 1) AS exhausted",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "exhausted",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT json('bad') FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS hit, 3 IN (SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING json('bad') LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT missing FROM t GROUP BY x LIMIT 1 OFFSET 1) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
         }
       ]
     },
@@ -2943,6 +3823,446 @@
         },
         {
           "sql": "SELECT EXISTS(SELECT missing GROUP BY 1+0) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit, 9 IN (SELECT DISTINCT 9 FROM t GROUP BY x LIMIT 1 OFFSET 1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x LIMIT 1 OFFSET ?1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t WHERE 0 GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING x>1 LIMIT 1 OFFSET 1) AS hit, EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING x>2 LIMIT 1 OFFSET 1) AS exhausted",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "exhausted",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT json('bad') FROM t GROUP BY x LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS hit, 3 IN (SELECT DISTINCT count(*) FROM t LIMIT 1 OFFSET 1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT x FROM t GROUP BY x HAVING json('bad') LIMIT 1 OFFSET 1) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT DISTINCT missing FROM t GROUP BY x LIMIT 1 OFFSET 1) AS invalid",
           "prepare": 1,
           "message": "no such column: missing"
         }

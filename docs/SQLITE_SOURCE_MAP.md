@@ -13,7 +13,10 @@ passes. Zero-source GROUP BY maps `resolve.c` SF_Aggregate to
 use `compileWideSubquery`; joined scalar aggregation preserves Exists versus Mem.
 Linked result descriptors own grouped correlated metadata. `selectInnerLoop`'s
 Exists projection omission and pre-projection OFFSET map to grouped emission;
-`IgnorableOrderby` suppresses the Exists result sorter.
+`select.c:7637–7656` IgnorableDistinct maps to AggInfo's destination-derived
+result clauses: Exists suppresses DISTINCT and the result sorter in grouped and
+ungrouped output; Mem/Set retain DISTINCT-before-OFFSET. The linked native/public
+controls include the multi-group DISTINCT/Exists/OFFSET F4 witness.
 [Source branches, callers and finite native controls](research/grouped-scalar-correction.md).
 `compileWideSubquery` retains schema/module production and scalar
 limits; singleton module cursor slots come from the shared builder. Singleton
