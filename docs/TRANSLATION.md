@@ -588,6 +588,23 @@ retain NULL behavior. [Endpoint repair evidence](record:///status.md?card=card-t
 contains primitive and actual public large-partition controls. Direct concurrent
 mutation during an async private operation is not an approved contract.
 
+## VM host delivery
+
+VM-owned `VdbeHostAdmission` separates real host task admission from deterministic
+per-unit work/cancel/deadline checks. First/reset admission is immediate (clock0
+is valid); later admissions use4ms admission-start spacing, including pending task
+time. Regressed/nonfinite clocks admit conservatively. This reduces task/Promise
+overhead, not a native algorithm substitution or hard latency/fairness guarantee.
+`ExecutionTaskScheduler` still delivers an actual task per call, periodic timers
+and port cleanup unchanged. Private comparison/merge await only genuine pending
+checkpoints; comparisons, stable choices, charges and publication order remain.
+[Source comparison, tradeoffs and bounded evidence](research/card-t-d-vm-admission-disposition.md).
+Deterministic [private continuation regression](../test/select/vdbe-private-continuation.test.mjs)
+observes the production VM control through sorter insertion across alternating
+pending/void checkpoints, with exact work probes and saved-error/reset cleanup;
+a separate mixed comparison/merge probe checks stable publication and accounting.
+These bounded injections do not establish host latency or native allocation parity.
+
 ## Functions, text and JSON
 
 `func.c`, `printf.c`, `date.c`, `json.c`, `utf.c`, `vdbemem.c` and comparison

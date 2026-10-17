@@ -4,7 +4,7 @@ import {PrivateKeyVmCursor} from './private-key-vm.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
 import {StorageLimitError} from './storage.ts';
-import { ExecutionTaskScheduler } from "./task-scheduler.ts";
+import { VdbeHostAdmission } from "./vdbe-host-admission.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
 import {bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
@@ -8650,7 +8650,7 @@ export class VdbeStatement implements Statement {
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
-  readonly #taskScheduler = new ExecutionTaskScheduler();
+  readonly #taskScheduler = new VdbeHostAdmission();
   #savedError: unknown = null;
   #currentTime: bigint|null = null;
   #privateAccounting:VdbePrivateAccounting=zeroPrivateAccounting();
@@ -8702,7 +8702,7 @@ export class VdbeStatement implements Statement {
       }
       while (this.#pc < this.#program.ops.length) {
         this.#checkControl(options, limit, started);
-        if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.yield(); this.#state = "running"; this.#checkControl(options, limit, started); }
+        if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.checkpoint(); this.#state = "running"; this.#checkControl(options, limit, started); }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         switch (op.code) {
           case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
@@ -9173,7 +9173,7 @@ export class VdbeStatement implements Statement {
           case "AggFinal": this.#registers[op.p1]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true));break;
           case "AggValue": this.#registers[op.p2]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false));break;
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>this.#currentTime??(this.#currentTime=(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment).nowUnixMilliseconds()),...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
- const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:(units:number)=>this.#privateControl(options,limit,started).checkpoint(units),charge:control.charge,check:control.check,checkSize:control.checkSize};
+ const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:async(units:number)=>{await this.#privateControl(options,limit,started).checkpoint(units)},charge:control.charge,check:control.check,checkSize:control.checkSize};
  this.#registers[op.p2]!.moveFrom(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)));
  }else this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
           case "ElseEq": {if(truth(this.#registers[op.p1]!)===true)this.#pc=op.jump;break;}
@@ -9241,7 +9241,7 @@ export class VdbeStatement implements Statement {
       // checkpoint. PC and cursor stay on the current row while suspended.
       if (chunks.length > 1) {
         this.#state = "suspended";
-        await this.#taskScheduler.yield();
+        await this.#taskScheduler.checkpoint();
         this.#state = "running";
       }
     }
@@ -9252,7 +9252,7 @@ export class VdbeStatement implements Statement {
     this.#records.set(cursorId,decodeRecord(payload, this.#program.database!.encoding));
     this.#recordRowids.set(cursorId,this.#cursors.get(cursorId)!.rowid);
   }
-  async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.yield();this.#state="running";}}}
+  async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.checkpoint();this.#state="running";}}}
   #checkResultValue(value:Mem):void {if(valueBytes(value)>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");}
   #chargeValue(value:Mem,options:OperationOptions,limit:number,started:number):void { const bytes=valueBytes(value);const units=Math.ceil(bytes/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;} }
   #mapExecutionError(error: unknown): unknown {
@@ -9279,10 +9279,15 @@ export class VdbeStatement implements Statement {
       if(!Number.isSafeInteger(units)||units<0)throw new JSQLiteError("internal","invalid private-state work charge");
       for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}
       this.#checkControl(options,limit,started);
-    },checkpoint:async(units=0)=>{
+    },checkpoint:(units=0)=>{
       if(!Number.isSafeInteger(units)||units<0)throw new JSQLiteError("internal","invalid private-state work charge");
-      for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.yield();this.#state="running"}}
-      this.#checkControl(options,limit,started);
+      const resume=():void|Promise<void>=>{
+        while(units>0){this.#checkControl(options,limit,started);this.#work++;units--;
+          if(this.#work%256===0){this.#state="suspended";const pending=this.#taskScheduler.checkpoint();if(pending)return pending.then(()=>{this.#state="running";return resume()});this.#state="running";}
+        }
+        this.#checkControl(options,limit,started);
+      };
+      return resume();
     }};
   }
   #halt(): unknown | null {

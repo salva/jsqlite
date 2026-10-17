@@ -162,7 +162,12 @@ await statement.step(options) // "row" | "done"
 bounded chunks and yields to the host between chunks, preserving VM state. It
 uses bounded host task delivery (MessageChannel with periodic timer turns, or
 timer fallback), not microtask-only suspension. Pending task resources are released
-before resumption; this is not a hard real-time or background-tab latency guarantee. It
+before resumption; this is not a hard real-time or background-tab latency guarantee.
+VM task admission is immediate on first execution/reset, then uses 4ms
+admission-start spacing (including pending task time); deterministic work/control
+checks still run when a host task is suppressed. Regressed/nonfinite clocks admit
+conservatively. This is an overhead/observation tradeoff, not native scheduling or
+maximum-latency parity. See [source rationale and bounded evidence](research/card-t-d-vm-admission-disposition.md). It
 checks the effective signal, deadline, and work budget between chunks and within
 bounded traversal/recursion loops. Statement operation options may only tighten,
 never relax, connection limits. `maxWorkUnits` is an implementation-defined stable

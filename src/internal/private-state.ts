@@ -10,7 +10,7 @@ export interface PrivateStateLimits {
  * compared KeyInfo term, and merge move. A zero-unit checkpoint surrounds
  * bounded growth without adding work. */
 export interface PrivateStateControl {
-  checkpoint(units?: number): Promise<void>;
+  checkpoint(units?: number): void|Promise<void>;
   /** Optional nonyielding work/cancel/deadline probe for mutable input ownership.
    * Must return synchronously without mutating the admitted caller input. */
   snapshotCheckpoint?(units:number):void;
@@ -30,14 +30,14 @@ function cellBytes(value:Mem):number { const kind=value.initialStorageClass;retu
 function logicalBytes(values:readonly Mem[]):number{return values.reduce((n,value)=>n+cellBytes(value),0)}
 function copyCells(values:readonly Mem[]):Mem[]{return values.map(value=>{const copy=new Mem();copy.copyFrom(value);return copy})}
 function releaseEntry(entry:Entry):void{entry.key.forEach(x=>x.release());entry.payload.forEach(x=>x.release())}
-async function compareEntry(a:Entry,b:Entry,keyInfo:KeyInfo,control:PrivateStateControl):Promise<number>{
- for(let i=0;i<keyInfo.keyFieldCount;i++){
-  await control.checkpoint(1);
-  const term=keyInfo.terms[i]!,left=a.key[i]!,right=b.key[i]!;
-  let c=compareMem(left,right,term.collation);
-  if(c!==0){if(term.nullsLarge&&(left.initialStorageClass==="null"||right.initialStorageClass==="null"))c=-c as -1|1;if(term.desc)c=-c as -1|1;return c}
- }
- return 0;
+function compareEntry(a:Entry,b:Entry,keyInfo:KeyInfo,control:PrivateStateControl):number|Promise<number>{
+ let i=0;
+ const compare=():number=>{const term=keyInfo.terms[i]!,left=a.key[i]!,right=b.key[i]!;let c=compareMem(left,right,term.collation);if(c!==0){if(term.nullsLarge&&(left.initialStorageClass==="null"||right.initialStorageClass==="null"))c=-c as -1|1;if(term.desc)c=-c as -1|1;}return c};
+ const resume=():number|Promise<number>=>{for(;i<keyInfo.keyFieldCount;i++){
+   const pending=control.checkpoint(1);
+   if(pending)return pending.then(()=>{const c=compare();if(c!==0)return c;i++;return resume()});
+   const c=compare();if(c!==0)return c;
+ }return 0;};return resume();
 }
 
 /** Browser-memory counterpart of a VDBE sorter cursor. Equal keys retain insertion
@@ -88,8 +88,8 @@ export class SorterCursor {
      let chosen:Entry;
      if(b>=be)chosen=source[a++]!;
      else if(a>=ae)chosen=source[b++]!;
-     else {const comparison=await compareEntry(source[a]!,source[b]!,this.keyInfo,control);chosen=comparison<0||(comparison===0&&source[a]!.sequence<source[b]!.sequence)?source[a++]!:source[b++]!}
-     await control.checkpoint(1); // one merge move
+     else {const result=compareEntry(source[a]!,source[b]!,this.keyInfo,control);const comparison=typeof result==="number"?result:await result;chosen=comparison<0||(comparison===0&&source[a]!.sequence<source[b]!.sequence)?source[a++]!:source[b++]!}
+     const pending=control.checkpoint(1);if(pending)await pending; // one merge move
      target[out++]=chosen;
     }
     if(lo+width*2>=source.length)[source,target]=[target,source];

@@ -429,3 +429,9 @@ singleton and mixed consume callbacks with register high-water synchronization,
 including sorter drain. Filter/Next retains iteration ownership; shared AggInfo
 retains aggregate semantics. Native typed/full-metadata/reset coverage:
 `test/conformance/metadata-destination.test.mjs`; [evidence and boundaries](research/metadata-destination-correction.md).
+
+## VM host delivery control boundary
+
+| Pinned source | Execution owner | Tests and rationale |
+| --- | --- | --- |
+| `vdbe.c:check_for_interrupt`, `vdbeaux.c:sqlite3VdbeReset` | VM private work/control remains per-unit; [host admission](../src/internal/vdbe-host-admission.ts) is separate conditional task transport | [private continuation/reset and stable merge](../test/select/vdbe-private-continuation.test.mjs), [source comparison/evidence](research/card-t-d-vm-admission-disposition.md) |
