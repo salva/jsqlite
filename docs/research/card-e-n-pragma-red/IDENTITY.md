@@ -31,8 +31,14 @@ invocation controls cover saved errors/cancel/reuse/private exhaustion separatel
 these do not establish exhaustive mid-execution cancellation, malformed UTF or
 all linked/group/window compositions. Shared runtime cleanup returns metadata
 generators on statement reset/finalize/error; early LIMIT retains statement-owned
-state until cleanup. Independent full-producer/caller acceptance remains due.
+state until cleanup. Independent finite acceptance covers the entire 15-path
+identity producer/caller delta at `404b6d00c526765b9dc777fb2def7fa773c4e895`,
+tree `f2bdce2536223e88c59afb0a2bbc09d131135bf3`, against `34a7fdf4`:
+[[card:card-e-l]] `record:///status.md?card=card-e-l&v=269`.
+Earlier pending-review provenance remains in [[card:card-e-n]] accepted status261/264/269.
+Generic unsupported composition and exhaustive lifecycle/UTF coverage remain open;
+root [[card:card-w]] latest352/38/36/18 exact-artifact replay remains separate.
 
-Exact artifact identity and verification commands/results are recorded in the
-current card status. This document is source rationale, not independent approval
-or a whole-product compatibility claim.
+Detailed artifact identities and verification commands/results are retained in
+those card records. This document is source rationale, not a whole-product
+compatibility claim.

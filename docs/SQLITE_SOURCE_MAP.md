@@ -71,9 +71,11 @@ publishes declaration payload plus identity to existing window buffer bindings.
 `select.c` AggInfo input → seven-family declared metadata aggregate enrollment,
 including Result0 database_list; no B-tree descriptor is fabricated. Native
 controls cover aggregate/window identity in all seven families, empty input and
-window LIMIT. Complete shared caller review remains open; this is not an
-accepted parity claim.
-Current partial-author evidence: [[card:card-e-n]] status.
+window LIMIT. Independent finite producer/caller acceptance for the 15-path delta
+at `404b6d00` (tree `f2bdce253622`) is recorded in [[card:card-e-l]]
+`record:///status.md?card=card-e-l&v=269`; this is not general virtual-table parity.
+Detailed source/native evidence: [identity rationale](research/card-e-n-pragma-red/IDENTITY.md)
+and [[card:card-e-n]] status.
 
 ## Mixed module predicate readiness
 

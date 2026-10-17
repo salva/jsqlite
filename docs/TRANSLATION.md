@@ -51,8 +51,10 @@ predicates and the positive former-boundary controls now pass. Single resident
 metadata window inputs use the existing WHERE coroutine/sourceRow handoff;
 window buffer bindings copy the module's real identity register, not a B-tree
 Rowid or JSON payload. Aggregate enrollment uses the same real declarations
-for all seven families, including zero-hidden-column database_list. Complete
-shared caller review and broader composition remain unfinished. Generic metadata
+for all seven families, including zero-hidden-column database_list. The finite
+15-path identity producer/caller delta at `404b6d00` (tree `f2bdce253622`)
+has independent acceptance in [[card:card-e-l]]
+`record:///status.md?card=card-e-l&v=269`; broader composition remains unfinished. Generic metadata
 loops retain the exact selected hidden-EQ reduction for argv/omit: only that
 constraint is omitted from WHERE/ON residuals, not duplicate or unrelated terms.
 Filter clears the old cursor before `Mem.valueText` converts arguments to UTF-8
