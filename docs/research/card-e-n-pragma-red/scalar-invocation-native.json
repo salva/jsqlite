@@ -1,0 +1,2015 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "sha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "cases": [
+        {
+          "name": "once",
+          "sql": "SELECT x,(SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  null
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  null
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  null
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  null
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "2"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "2"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "2"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "2"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            }
+          ]
+        },
+        {
+          "name": "correlated",
+          "sql": "SELECT x,(SELECT count(*)+sum(cid)+random() FROM pragma_table_info(t.nm)) AS a FROM t WHERE ?1 IS NOT NULL",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            }
+          ]
+        },
+        {
+          "name": "conditional",
+          "sql": "SELECT x,CASE WHEN x=2 THEN (SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) ELSE 0 END AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            }
+          ]
+        },
+        {
+          "name": "skipped",
+          "sql": "SELECT x,CASE WHEN x=99 THEN (SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) ELSE 0 END AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "cases": [
+        {
+          "name": "once",
+          "sql": "SELECT x,(SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  null
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  null
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  null
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  null
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "2"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "2"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "2"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "2"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            }
+          ]
+        },
+        {
+          "name": "correlated",
+          "sql": "SELECT x,(SELECT count(*)+sum(cid)+random() FROM pragma_table_info(t.nm)) AS a FROM t WHERE ?1 IS NOT NULL",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            }
+          ]
+        },
+        {
+          "name": "conditional",
+          "sql": "SELECT x,CASE WHEN x=2 THEN (SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) ELSE 0 END AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            }
+          ]
+        },
+        {
+          "name": "skipped",
+          "sql": "SELECT x,CASE WHEN x=99 THEN (SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) ELSE 0 END AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "cases": [
+        {
+          "name": "once",
+          "sql": "SELECT x,(SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  null
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  null
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  null
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  null
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "2"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "2"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "2"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "2"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "7"
+                ]
+              ],
+              "calls": 1
+            }
+          ]
+        },
+        {
+          "name": "correlated",
+          "sql": "SELECT x,(SELECT count(*)+sum(cid)+random() FROM pragma_table_info(t.nm)) AS a FROM t WHERE ?1 IS NOT NULL",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "7"
+                ],
+                [
+                  "2",
+                  "3"
+                ],
+                [
+                  "3",
+                  "9"
+                ]
+              ],
+              "calls": 3
+            }
+          ]
+        },
+        {
+          "name": "conditional",
+          "sql": "SELECT x,CASE WHEN x=2 THEN (SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) ELSE 0 END AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  null
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "2"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "7"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 1
+            }
+          ]
+        },
+        {
+          "name": "skipped",
+          "sql": "SELECT x,CASE WHEN x=99 THEN (SELECT count(*)+sum(cid)+random() FROM pragma_table_info(?1)) ELSE 0 END AS a FROM t",
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "a",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "missing",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "u",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            },
+            {
+              "binding": "t",
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "2",
+                  "0"
+                ],
+                [
+                  "3",
+                  "0"
+                ]
+              ],
+              "calls": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
