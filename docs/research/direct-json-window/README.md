@@ -30,9 +30,12 @@ shared edits:
 Control companion checks each encoding with direct JSON Window: initially aborted
 signal, zero timeout, work-unit cap, private-entry cap, reset failure retention and
 restart, malformed JSON/finalize retained error, subsequent scalar recovery.
-These are admission/error lifecycle tests, **not** initially-unaborted in-flight
-cancellation, suspension demand instrumentation, deadline while sorting, or
-post-failure internal resource-counter proof. Prior focused original123/123 and
+The integrated companion also covers initially-live cancellation and deadline
+expiration during a held host task on a300-row direct input, with reset error
+retention and restart (integration evidence below). This finite suspension test
+does not prove every sort/frame schedule or allocation failure. Demand-copy and
+internal refund instrumentation are separate independent review evidence, not
+assertions in this delivered companion (see review scope below). Prior focused original123/123 and
 physical Column-vs-Copy failed-hypothesis evidence remains in
 `record:///status.md?card=card-o-b-g&v=134`.
 
@@ -52,5 +55,12 @@ workload correction, not a runtime or scheduler change. Final focused candidate
 183/183 and typecheck pass (proc-6fe8540e8ee1), log
 work:///cards/card-o-b-g/direct-integration/final.log. Count differs from mixed
 workspace186 because its unrelated peer tests are not in immutable base.
-No independent approval; demand copy instrumentation and internal refund counters
-remain unproven. Exact installation receipt and commit in [[card:card-o-b-g]] status.
+Independent runtime review of installed ec74321e796e31234a16bb4fd98516acf57501df
+is retained at `record:///status.md?card=card-o-b-c&v=110`:183 focused, fresh60-variant
+native comparison, supplemental48 native/public variants, demand/refund3/3,
+and affected1117/1117. Fresh inputs resolve the five historical missing-input
+gates above;614/619 remains a failed historical run, not retroactively passing.
+Supplemental review artifacts are not integrated tests. The review accepts the
+bounded runtime, not exhaustive schedules/allocations or root/release acceptance;
+its D1 current-prose correction still needs independent confirmation on the
+final doc-only input. Exact installation receipt and commit in [[card:card-o-b-g]] status.

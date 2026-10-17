@@ -600,8 +600,11 @@ recursive columns do not acquire physical schema provenance. [Pinned parity
 and repair evidence](research/recursive-group-window/README.md).
 Retained multi-source CTE/module input feeds the existing Window coroutine on
 its shared compiler owner; direct transient column names use resolved producer
-names, not qualified SQL spans. This does not admit standalone direct module
-Window dispatch. [Composition boundary and evidence](research/cte-json-window-composition.md).
+names, not qualified SQL spans. Standalone single-source JSON each/tree Window
+input also uses the shared WHERE coroutine with source-identity registers and
+independent rowid; arbitrary module/Window composition is not implied.
+[CTE composition evidence](research/cte-json-window-composition.md) and
+[direct-input scope and evidence](research/direct-json-window/README.md).
 Cached frame/EXCLUDE scheduling is a source-shaped adaptation, not
 proof that every frame must stream.
 
