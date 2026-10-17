@@ -7,8 +7,15 @@
 not the physical planner. `pragma.c:pragmaVtabFilter` arguments use linked
 carriers and positioned parent binding in `compileTableSelectProducer`, whose
 Filter/Next consume callback supplies AggInfo. The exact correlated expression
-passes, as do finite grouped FIRST/LIMIT, unbound and nested scalar argument
-controls. `compileWideSubquery` retains schema/module production and scalar
+passes. Zero-source GROUP BY maps `resolve.c` SF_Aggregate to
+`compileScalarSelect` → `compileAggregateSelect`, including nonaggregate ELists.
+`compileTableSelectProducer`'s grouped IN and AggInfo's grouped nested expressions
+use `compileWideSubquery`; joined scalar aggregation preserves Exists versus Mem.
+Linked result descriptors own grouped correlated metadata. `selectInnerLoop`'s
+Exists projection omission and pre-projection OFFSET map to grouped emission;
+`IgnorableOrderby` suppresses the Exists result sorter.
+[Source branches, callers and finite native controls](research/grouped-scalar-correction.md).
+`compileWideSubquery` retains schema/module production and scalar
 limits; singleton module cursor slots come from the shared builder. Singleton
 `bindColumns` binds TK_IN's lhs from the positioned module payload; its rhs
 retains its linked SELECT and shared SRT_Set destination. Finite native controls

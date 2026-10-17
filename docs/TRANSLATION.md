@@ -4,9 +4,12 @@ Shared scalar aggregate expressions now dispatch to AggInfo by aggregate
 ownership throughout EList rather than only a root aggregate node. The metadata
 producer receives the linked argument carrier and positioned parent binding;
 Filter/Next feeds the existing consume destination. Correlated count(*)+sum(cid)
-now passes the exact three-encoding reproducer. The linked no-source grouped
-scalar now preserves FIRST/LIMIT, and unbound and nested scalar arguments pass
-the finite native controls. Nested metadata IN now binds its lhs from the positioned module row
+now passes the exact three-encoding reproducer. Zero-source GROUP BY (including
+nonaggregate ELists) delegates to AggInfo with the linked binding and Mem/Exists/Set
+destination; EXISTS omits runtime EList and irrelevant result ordering, and grouped
+OFFSET without DISTINCT/result sorting precedes projection. [Scoped source comparison
+and controls](research/grouped-scalar-correction.md) cover FIRST/LIMIT, empty/NULL/HAVING,
+bind/reset and nested arguments, not exhaustive composition. Nested metadata IN now binds its lhs from the positioned module row
 while retaining the rhs SELECT's independent linked producer/destination. The
 finite native controls pass across all three encodings; this is not exhaustive
 composition or lifecycle acceptance. Bound/rebound arguments, retained reset,
