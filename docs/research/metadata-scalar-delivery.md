@@ -1,0 +1,11 @@
+# Scoped scalar metadata delivery evidence
+
+The owning repair carries aggregate ownership, linked argument bindings, per-occurrence module cursors, positioned IN lhs and scalar FIRST/LIMIT through the existing producer and destinations. No algorithm substitution is introduced. Pinned `expr.c:sqlite3CodeSubselect` initializes Mem and gates non-correlated subroutines with Once; `sqlite3ExprCodeIN` codes lhs independently, and `select.c` owns RHS SRT_Set. `pragma.c:pragmaVtabFilter` clears its occurrence cursor before argument conversion and nested preparation. The TypeScript cursor allocation now keeps those states independent.
+
+## New evidence
+
+`tools/oracle/capture-metadata-scalar-bind.py` obtains independent pinned native results before the new consuming test. It asserts sourceId and each existing three-encoding image hash; fresh temporary images remain in the card work root. Native proc-5cb9bdc3f5c7 exit0 produced `card-e-n-pragma-red/scalar-bind-native.json`. One prepared statement binds t/u/missing/NULL/t, each with retained-reset replay. The public `metadata-scalar-bind.test.mjs` compares typed cells, then checks clearBindings, invalid bind recovery, pre-step cancellation/saved-error/reset reuse, and private SRT_Set entry-budget exhaustion/saved-error/reset to empty input. Public proc-3d7561c586b4 passes 3/3. Native receipt establishes result/reset semantics, not TypeScript-specific budgets or AbortSignal behavior.
+
+The older scalar receipt was captured after initial dispatch repair; it is not preimplementation oracle evidence. Prior failed hypotheses and intermediate results remain in [[card:card-e-n]] accepted status182 and its referenced versions. The bound native receipt predates this new consuming test. Existing original+companion results remain credited, not a new broad compatibility claim.
+
+The exact-source export and artifact identity, commands and final results are recorded in current card status. Full volatile evaluation-count/conditional Once, mid-operation cancellation, root original18/36 replay and independent whole-delta review remain outstanding. Non-correlated rebinding does exercise resetting cached scalar output, but is not evidence of precise evaluation counts. The API and product scope are unchanged; genuine metadata rowid remains a separate unsupported boundary.

@@ -1,11 +1,24 @@
+# SQLite-to-TypeScript translation guide
 
+Shared scalar aggregate expressions now dispatch to AggInfo by aggregate
+ownership throughout EList rather than only a root aggregate node. The metadata
+producer receives the linked argument carrier and positioned parent binding;
+Filter/Next feeds the existing consume destination. Correlated count(*)+sum(cid)
+now passes the exact three-encoding reproducer. The linked no-source grouped
+scalar now preserves FIRST/LIMIT, and unbound and nested scalar arguments pass
+the finite native controls. Nested metadata IN now binds its lhs from the positioned module row
+while retaining the rhs SELECT's independent linked producer/destination. The
+finite native controls pass across all three encodings; this is not exhaustive
+composition or lifecycle acceptance. Bound/rebound arguments, retained reset,
+clearBindings, pre-step cancellation/reuse and SRT_Set private-entry exhaustion
+have finite public controls in `metadata-scalar-bind.test.mjs`, compared to the
+pinned `scalar-bind-native.json` receipt for typed result/reset behavior. These
+controls do not establish volatile evaluation counts or mid-execution cancellation.
+The typed unsupported conversion remains
+for genuinely unsupported plans. Remaining breadth is an implementation gap, not
+platform constraints. [Scalar delivery evidence](research/metadata-scalar-delivery.md).
+[Source comparison and remaining boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 
-Shared physical scalar planning does not yet supply metadata Filter production
-for correlated scalar aggregate expressions (for example count(*)+sum(cid)).
-This remains a temporary public prepare gap, not a SQL error or platform
-constraint. The inner/shared planner converts only its typed unsupported error
-to JSQLiteError; other failures retain their owners. Existing module/AggInfo,
-JSON and CTE support is unchanged. [Source boundary and tests](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 Metadata identity admission is checked at the shared resolved source descriptor
 before aggregate/correlated lowering and at singleton binding. Metadata
 rowid/_rowid_/oid remain temporarily unsupported, including predicate-only and

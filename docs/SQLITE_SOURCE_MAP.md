@@ -1,14 +1,25 @@
-
+# SQLite source map
 
 ## Shared scalar metadata admission
 
-`expr.c:sqlite3CodeSubselect` SRT_Mem and `pragma.c:pragmaVtabFilter` map to
-shared scalar lowering and the finite metadata producer respectively. Their
-correlated scalar aggregate-expression composition lacks Filter production in
-`vdbe.ts:compileInnerTableSelect`; its `planWhere` call converts only
-`WherePlanningUnsupportedError` to public temporary unsupported. Existing
-singleton conversion and module/AggInfo ownership are unchanged. Regression:
-`metadata-scalar-error.test.mjs`. [Evidence and boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
+`expr.c:sqlite3CodeSubselect` SRT_Mem and `select.c` aggregate ownership map to
+`resolvedScalarSubqueryEmitter`: aggregate EList expressions dispatch to AggInfo,
+not the physical planner. `pragma.c:pragmaVtabFilter` arguments use linked
+carriers and positioned parent binding in `compileTableSelectProducer`, whose
+Filter/Next consume callback supplies AggInfo. The exact correlated expression
+passes, as do finite grouped FIRST/LIMIT, unbound and nested scalar argument
+controls. `compileWideSubquery` retains schema/module production and scalar
+limits; singleton module cursor slots come from the shared builder. Singleton
+`bindColumns` binds TK_IN's lhs from the positioned module payload; its rhs
+retains its linked SELECT and shared SRT_Set destination. Finite native controls
+pass in three encodings, not exhaustive compatibility. Typed planner rejection stays
+public. Regressions: `metadata-scalar-error.test.mjs` (execution expectation)
+and `metadata-scalar-filter.test.mjs` (native controls), plus
+`metadata-scalar-bind.test.mjs` (bound/rebound/reset, cancellation and private
+SRT_Set budget controls; pinned `scalar-bind-native.json`). Evaluation counts
+and mid-execution cancellation remain outside this finite evidence.
+[Evidence and boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
+
 ## Metadata identity admission boundary
 
 `resolve.c:lookupName` selects real columns before implicit rowid candidates;

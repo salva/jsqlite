@@ -2882,6 +2882,11 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     // The resolver's expanded SrcList and transient Table belong to the same
     // SELECT. Never pair its linked columns with the earlier flattened carrier.
     const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
+    // expr.c owns scalar FIRST/LIMIT before select.c groups/sorts. Reuse the
+    // shared destination owner instead of invoking AggInfo with an unbounded Mem.
+    if(expression.resolved&&expression.select.hasGroupBy&&database){
+      return compileWideSubquery(expression,expression.resolved,selectProgramBuilder,resultOps,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},enclosingBinding,compileSubquery);
+    }
     // select.c selectExpander leaves view/derived transient Tables to their
     // producer. A linked SrcList alone does not establish a physical btree.
     // A zero-source linked SELECT must also keep its plan/binding: nested
@@ -4020,7 +4025,8 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
   compileScalarSelect(child,environment.database.encoding,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,environment.schema,environment.database,environment.maxRows,{builder,parameters,destination:dest,...(preparedLimit?{sharedLimit:preparedLimit,scalarPrepared:true}:{}),...(plan?{linkedPlan:plan}:{}),...(childBinding?{expressionBinding:childBinding}:{}),emitRow:(first,count)=>{emitSelectDestination(ops,dest,first,count);if(!isIn){stops.push(ops.length);ops.push({code:'Goto',p2:0});}}});
   for(const stop of stops)(ops[stop] as {p2:number}).p2=ops.length;
  }
- else if(selectHasAggregate(child)||child.hasGroupBy)compileAggregateSelect(child,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{...preparedOwner,...(plan?{linkedPlan:plan}:{})});
+ else if(selectHasAggregate(child)||child.hasGroupBy)compileAggregateSelect(child,environment.schema,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{...preparedOwner,...(plan?{linkedPlan:plan}:{})});
+ else if(plan?.sources.length===1&&plan.sources[0]!.table.kind==='metadata-module'&&environment.schema)compileTableSelect(child,environment.schema,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{...preparedOwner,linkedPlan:plan});
  else compileInnerTableSelect(child,plan!,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,preparedOwner);
  if(preparedLimit)(ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;
  if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
@@ -4028,7 +4034,8 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
  return result;
 }
 
-function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding,schema?:SchemaGraph):(expression:SubqueryExpression)=>number {
+function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,inputEnvironment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding,schema?:SchemaGraph):(expression:SubqueryExpression)=>number {
+  const environment={...inputEnvironment,schema};
   const ops=builder.ops,allocate=()=>builder.register();
   const nestedPlans=new Map<SelectNode,{plan:ReturnType<typeof expandAndResolveSelect>;cursor:number}>();
   const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:builder.cursor()});rememberNested(child);}};rememberNested(expanded);
@@ -4087,7 +4094,9 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
       }else emitScalarCompoundMerge(expression.select,undefined,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,builder,parameters,compoundDestination,emitArm,{plans,limit:preparedLimit});
       (ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;return result;
     }
-    if(tree.kind!=='aggregate'&&!expression.select.hasGroupBy&&!expression.select.hasHaving){
+    // select.c dispatches on aggregate ownership anywhere in EList, not just
+    // a root TK_AGG_FUNCTION (e.g. count(*)+sum(cid) is TK_PLUS).
+    if(!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving){
       // expr.c supplies the initialized Mem destination and normalized scalar
       // LIMIT; select.c owns projection, WHERE positioning and first-row exit.
       // Keep the linked NameContext/source objects, mapping only physical reads.
@@ -6295,7 +6304,7 @@ function compileCteDerivedSourcesFallback(select:SelectNode,schema:SchemaGraph,d
 }
 
 /** Initial resolve.c/select.c-shaped single rowid-table full-scan compiler. */
-export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;scalarPrepared?:boolean;sharedLimit?:LimitRegisters}): Program {
+export function compileTableSelect(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;scalarPrepared?:boolean;sharedLimit?:LimitRegisters;linkedPlan?:ReturnType<typeof expandAndResolveSelect>;expressionBinding?:ResolvedExpressionBinding}): Program {
   if(shared)return compileTableSelectProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
   const builder=new SelectProgramBuilder<Op>();
   builder.reserveCursorsThrough(30);
@@ -6306,7 +6315,7 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   return Object.freeze({...produced,ops:builder.finish(),registers:builder.registers});
 }
 
-function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;consume?:(first:number,count:number)=>void;scalarPrepared?:boolean;sharedLimit?:LimitRegisters}): Program {
+function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;consume?:(first:number,count:number)=>void;scalarPrepared?:boolean;sharedLimit?:LimitRegisters;linkedPlan?:ReturnType<typeof expandAndResolveSelect>;expressionBinding?:ResolvedExpressionBinding}): Program {
   const builder=shared?.builder??new SelectProgramBuilder<Op>();
   // The parser's bounded flattenSubquery translation retains the generated
   // child in flattenedDerived even though its SrcList has already been spliced.
@@ -6577,7 +6586,12 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // This bounded source owns only argument-independent RHS expressions; a
     // dependent hidden RHS needs the shared join planner, not row inference.
     let predicateTree=select.where?.reduction?expressionFromReduction(select.where.reduction):null;
-    const constraints:(Expression|undefined)[]=[args?.[0]?.reduction?expressionFromReduction(args[0].reduction):undefined,args?.[1]?.reduction?expressionFromReduction(args[1].reduction):undefined];
+    if(predicateTree&&shared?.linkedPlan)predicateTree=bindResolvedExpression(predicateTree,resolvedExpressionCarrier(shared.linkedPlan,select.where!.reduction! as Reduction),ref=>ref.cursorId,true,shared.expressionBinding);
+    const bindArgument=(argument:NonNullable<typeof args>[number]):Expression=>{
+      const tree=expressionFromReduction(argument.reduction!);
+      return shared?.linkedPlan?bindResolvedExpression(tree,resolvedExpressionCarrier(shared.linkedPlan,argument.reduction! as Reduction),source=>source.cursorId,true,shared.expressionBinding):tree;
+    };
+    const constraints:(Expression|undefined)[]=[args?.[0]?.reduction?bindArgument(args[0]):undefined,args?.[1]?.reduction?bindArgument(args[1]):undefined];
     const retained:Expression[]=[];
     {
      const terms:Expression[]=[];const split=(tree:Expression):void=>{if(tree.kind==='binary'&&tree.op==='AND'){split(tree.left);split(tree.right);}else terms.push(tree);};if(predicateTree)split(predicateTree);
@@ -6596,7 +6610,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       retained.push(term);
      }
      // whereexpr.c appends function-argument EQs after explicit WHERE terms.
-     for(let i=0;i<2;i++)if(args?.[i]?.reduction)candidates.push({column:8+i,usable:true,equality:true,rhs:expressionFromReduction(args[i]!.reduction!)});
+     for(let i=0;i<2;i++)if(args?.[i]?.reduction)candidates.push({column:8+i,usable:true,equality:true,rhs:bindArgument(args[i]!)});
      const selected=metadata?null:chooseJsonTableIndex(candidates);
      const selectedIndexes=selected?new Set(selected.arguments):null;
      for(let i=0;i<candidates.length;i++){
@@ -6615,7 +6629,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const builder=shared?.builder??new SelectProgramBuilder<Op>(),parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()},ops=builder.ops;let registers=builder.registers;const allocate=()=>{builder.registers=registers;return registers=builder.register()};
     // Parse.nTab owns virtual cursor slots too (select.c/where.c). A shared
     // destination must not overwrite another source occurrence at fixed slot 0.
-    const jsonCursor=metadata?0:builder.cursor();
+    const jsonCursor=builder.cursor();
     // select.c:computeLimitRegisters precedes sqlite3WhereBegin: LIMIT 0
     // bypasses argument evaluation as well as xFilter. Name/arity validation
     // above remains prepare-time work even when this jump is taken. This is
@@ -6626,9 +6640,17 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const limit=shared?.scalarPrepared?shared.sharedLimit:computeLimitRegisters(select,ops,allocate,parameters);
     // jsonEachBestIndex plan0 supplies no argv, including a root-only EQ.
     // Do not evaluate an unused root expression before Filter resets to EOF.
-    const input=constraints[0]?compileExpressionTree(constraints[0],ops,allocate,parameters):metadata?allocate():undefined;
+    const compileArgumentSubquery=shared?.linkedPlan?resolvedScalarSubqueryEmitter(shared.linkedPlan,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},shared.expressionBinding,schema):undefined;
+    const argumentValue=(tree:Expression):number=>{
+      // The linked child shares Parse.nMem. Publish the local high-water before
+      // sqlite3CodeSubselect and recover it before allocating the row payload.
+      builder.registers=registers;
+      const result=compileExpressionTree(tree,ops,allocate,parameters,compileArgumentSubquery);
+      registers=Math.max(registers,builder.registers);return result;
+    };
+    const input=constraints[0]?argumentValue(constraints[0]):metadata?allocate():undefined;
     if(metadata&&!constraints[0])ops.push({code:"Null",p2:input!});
-    const root=constraints[1]&&(metadata||input!==undefined)?compileExpressionTree(constraints[1],ops,allocate,parameters):undefined;
+    const root=constraints[1]&&(metadata||input!==undefined)?argumentValue(constraints[1]):undefined;
     const demandedColumns=new Set<number>();
     const rowStart=registers+1;registers+=sourceColumns.length;
     // json.c xRowid owns a sequential cursor identity, independent of JSON id.
@@ -6649,6 +6671,9 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:bindColumns(tree.value)};
       if(tree.kind==="call")return{...tree,args:tree.args.map(bindColumns)};
       if(tree.kind==="in-list")return{...tree,left:bindColumns(tree.left),values:tree.values.map(bindColumns)};
+      // TK_IN owns its lhs in this positioned row; the linked SELECT on the
+      // rhs keeps its independent NameContext and destination producer.
+      if(tree.kind==="in-subquery")return {...tree,left:bindColumns(tree.left)};
       if(tree.kind==="between")return{...tree,value:bindColumns(tree.value),lower:bindColumns(tree.lower),upper:bindColumns(tree.upper)};
       if(tree.kind==="aggregate")return{...tree,args:tree.args.map(bindColumns),filter:tree.filter&&bindColumns(tree.filter),orderBy:tree.orderBy.map(term=>({...term,expression:bindColumns(term.expression)}))};
       if(tree.kind==="case")return{...tree,operand:tree.operand&&bindColumns(tree.operand),pairs:tree.pairs.map(([x,y])=>[bindColumns(x),bindColumns(y)]),otherwise:tree.otherwise&&bindColumns(tree.otherwise)};
@@ -6660,7 +6685,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const groupedEntries=resultTrees.map(tree=>tree.kind==="aggregate"&&!tree.distinct&&!tree.filter&&!tree.orderBy.length?tree:null);
     const groupedOutput=resultTrees.every(tree=>tree.kind==="aggregate"||tree.kind==="register"&&groupTrees.some(group=>group.kind==="register"&&group.index===tree.index));
     if(select.hasGroupBy&&groupTrees.length&&groupedOutput&&!select.hasOrderBy){
-      const sorter=builder.cursor(),keyCount=groupTrees.length,keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:keyCount,keyFieldCount:keyCount,terms:groupTrees.map(group=>({collation:collation(group)}))}),states=groupedEntries.map(entry=>entry?allocate():0),sorted=registers+1;registers+=keyCount+rowWidth;const saved=registers+1;registers+=keyCount;ops.push({code:"SorterOpen",p1:sorter,keyInfo});const rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:0,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}const keys=groupTrees.map(group=>compileExpressionTree(group,ops,allocate,parameters)),record=registers+1;registers+=keyCount+rowWidth;keys.forEach((key,index)=>ops.push({code:"Copy",p1:key,p2:record+index}));for(let i=0;i<rowWidth;i++)ops.push({code:"Copy",p1:rowStart+i,p2:record+keyCount+i});ops.push({code:"SorterInsert",p1:sorter,keyStart:record,keyCount,payload:record,payloadCount:keyCount+rowWidth});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:sorted,count:keyCount+rowWidth});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});
+      const sorter=builder.cursor(),keyCount=groupTrees.length,keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:keyCount,keyFieldCount:keyCount,terms:groupTrees.map(group=>({collation:collation(group)}))}),states=groupedEntries.map(entry=>entry?allocate():0),sorted=registers+1;registers+=keyCount+rowWidth;const saved=registers+1;registers+=keyCount;ops.push({code:"SorterOpen",p1:sorter,keyInfo});const rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:jsonCursor,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}const keys=groupTrees.map(group=>compileExpressionTree(group,ops,allocate,parameters)),record=registers+1;registers+=keyCount+rowWidth;keys.forEach((key,index)=>ops.push({code:"Copy",p1:key,p2:record+index}));for(let i=0;i<rowWidth;i++)ops.push({code:"Copy",p1:rowStart+i,p2:record+keyCount+i});ops.push({code:"SorterInsert",p1:sorter,keyStart:record,keyCount,payload:record,payloadCount:keyCount+rowWidth});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const sort=ops.length;(ops[rewind] as {p2:number}).p2=sort;ops.push({code:"SorterSort",p1:sorter,emptyJump:0},{code:"SorterData",p1:sorter,p2:sorted,count:keyCount+rowWidth});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});
       const havingTree=select.having?.reduction?bindColumns(expressionFromReduction(select.having.reduction)):null;
       const finalized=(tree:Expression):Expression=>{if(tree.kind==="aggregate"){const index=groupedEntries.findIndex(entry=>entry!==null&&entry.name===tree.name&&entry.args.length===tree.args.length&&entry.args.every((arg,i)=>sameExpression(arg,tree.args[i]!)));if(index<0)throw new JSQLiteError("unsupported",`this ${jsonTableName} HAVING aggregate is not projected`,{unsupportedClassification:"temporary"});return{kind:"register",index:states[index]!};}if(tree.kind==="unary")return{...tree,value:finalized(tree.value)};if(tree.kind==="vector")return {...tree,fields:tree.fields.map(finalized)};if(tree.kind==="binary")return{...tree,left:finalized(tree.left),right:finalized(tree.right)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:finalized(tree.value)};if(tree.kind==="call")return{...tree,args:tree.args.map(finalized)};return tree;};
       const emitSteps=()=>groupedEntries.forEach((entry,index)=>{if(entry){const args=entry.args.map(arg=>{const rebound=arg.kind==="register"?{kind:"register",index:sorted+keyCount+(arg.index-rowStart)} as Expression:arg;return compileExpressionTree(rebound,ops,allocate,parameters)});ops.push({code:"AggStep",name:entry.name,args,p2:states[index]!,collation:entry.collation});}}),emitGroup=()=>{groupedEntries.forEach((entry,index)=>{if(entry)ops.push({code:"AggFinal",name:entry.name,p1:states[index]!})});let reject:number|null=null;if(havingTree){const test=compileExpressionTree(finalized(havingTree),ops,allocate,parameters);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const out=registers+1;for(let i=0;i<resultTrees.length;i++){registers++;const tree=resultTrees[i]!,source=tree.kind==="aggregate"?states[i]!:saved+groupTrees.findIndex(group=>group.kind==="register"&&tree.kind==="register"&&group.index===tree.index);ops.push({code:"Copy",p1:source,p2:out+i});}emitSelectDestination(ops,shared?.destination??{kind:"output"},out,resultTrees.length);if(reject!==null)(ops[reject] as {p2:number}).p2=ops.length;};
@@ -6668,16 +6693,21 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     }
     const aggregateOnly=resultTrees.length>0&&resultTrees.every(tree=>tree.kind==="aggregate"&&!tree.distinct&&!tree.filter&&!tree.orderBy.length);
     if(aggregateOnly){
-      const states=resultTrees.map(()=>allocate()),rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:0,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}resultTrees.forEach((tree,index)=>{const aggregate=tree as Extract<Expression,{kind:"aggregate"}>,args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));ops.push({code:"AggStep",name:aggregate.name,args,p2:states[index]!,collation:aggregate.collation});});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;resultTrees.forEach((tree,index)=>ops.push({code:"AggFinal",name:(tree as Extract<Expression,{kind:"aggregate"}>).name,p1:states[index]!}));const outputStart=registers+1;for(const state of states){registers++;ops.push({code:"Copy",p1:state,p2:registers});}emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,states.length);if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:jsonTableName,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+      const states=resultTrees.map(()=>allocate()),rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:jsonCursor,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}resultTrees.forEach((tree,index)=>{const aggregate=tree as Extract<Expression,{kind:"aggregate"}>,args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));ops.push({code:"AggStep",name:aggregate.name,args,p2:states[index]!,collation:aggregate.collation});});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;resultTrees.forEach((tree,index)=>ops.push({code:"AggFinal",name:(tree as Extract<Expression,{kind:"aggregate"}>).name,p1:states[index]!}));const outputStart=registers+1;for(const state of states){registers++;ops.push({code:"Copy",p1:state,p2:registers});}emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,states.length);if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:jsonTableName,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
     }
     if(resultTrees.some(tree=>tree.kind==="aggregate"))throw new JSQLiteError("unsupported",`this ${jsonTableName} aggregate composition is not implemented`,{unsupportedClassification:"temporary"});
     // select.c:tag-select-0100 drops superfluous ORDER BY for SRT_Exists.
     // Its row loop must not materialize EList merely to feed a sorter.
     const sorter=select.hasOrderBy&&shared?.destination.kind!=="exists"?builder.cursor():null;
     if(sorter!==null)ops.push({code:"SorterOpen",p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:select.orderBy.length,keyFieldCount:select.orderBy.length,terms:select.orderBy.map(term=>({collation:collation(expressionFromReduction(term.expr.reduction!)),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false}))})});
-    const rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:0,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});
+    const rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:jsonCursor,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});
     const loop=ops.length;let predicateJump:number|null=null;
-    if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);predicateJump=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+    const moduleBinding:ResolvedExpressionBinding|undefined=shared?.linkedPlan?{
+      policy:'scalar',positionedSources:new Set([...(shared.expressionBinding?.positionedSources??[]),...shared.linkedPlan.sources]),
+      location:(ref,depth)=>shared.linkedPlan!.sources.includes(ref.source)?{kind:'register',register:rowStart+ref.columnIndex,phase:'source-row'}:shared.expressionBinding?.location(ref,depth)??{kind:'cursor',cursor:ref.source.cursorId}
+    }:undefined;
+    const compileRowSubquery=shared?.linkedPlan?resolvedScalarSubqueryEmitter(shared.linkedPlan,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},moduleBinding,schema):undefined;
+    if(predicateTree){builder.registers=registers;const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,compileRowSubquery,true);registers=Math.max(registers,builder.registers);predicateJump=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
     const star=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==="*";
     // select.c:selectInnerLoop does not evaluate EList for SRT_Exists.
     // Still lower it at prepare time for the same validation as other
@@ -7854,7 +7884,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   const parsed=parseSql(`SELECT ${projection.join(',')}`).statement;
   if(!parsed||parsed.kind!=='select')throw new JSQLiteError('internal','metadata aggregate payload projection missing');
   const producer={...select,result:parsed.result,where:select.where,groupBy:[],orderBy:[],having:null,limit:null,offset:null,hasGroupBy:false,hasOrderBy:false,hasHaving:false,hasLimit:false,hasDistinct:false} as SelectNode;
-  const input={first,rowIdentities:true,emit:(consume:()=>void)=>{compileTableSelectProducer(producer,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'output'},consume:(row,count)=>{for(let i=0;i<count;i++)builder.ops.push({code:'Copy',p1:row+i,p2:first+i});consume();}});}};
+  const input={first,rowIdentities:true,emit:(consume:()=>void)=>{compileTableSelectProducer(producer,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,linkedPlan,...(parent?.expressionBinding?{expressionBinding:parent.expressionBinding}:{}),destination:{kind:'output'},consume:(row,count)=>{for(let i=0;i<count;i++)builder.ops.push({code:'Copy',p1:row+i,p2:first+i});consume();}});}};
   // The scan owns WHERE: hidden EQ initializes Filter, then its residual
   // runs once before AggInfo input. Do not erase initialization or evaluate
   // the original predicate again in the aggregate consumer (BestIndex omit).

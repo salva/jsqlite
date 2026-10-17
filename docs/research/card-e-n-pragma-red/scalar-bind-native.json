@@ -1,0 +1,207 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "sql": "SELECT (SELECT count(*)+sum(p.cid) FROM pragma_table_info(?1) p WHERE p.cid IN (SELECT q.cid FROM pragma_table_info(?1) q)) AS a",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "sha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "runs": [
+        {
+          "binding": "t",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        },
+        {
+          "binding": "u",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "binding": "missing",
+          "cycles": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "binding": null,
+          "cycles": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "binding": "t",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "runs": [
+        {
+          "binding": "t",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        },
+        {
+          "binding": "u",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "binding": "missing",
+          "cycles": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "binding": null,
+          "cycles": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "binding": "t",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "runs": [
+        {
+          "binding": "t",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        },
+        {
+          "binding": "u",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "1"
+            },
+            {
+              "type": "integer",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "binding": "missing",
+          "cycles": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "binding": null,
+          "cycles": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        {
+          "binding": "t",
+          "cycles": [
+            {
+              "type": "integer",
+              "value": "6"
+            },
+            {
+              "type": "integer",
+              "value": "6"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
