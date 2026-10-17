@@ -10,6 +10,20 @@ function reason(expected, operation) {
 /* UPSTREAM-DERIVED: pinned 3.53.4 vdbemem.c SetDouble/SetInt64/SetStr and
  * ShallowCopy/Copy/Move. LOCAL-SAFETY cases exercise explicit TS lifetime and
  * malformed-state checks; they carry no SQL conformance credit. */
+test("UPSTREAM valueToText converts a private representation without replacing producer storage", () => {
+  const value = new Mem();
+  assert.equal(value.valueText(), null);
+  value.setInt64(42n); assert.equal(value.valueText(), "42"); assert.equal(memToPublicInitial(value), 42n);
+  value.setDouble(42); assert.equal(value.valueText(), "42.0"); assert.equal(value.initialStorageClass, "real");
+  value.setBlob(Uint8Array.of(0x74, 0, 0x78), {zeroTail: 1});
+  assert.equal(value.valueText(), "t\u0000x\u0000");
+  assert.deepEqual(memToPublicInitial(value), Uint8Array.of(0x74, 0, 0x78, 0));
+  for (const [encoding, bytes] of [["utf-16le", [0x74,0]], ["utf-16be", [0,0x74]]]) {
+    value.setText(Uint8Array.from(bytes), encoding);
+    assert.equal(value.valueText(), "t"); assert.equal(value.diagnostic().encoding, encoding);
+  }
+});
+
 test("UPSTREAM sqlite3VdbeMemSetDouble: NaN becomes NULL while infinity and integral doubles remain REAL", () => {
   const value = new Mem();
   value.setDouble(Number.NaN); assert.equal(memToPublicInitial(value), null);

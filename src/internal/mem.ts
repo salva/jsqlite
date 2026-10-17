@@ -542,6 +542,21 @@ export class Mem {
     }
     return value;
   }
+  /** vdbemem.c:valueToText/sqlite3ValueText on an isolated representation.
+   * Keep producer storage flags/bytes intact (Mem has one byte-kind slot). */
+  valueText(): string | null {
+    if (this.#manifest === "null") return null;
+    const value = new Mem();
+    value.copyFrom(this);
+    if (value.#bytes !== null) {
+      const state = value.#checkedBytes();
+      if (state.kind === "blob") value.#forceByteType("text", state.encoding);
+      value.changeEncoding("utf-8");
+    } else {
+      value.stringify("utf-8", false);
+    }
+    return value.textValue();
+  }
   /** vdbe.c:numericType/computeNumericType on a private register copy. */
   numericTypeCopy(): Mem {
     const value = new Mem();

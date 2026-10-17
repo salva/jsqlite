@@ -1,7 +1,7 @@
 import {JSQLiteError} from '../index.ts';
 import {METADATA_MODULE_COLUMNS,metadataHiddenColumns,metadataColumnDeclaredType} from './pragma.ts';
 import {jsonTableDeclaration} from './json-table-plan.ts';
-import {integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
+import {SchemaGraph,integerPrimaryKeyColumn,freezeTransientTable,findSchemaTable} from './schema.ts';
 import {sortTermsForWindow,windowFrame,type OrderTermNode,type ExprNode,type SelectNode,type SourceItem,type WindowDefinitionNode,type WindowFrameNode} from './parse.ts';
 import type {ColumnNode,TableNode,ViewNode} from './schema.ts';
 import {sqliteAsciiFold,sqliteIdentifierEqual} from './sqlite-case.ts';
@@ -54,7 +54,7 @@ export interface ResolvedWindow {readonly functionName:string;readonly argumentC
 export interface ResolvedWindowDefinition {readonly name:string;readonly partitionBy:readonly ExprNode[];readonly orderBy:readonly ExprNode[];readonly orderTerms:readonly OrderTermNode[];readonly frame:WindowFrameNode}
 export interface ResolvedColumnUse {readonly expression:ExprReduction;readonly source:ResolvedSource;readonly columnIndex:number;readonly selectDepth:number;readonly mergedSources?:readonly ResolvedColumnRef[]|null}
 // resolve.c TK_AGG_FUNCTION.op2: lexical depth relative to this SELECT.
-export interface ResolvedSelect {readonly compoundArms?:readonly ResolvedSelect[];readonly aggregateUses?:ReadonlyMap<ExprReduction,number>;readonly aliasUses?:ReadonlyMap<ExprReduction,ExprReduction>;readonly orderResultColumns:readonly (number|null)[];readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
+export interface ResolvedSelect {readonly metadataSchema?:SchemaGraph;readonly compoundArms?:readonly ResolvedSelect[];readonly aggregateUses?:ReadonlyMap<ExprReduction,number>;readonly aliasUses?:ReadonlyMap<ExprReduction,ExprReduction>;readonly orderResultColumns:readonly (number|null)[];readonly source:SelectNode;readonly sources:readonly ResolvedSource[];readonly result:readonly ResolvedResult[];readonly correlated:boolean;readonly nested:readonly ResolvedSelect[];readonly columnUses:readonly ResolvedColumnUse[];readonly windowDefinitions:readonly ResolvedWindowDefinition[];readonly windows:readonly ResolvedWindow[];readonly multipleWindowPartitions:boolean}
 /** Transient resolve.c NameContext frame; never attached to immutable schema AST. */
 interface NameContext {readonly aggregateUses?:Map<ExprReduction,number>;readonly aliasUses?:Map<ExprReduction,ExprReduction>;readonly sources:readonly ResolvedSource[];readonly pNext:NameContext|null;readonly columnUses:ResolvedColumnUse[];nRef:number}
 type ExprReduction=LemonValue<SqlToken>&{readonly kind:'reduction'};
@@ -234,11 +234,6 @@ function direct(expression:ExprNode,sources:readonly ResolvedSource[]):{resolved
  // resolve.c:lookupName retains rowid candidates only when no real column
  // matched anywhere in the current NameContext.
  if(found.length===0)found=rowidCandidates;
- // pragma.c has a real cursor iRowid, but our finite metadata producer does
- // not expose it yet. Reject at lookup ownership, before any aggregate or
- // correlated caller can consume its reserved (non-identity) payload slot.
- // Real columns still shadow rowid aliases, as in resolve.c:lookupName.
- if(found.length===1&&found[0]!.columnIndex<0&&found[0]!.source.table.kind==='metadata-module')throw new JSQLiteError('unsupported','metadata table-function row identity is not implemented');
  // lookupName/tableAndColumnIndex: an unqualified USING name denotes one
  // merged column. RIGHT selects the RHS; INNER/LEFT retain the left-most.
  let mergedSources:readonly ResolvedColumnRef[]|null=null;
@@ -677,7 +672,7 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
   if(aggregate&&!select.groupBy.length&&!select.result.some(hasAggregate))throw new NameResolutionError(`misuse of aggregate: ${aggregate}()`);
  }
  const resolvedWindowGraph=collectResolvedWindows(select,windowDefinitions);
- const plan:ResolvedSelect=Object.freeze({aggregateUses:context.aggregateUses!,aliasUses:context.aliasUses!,orderResultColumns:Object.freeze(orderResultColumns),source:select,sources,result:Object.freeze(output),correlated:context.nRef>0,nested:Object.freeze(nested),columnUses:Object.freeze(columnUses),windowDefinitions,windows:resolvedWindowGraph.windows,multipleWindowPartitions:resolvedWindowGraph.multiple});
+ const plan:ResolvedSelect=Object.freeze({...(schema instanceof SchemaGraph?{metadataSchema:schema}:{}),aggregateUses:context.aggregateUses!,aliasUses:context.aliasUses!,orderResultColumns:Object.freeze(orderResultColumns),source:select,sources,result:Object.freeze(output),correlated:context.nRef>0,nested:Object.freeze(nested),columnUses:Object.freeze(columnUses),windowDefinitions,windows:resolvedWindowGraph.windows,multipleWindowPartitions:resolvedWindowGraph.multiple});
  const metadataResults=plan.result.map(item=>{
   const expression=item.expression.reduction;
   if(!expression||!linkedScalarMetadataExpression(expression))return item;

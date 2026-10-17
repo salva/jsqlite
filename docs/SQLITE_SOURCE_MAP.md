@@ -42,15 +42,38 @@ remains a separate [[card:card-w]] gate.
 [Scalar delivery evidence](research/metadata-scalar-delivery.md).
 [Evidence and boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 
-## Metadata identity admission boundary
+## Metadata cursor identity (bounded consumers)
 
-`resolve.c:lookupName` selects real columns before implicit rowid candidates;
-`pragma.c:pragmaVtabCursorClear/pragmaVtabNext/pragmaVtabRowid` owns the native
-cursor counter. `resolve.ts:direct` rejects a selected metadata-module identity
-before AggInfo or correlated consumers can bind it; singleton
-`vdbe.ts:bindColumns` retains the same temporary boundary. Physical and JSON
-identity remain separate. Tests: `metadata-identity-boundary.test.mjs` and
-`tvf-group.test.mjs`. [Diagnosis and evidence](research/metadata-destination-correction.md).
+`resolve.c:lookupName` → `resolve.ts:direct`: real columns precede implicit
+rowid candidates. `pragma.c:pragmaVtabCursorClear/pragmaVtabNext/pragmaVtabRowid`
+→ `vdbe.ts:MetadataFilter/MetadataNext` per-cursor counter and explicit identity
+register; singleton/mixed binders and declared metadata aggregate payloads retain that
+identity independently of visible fields. `metadata-identity.test.mjs` compares
+pinned `identity-native.json` (capture: `tools/oracle/capture-metadata-identity.py`)
+including full metadata/reset/all encodings. Physical scalar child bindings map
+outer logical columns through the selected covering index (where.c:WhereEnd),
+with table-storage mapping for non-covering scans. `where-metadata-loops.ts`
+translates pragmaVtabBestIndex last-hidden-EQ selection and prerequisite masks;
+selected constraint reductions carry omit ownership into WHERE/ON emission.
+`vdbemem.c:valueToText/sqlite3ValueText` → `Mem.valueText` private UTF-8
+representation (preserves producer type); pragmaVtabFilter copies its NUL-prefix
+after clearing the prior cursor. `mem-core.test.mjs` and native identity controls
+cover numeric/NULL/BLOB/text conversion and selected versus duplicate residuals.
+`compileInnerTableSelect` gives each metadata occurrence its own Filter/Next/Close
+cursor and declaration-width register payload. Two-source, hidden-EQ, Result0
+and empty LEFT controls pass in the native corpus. `bindResolvedExpression`
+retains resolved source identity; singleton module rebinding preserves linked
+outer locations rather than comparing remapped cursor numbers. Correlated
+outer-rowid aggregate predicates and positive `metadata-identity-boundary.test.mjs`
+controls pass. `window.c:sqlite3WindowRewrite` → module window admission and
+`compileWindowSelectLowering` sourceRow registration: the shared WHERE coroutine
+publishes declaration payload plus identity to existing window buffer bindings.
+`select.c` AggInfo input → seven-family declared metadata aggregate enrollment,
+including Result0 database_list; no B-tree descriptor is fabricated. Native
+controls cover aggregate/window identity in all seven families, empty input and
+window LIMIT. Complete shared caller review remains open; this is not an
+accepted parity claim.
+Current partial-author evidence: [[card:card-e-n]] status.
 
 ## Mixed module predicate readiness
 

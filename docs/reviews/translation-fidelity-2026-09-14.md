@@ -1,3 +1,12 @@
+## Metadata cursor identity — bounded author delivery
+
+The former metadata rowid rejection is repaired through per-occurrence
+MetadataFilter/Next counters and real linked/aggregate/window payload identity,
+not NULL or visible cid/seq. Selected hidden-EQ omission and value-text conversion
+have native-first regression evidence; full-producer/caller independent acceptance
+and broader lifecycle/composition remain open. This does not close unrelated audit
+findings. [Source rationale and evidence boundary](../research/card-e-n-pragma-red/IDENTITY.md).
+
 ## Current packed expression membership disposition
 
 ## Metadata caller regression disposition

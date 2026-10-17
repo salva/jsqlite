@@ -1,3 +1,4 @@
+import {metadataWhereLoops,type MetadataWhereLoop} from './where-metadata-loops.ts';
 import {jsonWhereLoops,type JsonWhereLoop} from './where-json-loops.ts';
 import type {ReprepareContext} from './reprepare.ts';
 // Immutable WHERE candidate and path foundation.
@@ -28,7 +29,7 @@ export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:Col
 export interface IndexConstraintAdmission {readonly inSeekScan?:boolean;readonly term:WhereTerm;readonly physicalIndex:PhysicalIndex;readonly fieldOrdinal:number;readonly field:PhysicalIndexField;readonly keyInfoTerm:Readonly<KeyTerm>;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly comparison:SeekComparisonMode;readonly bound:"equality"|"lower-inclusive"|"lower-exclusive"|"upper-inclusive"|"upper-exclusive"}
 export interface RowidConstraint {readonly term:WhereTerm;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly bound:IndexConstraintAdmission["bound"]}
 export interface BtreeCapability {readonly inSeekScan?:boolean;readonly index:IndexNode|null;readonly physicalIndex:PhysicalIndex|null;readonly nEq:number;readonly nSkip:number;readonly equalitySlots:readonly (IndexConstraintAdmission|null)[];readonly lower:IndexConstraintAdmission|null;readonly upper:IndexConstraintAdmission|null;readonly constrainedFields:number;readonly orderTermsSatisfied:number;readonly reverse:boolean;readonly covering:boolean;readonly needsTableLookup:boolean;readonly rowidEquality:RowidConstraint|null;readonly rowidLower:RowidConstraint|null;readonly rowidUpper:RowidConstraint|null}
-export type WhereLoop = BtreeWhereLoop | JsonWhereLoop;
+export type WhereLoop = BtreeWhereLoop | JsonWhereLoop | MetadataWhereLoop;
 export interface BtreeWhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index"|"multi-or";readonly orInfo?:Extract<WhereTermInfo,{kind:"or"}>;readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode|null;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
@@ -1542,7 +1543,7 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
  const analysis=analyzeWhere(resolved);
 
  const buildAll=()=>{const ordinaryLoops:WhereLoop[]=[];
- let joinBarrier=0n;return resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000n;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);if(source.table.kind==='metadata-module')throw new WherePlanningUnsupportedError('metadata module requires its Filter producer');if(source.table.kind==='json-module'){
+ let joinBarrier=0n;return resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000n;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);if(source.table.kind==='metadata-module'){const added=whereLoopInsertCandidates(metadataWhereLoops(resolved,source,request.externalAvailable??new Set(),sourcePrereq),planBudget);ordinaryLoops.push(...added);return added;}if(source.table.kind==='json-module'){
  if(source.indexedBy!==null)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);
  // whereLoopAddVirtualOne inserts every successful BestIndex template via
  // whereLoopInsert, just like AddBtree. Share dominance and builder budget;

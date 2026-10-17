@@ -35,13 +35,35 @@ for genuinely unsupported plans. Remaining breadth is an implementation gap, not
 platform constraints. [Scalar delivery evidence](research/metadata-scalar-delivery.md).
 [Source comparison and remaining boundary](research/metadata-destination-correction.md#shared-scalar-planner-admission-boundary).
 
-Metadata identity admission is checked at the shared resolved source descriptor
-before aggregate/correlated lowering and at singleton binding. Metadata
-rowid/_rowid_/oid remain temporarily unsupported, including predicate-only and
-group-only uses; physical and JSON identities and supported metadata name/count
-GROUP are unchanged. This is an implementation gap, not a browser constraint:
-pinned pragma.c owns a real cursor counter not yet exposed by this producer.
-[Source comparison and regression evidence](research/metadata-destination-correction.md).
+Metadata cursor identity: `MetadataFilter`/`MetadataNext` own a
+per-occurrence BigInt counter (first row 1), carried independently of visible
+cid/seq through singleton and mixed producers and the declared seven-family aggregate
+payload. Native/public controls pass singleton aliases across all seven families,
+empty, ORDER/GROUP and representative LEFT/shadow cases. This is not accepted
+feature closure: correlated scalar/EXISTS consumers retain covering-index
+column locations and generic inner loops now enroll metadata Filter/Next with
+independent cursor/register ownership. Native controls cover two occurrences,
+hidden EQ, empty LEFT null-extension and Result0 joins. Linked column expressions
+retain their resolved source owner through singleton rebinding: parent columns
+keep their positioned location while local module columns become payload registers
+(`resolve.c:lookupName` NameContext walk). Correlated outer-rowid aggregate
+predicates and the positive former-boundary controls now pass. Single resident
+metadata window inputs use the existing WHERE coroutine/sourceRow handoff;
+window buffer bindings copy the module's real identity register, not a B-tree
+Rowid or JSON payload. Aggregate enrollment uses the same real declarations
+for all seven families, including zero-hidden-column database_list. Complete
+shared caller review and broader composition remain unfinished. Generic metadata
+loops retain the exact selected hidden-EQ reduction for argv/omit: only that
+constraint is omitted from WHERE/ON residuals, not duplicate or unrelated terms.
+Filter clears the old cursor before `Mem.valueText` converts arguments to UTF-8
+and copies the NUL-terminated prefix, matching pragmaVtabFilter. The conversion
+uses a private Mem because the TS representation has one byte-kind slot, unlike
+C's coexisting MEM_Str/MEM_Blob flags; producer storage classes remain intact.
+Physical
+and JSON identity remain separate; these are implementation gaps, not browser
+constraints. Current author evidence and remaining obligations: [[card:card-e-n]]
+status.
+[Source comparison](research/metadata-destination-correction.md).
 
 ### Mixed module predicate readiness
 
