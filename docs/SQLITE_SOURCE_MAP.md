@@ -25,6 +25,8 @@ The mixed physical/module producer resolves WHERE/ON against both declarations b
 
 ## Linked JSON module enrollment and selected execution
 
+- `json.c:jsonEachColumn` / `select.c:selectInnerLoop` requested values → `vdbe.ts:jsonColumnDemand`, legacy resolved binders, JsonTableRewind → `json.ts:openJsonTableCursor` demanded conversion. Ten positional slots remain; undemanded fields are NULL through sourceRow/AggInfo snapshots, explicit hidden TEXT/BLOB retains owning Mem copies. Static source demand is not per-callback laziness. Tests: `json-hidden-demand.test.mjs`, `json-hidden-consumers.test.mjs`; boundaries/evidence: [column demand](research/card-r-d-hidden-demand.md).
+
 ## Joined destination and row identity closure
 
 `select.c:selectInnerLoop` SRT_Exists / `multiSelect` TK_ALL → `vdbe.ts:resolvedScalarSubqueryEmitter` no-source/compound branches: prepare validation, projection suppression, WHERE/OFFSET/shared LIMIT/Once/source-order presence exit. All-encoding/reset/error controls: `expression-subquery-composition.test.mjs`. `select.c:columnType/sqlite3GenerateColumnNames` negative column/IPK and COLLATE branches → `jsonResultMetadata` and mixed producer independent module-rowid caller; tests `json-mixed-ordered.test.mjs`, `json-table-functions.test.mjs`. [Scoped integration evidence](research/card-m-f-k-production-integration.md#reviewer-repair-integration). JSON planner modules remain production dependencies; experiment copies are excluded from this delivery.
