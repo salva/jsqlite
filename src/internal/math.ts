@@ -36,12 +36,11 @@ export function isMathFunction(name:string):boolean {
   ||Object.hasOwn(unaryCallbacks,name)||Object.hasOwn(binaryCallbacks,name);
 }
 
-function numeric(value:Mem,encoding:DatabaseEncoding):Mem|null {
- const copy=new Mem();
- copy.copyFrom(value);
- // sqlite3_value_numeric_type converts only wholly numeric TEXT. BLOB and
- // nonnumeric/prefix TEXT retain their storage class and reject below.
- if(copy.initialStorageClass==="text")copy.applyAffinity("numeric",encoding);
+function numeric(value:Mem):Mem|null {
+ // sqlite3_value_numeric_type uses applyNumericAffinity(bTryForInt=0),
+ // not generic NUMERIC affinity: decimal/exponent TEXT must stay REAL.
+ // The shared owner uses the Mem's text encoding and leaves producer state intact.
+ const copy=value.valueNumericTypeCopy();
  return copy.initialStorageClass==="integer"||copy.initialStorageClass==="real"?copy:null;
 }
 function real(value:Mem):number {
@@ -59,7 +58,7 @@ export function evaluateMathFunction(name:string,args:readonly Mem[],encoding:Da
   result.setDouble(Math.PI);
   return result;
  }
- const first=numeric(args[0]!,encoding);
+ const first=numeric(args[0]!);
  if(!first)return result;
  if(roundingNames.has(name)){
   // ceilingFunc uniquely preserves an INTEGER input rather than returning REAL.
@@ -91,6 +90,6 @@ export function evaluateMathFunction(name:string,args:readonly Mem[],encoding:Da
  if(unary)return realResult(unary(left));
  const binary=binaryCallbacks[name];
  if(!binary)return result;
- const second=numeric(args[1]!,encoding);
+ const second=numeric(args[1]!);
  return second?realResult(binary(left,real(second))):result;
 }

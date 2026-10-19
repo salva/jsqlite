@@ -5,9 +5,9 @@ spec_path=ROOT/'test/conformance/cases/stage3-math.spec.json'; native_path=ROOT/
 spec=json.loads(spec_path.read_text()); native=json.loads(native_path.read_text()); pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
 assert spec['source']['sourceId']==pin['sqliteSourceId'] and native['source']['sourceId']==pin['sqliteSourceId']
 assert native['source']['specSha256']==hashlib.sha256(spec_path.read_bytes()).hexdigest()
-assert spec['scope']=={'registryRows':30,'distinctNames':29,'selectedCases':22,'oracleObservations':66,'tsCredit':0}
-assert len(spec['registry'])==30 and len(spec['cases'])==22 and len(native['observations'])==66
-assert native['counts']=={'registryRows':30,'distinctNames':29,'selectedCases':22,'observations':66,'tsCredit':0}
+assert spec['scope']=={'registryRows':30,'distinctNames':29,'selectedCases':23,'oracleObservations':69,'tsCredit':0}
+assert len(spec['registry'])==30 and len(spec['cases'])==23 and len(native['observations'])==69
+assert native['counts']=={'registryRows':30,'distinctNames':29,'selectedCases':23,'observations':69,'tsCredit':0}
 assert native['profile']['compileOptionUsed']=={'ENABLE_COLUMN_METADATA':True,'ENABLE_MATH_FUNCTIONS':True}
 assert native['profile']['c99MathFunctions'] is True
 # Inventory must remain a literal projection of the pinned registration block.
@@ -50,4 +50,11 @@ for obs in extrema_obs:
  assert [(cell['type'],cell.get('value')) for cell in row[:8]]==[('integer','9223372036854775807'),('integer','-9223372036854775808')]*4
  assert [cell['type'] for cell in row[8:]]==['real','null','real','real','real']
  assert [cell.get('ieee754Hex') for cell in row[8:]]==['41e6a09e667f3bcd',None,'3fefff6dfd42dc54','47d0000000000000','c000000000000000']
-print('math manifest: 30 FuncDef rows/29 names, 22 cases, 66 pinned oracle observations, C99 rows available, TS credit 0/22')
+rounding_obs=[obs for obs in native['observations'] if obs['id']=='numeric-text-rounding-class']
+assert len(rounding_obs)==3 and {obs['encoding'] for obs in rounding_obs}=={'UTF-8','UTF-16le','UTF-16be'}
+for obs in rounding_obs:
+ row=obs['rows'][0]
+ assert len(row)==15 and [cell['type'] for cell in row]==['real']*8+['integer']*4+['null']*3
+ assert [cell['ieee754Hex'] for cell in row[:8]]==['3ff0000000000000']*8
+ assert [cell['value'] for cell in row[8:12]]==['1']*4
+print('math manifest: 30 FuncDef rows/29 names, 23 cases, 69 pinned oracle observations, C99 rows available, TS credit 0/23')

@@ -21,8 +21,8 @@
   "scope": {
     "registryRows": 30,
     "distinctNames": 29,
-    "selectedCases": 22,
-    "oracleObservations": 66,
+    "selectedCases": 23,
+    "oracleObservations": 69,
     "tsCredit": 0
   },
   "registry": [
@@ -872,6 +872,15 @@
         "BLOB numeric prefix",
         "nonnumeric/NULL"
       ],
+      "credit": "zero-until-public-typed-success"
+    },
+    {
+      "id": "numeric-text-rounding-class",
+      "sql": "SELECT ceil('1.0'),floor('1.0'),trunc('1e0'),ceiling('1.0'),ceil('1e0'),ceiling('1e0'),floor('1e0'),trunc('1.0'),ceil('1'),ceiling('1'),floor('1'),trunc('1'),ceil('1x'),ceil(x'31'),ceil(NULL)",
+      "encodings": ["UTF-8", "UTF-16le", "UTF-16be"],
+      "parameters": [],
+      "database": "memory",
+      "branches": ["func.c ceilingFunc numeric_type INTEGER/FLOAT selection", "vdbe.c applyNumericAffinity bTryForInt=0 decimal/exponent TEXT stays REAL", "integer-looking TEXT and rejected prefix/BLOB/NULL neighbors"],
       "credit": "zero-until-public-typed-success"
     },
     {
