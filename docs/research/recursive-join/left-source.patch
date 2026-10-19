@@ -1,0 +1,137 @@
+--- a/src/internal/vdbe.ts
++++ b/src/internal/vdbe.ts
+@@ -7,7 +7,7 @@
+ import { VdbeHostAdmission } from "./vdbe-host-admission.ts";
+ import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
+ import { RowSet } from "./rowset.ts";
+-import {bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
++import {bindRecursiveCurrent,bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
+ import {findSchemaTable,integerPrimaryKeyColumn,freezeTransientTable,tableColumnToStorage} from "./schema.ts";
+ import {resolvedColumnCarrier,resolvedGeneratedExpressionCarrier,resolvedExpressionCarrier,type ResolvedExpressionCarrier,type ResolvedSource,type ResolvedExpressionBinding} from './resolve.ts';
+ // First compiled no-FROM scalar SELECT slice. The instruction/register split
+@@ -2656,8 +2656,12 @@
+  const names=owner.columns??owner.select.arms[0]!.result.map(expressionName);
+  const columns=names.map(name=>Object.freeze({szEst:0,name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
+  const table:TableNode=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
++ // columnTypeImpl descends through the right-most compound arm. Its
++ // recursive Current source is a CTE table without a schema, not a fake
++ // physical producer. Computed expressions still have no origin.
++ bindRecursiveCurrent(table);
+  const transient=schema.withTransientTable(table);let expanded:ReturnType<typeof expandAndResolveSelect>;
+- try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
++ try{const last=owner.select.arms.at(-1)!;const producer=expandAndResolveSelect({...owner.select,...last,hasCompound:false,arms:Object.freeze([last])},transient);bindTransientProducer(table,producer);expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+  return {transient,expanded};
+ }
+ 
+@@ -2669,7 +2673,7 @@
+  const refs=select.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
+  // Decline before resolution/allocation/emission: other semantic owners handle
+  // derived inputs and multiple recursive declarations. Selected errors remain terminal.
+- if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.left||item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))return undefined;
++ if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))return undefined;
+  const {transient,expanded}=prepareRecursiveSource(select,owner,schema),{builder,parameters,destination}=shared,ops=builder.ops;
+  const recursiveSource=expanded.sources[select.from.items.indexOf(refs[0]!) ]!;
+  // Reserve resolver cursor identities before queue code allocates private ones.
+@@ -9396,14 +9400,16 @@
+           case "NullRow": {
+             this.#borrow.invalidate();
+             this.#records.delete(op.p1);
++            const privateCursor=this.#privateCursors.get(op.p1);
++            if(privateCursor?.kind==='ephemeral-index')privateCursor.setNullRow();
+             this.#recordRowids.delete(op.p1);
+             this.#deferredRowids.delete(op.p1);
+             this.#tableSeekCursors.get(op.p1)?.clearPosition();
+             this.#indexCursors.get(op.p1)?.clearPosition();
+             break;
+           }
+-          case "Column": {const cursorNumber=op.p3??0,privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
+-          case "IfNullRow": {if(!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
++          case "Column": {const cursorNumber=op.p3??0,privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
++          case "IfNullRow": {const privateCursor=this.#privateCursors.get(op.p1);if(privateCursor?.kind==='ephemeral-index'?privateCursor.nullRow:!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
+           // vdbe.c OP_TypeCheck P3>=2: one STRICT virtual column on reads.
+           case "TypeCheck": {
+             const value=this.#registers[op.p1]!;
+@@ -9418,7 +9424,7 @@
+           }
+           case "Affinity": {const value=this.#registers[op.p1]!;value.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")opcodeRealAffinity(value);break;}
+           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
+-          case "Rowid": {const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
++          case "Rowid": {const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
+           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
+           case "IsNull": if(this.#registers[op.p1]!.initialStorageClass==="null")this.#pc=op.p2;break;
+           case "IfNot": if(op.residual)this.#privateAccounting={...this.#privateAccounting,residualTests:this.#privateAccounting.residualTests+1};if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
+--- a/src/internal/private-state.ts
++++ b/src/internal/private-state.ts
+@@ -167,6 +167,8 @@
+   async retainFoundIn(other:EphemeralIndexCursor,control:PrivateStateControl):Promise<void>{
+    this.#live();for(let i=0;i<this.#shared.entries.length;){const entry=this.#shared.entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#deleteAt(i)}
+   }
++  // Clearing/reordering shared records invalidates positions, not the
++  // handle-local VDBE nullRow flag. Callers Rewind before reading again.
+   clear():void{this.#live();this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[];this.#shared.sequence=0;for(const cursor of this.#shared.cursors){cursor.#at=-1;cursor.#deleted=false}}
+   /** btree.c IndexMoveto-shaped lower bound for ordinary ordered key cursors.
+    * Insertion-order/window cursors deliberately keep their existing sequence. */
+@@ -202,9 +204,16 @@
+   async sort(control:PrivateStateControl):Promise<void>{
+    this.#live();if(this.insertionOrder)return;let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#shared.sorted=true;for(const cursor of this.#shared.cursors){cursor.#at=-1;cursor.#deleted=false;}
+   }
+-  first():boolean{this.#live();this.#deleted=false;this.#at=0;return this.#shared.entries.length>0}
+-  /** window.c1948ff / vdbe.c OP_SeekRowid: publish positioning only after
+-   * lookup succeeds. Browser linear lookup charges every visited shared record;
++  // vdbe.c OP_NullRow is handle-local, including OpenDup handles. It does
++  // not delete shared ephemeral records; positioning clears the null row.
++  // OpenEphemeral/OpenDup start unpositioned with nullRow=1 (vdbe.c).
++  #nullRow=true;
++  get nullRow():boolean{this.#live();return this.#nullRow}
++  setNullRow():void{this.#live();this.#nullRow=true;this.#at=-1;this.#deleted=false}
++  first():boolean{this.#live();this.#nullRow=this.#shared.entries.length===0;this.#deleted=false;this.#at=0;return !this.#nullRow}
++  /** window.c1948ff / vdbe.c OP_SeekRowid: a completed integer seek
++   * clears nullRow even on a miss; failed lookup follows the caller's jump.
++   * Browser linear lookup charges every visited shared record;
+    * the VM control supplies bounded yielding, cancellation and deadline checks. */
+   async seekRowid(rowid:bigint,control:PrivateStateControl):Promise<boolean>{
+    this.#live();await control.checkpoint(0);
+@@ -214,7 +223,7 @@
+     this.#live();
+     if(BigInt(this.#shared.entries[i]!.sequence+1)===rowid){at=i;break}
+    }
+-   await control.checkpoint(0);this.#live();this.#deleted=false;this.#at=at;return at>=0;
++   await control.checkpoint(0);this.#live();this.#nullRow=false;this.#deleted=false;this.#at=at;return at>=0;
+   }
+   /** Monotonic insertion identity, independent of the live entry count.
+    * Clear starts a new ephemeral table; deletion never reuses an identity. */
+@@ -238,8 +247,8 @@
+   }
+ 
+   rowid():bigint{this.#live();if(this.#deleted||this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return BigInt(this.#shared.entries[this.#at]!.sequence+1)}
+-  next():boolean{this.#live();this.#deleted=false;return ++this.#at<this.#shared.entries.length}
+-  rewindBeforeFirst():void{this.#live();this.#deleted=false;this.#at=-1}
++  next():boolean{this.#live();this.#deleted=false;this.#nullRow=++this.#at>=this.#shared.entries.length;return !this.#nullRow}
++  rewindBeforeFirst():void{this.#live();this.#nullRow=true;this.#deleted=false;this.#at=-1}
+   nextData():readonly Mem[]|null{this.#live();return this.#shared.entries[this.#at+1]?.key??null;}
+   hasNext():boolean{this.#live();return this.#at+1<this.#shared.entries.length}
+   data():readonly Mem[]{this.#live();if(this.#deleted||this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return this.#shared.entries[this.#at]!.key}
+--- a/src/internal/resolve.ts
++++ b/src/internal/resolve.ts
+@@ -270,8 +270,10 @@
+ }
+ function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDescriptor{if(!resolved)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:null,collation:'BINARY'});const producer=transientProducerPlans.get(resolved.source.table);
+  if(producer){const child=producer.result[resolved.columnIndex]?.descriptor;return Object.freeze({name,declaredType:child?.declaredType??null,database:child?.database??null,table:child?.table??null,origin:child?.origin??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});}
+- // A recursive ephemeral source has no physical schema provenance. Without
+- // a linked subquery producer, columnTypeImpl cannot identify an origin table.
++ // select.c:columnTypeImpl on the Current self-reference has no pSelect:
++ // it names the CTE table/column but has no schema database.
++ if(recursiveCurrentTables.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:resolved.source.table.name,origin:resolved.columnIndex<0?'rowid':resolved.source.table.columns[resolved.columnIndex]?.name??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
++ // Other unlinked transient tables have no origin.
+  if(resolved.source.table.kind==='table'&&resolved.source.table.rootPage===0&&!schemaSourceProvenance.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
+  // select.c:columnTypeImpl uses iPKey for negative TK_COLUMN addressing,
+  // not the spelling used to reach that rowid (rowid/_rowid_/oid).
+@@ -967,6 +969,8 @@
+ export function bindSchemaSourceProvenance(table:TableNode,database:string,name:string):void{
+  freezeTransientTable(table);schemaSourceProvenance.set(table,Object.freeze({database,table:name}));
+ }
++const recursiveCurrentTables=new WeakSet<TableNode|JsonModuleSourceSchema>();
++export function bindRecursiveCurrent(table:TableNode):void{freezeTransientTable(table);recursiveCurrentTables.add(table);}
+ const transientProducerPlans=new WeakMap<TableNode|JsonModuleSourceSchema,ResolvedSelect>();
+ export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{freezeTransientTable(table);transientProducerPlans.set(table,producer);}
+ 

@@ -657,8 +657,16 @@ shared WHERE loops and AggInfo (including GROUP/HAVING); producer queue order,
 deduplication and LIMIT remain separate from consumer controls. This physical-only
 specialization declines outside its admission before resolution or builder mutation,
 so represented derived-input and multiple-recursive-declaration consumers retain
-their semantic owners; selected compilation errors remain terminal. SQL outer joins,
-repeated references to one recursive declaration and joined compound/window shapes
+their semantic owners; selected compilation errors remain terminal. INNER/CROSS
+and LEFT consumers in either source order use the same retained cursor. Shared
+LEFT lowering resets match state per outer row; handle-local NullRow makes
+private Column/Rowid reads NULL until repositioning, without deleting producer
+records. OpenEphemeral/OpenDup start null-row independently; Rewind sets the flag
+from emptiness, Next sets it on exhaustion, and completed integer SeekRowid clears
+it even on a miss (whose caller takes the failure jump). Shared clear/sort invalidates
+positions but preserves each handle's flag; callers rewind before reading.
+[Cursor branch evidence](research/recursive-join/left-evidence.md).
+RIGHT/FULL joins, repeated references to one recursive declaration and joined compound/window shapes
 not represented by another owner remain bounded temporary gaps. Materializing this retained input charges all producer
 rows before consumer output; it does not promise streaming latency or planner
 parity. [Source comparison and evidence](research/recursive-join/README.md).

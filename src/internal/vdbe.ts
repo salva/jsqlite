@@ -7,7 +7,7 @@ import {StorageLimitError} from './storage.ts';
 import { VdbeHostAdmission } from "./vdbe-host-admission.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
-import {bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
+import {bindRecursiveCurrent,bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
 import {findSchemaTable,integerPrimaryKeyColumn,freezeTransientTable,tableColumnToStorage} from "./schema.ts";
 import {resolvedColumnCarrier,resolvedGeneratedExpressionCarrier,resolvedExpressionCarrier,type ResolvedExpressionCarrier,type ResolvedSource,type ResolvedExpressionBinding} from './resolve.ts';
 // First compiled no-FROM scalar SELECT slice. The instruction/register split
@@ -2681,8 +2681,12 @@ function prepareRecursiveSource(select:SelectNode,owner:NonNullable<SelectNode['
  const names=owner.columns??owner.select.arms[0]!.result.map(expressionName);
  const columns=names.map(name=>Object.freeze({szEst:0,name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
  const table:TableNode=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
+ // columnTypeImpl descends through the right-most compound arm. Its
+ // recursive Current source is a CTE table without a schema, not a fake
+ // physical producer. Computed expressions still have no origin.
+ bindRecursiveCurrent(table);
  const transient=schema.withTransientTable(table);let expanded:ReturnType<typeof expandAndResolveSelect>;
- try{expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+ try{const last=owner.select.arms.at(-1)!;const producer=expandAndResolveSelect({...owner.select,...last,hasCompound:false,arms:Object.freeze([last])},transient);bindTransientProducer(table,producer);expanded=expandAndResolveSelect(select,transient)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
  return {transient,expanded};
 }
 
@@ -2694,7 +2698,7 @@ export function compileRecursiveJoinedSelect(select:SelectNode,schema:SchemaGrap
  const refs=select.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
  // Decline before resolution/allocation/emission: other semantic owners handle
  // derived inputs and multiple recursive declarations. Selected errors remain terminal.
- if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.left||item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))return undefined;
+ if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))return undefined;
  const {transient,expanded}=prepareRecursiveSource(select,owner,schema),{builder,parameters,destination}=shared,ops=builder.ops;
  const recursiveSource=expanded.sources[select.from.items.indexOf(refs[0]!) ]!;
  // Reserve resolver cursor identities before queue code allocates private ones.
@@ -9453,14 +9457,16 @@ export class VdbeStatement implements Statement {
           case "NullRow": {
             this.#borrow.invalidate();
             this.#records.delete(op.p1);
+            const privateCursor=this.#privateCursors.get(op.p1);
+            if(privateCursor?.kind==='ephemeral-index')privateCursor.setNullRow();
             this.#recordRowids.delete(op.p1);
             this.#deferredRowids.delete(op.p1);
             this.#tableSeekCursors.get(op.p1)?.clearPosition();
             this.#indexCursors.get(op.p1)?.clearPosition();
             break;
           }
-          case "Column": {const cursorNumber=op.p3??0,privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
-          case "IfNullRow": {if(!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
+          case "Column": {const cursorNumber=op.p3??0,privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
+          case "IfNullRow": {const privateCursor=this.#privateCursors.get(op.p1);if(privateCursor?.kind==='ephemeral-index'?privateCursor.nullRow:!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
           // vdbe.c OP_TypeCheck P3>=2: one STRICT virtual column on reads.
           case "TypeCheck": {
             const value=this.#registers[op.p1]!;
@@ -9475,7 +9481,7 @@ export class VdbeStatement implements Statement {
           }
           case "Affinity": {const value=this.#registers[op.p1]!;value.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")opcodeRealAffinity(value);break;}
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
-          case "Rowid": {const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
+          case "Rowid": {const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IsNull": if(this.#registers[op.p1]!.initialStorageClass==="null")this.#pc=op.p2;break;
           case "IfNot": if(op.residual)this.#privateAccounting={...this.#privateAccounting,residualTests:this.#privateAccounting.residualTests+1};if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;

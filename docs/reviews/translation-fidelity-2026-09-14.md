@@ -5238,8 +5238,16 @@ longer current unsupported predictions: retained queue output now enters shared
 WHERE/AggInfo consumers. This is a bounded implementation correction, not planner
 parity or closure of recursive composition. The physical-only specialization
 declines before emission outside its admission, preserving represented derived
-and distinct multiple-recursive owners. SQL outer joins, repeated references to
-one declaration and unrepresented joined compound/window inputs remain gaps. Source
+and distinct multiple-recursive owners. LEFT consumers in either source order now
+enter that retained path; private NullRow/Column/Rowid handle semantics and
+right-most recursive-arm metadata are translated rather than faking physical
+storage. Independent d147 then exposed missing OpenDup initial nullRow=1,
+masked by prior positioning in the cursor test. The corrected candidate initializes
+both opens, sets empty/exhausted Rewind/Next flags, and preserves handle flags
+across shared clear/sort; VM regressions cover pre-position reads and reset/reopen.
+Author evidence is not independent approval; see LEFT evidence for revision-bound
+checks and exact patch identity. RIGHT/FULL joins, repeated references to one declaration and unrepresented
+joined compound/window inputs remain gaps. Source
 comparison, exact encoding/reset/metadata observations and residual evidence
 limits are in [recursive join evidence](../research/recursive-join/README.md).
 

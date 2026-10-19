@@ -270,8 +270,10 @@ function lookupName(expression:ExprNode,context:NameContext,owner:NameContext=co
 }
 function descriptor(name:string,resolved:ResolvedColumnRef|null):ResultColumnDescriptor{if(!resolved)return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:null,collation:'BINARY'});const producer=transientProducerPlans.get(resolved.source.table);
  if(producer){const child=producer.result[resolved.columnIndex]?.descriptor;return Object.freeze({name,declaredType:child?.declaredType??null,database:child?.database??null,table:child?.table??null,origin:child?.origin??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});}
- // A recursive ephemeral source has no physical schema provenance. Without
- // a linked subquery producer, columnTypeImpl cannot identify an origin table.
+ // select.c:columnTypeImpl on the Current self-reference has no pSelect:
+ // it names the CTE table/column but has no schema database.
+ if(recursiveCurrentTables.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:resolved.source.table.name,origin:resolved.columnIndex<0?'rowid':resolved.source.table.columns[resolved.columnIndex]?.name??null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
+ // Other unlinked transient tables have no origin.
  if(resolved.source.table.kind==='table'&&resolved.source.table.rootPage===0&&!schemaSourceProvenance.has(resolved.source.table))return Object.freeze({name,declaredType:null,database:null,table:null,origin:null,affinity:resolved.source.table.columns[resolved.columnIndex]?.affinity??null,collation:resolved.source.table.columns[resolved.columnIndex]?.collation??'BINARY'});
  // select.c:columnTypeImpl uses iPKey for negative TK_COLUMN addressing,
  // not the spelling used to reach that rowid (rowid/_rowid_/oid).
@@ -967,6 +969,8 @@ const schemaSourceProvenance=new WeakMap<TableNode|JsonModuleSourceSchema,{reado
 export function bindSchemaSourceProvenance(table:TableNode,database:string,name:string):void{
  freezeTransientTable(table);schemaSourceProvenance.set(table,Object.freeze({database,table:name}));
 }
+const recursiveCurrentTables=new WeakSet<TableNode|JsonModuleSourceSchema>();
+export function bindRecursiveCurrent(table:TableNode):void{freezeTransientTable(table);recursiveCurrentTables.add(table);}
 const transientProducerPlans=new WeakMap<TableNode|JsonModuleSourceSchema,ResolvedSelect>();
 export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):void{freezeTransientTable(table);transientProducerPlans.set(table,producer);}
 

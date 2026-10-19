@@ -400,8 +400,9 @@ compatibility credit.
   routes. Recursive WITH has iterative Queue/Current, duplicate and queue-order
   behavior, body LIMIT/OFFSET separate from the outer consumer, and selected
   aggregate/window consumers. One recursive source joined to physical tables
-  supports inner/CROSS join and ordinary aggregate/GROUP/HAVING consumers;
-  retained input is bounded and materialized before consumer output. Outer joins,
+  supports inner/CROSS and LEFT joins in either source order, and ordinary
+  aggregate/GROUP/HAVING consumers; retained input is bounded and materialized
+  before consumer output. RIGHT/FULL joins,
   repeated references to one recursive declaration and unrepresented joined
   compound/window consumers remain temporary unsupported. The physical-join
   specialization does not preempt represented derived-input or distinct multiple

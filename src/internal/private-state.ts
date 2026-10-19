@@ -167,6 +167,8 @@ export class EphemeralIndexCursor {
   async retainFoundIn(other:EphemeralIndexCursor,control:PrivateStateControl):Promise<void>{
    this.#live();for(let i=0;i<this.#shared.entries.length;){const entry=this.#shared.entries[i]!;if(await other.found(entry.key,control)){i++;continue}await control.checkpoint(1);this.#deleteAt(i)}
   }
+  // Clearing/reordering shared records invalidates positions, not the
+  // handle-local VDBE nullRow flag. Callers Rewind before reading again.
   clear():void{this.#live();this.#shared.entries.forEach(entry=>{releaseEntry(entry);this.#budget.release(entry.bytes)});this.#shared.entries=[];this.#shared.sequence=0;for(const cursor of this.#shared.cursors){cursor.#at=-1;cursor.#deleted=false}}
   /** btree.c IndexMoveto-shaped lower bound for ordinary ordered key cursors.
    * Insertion-order/window cursors deliberately keep their existing sequence. */
@@ -202,9 +204,16 @@ export class EphemeralIndexCursor {
   async sort(control:PrivateStateControl):Promise<void>{
    this.#live();if(this.insertionOrder)return;let source=this.#shared.entries.slice(),target=new Array<Entry>(source.length);for(let width=1;width<source.length;width*=2){for(let lo=0;lo<source.length;lo+=width*2){let a=lo,b=Math.min(lo+width,source.length),ae=b,be=Math.min(lo+width*2,source.length),out=lo;while(a<ae||b<be){const take=b>=be||(a<ae&&await compareEntry(source[a]!,source[b]!,this.keyInfo,control)<=0);target[out++]=take?source[a++]!:source[b++]!;await control.checkpoint(1)}}[source,target]=[target,source]}this.#shared.entries=source;this.#shared.sorted=true;for(const cursor of this.#shared.cursors){cursor.#at=-1;cursor.#deleted=false;}
   }
-  first():boolean{this.#live();this.#deleted=false;this.#at=0;return this.#shared.entries.length>0}
-  /** window.c1948ff / vdbe.c OP_SeekRowid: publish positioning only after
-   * lookup succeeds. Browser linear lookup charges every visited shared record;
+  // vdbe.c OP_NullRow is handle-local, including OpenDup handles. It does
+  // not delete shared ephemeral records; positioning clears the null row.
+  // OpenEphemeral/OpenDup start unpositioned with nullRow=1 (vdbe.c).
+  #nullRow=true;
+  get nullRow():boolean{this.#live();return this.#nullRow}
+  setNullRow():void{this.#live();this.#nullRow=true;this.#at=-1;this.#deleted=false}
+  first():boolean{this.#live();this.#nullRow=this.#shared.entries.length===0;this.#deleted=false;this.#at=0;return !this.#nullRow}
+  /** window.c1948ff / vdbe.c OP_SeekRowid: a completed integer seek
+   * clears nullRow even on a miss; failed lookup follows the caller's jump.
+   * Browser linear lookup charges every visited shared record;
    * the VM control supplies bounded yielding, cancellation and deadline checks. */
   async seekRowid(rowid:bigint,control:PrivateStateControl):Promise<boolean>{
    this.#live();await control.checkpoint(0);
@@ -214,7 +223,7 @@ export class EphemeralIndexCursor {
     this.#live();
     if(BigInt(this.#shared.entries[i]!.sequence+1)===rowid){at=i;break}
    }
-   await control.checkpoint(0);this.#live();this.#deleted=false;this.#at=at;return at>=0;
+   await control.checkpoint(0);this.#live();this.#nullRow=false;this.#deleted=false;this.#at=at;return at>=0;
   }
   /** Monotonic insertion identity, independent of the live entry count.
    * Clear starts a new ephemeral table; deletion never reuses an identity. */
@@ -238,8 +247,8 @@ export class EphemeralIndexCursor {
   }
 
   rowid():bigint{this.#live();if(this.#deleted||this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return BigInt(this.#shared.entries[this.#at]!.sequence+1)}
-  next():boolean{this.#live();this.#deleted=false;return ++this.#at<this.#shared.entries.length}
-  rewindBeforeFirst():void{this.#live();this.#deleted=false;this.#at=-1}
+  next():boolean{this.#live();this.#deleted=false;this.#nullRow=++this.#at>=this.#shared.entries.length;return !this.#nullRow}
+  rewindBeforeFirst():void{this.#live();this.#nullRow=true;this.#deleted=false;this.#at=-1}
   nextData():readonly Mem[]|null{this.#live();return this.#shared.entries[this.#at+1]?.key??null;}
   hasNext():boolean{this.#live();return this.#at+1<this.#shared.entries.length}
   data():readonly Mem[]{this.#live();if(this.#deleted||this.#at<0||this.#at>=this.#shared.entries.length)throw new Error("ephemeral cursor is not positioned");return this.#shared.entries[this.#at]!.key}

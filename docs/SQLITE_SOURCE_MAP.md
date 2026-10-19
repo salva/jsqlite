@@ -389,7 +389,15 @@ these branches, not general storage/complexity parity.
   materialization → `compileRecursiveJoinedSelect` → ephemeral destination →
   shared `compileInnerTableSelect`/`compileAggregateSelect`, with retained cursor
   handles skipped by physical OpenRead. VDBE Rewind/Next/Column/Rowid dispatch
-  ephemeral handles through the existing private cursor primitive. Tests:
+  ephemeral handles through the existing private cursor primitive. `where.c`
+  LEFT match/NullRow completion → shared LEFT loops with retained cursor readiness;
+  `vdbe.c` OpenEphemeral/OpenDup initialize independent null-row handles;
+  Rewind/Next publish empty/exhausted flags; SeekRowid clears after integer seek;
+  NullRow/Column/Rowid/IfNullRow consume handle-local state without deleting
+  shared records. Clear/sort preserve flags while invalidating positions.
+  [Branch evidence](research/recursive-join/left-evidence.md). `select.c:columnTypeImpl`
+  follows the right-most recursive arm to Current-table metadata. Tests:
+  `recursive-cte-left.test.mjs`, `ephemeral-null-row.test.mjs`,
   `recursive-cte-join.test.mjs` and `cte-admission.test.mjs` (pre-emission
   specialization decline preserves derived/multiple recursive dispatch); [native/public evidence and boundaries](research/recursive-join/README.md).
   Evidence [[card:card-n]], [[card:card-n-c]], [[card:card-t-d]].
