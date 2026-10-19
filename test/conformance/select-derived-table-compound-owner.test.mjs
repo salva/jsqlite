@@ -17,7 +17,14 @@ test('table compound derived producer emits into enclosing coroutine destination
  assert.match(lowering,/if\(!owner\)ops.push\(\{code:"Halt"\}\)/);
  // Projection binding owns rowid aliases; the table compound must not read
  // a guessed physical column directly (selectInnerLoop -> sqlite3ExprCode).
- assert.match(lowering,/bindResolvedExpression\(expressionFromReduction\(item.expression.reduction!\),resolvedExpressionCarrier\(item.plan,item.expression.reduction! as Reduction\),\(\)=>cursor,true\)/);
+ assert.match(lowering,/item.plan.result.forEach\(\(result,index\)=>/);
+ assert.match(lowering,/bindResolvedExpression\(expressionFromReduction\(result.expression.reduction!\),resolvedExpressionCarrier\(item.plan,result.expression.reduction! as Reduction\),\(\)=>cursor,true\)/);
+ // Expanded '*' columns still pass through expression coding: IPK is read
+ // via its resolved index/cursor and affinity, never a guessed Column opcode.
+ assert.match(lowering,/!result.expression.reduction&&result.resolution==='direct'/);
+ assert.match(lowering,/const column=result.columnIndex!/);
+ assert.match(lowering,/kind:'column',name:result.name,index:column,cursor,affinity:result.source!\.table.columns\[column\]\?\.affinity\?\?'integer'/);
+ assert.match(lowering,/p2:row\+index/);
 });
 
 test('ordered scalar compound derived producer owns wide rows and multiple keys',()=>{
@@ -117,8 +124,11 @@ test('physical compound DISTINCT filters each arm before destination and limits'
  assert.match(branch,/item.arm.hasDistinct\?builder.cursor\(\):undefined/);
  // DISTINCT compares resolved projected values, not the source column when
  // the projection carries COLLATE or is an expression.
- assert.match(branch,/const collation=resolvedResultKeyTerms\(item.plan\)\[0\]!.collation/);
- assert.ok(branch.indexOf('code:"Found"')>=0);
+ assert.match(branch,/const distinctTerms=resolvedResultKeyTerms\(item.plan\)/);
+ assert.match(branch,/for\(const \{collation\} of distinctTerms\)/);
+ assert.match(branch,/totalFieldCount:width,keyFieldCount:width,terms:distinctTerms/);
+ assert.match(branch,/code:"Found",p1:distinct,keyStart:row,keyCount:width,jump:0/);
+ assert.match(branch,/code:"IdxInsert",p1:distinct,keyStart:row,keyCount:width/);
  assert.ok(branch.indexOf('skip=emitResult()')>branch.indexOf('code:"Found"'));
  assert.match(branch,/\(ops\[duplicate\] as \{jump:number\}\).jump=next/);
 });
