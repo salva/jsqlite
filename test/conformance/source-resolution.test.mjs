@@ -45,7 +45,8 @@ test('public single-source prepare consumes SourceList/name resolution for alias
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta WHERE missing COLLATE absent'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT left_meta.a FROM left_meta JOIN right_meta ON missing COLLATE absent=right_meta.b'),e=>e.kind==='sqlite'&&e.message==='no such column: missing');
  assert.throws(()=>db.prepare('SELECT a COLLATE missing FROM left_meta'),e=>e.kind==='sqlite'&&e.message==='no such collation sequence: missing');
- s=db.prepare('SELECT (a COLLATE nocase) AS collated FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'collated',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
+ // select.c:columnTypeImpl switches on the result Expr, not the COLLATE child.
+ s=db.prepare('SELECT (a COLLATE nocase) AS collated FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'collated',declaredType:null,database:null,table:null,origin:null});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  s=db.prepare('SELECT (a) AS renamed FROM left_meta').statement;assert.deepEqual(s.columnMetadata(0),{name:'renamed',declaredType:'INTEGER',database:'main',table:'left_meta',origin:'a'});assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);s.finalize();s=null;
  s=db.prepare('SELECT a AS z,a+1 AS z FROM left_meta WHERE z=7').statement;assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1)],[7n,8n]);assert.equal(await s.step(),'done');s.finalize();s=null;
  s=db.prepare('SELECT a AS x FROM left_meta WHERE x=7').statement;assert.equal(await s.step(),'row');assert.equal(s.column(0),7n);assert.equal(await s.step(),'done');s.finalize();s=null;

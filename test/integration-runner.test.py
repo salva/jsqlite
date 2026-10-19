@@ -120,6 +120,41 @@ class Runner(unittest.TestCase):
    self.assertIn('wrong-source',result.stderr)
    self.assertFalse((root/'date-native').exists())
 
+ def test_compound_fixture_plan_and_guard(self):
+  import subprocess, tempfile
+  root=pathlib.Path('/purpose/compound');library=root/'oracle.so'
+  files=list(runner.COMPOUND_FIXTURES)
+  plan=runner.prerequisite_commands(files,library,root)
+  self.assertEqual(len(plan),3)
+  for file,command in zip(files,plan[1:]):
+   script,output,variable=runner.COMPOUND_FIXTURES[file]
+   self.assertEqual(command,['python3',script,str(pathlib.Path.cwd()),str(root/output),str(library)])
+   self.assertEqual(len(runner.prerequisite_commands([file],library,root)),2)
+   self.assertIn('--test',runner.test_command(file,root))
+  with tempfile.TemporaryDirectory(prefix='compound-pin-negative-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory)
+   (root/'ctypes.py').write_text("c_char_p=object()\nclass Source:\n def __call__(self):return b'wrong-compound-source'\nclass CDLL:\n def __init__(self,path):self.sqlite3_sourceid=Source()\n")
+   command=runner.prerequisite_commands(files,root/'wrong.so',root)[0]
+   result=subprocess.run(command,env=dict(os.environ,PYTHONPATH=str(root),PYTHONDONTWRITEBYTECODE='1'),capture_output=True,text=True,timeout=10)
+   self.assertNotEqual(result.returncode,0)
+   self.assertIn('wrong-compound-source',result.stderr)
+   for _,output,_ in runner.COMPOUND_FIXTURES.values():self.assertFalse((root/output).exists())
+   # Actual CLI must stop before consumers on a wrong identity, even with
+   # plausible ambient roots; failure remains visible in its manifest.
+   import json
+   library=root/'wrong.so';library.write_bytes(b'test-only-not-a-library')
+   env=dict(os.environ,PYTHONPATH=str(root),PYTHONDONTWRITEBYTECODE='1',SAIVAGE_CARD_WORK_ROOT=str(root/'cli'),MULTI_OUTPUT_FIXTURES=str(root),WIDE_COMPOUND_FIXTURES=str(root))
+   result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',str(library),*files],env=env,capture_output=True,text=True,timeout=15)
+   self.assertEqual(result.returncode,1,result.stdout+result.stderr)
+   report=json.loads((root/'cli/integration-run/manifest.json').read_text())
+   self.assertEqual(report['not_run'],files)
+   self.assertEqual(report['results'],[])
+   self.assertEqual(len(report['prerequisites']),1)
+   self.assertEqual(report['prerequisites'][0]['classification'],'fail')
+   for _,output,variable in runner.COMPOUND_FIXTURES.values():
+    self.assertEqual(report['fixture_environment'][variable],str(root/'cli'/output))
+    self.assertFalse((root/'cli'/output).exists())
+
  def test_watchdog_contains_descendant_after_leader_exits(self):
   import subprocess, time
   work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'integration-runner-tests';work.mkdir(exist_ok=True)

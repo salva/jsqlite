@@ -12,9 +12,27 @@ DATE_FIXTURES = {
 }
 
 
+COMPOUND_FIXTURES = {
+    'test/conformance/compound-multi-output.test.mjs': ('docs/research/multi-output-compound-capture.py', 'multi-output-native', 'MULTI_OUTPUT_FIXTURES'),
+    'test/conformance/compound-wide-native.test.mjs': ('docs/research/compound-wide-capture.py', 'wide-compound-native', 'WIDE_COMPOUND_FIXTURES'),
+}
+
+
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    compounds = [f for f in COMPOUND_FIXTURES if f in files]
+    if compounds:
+        # Reject wrong identity before either producer creates output directories.
+        commands.append(['python3', '-c',
+            "import ctypes,json,pathlib,sys; "
+            "lib=ctypes.CDLL(sys.argv[1]); lib.sqlite3_sourceid.restype=ctypes.c_char_p; "
+            "actual=lib.sqlite3_sourceid().decode(); "
+            "expected=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text())['sqliteSourceId']; "
+            "assert actual==expected,(actual,expected); print(actual)", str(library)])
+        for file in compounds:
+            script, output, _ = COMPOUND_FIXTURES[file]
+            commands.append(['python3', script, str(pathlib.Path.cwd()), str(work_root/output), str(library)])
     selected = [f for f in DATE_FIXTURES if f in files]
     if selected:
         # Older diagnostic producers print identity but do not assert it.
@@ -130,6 +148,10 @@ def main():
     work_root = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']).resolve()
     library = args.oracle_library.resolve() if args.oracle_library else work_root/'oracle-build/build/libsqlite3-oracle.so'
     commands = prerequisite_commands(files, library, work_root)
+    for file, (_, output, variable) in COMPOUND_FIXTURES.items():
+        if file in files:
+            # Planned fresh outputs override ambient roots, never a fallback.
+            env[variable] = str(work_root/output)
     if commands:
         if args.oracle_library:
             report['oracle_library'] = dict(path=str(library), sha256=hashlib.sha256(library.read_bytes()).hexdigest())
@@ -139,7 +161,7 @@ def main():
         # WR producer deliberately refuses to overwrite old fixtures.
         if any(pathlib.Path(f).name.startswith('skipscan-') for f in files):
             env['SKIPSCAN_NATIVE_ROOT'] = str(work_root/'skipscan-native')
-        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK') if k in env}
+        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES') if k in env}
         for i, command in enumerate(commands):
             result = component(command, work/f'prerequisite-{i}.log', 180, env)
             report['prerequisites'].append(result); save()
@@ -147,7 +169,7 @@ def main():
                 report['not_run'] = files; save(); return 1
         report['generated_inputs'] = {
             str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native')
+            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native')
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
         save()

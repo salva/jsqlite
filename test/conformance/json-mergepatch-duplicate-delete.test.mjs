@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const native=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-r-b-mergepatch-native.json',import.meta.url),'utf8')).cases;
 import {openFixture} from './public-api-adapter.mjs';
 import {startFixtureServer} from './fixture-server.mjs';
+import {closeTestServer} from './close-test-server.mjs';
 
 // json.c:jsonMergePatch scans from iTStart and edits only the first matching
 // target member per patch member. Repeated NULL patch members rescan the result.
@@ -41,5 +42,5 @@ for(const enc of ['utf8','utf16le','utf16be'])test(`mergepatch duplicate first m
    if(row.rc===100)await execute();
    else await assert.rejects(execute,e=>e.kind==='sqlite'&&e.code===row.rc&&e.extendedCode===row.rc&&e.message===row.error,row.expression);
   }
- }finally{db?.closeDeferred();await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
+ }finally{db?.closeDeferred();await closeTestServer(bridge.server)}
 });
