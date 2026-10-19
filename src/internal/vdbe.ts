@@ -5310,7 +5310,8 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
         ops.push({code:'Copy',p1:value,p2:row+index});
       }else ops.push({code:"Copy",p1:compileExpressionTree(bindResolvedExpression(expressionFromReduction(result.expression.reduction!),resolvedExpressionCarrier(item.plan,result.expression.reduction! as Reduction),()=>cursor,true),ops,()=>builder.register(),parameters),p2:row+index});
     });let duplicate:number|undefined;if(distinct!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinct,keyStart:row,keyCount:width,jump:0},{code:"IdxInsert",p1:distinct,keyStart:row,keyCount:width});}let skip:number|undefined;if(typeof destination==="function")destination(row,width);else if(destination==="result")skip=emitResult();else if(destination==="order")emitOrdered();else if(destination==="set")ops.push({code:"IdxInsert",p1:setCursor,keyStart:row,keyCount:width,replace:true});else if(destination==="delete")ops.push({code:"SetDelete",p1:setCursor,keyStart:row,keyCount:width});else ops.push({code:"IdxInsert",p1:auxCursor,keyStart:row,keyCount:width,replace:true});const next=ops.length;ops.push({code:"Next",p1:cursor,p2:body});(ops[rewind] as {p2:number}).p2=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(duplicate!==undefined)(ops[duplicate] as {jump:number}).jump=next;if(filtered!==undefined)(ops[filtered] as {p2:number}).p2=next;};
-  if(select.hasOrderBy){
+  if(select.hasOrderBy||lastSetArm>=0){
+    // select.c multiSelect routes unordered non-ALL through full-key merge.
     // multiSelectByMerge: every arm produces into its own coroutine sorter,
     // with predicate/projection and DISTINCT owned by the original scan.
     // Keep the immutable retained graph; shared merge resolution owns keys.
@@ -5323,15 +5324,9 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
     if(owner)return {columns};
     return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
-  const destination=orderKeyInfo?"order" as const:"result" as const;
-  if(lastSetArm<0){for(const item of resolved)scan(item,destination);}
-  else{
-    ops.push({code:"OpenEphemeral",p1:setCursor,keyInfo:setKeyInfo},{code:"OpenEphemeral",p1:auxCursor,keyInfo:setKeyInfo});
-    for(let index=0;index<=lastSetArm;index++){const operator=resolved[index]!.arm.operatorFromPrior;if(index===0||operator==="union"||operator==="union-all")scan(resolved[index]!,"set");else if(operator==="except")scan(resolved[index]!,"delete");else{scan(resolved[index]!,"aux-set");ops.push({code:"SetRetainIntersection",p1:setCursor,p2:auxCursor},{code:"ClearEphemeral",p1:auxCursor});}}
-    ops.push({code:"EphemeralSort",p1:setCursor});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:setCursor,p2:0},{code:"EphemeralData",p1:setCursor,p2:row,count:width});let skip:number|undefined;if(orderKeyInfo)emitOrdered();else skip=emitResult();const next=ops.length;ops.push({code:"EphemeralNext",p1:setCursor,p2:rewind+1});(ops[rewind] as {p2:number}).p2=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;
-    for(let index=lastSetArm+1;index<resolved.length;index++)scan(resolved[index]!,destination);
-  }
-  if(orderKeyInfo){const sortAt=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:row,count:width});const skip=emitResult(),next=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(ops[sortAt] as {emptyJump:number}).emptyJump=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;}
+  // Only unordered UNION ALL reaches this tail. Non-ALL always uses the
+  // shared merge above, as required by pinned multiSelect.
+  for(const item of resolved)scan(item,"result");
   const halt=ops.length;if(!owner)ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
   if(owner)return {columns};
   return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});

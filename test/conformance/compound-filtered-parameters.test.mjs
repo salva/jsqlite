@@ -1,5 +1,5 @@
 import {suspendExecutionTask} from './suspend-execution-task.mjs';
-import {EphemeralIndexCursor} from '../../src/internal/private-state.ts';
+import {SorterCursor,EphemeralIndexCursor} from '../../src/internal/private-state.ts';
 import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
@@ -29,10 +29,10 @@ test('filtered compound active suspension preserves PC, exclusive admission, can
 });
 
 test('filtered compound deadline and exact work bound keep first error and cleanup',async()=>{
- const insert=EphemeralIndexCursor.prototype.insert,now=Date.now;let active=false;EphemeralIndexCursor.prototype.insert=async function(key,control){active=true;await control.checkpoint(1);return insert.call(this,key,control)};Date.now=()=>active?100:0;
+ const insert=SorterCursor.prototype.insert,now=Date.now;let active=false;SorterCursor.prototype.insert=async function(key,payload,control){active=true;await control.checkpoint(1);return insert.call(this,key,payload,control)};Date.now=()=>active?100:0;
  const bridge=await startFixtureServer(root);let db,s;
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));s=db.prepare('SELECT a FROM left_meta WHERE a>0 UNION SELECT b FROM right_meta WHERE b IS NOT NULL').statement;await assert.rejects(s.step({timeoutMs:2}),e=>e.kind==='timeout');assert.throws(()=>s.finalize(),e=>e.kind==='timeout');s=undefined;Date.now=now;const limited=db.prepare('SELECT a FROM left_meta WHERE a>0 UNION SELECT b FROM right_meta WHERE b IS NOT NULL').statement;await assert.rejects(limited.step({maxWorkUnits:0}),e=>e.kind==='limit');assert.throws(()=>limited.finalize(),e=>e.kind==='limit');const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
- finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
+ finally{Date.now=now;SorterCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('ordered filtered merge positions A before B and skips unused B on initial A EOF',async()=>{

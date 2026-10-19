@@ -460,7 +460,11 @@ Structured VALUES compiles each retained row, validates every arm width, and
 preserves arm-level set semantics. Compound collation searches result expressions
 across arms using upstream ownership; no leftmost-default shortcut. Represented
 scalar/set and table/CTE/aggregate compound branches use shared destinations,
-including same-VM coroutine merge where implemented. Bounded single-source,
+including same-VM coroutine merge where implemented. Unordered non-ALL table
+compounds use the shared full-key merge, following pinned multiSelect's invented
+ORDER route; ephemeral replacement does not preserve its representatives.
+Result COLLATE retains lookup/collation ownership but has expression naming and
+no physical type/origin metadata. [Wide evidence](research/compound-wide-repair.md). Bounded single-source,
 full-row ordinary table set arms resolve retained WHERE and projection
 carriers on their shared scan cursor; false/NULL predicates skip delivery. Shared
 parameters retain lexical generated-terminal identity before LIMIT/WHERE lowering.

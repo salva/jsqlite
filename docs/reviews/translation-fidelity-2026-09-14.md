@@ -5267,4 +5267,9 @@ Window findings retain their bounded dispositions, not universal compatibility.
 
 ## Ordinary table full-row compound repair — author update
 
-The earlier singleton gap is repaired by widening the shared resolved scan and destinations, not a second evaluator. Native72/public72 and focused53/public22 working-copy checks pass; committed-source verification must be reported separately. This is not independent acceptance or general compound parity. [Source comparison, failures and verification boundaries](../research/multi-output-compound-repair.md).
+The full-row scan correction has bounded native72/public72 evidence. Wide
+native-first cases subsequently exposed unordered non-ALL representative and
+COLLATE metadata divergences: dispatch now uses pinned full-key merge and resolver
+metadata follows result-expression ownership. Wide96 and exact six-field sorter
+boundaries are author evidence, not independent acceptance or arbitrary compound
+parity. [Diagnosis and verification](../research/compound-wide-repair.md).

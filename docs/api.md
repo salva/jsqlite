@@ -378,7 +378,9 @@ compatibility credit.
   bounds sorter retention by LIMIT+OFFSET.
 - Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented multi-output ordinary table arms with retained WHERE/projections
   and direct-table arms and selected aggregate/CTE compounds execute with compound-wide ORDER/
-  LIMIT/OFFSET. Width and compound ORDER errors are prepare errors. Broader arms,
+  LIMIT/OFFSET. Width and compound ORDER errors are prepare errors. Result COLLATE
+  expressions retain SQL collation but expose expression names (unless aliased)
+  and null physical type/origin metadata. [Wide evidence](research/compound-wide-repair.md). Broader arms,
   arbitrary-expression set compositions and retained producer combinations remain
   bounded by their actual admission branches. Finite materialized routes do not
   imply native intermediate-error/work/suspension schedule equivalence.

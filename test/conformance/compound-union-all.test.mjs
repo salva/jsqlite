@@ -2,7 +2,7 @@ import {suspendExecutionTask} from './suspend-execution-task.mjs';
 import {closeTestServer} from './close-test-server.mjs';
 import assert from 'node:assert/strict';import path from 'node:path';import test from 'node:test';import {startFixtureServer} from './fixture-server.mjs';import {openFixture} from './public-api-adapter.mjs';
 import {open,JSQLiteError} from '../../src/index.ts';
-import {EphemeralIndexCursor} from '../../src/internal/private-state.ts';
+import {SorterCursor,EphemeralIndexCursor} from '../../src/internal/private-state.ts';
 import {compileScalarSelect,DEFAULT_PRIVATE_STATE_LIMITS} from '../../src/internal/vdbe.ts';
 import {parseSql} from '../../src/internal/parse.ts';
 import fs from 'node:fs';
@@ -29,7 +29,7 @@ test('compound private state enforces row and byte bounds and restores admission
  const bridge=await startFixtureServer(root);let db,s;
  const url=new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`),sql='SELECT a FROM left_meta UNION SELECT b FROM right_meta UNION ALL SELECT a FROM left_meta';
  try{
-  for(const [limits,message] of [[{maxPrivateEntries:1},'ephemeral index exceeds entry limit'],[{maxPrivateKeyBytes:0},'ephemeral key exceeds byte limit']]){
+  for(const [limits,message] of [[{maxPrivateEntries:0},'sorter exceeds entry limit'],[{maxPrivateKeyBytes:0},'sorter key exceeds byte limit']]){
    db=await open(url.clone(),{limits});s=db.prepare(sql).statement;await assert.rejects(s.step(),e=>e instanceof JSQLiteError&&e.kind==='limit'&&e.message===message);assert.throws(()=>s.reset(),e=>e.kind==='limit');s=undefined;db.closeDeferred();db=undefined;
   }
   db=await open(url.clone(),{limits:{maxRows:8,maxResultBytes:64}});s=db.prepare(sql).statement;const rows=[];while(await s.step()==='row')rows.push(s.column(0));assert.deepEqual(rows,[7n,'8',7n]);s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize();
@@ -44,10 +44,10 @@ test('compound active suspension preserves PC, exclusive admission, cancellation
 });
 
 test('compound deadline and exact work bound keep first error and cleanup',async()=>{
- const insert=EphemeralIndexCursor.prototype.insert,now=Date.now;let active=false;EphemeralIndexCursor.prototype.insert=async function(key,control){active=true;await control.checkpoint(1);return insert.call(this,key,control)};Date.now=()=>active?100:0;
+ const insert=SorterCursor.prototype.insert,now=Date.now;let active=false;SorterCursor.prototype.insert=async function(key,payload,control){active=true;await control.checkpoint(1);return insert.call(this,key,payload,control)};Date.now=()=>active?100:0;
  const bridge=await startFixtureServer(root);let db,s;
  try{db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));s=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(s.step({timeoutMs:2}),e=>e.kind==='timeout');assert.throws(()=>s.finalize(),e=>e.kind==='timeout');s=undefined;Date.now=now;const limited=db.prepare('SELECT a FROM left_meta UNION SELECT b FROM right_meta').statement;await assert.rejects(limited.step({maxWorkUnits:0}),e=>e.kind==='limit');assert.throws(()=>limited.finalize(),e=>e.kind==='limit');const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}
- finally{Date.now=now;EphemeralIndexCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
+ finally{Date.now=now;SorterCursor.prototype.insert=insert;try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(bridge.server)}
 });
 
 test('ordered mixed table compound uses one typed global merge with LIMIT',async()=>{

@@ -925,3 +925,12 @@ admission and suspended cancellation/deadline recovery. See
 ## JSON validation execution controls
 
 `json-validation-progress.test.mjs` retains the million-NULL JSONB witness and exercises real post-admission scheduler suspension for strict validation and binary/TEXT error-position parsing, work/cancel/deadline saved-error/reset/recovery. This is finite author evidence, not full-suite or whole-SQLite credit. [Evidence and limitations](research/card-r-a-json-validation-progress.md).
+
+## Wide compound correction evidence
+
+[Native-first wide96 and resource repair](research/compound-wide-repair.md) adds
+no upstream conformance credit. Public compound22 and expressions40 remain their
+exact declared/attempted/pass/credited allocations. Relational18 remains3
+attempted/pass,15 unattempted,2 upstream credits; native width probes are not
+additional upstream credits. Caller162 and focused59 are regression denominators,
+not conformance allocations.
