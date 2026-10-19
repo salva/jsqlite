@@ -5233,7 +5233,7 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   // multiSelect table scan. SelectArm currently lacks a GROUP expression list;
   // preserve the flags and reject before emitting any parent instructions.
   if(select.arms.some(arm=>arm.hasGroupBy||arm.hasHaving))throw new JSQLiteError("unsupported","grouped compound table arms are not implemented",{unsupportedClassification:"temporary"});
-  if(select.arms.some(arm=>arm.from.items.length!==1||arm.result.length!==1||arm.origin!=="select"))throw new JSQLiteError("unsupported","complex compound table arms are not implemented",{unsupportedClassification:"temporary"});
+  if(select.arms.some(arm=>arm.from.items.length!==1||arm.origin!=="select"))throw new JSQLiteError("unsupported","complex compound table arms are not implemented",{unsupportedClassification:"temporary"});
   // Resolve each retained SELECT producer, without the compound's outer
   // ORDER/LIMIT. Resolution and expression code generation are the same owners
   // as ordinary WHERE/result production; no token-based column admission.
@@ -5246,12 +5246,16 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
     const table=plan.sources[0]!.table;
     if(table.kind!=='table'||table.withoutRowid||table.columns.some(c=>c.generatedExpr))throw new JSQLiteError('unsupported','this table storage shape is not implemented',{unsupportedClassification:'temporary'});
     if(plan.sources.length!==1||plan.nested.length||selectHasAggregate(standalone)||standalone.windowDefinitions.length)throw new JSQLiteError('unsupported','complex compound table arms are not implemented',{unsupportedClassification:'temporary'});
-    const expression=arm.result[0]!;
-    if(!expression.reduction||arm.where&&!arm.where.reduction)throw new JSQLiteError('unsupported','compound expression structure is not implemented',{unsupportedClassification:'temporary'});
-    return {arm,table,expression,plan};
+    const expressions=plan.result.map(result=>result.expression);
+    if(plan.result.some(result=>!result.expression.reduction&&result.resolution!=='direct')||arm.where&&!arm.where.reduction)throw new JSQLiteError('unsupported','compound expression structure is not implemented',{unsupportedClassification:'temporary'});
+    return {arm,table,expressions,plan};
   });
   const operators=select.arms.slice(1).map(arm=>arm.operatorFromPrior!),lastSetArm=operators.reduce((last,op,index)=>op==="union-all"?last:index+1,-1);
-  const left=resolved[0]!,outputName=left.plan.result[0]!.name;
+  const left=resolved[0]!,width=left.plan.result.length;
+  for(const item of resolved)if(item.plan.result.length!==width)throw new JSQLiteError('sqlite',`SELECTs to the left and right of ${item.arm.operatorFromPrior==='union-all'?'UNION ALL':item.arm.operatorFromPrior?.toUpperCase()} do not have the same number of result columns`,{code:1});
+  // Expansion is resolved once, before lowering. The merge consumes these
+  // immutable expanded ELists, not raw '*' item counts or expression identity.
+  const expandedSelect={...select,result:left.expressions,arms:select.arms.map((arm,index)=>({...arm,result:resolved[index]!.expressions}))};
   // select.c convertCompoundSelectToSubquery wraps a set compound when an
   // ORDER expression carries EP_Collate (UNION ALL alone does not need it).
   // The wrapper's expanded * retains leftmost names, but columnTypeImpl follows
@@ -5273,38 +5277,49 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   };
   const convertedOrder=lastSetArm>=0&&select.orderBy.some(term=>carriesCollate(expressionFromReduction(term.expr.reduction!)));
   const metadataOwner=convertedOrder?resolved.at(-1)!:left;
-  const metadata=resolvedExpressionMetadata(metadataOwner.expression.reduction!,metadataOwner.plan);
-  const leftCollation=sqliteAsciiFold(resolvedCompoundCollation(resolved.map(item=>item.plan),0)??'binary');
-  if(leftCollation!=="binary"&&leftCollation!=="nocase"&&leftCollation!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${leftCollation}`,{code:1});
-  const orderTerms=resolveCompoundMergeOrder(select,[leftCollation as BuiltinCollation]);
+  const columns=Object.freeze(left.plan.result.map((result,index)=>{
+    const metadata=metadataOwner.plan.result[index]!.descriptor;
+    return Object.freeze({name:result.name,declaredType:metadata.declaredType,database:metadata.database,table:metadata.table,origin:metadata.origin});
+  }));
+  const keyTerms=Array.from({length:width},(_,index)=>{
+    const collation=sqliteAsciiFold(resolvedCompoundCollation(resolved.map(item=>item.plan),index)??'binary');
+    if(collation!=="binary"&&collation!=="nocase"&&collation!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${collation}`,{code:1});
+    return {collation:collation as BuiltinCollation};
+  });
+  const orderTerms=resolveCompoundMergeOrder(expandedSelect,keyTerms.map(term=>term.collation));
   // select.c:multiSelect copies the caller SelectDest and codes arm scans into
   // the same Vdbe. This bounded table-set owner keeps its typed ephemeral
   // transition but allocates scan cursors, row/key registers and result
   // destination in the enclosing program, never a relocated child Program.
   const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
   retainSelectParameters(select,parameters);
-  const row=builder.register(),keys=orderTerms.length?builder.range(orderTerms.length):0;
+  const row=builder.range(width),keys=orderTerms.length?builder.range(orderTerms.length):0;
   const limit=computeLimitRegisters(select,ops,()=>builder.register(),parameters);
   const setCursor=builder.cursor(),auxCursor=builder.cursor(),sorterCursor=builder.cursor();
-  const setKeyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:leftCollation as BuiltinCollation}]});
+  const setKeyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:keyTerms});
   const orderKeyInfo=orderTerms.length?new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms}):null;
 
-  const haltJumps:number[]=[],emitResult=()=>{let skip:number|undefined;if(limit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:"output"},row,1);if(limit){haltJumps.push(ops.length);ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}return skip;};
-  const emitOrdered=()=>{for(let index=0;index<orderTerms.length;index++)ops.push({code:"Copy",p1:row,p2:keys+index});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart:keys,keyCount:orderTerms.length,payload:row,payloadCount:1,...(limit?{topN:limit.capacity}:{})});};
-  const scan=(item:typeof resolved[number],destination:"result"|"order"|"set"|"aux-set"|"delete"|((first:number,count:number)=>void))=>{const distinct=item.arm.hasDistinct?builder.cursor():undefined; if(distinct!==undefined){const collation=resolvedResultKeyTerms(item.plan)[0]!.collation;if(collation!=="binary"&&collation!=="nocase"&&collation!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${collation}`,{code:1});ops.push({code:"OpenEphemeral",p1:distinct,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation}]})});}const cursor=builder.cursor();ops.push({code:"OpenRead",p1:item.table.rootPage,p2:cursor});const rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;let filtered:number|undefined;
+  const haltJumps:number[]=[],emitResult=()=>{let skip:number|undefined;if(limit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:"output"},row,width);if(limit){haltJumps.push(ops.length);ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}return skip;};
+  const emitOrdered=()=>{for(let index=0;index<orderTerms.length;index++)ops.push({code:"Copy",p1:row+orderTerms[index]!.resultIndex,p2:keys+index});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart:keys,keyCount:orderTerms.length,payload:row,payloadCount:width,...(limit?{topN:limit.capacity}:{})});};
+  const scan=(item:typeof resolved[number],destination:"result"|"order"|"set"|"aux-set"|"delete"|((first:number,count:number)=>void))=>{const distinct=item.arm.hasDistinct?builder.cursor():undefined; if(distinct!==undefined){const distinctTerms=resolvedResultKeyTerms(item.plan);for(const {collation} of distinctTerms)if(collation!=="binary"&&collation!=="nocase"&&collation!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${collation}`,{code:1});ops.push({code:"OpenEphemeral",p1:distinct,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:distinctTerms})});}const cursor=builder.cursor();ops.push({code:"OpenRead",p1:item.table.rootPage,p2:cursor});const rewind=ops.length;ops.push({code:"Rewind",p1:cursor,p2:0});const body=ops.length;let filtered:number|undefined;
     if(item.arm.where){const predicate=bindResolvedExpression(expressionFromReduction(item.arm.where.reduction!),resolvedExpressionCarrier(item.plan,item.arm.where.reduction! as Reduction),()=>cursor,true);const condition=compileExpressionTree(predicate,ops,()=>builder.register(),parameters,undefined,true);filtered=ops.length;ops.push({code:'IfNot',p1:condition,p2:0});}
-    ops.push({code:"Copy",p1:compileExpressionTree(bindResolvedExpression(expressionFromReduction(item.expression.reduction!),resolvedExpressionCarrier(item.plan,item.expression.reduction! as Reduction),()=>cursor,true),ops,()=>builder.register(),parameters),p2:row});let duplicate:number|undefined;if(distinct!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinct,keyStart:row,keyCount:1,jump:0},{code:"IdxInsert",p1:distinct,keyStart:row,keyCount:1});}let skip:number|undefined;if(typeof destination==="function")destination(row,1);else if(destination==="result")skip=emitResult();else if(destination==="order")emitOrdered();else if(destination==="set")ops.push({code:"IdxInsert",p1:setCursor,keyStart:row,keyCount:1,replace:true});else if(destination==="delete")ops.push({code:"SetDelete",p1:setCursor,keyStart:row,keyCount:1});else ops.push({code:"IdxInsert",p1:auxCursor,keyStart:row,keyCount:1,replace:true});const next=ops.length;ops.push({code:"Next",p1:cursor,p2:body});(ops[rewind] as {p2:number}).p2=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(duplicate!==undefined)(ops[duplicate] as {jump:number}).jump=next;if(filtered!==undefined)(ops[filtered] as {p2:number}).p2=next;};
+    item.plan.result.forEach((result,index)=>{
+      if(!result.expression.reduction&&result.resolution==='direct'){
+        const column=result.columnIndex!;
+        const value=compileExpressionTree({kind:'column',name:result.name,index:column,cursor,affinity:result.source!.table.columns[column]?.affinity??'integer'},ops,()=>builder.register(),parameters);
+        ops.push({code:'Copy',p1:value,p2:row+index});
+      }else ops.push({code:"Copy",p1:compileExpressionTree(bindResolvedExpression(expressionFromReduction(result.expression.reduction!),resolvedExpressionCarrier(item.plan,result.expression.reduction! as Reduction),()=>cursor,true),ops,()=>builder.register(),parameters),p2:row+index});
+    });let duplicate:number|undefined;if(distinct!==undefined){duplicate=ops.length;ops.push({code:"Found",p1:distinct,keyStart:row,keyCount:width,jump:0},{code:"IdxInsert",p1:distinct,keyStart:row,keyCount:width});}let skip:number|undefined;if(typeof destination==="function")destination(row,width);else if(destination==="result")skip=emitResult();else if(destination==="order")emitOrdered();else if(destination==="set")ops.push({code:"IdxInsert",p1:setCursor,keyStart:row,keyCount:width,replace:true});else if(destination==="delete")ops.push({code:"SetDelete",p1:setCursor,keyStart:row,keyCount:width});else ops.push({code:"IdxInsert",p1:auxCursor,keyStart:row,keyCount:width,replace:true});const next=ops.length;ops.push({code:"Next",p1:cursor,p2:body});(ops[rewind] as {p2:number}).p2=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;if(duplicate!==undefined)(ops[duplicate] as {jump:number}).jump=next;if(filtered!==undefined)(ops[filtered] as {p2:number}).p2=next;};
   if(select.hasOrderBy){
     // multiSelectByMerge: every arm produces into its own coroutine sorter,
     // with predicate/projection and DISTINCT owned by the original scan.
     // Keep the immutable retained graph; shared merge resolution owns keys.
-    emitScalarCompoundMerge(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,builder,parameters,owner?.destination??{kind:'output'},(arm,emitRow,destination)=>{
-      const item=resolved.find(item=>item.expression.reduction===arm.result[0]!.reduction);
+    emitScalarCompoundMerge(expandedSelect,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,builder,parameters,owner?.destination??{kind:'output'},(arm,emitRow,destination)=>{
+      const item=resolved.find(item=>item.arm.prior===arm.arms[0]!.prior);
       if(!item)throw new JSQLiteError('misuse','compound producer identity was lost');
       scan(item,destination.kind==='coroutine'?(first,count)=>emitSelectDestination(ops,destination,first,count):emitRow);
     },{plans:resolved.map(item=>item.plan),limit});
     if(!owner)ops.push({code:'Halt'});
-    const columns=Object.freeze([Object.freeze({name:outputName,declaredType:metadata.declaredType,database:metadata.database,table:metadata.table,origin:metadata.origin})]);
     if(owner)return {columns};
     return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
@@ -5313,13 +5328,13 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   else{
     ops.push({code:"OpenEphemeral",p1:setCursor,keyInfo:setKeyInfo},{code:"OpenEphemeral",p1:auxCursor,keyInfo:setKeyInfo});
     for(let index=0;index<=lastSetArm;index++){const operator=resolved[index]!.arm.operatorFromPrior;if(index===0||operator==="union"||operator==="union-all")scan(resolved[index]!,"set");else if(operator==="except")scan(resolved[index]!,"delete");else{scan(resolved[index]!,"aux-set");ops.push({code:"SetRetainIntersection",p1:setCursor,p2:auxCursor},{code:"ClearEphemeral",p1:auxCursor});}}
-    ops.push({code:"EphemeralSort",p1:setCursor});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:setCursor,p2:0},{code:"EphemeralData",p1:setCursor,p2:row,count:1});let skip:number|undefined;if(orderKeyInfo)emitOrdered();else skip=emitResult();const next=ops.length;ops.push({code:"EphemeralNext",p1:setCursor,p2:rewind+1});(ops[rewind] as {p2:number}).p2=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;
+    ops.push({code:"EphemeralSort",p1:setCursor});const rewind=ops.length;ops.push({code:"EphemeralRewind",p1:setCursor,p2:0},{code:"EphemeralData",p1:setCursor,p2:row,count:width});let skip:number|undefined;if(orderKeyInfo)emitOrdered();else skip=emitResult();const next=ops.length;ops.push({code:"EphemeralNext",p1:setCursor,p2:rewind+1});(ops[rewind] as {p2:number}).p2=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;
     for(let index=lastSetArm+1;index<resolved.length;index++)scan(resolved[index]!,destination);
   }
-  if(orderKeyInfo){const sortAt=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:row,count:1});const skip=emitResult(),next=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(ops[sortAt] as {emptyJump:number}).emptyJump=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;}
+  if(orderKeyInfo){const sortAt=ops.length;ops.push({code:"SorterSort",p1:sorterCursor,emptyJump:0},{code:"SorterData",p1:sorterCursor,p2:row,count:width});const skip=emitResult(),next=ops.length;ops.push({code:"SorterNext",p1:sorterCursor,p2:sortAt+1});(ops[sortAt] as {emptyJump:number}).emptyJump=ops.length;if(skip!==undefined)(ops[skip] as {p2:number}).p2=next;}
   const halt=ops.length;if(!owner)ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const at of haltJumps)(ops[at] as {p2:number}).p2=halt;}
-  if(owner)return {columns:Object.freeze([Object.freeze({name:outputName,declaredType:metadata.declaredType,database:metadata.database,table:metadata.table,origin:metadata.origin})])};
-  return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze([Object.freeze({name:outputName,declaredType:metadata.declaredType,database:metadata.database,table:metadata.table,origin:metadata.origin})]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+  if(owner)return {columns};
+  return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
 
@@ -5485,6 +5500,15 @@ function compoundArmColumns(arm:SelectNode,schema:SchemaGraph):Program['columns'
 }
 
 function compileTableCompoundProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']}|void {
+  // Ordinary physical arms share one resolved full-row scan owner for all
+  // operators. CTE/derived/AggInfo consumers keep their installed-input route.
+  if(select.arms.every(arm=>arm.origin==='select'&&arm.from.items.length===1&&!arm.from.derived&&!arm.from.cteDerived?.length&&!arm.hasGroupBy&&!arm.hasHaving)&&!selectHasAggregate(select)&&!selectHasWindow(select)&&select.arms.every(arm=>{
+    try{return expandAndResolveSelect({...select,...arm,groupBy:arm.groupBy??[],having:arm.having??null,hasCompound:false,hasOrderBy:false,hasLimit:false,orderBy:[],limit:null,offset:null,arms:[{...arm,operatorFromPrior:null,prior:null,next:null}]},schema).nested.length===0;}
+    catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+  })){
+    if(owner)return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
+    return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  }
   if(select.orderBy.length){
     const ordered=owner?compileOrderedCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner):compileOrderedCteUnionAll(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
     if(ordered)return ordered;

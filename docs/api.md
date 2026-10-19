@@ -376,7 +376,7 @@ compatibility credit.
   OFFSET is zero. SELECT coerces LIMIT first; LIMIT-zero bypasses OFFSET
   evaluation/coercion and producers, including compounds. Positive ordered LIMIT
   bounds sorter retention by LIMIT+OFFSET.
-- Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented single-output ordinary table arms with retained WHERE/projections
+- Scalar/VALUES UNION ALL, UNION, INTERSECT and EXCEPT, represented multi-output ordinary table arms with retained WHERE/projections
   and direct-table arms and selected aggregate/CTE compounds execute with compound-wide ORDER/
   LIMIT/OFFSET. Width and compound ORDER errors are prepare errors. Broader arms,
   arbitrary-expression set compositions and retained producer combinations remain
@@ -606,3 +606,5 @@ admission and suspended cancellation/deadline recovery. See
 [finite evidence](research/direct-json-window/README.md).
 
 JSON table functions admit the document before converting their optional root: NULL document returns no rows, malformed document errors before invalid-root errors. Root SQL values convert privately to text in their source encoding; lookup and hidden root stop at the first NUL. Caller bindings are not mutated. [Finite source-based evidence](research/json-table-root/README.md).
+
+Bounded ordinary single-source compound arms admit expanded multi-column projections, including star, with equal-width validation before execution. Full-row set equality and per-column leftmost names/metadata use the shared compound owners. This does not expand joins, nested/CTE/AggInfo admission or storage shapes. [Evidence and remaining verification](research/multi-output-compound-repair.md).

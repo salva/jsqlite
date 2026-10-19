@@ -5264,3 +5264,7 @@ classification. Arbitrary callback identity propagates; lazy class initializatio
 only resolves the demonstrated public module cycle. Existing validator/TEXT5 and
 Window findings retain their bounded dispositions, not universal compatibility.
 [Combined source/caller/gate evidence](../research/card-r-e-json-final-verification.md).
+
+## Ordinary table full-row compound repair — author update
+
+The earlier singleton gap is repaired by widening the shared resolved scan and destinations, not a second evaluator. Native72/public72 and focused53/public22 working-copy checks pass; committed-source verification must be reported separately. This is not independent acceptance or general compound parity. [Source comparison, failures and verification boundaries](../research/multi-output-compound-repair.md).

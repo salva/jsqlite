@@ -1,0 +1,5499 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "8c8b2447ac51cc76d370160cf86f17f1f52b207d5c397a12673c74783f9a7ce7",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "file": "UTF-8.db",
+      "sha256": "d75259215cc391cbb5eb337f75f45d2b5f7acf2df50a7431a4256af763b9c30e",
+      "cases": [
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "file": "UTF-16le.db",
+      "sha256": "c8db979052f5f9e01d59cf646accad2e58effe90d9aa09fa2946e05bba5c7b77",
+      "cases": [
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "file": "UTF-16be.db",
+      "sha256": "839a66271a82f06305e25086956ac23ddc91301ca33b0da5b7039386e07d26d6",
+      "cases": [
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL UNION SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY v LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v FROM u WHERE a IS NOT NULL ORDER BY 1 LIMIT 3 OFFSET 0",
+          "width": 1,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 2,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION ALL SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL UNION SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "3ff0000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "63"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "03"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL INTERSECT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "61"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                [
+                  {
+                    "type": "real",
+                    "ieee754be": "4000000000000000"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "62"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "02"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY w,v LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a AS v,b AS w,c AS z FROM t WHERE a IS NOT NULL EXCEPT SELECT a AS v,b AS w,c AS z FROM u WHERE a IS NOT NULL ORDER BY 2,1 LIMIT 3 OFFSET 0",
+          "width": 3,
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "a"
+            },
+            {
+              "name": "w",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "b"
+            },
+            {
+              "name": "z",
+              "declaredType": null,
+              "database": "main",
+              "table": "t",
+              "origin": "c"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "7a"
+                  },
+                  {
+                    "type": "blob",
+                    "hex": "01"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

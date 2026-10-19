@@ -461,14 +461,14 @@ preserves arm-level set semantics. Compound collation searches result expression
 across arms using upstream ownership; no leftmost-default shortcut. Represented
 scalar/set and table/CTE/aggregate compound branches use shared destinations,
 including same-VM coroutine merge where implemented. Bounded single-source,
-single-output ordinary table set arms resolve retained WHERE and projection
+full-row ordinary table set arms resolve retained WHERE and projection
 carriers on their shared scan cursor; false/NULL predicates skip delivery. Shared
 parameters retain lexical generated-terminal identity before LIMIT/WHERE lowering.
 Explicit ORDER COLLATE set-rewrite metadata follows native rightmost type/origin
 with leftmost names, separately from compound key collation. Tests and current
 working-copy boundaries: [filtered compound evidence](research/card-j-d-b-a-c-filtered/README.md).
 Unordered table sets retain the bounded typed ephemeral route. Ordered ordinary
-single-output table arms now feed per-arm sorter coroutines and the existing
+full-row table arms now feed per-arm sorter coroutines and the existing
 same-VM A/B merge owner; initial empty A ends EXCEPT/INTERSECT without evaluating
 B, while UNION/ALL positions B. WHERE, projection and local DISTINCT remain
 scan-owned, and lexical parameters and metadata retain their preceding owners.
@@ -1009,3 +1009,5 @@ Trailing-junk errors retain initialized offset0 as jsonConvertTextToBlob does.
 ### JSON table Filter admission/root ownership
 
 `JsonTableRewind` passes root Mem without coercion. `openJsonTableCursor` follows `jsonEachFilter`: admit/parse document first (NULL is empty), then privately convert root with the existing SQL-text helper, stop at C NUL and validate/lookup. BLOB conversion preserves source encoding; caller registers remain unchanged. Hidden root is the converted lookup string; hidden json retains its owning input. Demand/metadata/traversal contracts are unchanged. [Source comparison and finite evidence](research/json-table-root/README.md).
+
+Full-row ordinary table lowering resolves expanded ELists before equal-width checks, owns contiguous result registers, per-column metadata/collations and full-row DISTINCT/set destinations. Retained arm links identify merge producers; duplicate keys remain separate from ORDER permutation. [Width repair evidence and boundaries](research/multi-output-compound-repair.md).

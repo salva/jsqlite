@@ -13,7 +13,6 @@ test('compound producer shapes outside the bounded implementation reject atomica
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/compound-metadata`));
   for(const sql of [
-   'SELECT a,a FROM left_meta UNION SELECT b,b FROM right_meta',
    'SELECT 1 UNION SELECT a FROM left_meta',
    'SELECT a FROM left_meta JOIN right_meta UNION SELECT b FROM right_meta',
   ])assert.throws(()=>db.prepare(sql),temporary,sql);
