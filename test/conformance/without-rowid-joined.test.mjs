@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
+import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
 import {openFixture,privateAccounting} from './public-api-adapter.mjs';
 const original=JSON.parse(fs.readFileSync(new URL('./cases/row-width-wr-joined-native.json',import.meta.url)));
 const native=JSON.parse(fs.readFileSync(new URL('./cases/without-rowid-joined-native.json',import.meta.url)));
@@ -62,11 +63,42 @@ for(const fixture of original.variants){
  test(`joined WR live cancellation/deadline reset and reuse ${fixture.encoding}`,async()=>withBytes(fs.readFileSync(fixture.fixture),async db=>{
   const sql=`SELECT x.a,y.b,hex('${'z'.repeat(256*1024)}') FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=?1 AND y.a=x.a`;
   const bind=st=>st.bind(1,Uint8Array.of(255));
+  // A timer queued before step has no portable ordering against MessageChannel.
+  // Observe a genuine production task AFTER selected access, then keep that
+  // admitted VM suspension pending until a real timer callback delivers abort.
+  // The witness never throws a cancellation error or changes admission/work.
+  async function witnessedStep(st,controller,reason,abort){
+   const productionYield=ExecutionTaskScheduler.prototype.yield;
+   let timer,observed=0,ticks=0;
+   assert.equal(controller.signal.aborted,false);
+   ExecutionTaskScheduler.prototype.yield=async function(){
+    await productionYield.call(this);
+    if(observed||privateAccounting(st).indexSeeks===0)return;
+    observed++;
+    assert.equal(controller.signal.aborted,false);
+    assert.throws(()=>db.prepare('SELECT 1'),e=>e.kind==='misuse');
+    await new Promise(resolve=>{timer=setTimeout(()=>{
+     ticks++;if(abort)controller.abort(reason);resolve();
+    },0)});
+   };
+   try{return await st.step({signal:controller.signal});}
+   finally{
+    clearTimeout(timer);ExecutionTaskScheduler.prototype.yield=productionYield;
+    assert.equal(observed,1,'selected work reaches a real production suspension');
+    assert.equal(ticks,1,'one actual host timer delivered inside the operation');
+   }
+  }
+  // Negative control: the identical witness without abort must publish the
+  // typed row. Holding a genuine task alone must not manufacture a rejection.
+  const control=db.prepare(sql).statement;bind(control);
+  try{assert.equal(await witnessedStep(control,new AbortController(),null,false),'row');
+   assert.equal(control.columnType(0),'text');assert.equal(control.column(0),'é');
+   assert.equal(control.columnType(1),'integer');assert.equal(control.column(1),1n);
+   assert.equal(control.columnType(2),'text');assert.equal(control.column(2),'7A'.repeat(256*1024));
+  }finally{control.finalize()}
   const cancelled=db.prepare(sql).statement;bind(cancelled);
-  const controller=new AbortController(),reason=new Error('joined WR live abort');
-  const timer=setTimeout(()=>controller.abort(reason),0);let error;
-  try{await assert.rejects(cancelled.step({signal:controller.signal}),e=>{error=e;return e.kind==='cancelled'&&e.cause===reason});}
-  finally{clearTimeout(timer)}
+  const controller=new AbortController(),reason=new Error('joined WR live abort');let error;
+  await assert.rejects(witnessedStep(cancelled,controller,reason,true),e=>{error=e;return e.kind==='cancelled'&&e.cause===reason});
   assert.ok(privateAccounting(cancelled).indexSeeks>0,'live abort follows selected joined work');
   await assert.rejects(cancelled.step(),e=>e===error);
   assert.throws(()=>cancelled.reset(),e=>e===error);
