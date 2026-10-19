@@ -14,7 +14,12 @@ Parsing ports byte-oriented `getDigits`, `parseTimezone`, `parseHhMmSs`, `parseY
 
 ## Clock and timezone seam
 
-Add an internal, connection-owned `DateTimeEnvironment` (name may vary without changing the contract):
+The private environment is implemented. Current admission reassessment and the
+source-owned per-native-step clock/UTC-provenance correction proposal are in
+[provider admission](card-q-a-a-provider-admission.md); that evidence supersedes
+the earlier all-rows clock-cache promise, not the calendar implementation.
+
+The internal, connection-owned `DateTimeEnvironment` is:
 
 ```ts
 interface DateTimeEnvironment {
@@ -25,7 +30,7 @@ interface DateTimeEnvironment {
 }
 ```
 
-The default browser adapter reads `Date.now()` and derives local fields with a host `Date`; deterministic tests inject both methods. A statement execution owner lazily samples `nowUnixMilliseconds()` once on its first `sqlite3StmtCurrentTime` equivalent, converts it to iJD with checked bigint arithmetic, and caches it through all rows, subqueries, functions, yields, reset-to-next-execution boundaries, and CURRENT_* aliases. A new execution after reset samples again. Preparation does not sample. Calls in pure/schema contexts retain `sqlite3NotPureFunc` rejection semantics. This is an adaptation of VFS `xCurrentTimeInt64` plus `sqlite3StmtCurrentTime` (`src/vdbeapi.c`), not an algorithm substitution.
+The default browser adapter reads `Date.now()` and derives local fields with a host `Date`; deterministic tests inject both methods. Upstream clears its lazy sample at each `sqlite3VdbeExec` entry, so clock stability belongs to one native step, including all its scalar/subquery work and any TypeScript async yields, not unconditionally to every row until reset. Constant expressions may remain stable through `Once`. Preparation does not sample; reset and independent statements must not reuse an earlier sample. Current TS cache lifetime and missing current-time `isUtc` provenance remain repair obligations detailed in the provider-admission evidence. Calls in pure/schema contexts require `sqlite3NotPureFunc` eligibility at the actual FunctionContext caller. This adapts VFS `xCurrentTimeInt64` plus `sqlite3StmtCurrentTime` (`src/vdbeapi.c`), not the SQLite cache algorithm.
 
 `localFieldsAtUnixSecond` is the sole host timezone/tzdata boundary and corresponds to `date.c:osLocaltime`; `toLocaltime` keeps upstream's 1970..2038 direct range and equivalent-year remapping outside it. The returned fields, DST transition choice, historical offsets, platform range, and future tzdata revisions are therefore host-dependent. A null/throw/out-of-range host result maps to `local time unavailable`. Everything before/after that call—including UTC conversion's at-most-four guesses—is translated. Tests that claim exact local results must inject the seam. Host-default tests may assert only documented self-consistency or record environment/TZ and are zero-credit. No global timezone mutation, ambient `process.env.TZ`, or public API expansion is required.
 
@@ -33,10 +38,10 @@ The default browser adapter reads `Date.now()` and derives local fields with a h
 
 1. Add a private date module and registry rows, preserving all ten registrations even before every callback dispatches. Make unsupported residuals fail atomically at prepare/execution as existing registry policy requires.
 2. Unit-test DateTime flags/parsers/JD conversions and modifier branches through a diagnostic test-only seam; then connect Mem arguments and FunctionContext outputs.
-3. Integrate statement clock ownership before admitting `now`/CURRENT_*; test one sample across rows/yields/aliases and resampling after reset. Integrate deterministic timezone provider before admitting localtime/utc.
+3. Preserve the implemented seam and integrate the source-owned per-step clock boundary and current-time UTC flags; test row-dependent expressions as well as constant Once/alias controls, reset, yields and provider failures. Provider admission and remaining purity caller obligations are detailed in the linked reassessment.
 4. Add source output callbacks, exact arities, keyword lowering, length/work checks, then promote manifest cases only when they pass through public Fetch/prepare/execute. Do not award credit to internal helpers or native observations.
 
-Invariants: no partially installed result on failure; FunctionContext cleanup remains once-only; no clock sample at prepare; all `now` observations in one execution are identical; iJD is exact bigint; cached-valid flags, not field values, establish authority; local/UTC flags only follow source transitions; invalid syntax/range is NULL rather than a fabricated date; local provider failure is an error rather than NULL.
+Invariants: no partially installed result on failure; FunctionContext cleanup remains once-only; no clock sample at prepare; all reached `now` observations within one step share its lazy sample (constant Once results may outlive it); iJD is exact bigint; cached-valid flags, not field values, establish authority; local/UTC flags only follow source transitions; invalid syntax/range is NULL rather than a fabricated date; local provider failure is an error rather than NULL.
 
 Alternatives rejected: host `Date.parse`/ISO formatting (different grammar, range, normalization and precision), `Intl` timezone formatting (locale/tzdata output and no SQLite equivalent-year/UTC-loop control), one canonical epoch value without source flags (loses raw numeric, floor, UTC/local and lazy-cache branches), and freezing a fixed timezone (would change observable SQLite localtime semantics). The small two-method seam is the minimum adaptation needed for browser VFS-clock absence and deterministic tests.
 
