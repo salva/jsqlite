@@ -26,8 +26,18 @@ test(`retained GROUP ${image.encoding} ${mode} saved error/refund/reset/rebind`,
   for(const b of budgets)assert.equal(b.usedBytes,0,'failed execution refunds shared budget');
   assert.throws(()=>s.reset(),e=>e===first);
   s.bind(1,'small');s.bind(2,1n);s.bind(3,3n);
+  // vdbeapi.c:setResultStrOrError converts to database encoding before
+  // TooBig admission. Keep the ten-byte UTF16 negative control after GROUP.
+  if(mode==='result'&&image.encoding!=='UTF-8'){
+   let converted;
+   await assert.rejects(s.step(),e=>{converted=e;return e.kind==='limit'});
+   for(const b of budgets)assert.equal(b.usedBytes,0,'converted-size failure refunds');
+   assert.throws(()=>s.reset(),e=>e===converted);
+   s.bind(1,'four'); // Exactly eight UTF16 bytes; cap8 remains unchanged.
+  }
+  const recovered=mode==='result'?(image.encoding==='UTF-8'?'small':'four'):3n;
   for(let run=0;run<2;run++){
-   assert.equal(await s.step(),'row');assert.equal(s.column(0),mode==='result'?'small':3n);assert.equal(await s.step(),'done');
+   assert.equal(await s.step(),'row');assert.equal(s.column(0),recovered);assert.equal(await s.step(),'done');
    for(const b of budgets)assert.equal(b.usedBytes,0,'halt refunds shared budget');s.reset();
   }
   s.finalize();s=null;for(const b of budgets)assert.equal(b.usedBytes,0,'finalize refunds');

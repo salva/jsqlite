@@ -1,0 +1,166 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "expression": "json_set('{}','$.a[1].',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json_set('{}','$.a[#-1].',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json_set('{\"a\":1}','$.a[0].',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{\"a\":1}"
+    },
+    {
+      "expression": "json_set('{}','$.a[0].',1)",
+      "rc": 1,
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "expression": "json_set('{}','$.a.b',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{\"a\":{\"b\":1}}"
+    },
+    {
+      "expression": "json_insert('{}','$.a[1].',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json_replace('{}','$.a[0].',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json_remove('{}','$.a[0].')",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json_set('[]','$[1].',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "[]"
+    },
+    {
+      "expression": "json_set('[]','$[0].',1)",
+      "rc": 1,
+      "error": "bad JSON path: '$[0].'"
+    },
+    {
+      "expression": "json_set('{\"a\":{}}','$.a.',1)",
+      "rc": 1,
+      "error": "bad JSON path: '$.a.'"
+    },
+    {
+      "expression": "json_set('{\"a\":1}','$.a.',1)",
+      "rc": 1,
+      "error": "bad JSON path: '$.a.'"
+    },
+    {
+      "expression": "json_set('{\"a\":1}','$.a[bad',1)",
+      "rc": 100,
+      "type": 3,
+      "value": "{\"a\":1}"
+    },
+    {
+      "expression": "json(jsonb_set(jsonb('{}'),'$.a[1].',1))",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json(jsonb_set(jsonb('{}'),'$.a[#-1].',1))",
+      "rc": 100,
+      "type": 3,
+      "value": "{}"
+    },
+    {
+      "expression": "json_extract('{}','$.a.')",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "json_extract('{\"a\":1}','$.a[bad')",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "json_extract('{\"a\":{}}','$.a.')",
+      "rc": 1,
+      "error": "bad JSON path: '$.a.'"
+    },
+    {
+      "expression": "json_type('{}','$.a.')",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "json_array_length('{}','$.a.')",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "'{}' -> '$.a.'",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "'{}' ->> '$.a.'",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "jsonb_extract(jsonb('{}'),'$.a.')",
+      "rc": 100,
+      "type": 5,
+      "value": null
+    },
+    {
+      "expression": "hex(jsonb_set(jsonb('{}'),'$.a[1].',1))",
+      "rc": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(jsonb_remove(jsonb('{}'),'$.a.'))",
+      "rc": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "json_array_insert('{}','$.a[1].',1)",
+      "rc": 1,
+      "error": "not an array element: '$.a[1].'"
+    },
+    {
+      "expression": "json_set('{}','$.a[#-0].',1)",
+      "rc": 1,
+      "error": "bad JSON path: '$.a[#-0].'"
+    },
+    {
+      "expression": "json_set('{}','$.a[1].',1,'$.b',2)",
+      "rc": 100,
+      "type": 3,
+      "value": "{\"b\":2}"
+    }
+  ]
+}

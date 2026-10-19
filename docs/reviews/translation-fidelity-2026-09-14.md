@@ -1,5 +1,10 @@
 ## Metadata cursor identity — finite independent acceptance
 
+Physical/JSON Window inputs now enter the shared Window rewrite before scalar
+module projection, retaining positioned sourceRow payload and independent rowid.
+Finite typed/full-metadata and lifecycle author evidence, source comparison and
+remaining acceptance gates: [mixed Window correction](../research/mixed-json-window/README.md).
+
 The former metadata rowid rejection is repaired through per-occurrence
 MetadataFilter/Next counters and real linked/aggregate/window payload identity,
 not NULL or visible cid/seq. Selected hidden-EQ omission and value-text conversion
@@ -5226,3 +5231,16 @@ represented shared WHERE coroutine route. Register-backed columns/independent
 rowid replace invalid B-tree consumers. Native60-variant finite evidence and
 remaining boundaries: [receipt](../research/direct-json-window/README.md).
 No exhaustive compatibility or independent approval claim.
+
+## Shared JSON validator execution correction
+
+The reproduced zero-charge strict JSONB scan is corrected at the shared resumable validator and real Function/PureFunc caller; error-position also drives the existing TEXT parser cooperatively. Semantic first-error/flags4 ordering remains owned by pinned json.c branches. The later TEXT5 nested continuation-scan gap is corrected by resumable jsonBytesToBypass/unescape progression, not admission-only charging. This does not establish global resource or whole-goal acceptance. [Revision-bound initial evidence](../research/card-r-a-json-validation-progress.md); [nested bypass evidence and remaining gaps](../research/card-r-a-json-text5-progress.md).
+
+## Recursive JSON root-parent control correction
+
+The callback10 swallowed-control finding is corrected by private semantic path
+classification at candidate lookup, arrow diagnostics and distinct edit-context
+classification. Arbitrary callback identity propagates; lazy class initialization
+only resolves the demonstrated public module cycle. Existing validator/TEXT5 and
+Window findings retain their bounded dispositions, not universal compatibility.
+[Combined source/caller/gate evidence](../research/card-r-e-json-final-verification.md).

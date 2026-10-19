@@ -1,0 +1,44 @@
+--- a/src/internal/json.ts
++++ b/src/internal/json.ts
+@@ -309,11 +309,17 @@
+   const visitBinary=async(at:number,depth:number):Promise<number>=>{
+    await control.checkpoint(1);const b=span!.bytes,h=binaryPayloadSize(b,at);if(!h)throw malformed();
+    const start=at+h.header,end=start+h.size;
+-   const scalar=async(pos:number):Promise<number>=>{const extent=binaryPayloadSize(b,pos);if(!extent)throw malformed();const value=jsonBlobText(b.slice(pos,pos+extent.header+extent.size),n=>{control.charge(n);control.check()});try{await appendRaw(value.textBytes())}finally{value.release()}return pos+extent.header+extent.size};
++   const scalar=async(pos:number,renderDepth=depth):Promise<number>=>{
++    // Like jsonTranslateBlobToPrettyText, forward the plain renderer's actual
++    // cursor, not the declared extent. It renders against the whole parse;
++    // labels may be containers and NULL/TRUE/FALSE consume only one byte.
++    const {value,next}=jsonBlobTextAt(b,pos,renderDepth,n=>{control.charge(n);control.check()});
++    try{await appendRaw(value.textBytes())}finally{value.release()}return next;
++   };
+    if(h.type!==11&&h.type!==12)return scalar(at);
+    const object=h.type===12;await append(object?"{":"[");let j=start;
+    if(j<end){if(depth+1>=1000)throw new JSQLiteError("sqlite","JSON nested too deep",{code:1});await append("\n");
+-    for(;;){await indentation(depth+1);if(object){j=await scalar(j);if(j>end)throw malformed();await append(": ")}j=await visitBinary(j,depth+1);if(j>=end)break;await append(",\n")}
++    for(;;){await indentation(depth+1);if(object){j=await scalar(j,depth+1);if(j>end)throw malformed();await append(": ")}j=await visitBinary(j,depth+1);if(j>=end)break;await append(",\n")}
+     await append("\n");await indentation(depth);
+    }
+    await append(object?"}":"]");return end;
+@@ -1092,6 +1098,12 @@
+ // jsonTranslateBlobToText emits SQL TEXT bytes, not a decoded JS string.
+ // Mem.setText owns the bytes; public column() decoding is a separate boundary.
+ function jsonBlobText(bytes:Uint8Array,charge:(n:number)=>void):Mem{
++ return jsonBlobTextAt(bytes,0,0,charge).value;
++}
++// Own both publication and consumed position, as jsonTranslateBlobToText does.
++// Callers retain the complete parse and its cursor/depth; never slice the input
++// to a guessed scalar extent before rendering (object labels can be containers).
++function jsonBlobTextAt(bytes:Uint8Array,at:number,depth:number,charge:(n:number)=>void):{value:Mem,next:number}{
+  const parts:Uint8Array[]=[];const ascii=(s:string)=>{parts.push(te.encode(s))};
+  const control=(c:number)=>ascii(({8:'\\b',9:'\\t',10:'\\n',12:'\\f',13:'\\r'} as Record<number,string>)[c]??`\\u${c.toString(16).padStart(4,'0')}`);
+  const render=(at:number,depth:number):number=>{
+@@ -1130,7 +1142,7 @@
+    default:throw malformed();
+   }return end;
+  };
+- render(0,0);const out=new Mem();out.setText(join(parts),'utf-8');out.setSubtype(74);return out;
++ const next=render(at,depth);const out=new Mem();out.setText(join(parts),'utf-8');out.setSubtype(74);return{value:out,next};
+ }
+ // jsonLabelCompare raw/raw branch: opaque byte labels are not UTF-8 strings.
+ function jsonRawLabelEqual(a:Uint8Array,b:Uint8Array,charge:(n:number)=>void):boolean{

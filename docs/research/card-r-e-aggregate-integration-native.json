@@ -1,0 +1,2224 @@
+{
+  "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "library_sha256": "b74284142511a672e841ef5c370cab35f2d873912082319831759459bba05347",
+  "provenance": "json103.test + source-derived lifecycle combinations (not verbatim upstream SQL)",
+  "rows": [
+    {
+      "enc": "utf8",
+      "id": "grouped",
+      "sql": "SELECT x%2 AS g,json_group_array(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END) ORDER BY x) AS a,jsonb_group_array(jsonb(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END)) ORDER BY x) AS b,json_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END ORDER BY x) AS o,jsonb_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END ORDER BY x) AS p FROM t1 WHERE x<?1 GROUP BY x%2 ORDER BY x%2",
+      "bindings": [
+        7,
+        4
+      ],
+      "metadata": [
+        {
+          "name": "g",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 7,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[9223372036854775807],[null],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb321b00cb15c313393232333337323033363835343737353830371b00cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807,\"dup\":null}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1e37647570c313393232333337323033363835343737353830373764757000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[\"text\"],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb104b35322e355b47746578744b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc103764757035322e353764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 4,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb191b00cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1937647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "bb4b35322e355b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "sliding",
+      "sql": "SELECT x,json_group_array(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END)) OVER (ORDER BY x ROWS 2 PRECEDING) AS a,jsonb_group_array(jsonb(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END))) OVER (ORDER BY x ROWS 2 PRECEDING) AS b,json_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END) OVER (ORDER BY x ROWS 2 PRECEDING) AS o,jsonb_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END) OVER (ORDER BY x ROWS 2 PRECEDING) AS p FROM t1 WHERE x<?1 ORDER BY x",
+      "bindings": [
+        7,
+        4
+      ],
+      "metadata": [
+        {
+          "name": "x",
+          "decltype": "INT",
+          "database_name": "main",
+          "table_name": "t1",
+          "origin_name": "x"
+        },
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 7,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "2b1b00"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "7b1b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[9223372036854775807],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb224b35322e35cb15c313393232333337323033363835343737353830375b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "value": "[[9223372036854775807],[\"text\"],[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1fcb15c313393232333337323033363835343737353830375b47746578741b00"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807,\"dup\":null}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1e37647570c313393232333337323033363835343737353830373764757000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "value": "[[\"text\"],[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb0d5b47746578741b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":null,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc0d37647570003764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":null,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc0d37647570003764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 4,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "2b1b00"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "7b1b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[9223372036854775807],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb224b35322e35cb15c313393232333337323033363835343737353830375b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "empty",
+      "sql": "SELECT json_group_array(x) AS a,jsonb_group_array(x) AS b,json_group_object(x,x) AS o,jsonb_group_object(x,x) AS p FROM t1 WHERE x<?1",
+      "bindings": [
+        0,
+        0
+      ],
+      "metadata": [
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[]"
+              },
+              {
+                "type": "blob",
+                "value": "0b"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 0,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[]"
+              },
+              {
+                "type": "blob",
+                "value": "0b"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "json_group_array-error",
+      "sql": "SELECT json_group_array(CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "jsonb_group_array-error",
+      "sql": "SELECT jsonb_group_array(CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "value": "2b1331"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "json_group_object-error",
+      "sql": "SELECT json_group_object('key',CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"key\":1}"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "jsonb_group_object-error",
+      "sql": "SELECT jsonb_group_object('key',CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "value": "6c376b65791331"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf8",
+      "id": "argument-error",
+      "sql": "SELECT json_group_object(NULL,json(CASE WHEN ?1=0 THEN 'bad' ELSE 'null' END)) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "malformed JSON"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "grouped",
+      "sql": "SELECT x%2 AS g,json_group_array(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END) ORDER BY x) AS a,jsonb_group_array(jsonb(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END)) ORDER BY x) AS b,json_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END ORDER BY x) AS o,jsonb_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END ORDER BY x) AS p FROM t1 WHERE x<?1 GROUP BY x%2 ORDER BY x%2",
+      "bindings": [
+        7,
+        4
+      ],
+      "metadata": [
+        {
+          "name": "g",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 7,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[9223372036854775807],[null],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb321b00cb15c313393232333337323033363835343737353830371b00cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807,\"dup\":null}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1e37647570c313393232333337323033363835343737353830373764757000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[\"text\"],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb104b35322e355b47746578744b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc103764757035322e353764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 4,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb191b00cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1937647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "bb4b35322e355b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "sliding",
+      "sql": "SELECT x,json_group_array(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END)) OVER (ORDER BY x ROWS 2 PRECEDING) AS a,jsonb_group_array(jsonb(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END))) OVER (ORDER BY x ROWS 2 PRECEDING) AS b,json_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END) OVER (ORDER BY x ROWS 2 PRECEDING) AS o,jsonb_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END) OVER (ORDER BY x ROWS 2 PRECEDING) AS p FROM t1 WHERE x<?1 ORDER BY x",
+      "bindings": [
+        7,
+        4
+      ],
+      "metadata": [
+        {
+          "name": "x",
+          "decltype": "INT",
+          "database_name": "main",
+          "table_name": "t1",
+          "origin_name": "x"
+        },
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 7,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "2b1b00"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "7b1b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[9223372036854775807],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb224b35322e35cb15c313393232333337323033363835343737353830375b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "value": "[[9223372036854775807],[\"text\"],[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1fcb15c313393232333337323033363835343737353830375b47746578741b00"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807,\"dup\":null}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1e37647570c313393232333337323033363835343737353830373764757000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "value": "[[\"text\"],[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb0d5b47746578741b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":null,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc0d37647570003764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":null,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc0d37647570003764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 4,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "2b1b00"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "7b1b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[9223372036854775807],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb224b35322e35cb15c313393232333337323033363835343737353830375b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "empty",
+      "sql": "SELECT json_group_array(x) AS a,jsonb_group_array(x) AS b,json_group_object(x,x) AS o,jsonb_group_object(x,x) AS p FROM t1 WHERE x<?1",
+      "bindings": [
+        0,
+        0
+      ],
+      "metadata": [
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[]"
+              },
+              {
+                "type": "blob",
+                "value": "0b"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 0,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[]"
+              },
+              {
+                "type": "blob",
+                "value": "0b"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "json_group_array-error",
+      "sql": "SELECT json_group_array(CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "jsonb_group_array-error",
+      "sql": "SELECT jsonb_group_array(CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "value": "2b1331"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "json_group_object-error",
+      "sql": "SELECT json_group_object('key',CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"key\":1}"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "jsonb_group_object-error",
+      "sql": "SELECT jsonb_group_object('key',CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "value": "6c376b65791331"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16le",
+      "id": "argument-error",
+      "sql": "SELECT json_group_object(NULL,json(CASE WHEN ?1=0 THEN 'bad' ELSE 'null' END)) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "malformed JSON"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "grouped",
+      "sql": "SELECT x%2 AS g,json_group_array(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END) ORDER BY x) AS a,jsonb_group_array(jsonb(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END)) ORDER BY x) AS b,json_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END ORDER BY x) AS o,jsonb_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END ORDER BY x) AS p FROM t1 WHERE x<?1 GROUP BY x%2 ORDER BY x%2",
+      "bindings": [
+        7,
+        4
+      ],
+      "metadata": [
+        {
+          "name": "g",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 7,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[9223372036854775807],[null],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb321b00cb15c313393232333337323033363835343737353830371b00cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807,\"dup\":null}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1e37647570c313393232333337323033363835343737353830373764757000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[\"text\"],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb104b35322e355b47746578744b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc103764757035322e353764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 4,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb191b00cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1937647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "bb4b35322e355b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "sliding",
+      "sql": "SELECT x,json_group_array(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END)) OVER (ORDER BY x ROWS 2 PRECEDING) AS a,jsonb_group_array(jsonb(json_array(CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END))) OVER (ORDER BY x ROWS 2 PRECEDING) AS b,json_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END) OVER (ORDER BY x ROWS 2 PRECEDING) AS o,jsonb_group_object(CASE WHEN x%3=0 THEN NULL ELSE 'dup' END,CASE WHEN x%3=0 THEN X'FF' ELSE CASE x%4 WHEN 0 THEN NULL WHEN 1 THEN 2.5 WHEN 2 THEN 9223372036854775807 ELSE 'text' END END) OVER (ORDER BY x ROWS 2 PRECEDING) AS p FROM t1 WHERE x<?1 ORDER BY x",
+      "bindings": [
+        7,
+        4
+      ],
+      "metadata": [
+        {
+          "name": "x",
+          "decltype": "INT",
+          "database_name": "main",
+          "table_name": "t1",
+          "origin_name": "x"
+        },
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 7,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "2b1b00"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "7b1b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[9223372036854775807],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb224b35322e35cb15c313393232333337323033363835343737353830375b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "text",
+                "value": "[[9223372036854775807],[\"text\"],[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1fcb15c313393232333337323033363835343737353830375b47746578741b00"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":9223372036854775807,\"dup\":null}"
+              },
+              {
+                "type": "blob",
+                "value": "cc1e37647570c313393232333337323033363835343737353830373764757000"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "text",
+                "value": "[[\"text\"],[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb0d5b47746578741b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":null,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc0d37647570003764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "6"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":null,\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "cc0d37647570003764757035322e35"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 4,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[[null]]"
+              },
+              {
+                "type": "blob",
+                "value": "2b1b00"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5]]"
+              },
+              {
+                "type": "blob",
+                "value": "7b1b004b35322e35"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5}"
+              },
+              {
+                "type": "blob",
+                "value": "8c3764757035322e35"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "text",
+                "value": "[[null],[2.5],[9223372036854775807]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb1e1b004b35322e35cb15c31339323233333732303336383534373735383037"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "text",
+                "value": "[[2.5],[9223372036854775807],[\"text\"]]"
+              },
+              {
+                "type": "blob",
+                "value": "cb224b35322e35cb15c313393232333337323033363835343737353830375b4774657874"
+              },
+              {
+                "type": "text",
+                "value": "{\"dup\":2.5,\"dup\":9223372036854775807}"
+              },
+              {
+                "type": "blob",
+                "value": "cc213764757035322e3537647570c31339323233333732303336383534373735383037"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "empty",
+      "sql": "SELECT json_group_array(x) AS a,jsonb_group_array(x) AS b,json_group_object(x,x) AS o,jsonb_group_object(x,x) AS p FROM t1 WHERE x<?1",
+      "bindings": [
+        0,
+        0
+      ],
+      "metadata": [
+        {
+          "name": "a",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "b",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "o",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        },
+        {
+          "name": "p",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[]"
+              },
+              {
+                "type": "blob",
+                "value": "0b"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ]
+          ],
+          "error": null
+        },
+        {
+          "binding": 0,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[]"
+              },
+              {
+                "type": "blob",
+                "value": "0b"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "blob",
+                "value": "0c"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "json_group_array-error",
+      "sql": "SELECT json_group_array(CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "jsonb_group_array-error",
+      "sql": "SELECT jsonb_group_array(CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "value": "2b1331"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "json_group_object-error",
+      "sql": "SELECT json_group_object('key',CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"key\":1}"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "jsonb_group_object-error",
+      "sql": "SELECT jsonb_group_object('key',CASE WHEN ?1=0 THEN X'FF' ELSE 1 END) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "JSON cannot hold BLOB values"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "blob",
+                "value": "6c376b65791331"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "enc": "utf16be",
+      "id": "argument-error",
+      "sql": "SELECT json_group_object(NULL,json(CASE WHEN ?1=0 THEN 'bad' ELSE 'null' END)) AS result",
+      "bindings": [
+        0,
+        1
+      ],
+      "metadata": [
+        {
+          "name": "result",
+          "decltype": null,
+          "database_name": null,
+          "table_name": null,
+          "origin_name": null
+        }
+      ],
+      "executions": [
+        {
+          "binding": 0,
+          "rows": [],
+          "error": {
+            "code": 1,
+            "message": "malformed JSON"
+          }
+        },
+        {
+          "binding": 1,
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ],
+          "error": null
+        }
+      ]
+    }
+  ]
+}

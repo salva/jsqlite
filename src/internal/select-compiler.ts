@@ -45,7 +45,7 @@ function compileSelectInner(
       const windowProgram = compileRecursiveWindowSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
       if (windowProgram) {
         builder.ops.push({ code: "Halt" });
-        return Object.freeze({ ...windowProgram, ops: builder.finish(), registers: builder.registers });
+        return Object.freeze({ ...windowProgram, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
       }
     }
     {
@@ -63,7 +63,7 @@ function compileSelectInner(
       const aggregateProgram = compileRecursiveAggregateSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
       if (aggregateProgram) {
         builder.ops.push({ code: "Halt" });
-        return Object.freeze({ ...aggregateProgram, ops: builder.finish(), registers: builder.registers });
+        return Object.freeze({ ...aggregateProgram, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
       }
     }
     {
@@ -73,7 +73,7 @@ function compileSelectInner(
       const multipleProgram = compileMultipleRecursiveCtes(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, { builder, parameters, destination });
       if (multipleProgram) {
         builder.ops.push({ code: "Halt" });
-        return Object.freeze({ ...multipleProgram, ops: builder.finish(), registers: builder.registers });
+        return Object.freeze({ ...multipleProgram, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
       }
     }
     // generateWithRecursiveQuery consumes the enclosing Parse/Vdbe and dest.
@@ -85,7 +85,7 @@ function compileSelectInner(
     const destination: SelectDest = { kind: "output" };
     const produced = compileRecursiveCteSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, false, { builder, parameters, destination });
     builder.ops.push({ code: "Halt" });
-    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
   }
   // select.c:sqlite3Select dispatches a compound to multiSelect before
   // coding the rightmost arm's aggregate. Each arm owns its own aggregate
@@ -157,7 +157,7 @@ function compileSelectInner(
     const destination: SelectDest = { kind: "output" };
     const produced = compileTableSelect(select, schema, database, maxRows, maxWorkUnits, maxResultBytes, privateStateLimits, { builder, parameters, destination });
     builder.ops.push({ code: "Halt" });
-    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
   }
   if (select.from.items.length || select.where) {
     const builder = new SelectProgramBuilder<Program["ops"][number]>(progressCheck,reprepare);
@@ -168,7 +168,7 @@ function compileSelectInner(
     // Every admitted table-entry branch consumes this enclosing Parse.
     if (produced.ops !== builder.ops) throw new JSQLiteError("internal", "table producer did not consume enclosing builder");
     builder.ops.push({ code: "Halt" });
-    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
+    return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
   }
   // select.c:multiSelect/selectInnerLoop consume the enclosing allocation and
   // destination even for zero-source arms. Early window/CTE consumers forward
@@ -179,7 +179,7 @@ function compileSelectInner(
   const emitRow = (first: number, count: number) => emitSelectDestination(builder.ops, destination, first, count);
   const produced = compileScalarSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, schema, database, maxRows, { builder, parameters, emitRow, destination });
   builder.ops.push({ code: "Halt" });
-  return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers });
+  return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
 }
 
 export function compileSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,encoding:Program["encoding"],maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:Program["privateStateLimits"],recursive:boolean,progressCheck?:()=>void,bindings?:readonly Mem[]):Program {

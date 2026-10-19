@@ -1,4 +1,7 @@
 import {prettyCases} from './json-pretty-cases.mjs';
+import {readFileSync} from 'node:fs';
+import {checkPrettyBlobCases} from './json-pretty-blob-case-assertions.mjs';
+const receipt=JSON.parse(readFileSync(new URL('../../docs/research/card-r-b-pretty-blob-native.json',import.meta.url)));
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,15 +12,9 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`json_pretty public Fetc
  const bridge=await startFixtureServer(root);let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/encoding-${encoding}`));
-  for(const [sql,expected] of prettyCases){const s=db.prepare(sql).statement;
-   assert.equal(s.columnMetadata(0).name,sql.slice(7));
-   assert.equal(await s.step(),'row',sql);assert.equal(s.column(0),expected,sql);
-   assert.equal(s.columnType(0),expected===null?'null':typeof expected==='bigint'?'integer':'text');
-   assert.equal(await s.step(),'done');s.reset();assert.equal(await s.step(),'row');assert.equal(s.column(0),expected);s.finalize();
-  }
-  const s=db.prepare(`SELECT json_pretty('{bad')`).statement;
-  await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message==='malformed JSON');
-  assert.throws(()=>s.reset(),e=>e.kind==='sqlite');s.finalize();
+  const cases=receipt.encodings[encoding].pretty;
+  assert.deepEqual(cases.map(c=>c.sql),[...prettyCases.map(([sql])=>sql),`SELECT json_pretty('{bad')`]);
+  await checkPrettyBlobCases(db,cases);
  }finally{db?.closeDeferred();await new Promise(r=>bridge.server.close(r))}
 });
 test('pretty append controls and malformed/depth failures retain first error and reset',async()=>{

@@ -1,0 +1,3939 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "compileOptions": [
+    "ATOMIC_INTRINSICS=1",
+    "COMPILER=gcc-13.3.0",
+    "DEFAULT_AUTOVACUUM",
+    "DEFAULT_CACHE_SIZE=-2000",
+    "DEFAULT_FILE_FORMAT=4",
+    "DEFAULT_JOURNAL_SIZE_LIMIT=-1",
+    "DEFAULT_MMAP_SIZE=0",
+    "DEFAULT_PAGE_SIZE=4096",
+    "DEFAULT_PCACHE_INITSZ=20",
+    "DEFAULT_RECURSIVE_TRIGGERS",
+    "DEFAULT_SECTOR_SIZE=4096",
+    "DEFAULT_SYNCHRONOUS=2",
+    "DEFAULT_WAL_AUTOCHECKPOINT=1000",
+    "DEFAULT_WAL_SYNCHRONOUS=2",
+    "DEFAULT_WORKER_THREADS=0",
+    "DIRECT_OVERFLOW_READ",
+    "ENABLE_COLUMN_METADATA",
+    "ENABLE_MATH_FUNCTIONS",
+    "MALLOC_SOFT_LIMIT=1024",
+    "MAX_ATTACHED=10",
+    "MAX_COLUMN=2000",
+    "MAX_COMPOUND_SELECT=500",
+    "MAX_DEFAULT_PAGE_SIZE=8192",
+    "MAX_EXPR_DEPTH=1000",
+    "MAX_FUNCTION_ARG=1000",
+    "MAX_LENGTH=1000000000",
+    "MAX_LIKE_PATTERN_LENGTH=50000",
+    "MAX_MMAP_SIZE=0x7fff0000",
+    "MAX_PAGE_COUNT=0xfffffffe",
+    "MAX_PAGE_SIZE=65536",
+    "MAX_SQL_LENGTH=1000000000",
+    "MAX_TRIGGER_DEPTH=1000",
+    "MAX_VARIABLE_NUMBER=32766",
+    "MAX_VDBE_OP=250000000",
+    "MAX_WORKER_THREADS=8",
+    "MUTEX_PTHREADS",
+    "SYSTEM_MALLOC",
+    "TEMP_STORE=1",
+    "THREADSAFE=1"
+  ],
+  "librarySha256": "b74284142511a672e841ef5c370cab35f2d873912082319831759459bba05347",
+  "encodings": {
+    "utf8": {
+      "pretty": [
+        {
+          "sql": "SELECT json_pretty('{}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"a\":[1,2]}','--')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"a\":[1,2]}','--')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n--\"a\": [\n----1,\n----2\n--]\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(NULL,NULL)",
+          "metadata": [
+            {
+              "name": "json_pretty(NULL,NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',NULL)",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',123)",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',123)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n1231\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',char(9,0,120))",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',char(9,0,120))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n\t1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"a\":1,\"a\":2}', '')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"a\":1,\"a\":2}', '')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n\"a\": 1,\n\"a\": 2\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(jsonb('[[],{}]'))",
+          "metadata": [
+            {
+              "name": "json_pretty(jsonb('[[],{}]'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    [],\n    {}\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(x'5B315D')",
+          "metadata": [
+            {
+              "name": "json_pretty(x'5B315D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json_pretty(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{a:+1,b:0x10,c:Infinity}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{a:+1,b:0x10,c:Infinity}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n    \"a\": 1,\n    \"b\": 16,\n    \"c\": 9e999\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n    \"\\u0061\": \"\\u0062\\/\"\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(json_pretty('{}'))",
+          "metadata": [
+            {
+              "name": "subtype(json_pretty('{}'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_array(json_pretty('{}'))",
+          "metadata": [
+            {
+              "name": "json_array(json_pretty('{}'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\"{}\"]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{bad')",
+          "metadata": [
+            {
+              "name": "json_pretty('{bad')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        }
+      ],
+      "blob": [
+        {
+          "sql": "SELECT json(x'7B2261223A317D'),json_valid(x'7B2261223A317D'),json_valid(x'7B2261223A317D',2),json_valid(x'7B2261223A317D',4),json_extract(x'7B2261223A317D','$.a'),json_set(x'7B2261223A317D','$.b',2),json(x'33343536'),json_valid(x'33343536',4),json(NULL)",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_set(x'7B2261223A317D','$.b',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'33343536')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'33343536',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"a\":1}"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "{\"a\":1,\"b\":2}"
+              },
+              {
+                "type": "text",
+                "value": "456"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'7B')",
+          "metadata": [
+            {
+              "name": "json(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'7B'),json_valid(x'7B',4),json_valid(x'80'),json(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'80')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',1),json_valid(x'7B2261223A317D',8),json_valid(x'7B2261223A317D',15),x'7B2261223A317D'->'$.a',x'7B2261223A317D'->>'$.a',typeof(jsonb_set(x'7B2261223A317D','$.b',2)),subtype(jsonb_set(x'7B2261223A317D','$.b',2)),hex(jsonb_set(x'7B2261223A317D','$.b',2)),json(x'5B305D'),json(x'7B7D'),json_valid(x'CB021331',1),json_valid(x'CB021331',4),json_valid(x'CB021331',8),typeof(jsonb(x'CB021331')),subtype(jsonb(x'CB021331')),hex(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',15)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "x'7B2261223A317D'->'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "x'7B2261223A317D'->>'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'5B305D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "subtype(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hex(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "blob"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "8C176113311A621332"
+              },
+              {
+                "type": "text",
+                "value": "[0]"
+              },
+              {
+                "type": "text",
+                "value": "{}"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "blob"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "CB021331"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT key,value FROM json_each(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "key",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "key"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "a"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT fullkey FROM json_tree(x'7B2261223A317D') WHERE atom IS NOT NULL",
+          "metadata": [
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_tree",
+              "origin": "fullkey"
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "$.a"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_array(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json_array(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_object('a',x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_object('a',x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_set('{}','$.a',x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_set('{}','$.a',x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_group_array(x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_group_array(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B2261223A317D'),json_extract(x'7B2261223A317D','$.a'),json_valid(x'7B2261223A317D'),typeof(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"a\":1}"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "text",
+                "value": "blob"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"a\":1}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',2)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_extract(x'7B2261223A317D','$.a')",
+          "metadata": [
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_set(x'7B2261223A317D','$.b',2)",
+          "metadata": [
+            {
+              "name": "json_set(x'7B2261223A317D','$.b',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\"a\":1,\"b\":2}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'33343536')",
+          "metadata": [
+            {
+              "name": "json(x'33343536')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "456"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'33343536',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'33343536',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(NULL)",
+          "metadata": [
+            {
+              "name": "json(NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'80')",
+          "metadata": [
+            {
+              "name": "json_valid(x'80')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',1)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',8)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',15)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',15)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x'7B2261223A317D'->'$.a'",
+          "metadata": [
+            {
+              "name": "x'7B2261223A317D'->'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x'7B2261223A317D'->>'$.a'",
+          "metadata": [
+            {
+              "name": "x'7B2261223A317D'->>'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "blob"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "8C176113311A621332"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'5B305D')",
+          "metadata": [
+            {
+              "name": "json(x'5B305D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[0]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'7B7D')",
+          "metadata": [
+            {
+              "name": "json(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',1)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',8)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "blob"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "subtype(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT hex(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "hex(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "CB021331"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "utf16le": {
+      "pretty": [
+        {
+          "sql": "SELECT json_pretty('{}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"a\":[1,2]}','--')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"a\":[1,2]}','--')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n--\"a\": [\n----1,\n----2\n--]\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(NULL,NULL)",
+          "metadata": [
+            {
+              "name": "json_pretty(NULL,NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',NULL)",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',123)",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',123)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n1231\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',char(9,0,120))",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',char(9,0,120))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n\t1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"a\":1,\"a\":2}', '')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"a\":1,\"a\":2}', '')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n\"a\": 1,\n\"a\": 2\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(jsonb('[[],{}]'))",
+          "metadata": [
+            {
+              "name": "json_pretty(jsonb('[[],{}]'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    [],\n    {}\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(x'5B315D')",
+          "metadata": [
+            {
+              "name": "json_pretty(x'5B315D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_pretty(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json_pretty(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{a:+1,b:0x10,c:Infinity}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{a:+1,b:0x10,c:Infinity}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n    \"a\": 1,\n    \"b\": 16,\n    \"c\": 9e999\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n    \"\\u0061\": \"\\u0062\\/\"\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(json_pretty('{}'))",
+          "metadata": [
+            {
+              "name": "subtype(json_pretty('{}'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_array(json_pretty('{}'))",
+          "metadata": [
+            {
+              "name": "json_array(json_pretty('{}'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\"{}\"]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{bad')",
+          "metadata": [
+            {
+              "name": "json_pretty('{bad')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        }
+      ],
+      "blob": [
+        {
+          "sql": "SELECT json(x'7B2261223A317D'),json_valid(x'7B2261223A317D'),json_valid(x'7B2261223A317D',2),json_valid(x'7B2261223A317D',4),json_extract(x'7B2261223A317D','$.a'),json_set(x'7B2261223A317D','$.b',2),json(x'33343536'),json_valid(x'33343536',4),json(NULL)",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_set(x'7B2261223A317D','$.b',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'33343536')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'33343536',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B')",
+          "metadata": [
+            {
+              "name": "json(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'7B'),json_valid(x'7B',4),json_valid(x'80'),json(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'80')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',1),json_valid(x'7B2261223A317D',8),json_valid(x'7B2261223A317D',15),x'7B2261223A317D'->'$.a',x'7B2261223A317D'->>'$.a',typeof(jsonb_set(x'7B2261223A317D','$.b',2)),subtype(jsonb_set(x'7B2261223A317D','$.b',2)),hex(jsonb_set(x'7B2261223A317D','$.b',2)),json(x'5B305D'),json(x'7B7D'),json_valid(x'CB021331',1),json_valid(x'CB021331',4),json_valid(x'CB021331',8),typeof(jsonb(x'CB021331')),subtype(jsonb(x'CB021331')),hex(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',15)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "x'7B2261223A317D'->'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "x'7B2261223A317D'->>'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'5B305D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "subtype(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hex(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT key,value FROM json_each(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "key",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "key"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT fullkey FROM json_tree(x'7B2261223A317D') WHERE atom IS NOT NULL",
+          "metadata": [
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_tree",
+              "origin": "fullkey"
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_array(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json_array(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_object('a',x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_object('a',x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_set('{}','$.a',x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_set('{}','$.a',x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_group_array(x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_group_array(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B2261223A317D'),json_extract(x'7B2261223A317D','$.a'),json_valid(x'7B2261223A317D'),typeof(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',2)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_extract(x'7B2261223A317D','$.a')",
+          "metadata": [
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_set(x'7B2261223A317D','$.b',2)",
+          "metadata": [
+            {
+              "name": "json_set(x'7B2261223A317D','$.b',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'33343536')",
+          "metadata": [
+            {
+              "name": "json(x'33343536')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "456"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'33343536',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'33343536',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(NULL)",
+          "metadata": [
+            {
+              "name": "json(NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'80')",
+          "metadata": [
+            {
+              "name": "json_valid(x'80')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',1)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',8)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',15)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',15)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x'7B2261223A317D'->'$.a'",
+          "metadata": [
+            {
+              "name": "x'7B2261223A317D'->'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT x'7B2261223A317D'->>'$.a'",
+          "metadata": [
+            {
+              "name": "x'7B2261223A317D'->>'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'5B305D')",
+          "metadata": [
+            {
+              "name": "json(x'5B305D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B7D')",
+          "metadata": [
+            {
+              "name": "json(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',1)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',8)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "blob"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "subtype(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT hex(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "hex(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "CB021331"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    "utf16be": {
+      "pretty": [
+        {
+          "sql": "SELECT json_pretty('{}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"a\":[1,2]}','--')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"a\":[1,2]}','--')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n--\"a\": [\n----1,\n----2\n--]\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(NULL,NULL)",
+          "metadata": [
+            {
+              "name": "json_pretty(NULL,NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',NULL)",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',123)",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',123)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n1231\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('[1]',char(9,0,120))",
+          "metadata": [
+            {
+              "name": "json_pretty('[1]',char(9,0,120))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n\t1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"a\":1,\"a\":2}', '')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"a\":1,\"a\":2}', '')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n\"a\": 1,\n\"a\": 2\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(jsonb('[[],{}]'))",
+          "metadata": [
+            {
+              "name": "json_pretty(jsonb('[[],{}]'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    [],\n    {}\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty(x'5B315D')",
+          "metadata": [
+            {
+              "name": "json_pretty(x'5B315D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_pretty(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json_pretty(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\n    1\n]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{a:+1,b:0x10,c:Infinity}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{a:+1,b:0x10,c:Infinity}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n    \"a\": 1,\n    \"b\": 16,\n    \"c\": 9e999\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')",
+          "metadata": [
+            {
+              "name": "json_pretty('{\"\\u0061\":\"\\u0062\\/\"}')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "{\n    \"\\u0061\": \"\\u0062\\/\"\n}"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(json_pretty('{}'))",
+          "metadata": [
+            {
+              "name": "subtype(json_pretty('{}'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_array(json_pretty('{}'))",
+          "metadata": [
+            {
+              "name": "json_array(json_pretty('{}'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[\"{}\"]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_pretty('{bad')",
+          "metadata": [
+            {
+              "name": "json_pretty('{bad')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        }
+      ],
+      "blob": [
+        {
+          "sql": "SELECT json(x'7B2261223A317D'),json_valid(x'7B2261223A317D'),json_valid(x'7B2261223A317D',2),json_valid(x'7B2261223A317D',4),json_extract(x'7B2261223A317D','$.a'),json_set(x'7B2261223A317D','$.b',2),json(x'33343536'),json_valid(x'33343536',4),json(NULL)",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_set(x'7B2261223A317D','$.b',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'33343536')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'33343536',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B')",
+          "metadata": [
+            {
+              "name": "json(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'7B'),json_valid(x'7B',4),json_valid(x'80'),json(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'80')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',1),json_valid(x'7B2261223A317D',8),json_valid(x'7B2261223A317D',15),x'7B2261223A317D'->'$.a',x'7B2261223A317D'->>'$.a',typeof(jsonb_set(x'7B2261223A317D','$.b',2)),subtype(jsonb_set(x'7B2261223A317D','$.b',2)),hex(jsonb_set(x'7B2261223A317D','$.b',2)),json(x'5B305D'),json(x'7B7D'),json_valid(x'CB021331',1),json_valid(x'CB021331',4),json_valid(x'CB021331',8),typeof(jsonb(x'CB021331')),subtype(jsonb(x'CB021331')),hex(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D',15)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "x'7B2261223A317D'->'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "x'7B2261223A317D'->>'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'5B305D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'CB021331',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "subtype(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hex(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT key,value FROM json_each(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "key",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "key"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT fullkey FROM json_tree(x'7B2261223A317D') WHERE atom IS NOT NULL",
+          "metadata": [
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_tree",
+              "origin": "fullkey"
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_array(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json_array(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_object('a',x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_object('a',x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_set('{}','$.a',x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_set('{}','$.a',x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_group_array(x'7B7D')",
+          "metadata": [
+            {
+              "name": "json_group_array(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "JSON cannot hold BLOB values",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B2261223A317D'),json_extract(x'7B2261223A317D','$.a'),json_valid(x'7B2261223A317D'),typeof(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',2)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_extract(x'7B2261223A317D','$.a')",
+          "metadata": [
+            {
+              "name": "json_extract(x'7B2261223A317D','$.a')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_set(x'7B2261223A317D','$.b',2)",
+          "metadata": [
+            {
+              "name": "json_set(x'7B2261223A317D','$.b',2)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'33343536')",
+          "metadata": [
+            {
+              "name": "json(x'33343536')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "456"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'33343536',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'33343536',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(NULL)",
+          "metadata": [
+            {
+              "name": "json(NULL)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "null",
+                "value": null
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B')",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'80')",
+          "metadata": [
+            {
+              "name": "json_valid(x'80')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json(x'CB021331')",
+          "metadata": [
+            {
+              "name": "json(x'CB021331')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "[1]"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',1)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',8)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'7B2261223A317D',15)",
+          "metadata": [
+            {
+              "name": "json_valid(x'7B2261223A317D',15)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT x'7B2261223A317D'->'$.a'",
+          "metadata": [
+            {
+              "name": "x'7B2261223A317D'->'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT x'7B2261223A317D'->>'$.a'",
+          "metadata": [
+            {
+              "name": "x'7B2261223A317D'->>'$.a'",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "typeof(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "subtype(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+          "metadata": [
+            {
+              "name": "hex(jsonb_set(x'7B2261223A317D','$.b',2))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'5B305D')",
+          "metadata": [
+            {
+              "name": "json(x'5B305D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json(x'7B7D')",
+          "metadata": [
+            {
+              "name": "json(x'7B7D')",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [],
+          "error": "malformed JSON",
+          "code": 1,
+          "extendedCode": 1
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',1)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',1)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',4)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',4)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT json_valid(x'CB021331',8)",
+          "metadata": [
+            {
+              "name": "json_valid(x'CB021331',8)",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT typeof(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "typeof(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "blob"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT subtype(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "subtype(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              }
+            ]
+          ]
+        },
+        {
+          "sql": "SELECT hex(jsonb(x'CB021331'))",
+          "metadata": [
+            {
+              "name": "hex(jsonb(x'CB021331'))",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "rows": [
+            [
+              {
+                "type": "text",
+                "value": "CB021331"
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}

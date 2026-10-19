@@ -1,5 +1,102 @@
 # SQLite source map
 
+### JSON5 value-name and label admission
+
+`json.c:aNanInfName/jsonTranslateTextToBlob` → `Parser.literal`: ordered,
+case-insensitive name prefix plus source alphanumeric boundary produces FLOAT
+`9e999` or actual NULL. Standard lowercase literals retain distinct failure/
+fallthrough rules; signed numeric inf retains its different suffix admission.
+`Parser.object` rejects successfully parsed non-TEXT labels before identifier
+fallback; quoted labels remain strings. Complete-text trailing NUL is C EOF.
+No independent whole-token scanner or NaN-shaped numeric node is used for names.
+[Source comparison and finite native/public tests](research/card-r-a-json-token-green.md).
+
+
+### Quoted string production and TEXT5 rendering
+
+`json.c:jsonTranslateTextToBlob(parse_string)` → `Parser.str`: admission,
+current error cursor and TEXT/TEXTJ/TEXT5 tag production share one pass; quoted
+labels and values immediately consume its raw-spelling/tag result. Single quote
+syntax alone leaves TEXT; raw nonzero controls are JSON5-only TEXT5, NUL fails
+at the current cursor. `jsonTranslateBlobToText(TEXT5)` → `translateStringSteps`
+escapes raw controls through the shared canonical quoting primitive. Container
+separator mismatch preserves current cursor before consumption.
+[Source comparison, finite tests and resource boundaries](research/card-r-a-json-string-green.md).
+
+
+## JSON5 whitespace and comment production
+
+Pinned `json.c:json5Whitespace` → `json.ts:Parser.ws/spaceAt`: exact ASCII
+and UTF8-codepoint classes, line-comment CR/LF/U+2028/U+2029 ends and complete-only
+block-comment cursor commits. Required-child EOF preserves the caller's entry
+cursor; top-level trailing whitespace uses the separate conversion path. Existing
+strict/JSON5 parser modes encode native nonstandard admission. Label continuation
+shares the classifier; `value` owns native literal/alnum boundaries so comments
+following null/true/false reach the scanner. JSON's UTF8 decoder preserves BOM
+for parser admission instead of silently dropping it. No JS-whitespace broadening.
+[Source comparison and finite native/public evidence](research/card-r-a-json-ws-green.md).
+The synchronous JSONB validator still lacks per-byte cooperative yield/charge;
+representative VM admission checks do not establish resource-accounting parity.
+
+## TEXT JSON label and escape error ownership
+
+Pinned `json.c:jsonTranslateTextToBlob` object fallback and string escape branches
+map to `json.ts:Parser.label/str/object`. Unquoted labels retain raw spelling and
+TEXT/TEXTJ tag using `sqlite3JsonId1/2` and `jsonIs4HexB` admission, with decoded
+keys supplied to consumers. Colon lookahead does not consume the failing token;
+its recursive parse failure takes precedence. Quoted invalid escape offsets name
+the escape code, not the following digit. JSONB-first document classification and
+TEXT character-position publication remain separate, unchanged callers.
+[Finite source/native/public evidence](research/card-r-a-json-text-green.md).
+
+
+## JSON scalar admission and SQL text coercion
+
+`json.c:jsonTypeFunc/jsonArrayLengthFunc` → `jsonInspectionNode` then the
+respective type/count consumer: document admission precedes private path coercion,
+NULL, lookup, missing/error and publication. `jsonSqlText` factors the existing
+extraction private-Mem cast/release; extraction, edits, validity and error-position
+inspection reuse it. Paths alone terminate at NUL. `jsonInsertIntoBlob` root
+array-insert is a no-op after value admission; `jsonErrorFunc` tests JSONB admission
+before text fallback. Ordinary VDBE Function arguments remain uncoerced inputs;
+registry arities/flags are unchanged. Test: `json-scalar-admission.test.mjs`;
+[source comparison and bounded evidence](research/card-r-b-scalar-admission.md).
+
+## JSON numeric semantic production
+
+`json.c:jsonTranslateTextToBlob` numeric branches → `json.ts:nodeNumber`;
+JSONB decoding retains `numericType` and payload rather than reparsing spelling.
+`jsonReturnFromBlob` → `numericResult` (INT/INT5 sign/hex/overflow versus
+FLOAT/FLOAT5 double), reusing `mem.ts:atoi64Prefix/atof` util.c scanners.
+`jsonTranslateBlobToText` → `renderNumeric`; `jsonbValidityCheck` →
+`jsonbValidityCheck`, shared by deep validity and error-position, deliberately
+distinct from scalar conversion. [Validation evidence](research/card-r-a-jsonb-validation-green.md). `jsonTypeName`
+consumes the same header. Multipath JSON_BLOB reparses accumulated JSON text as
+upstream `jsonReturnString` does. Test: `json-numeric-type.test.mjs`;
+[pinned evidence and boundaries](research/card-r-b-numeric.md).
+
+## JSON extraction and abbreviated arrow paths
+
+`json.c:jsonExtractFunc` maps to `json.ts:jsonExtractFunc` and thin extraction/
+arrow wrappers: document-first admission, sequential private TEXT conversion,
+lookup/error/NULL order, single versus multipath shaping and JSON_BLOB/JSON_SQL/
+JSON_JSON flags. `parseJsonMem` releases its private conversion Mem on success
+and error. VDBE Function dispatch retains result-size/checkpoint ownership.
+Tests: `json-extract-sequence.test.mjs`, [typed pinned oracle and boundaries](research/card-r-b-extract.md).
+
+`json.c:jsonExtractFunc` JSON_ABPATH / JSON_SQL and `jsonAllAlphanum` map to
+`json.ts:jsonArrow`: document-before-path ordering, owned Mem text conversion,
+original storage-class index production, full/bracket/label paths, original-path
+error reporting and subtype suppression for `->>`. Existing `jsonLookup` /
+`pathStep` own reached traversal. Expression arrow lowering feeds the ordinary
+VDBE Function dispatcher, which enforces output size. Tests:
+`json-arrow-path.test.mjs`; [typed pinned oracle and boundaries](research/card-r-b-arrow.md).
+
+Physical/JSON Window inputs now enter the shared Window rewrite before scalar
+module projection, retaining positioned sourceRow payload and independent rowid.
+Finite typed/full-metadata and lifecycle author evidence, source comparison and
+remaining acceptance gates: [mixed Window correction](research/mixed-json-window/README.md).
+
 ## Shared scalar metadata admission
 
 `expr.c:sqlite3CodeSubselect` SRT_Mem and `select.c` aggregate ownership map to
@@ -317,6 +414,35 @@ promised.
 [json.ts](../src/internal/json.ts), [utf.ts](../src/internal/utf.ts),
 [mem.ts](../src/internal/mem.ts).
 
+`json.c:jsonLookupStep` reached-step path parsing and shape/NOTFOUND exits →
+`json.ts:pathStep/jsonLookup/editNode/pathLabelIndex` (unparsed tail threaded into construction;
+raw quoted spans plus escape flags, producer-label byte comparison via `jsonReadLabel`,
+retained mutation labels with deferred TEXT rendering; [quoted-path evidence](research/card-r-b-quoted-path.md);
+bounded index digit accumulation and contextual from-end NOTFOUND before delimiter
+validation). [Index boundary matrix](../test/conformance/json-from-end-delimiter-order.test.mjs)
+compares all shared scalar consumers against [pinned native capture](research/card-r-b-from-end-native.json).
+`json.c:jsonMergePatch/jsonPatchFunc/jsonBlobEdit/jsonBlobOverwrite/jsonAfterEditSizeAdjust`
+→ `json.ts:mergePatchBlob/JsonPatchBlob/jsonPatch` → shared VDBE json_patch/jsonb_patch:
+private byte-buffer edits, per-member first-match scan, raw-label copy, overwrite
+header widening, recursive delta/depth and target-before-patch parsing.
+`json.c:jsonLabelCompare/jsonLabelCompareEscaped/jsonUnescapeOneChar` → byte-span
+`jsonRawLabelEqual/jsonEscapedLabelEqual`; `jsonTranslateBlobToText` → `jsonBlobText`
+→ owned UTF-8 Mem TEXT (byte consumers do not decode). Public tests:
+`json-mergepatch-duplicate-delete.test.mjs`, `json-mergepatch-byte-order.test.mjs`,
+`json-mergepatch-raw-label.test.mjs`;
+[native evidence/limits](research/card-r-b-mergepatch.md).
+
+[Path reachability](../test/conformance/json-path-reachability.test.mjs) covers
+reached errors versus unreached suffixes across extraction/type/length/arrows and
+TEXT/JSONB mutation callers. Scoped author evidence: [[card:card-r-b]] status.
+
+`json.c:jsonLookupStep` missing-key/array-end branches and
+`jsonCreateEditSubstructure` → `json.ts:editNode/createEditSubstructure`, using
+private copy-on-write containers and retaining label encodings. Regression:
+[missing edit substructure](../test/conformance/json-missing-edit-substructure.test.mjs)
+(TEXT/JSONB, no-shell bounds, scalar shape, sequential edits, reset/reuse);
+scoped author evidence and remaining matrix: [[card:card-r-b]] status.
+
 JSON parser/path/mutation/JSONB and aggregate/table callbacks are translated
 internals, not host JSON.parse semantics. Tests
 [JSON full scalar](../test/conformance/json-scalar-full.test.mjs),
@@ -509,3 +635,21 @@ admission and suspended cancellation/deadline recovery. See
 [finite evidence](research/direct-json-window/README.md).
 
 - `expr.c:TK_AGG_COLUMN/useSortingIdx`, `select.c:updateAccumulator` grouped sorter drain → `vdbe.ts:bindSorterSnapshot` recursively selects saved register leaves for module aggregate arguments before expression lowering; producer conversion occurs before Next/EOF, drain Copies retain ownership. Tests: `json-grouped-snapshot.test.mjs` (nested arithmetic/CASE/COALESCE/cast/IN/BETWEEN, four modules, TEXT/actual JSONB, all public encodings, reset). [Evidence and bounded guarantees](research/card-r-d-grouped-snapshot.md).
+
+| `json.c:jsonTranslateTextToBlob`, `jsonbPayloadSize`, `jsonValidFunc`, `jsonbValidityCheck`, `jsonTranslateBlobToText` | `json.ts:Parser.value`, `jsonbSize`, `jsonValid` | `json-foundation-boundaries.test.mjs`; [depth/header evidence](research/card-r-a-json-boundary-green.md) |
+
+| `json.c:jsonTranslateTextToBlob` numeric production; `jsonConvertTextToBlob`; `jsonErrorFunc` | `json.ts:Parser.numeric`, `Parser.parse`, `jsonErrorPosition` | `json-numeric-production.test.mjs`; [evidence](research/card-r-a-numeric-green.md) |
+
+| `json.c:jsonbValidityCheck`, `jsonArgIsJsonb`, `jsonValidFunc`, `jsonErrorFunc`, `jsonUnescapeOneChar`, `jsonBytesToBypass`; `utf.c:sqlite3Utf8ReadLimited` | `json.ts:jsonbValiditySteps`, `jsonbUnescapeLengthSteps`, `jsonArgIsJsonbSteps`, `jsonValidSteps`, `jsonErrorPositionSteps`; `vdbe.ts:Function/PureFunc` async drivers | `jsonb-validation.test.mjs`, `jsonb-unicode.test.mjs`; [recursive unescape evidence](research/card-r-a-jsonb-unicode-green.md); [shared validator/error evidence](research/card-r-a-jsonb-validation-green.md); [cooperative owner/caller evidence](research/card-r-a-json-validation-progress.md); [nested TEXT5 bypass controls](research/card-r-a-json-text5-progress.md) |
+
+| `json.c:jsonEachFilter` document admission → sqlite3_value_text(root) → sqlite3Strlen30/lookup | `vdbe.ts:JsonTableRewind` passes Mem; `json.ts:openJsonTableCursor/jsonSqlText` owns ordered private conversion and C-string path | `json-table-root.test.mjs`; [pinned typed/metadata/error/lifecycle evidence](research/json-table-root/README.md) |
+
+## JSON semantic error ownership
+
+`json.c:jsonEachPathLength` reverse candidate lookup/payload comparison and
+`jsonExtractFunc` diagnostic conversion map to json.ts private path-error
+classification; array-insertion contextual conversion has a separate sentinel.
+Control failures are never inferred from message text. Tests:
+`json-root-parent-errors.test.mjs`, `json-root-parent-native.test.mjs`,
+`json-path-control.test.mjs`. [Owner source comparison](research/card-r-b-lazy-jsonb-delivery/root-parent-errors/evidence.md);
+[combined independent verification](research/card-r-e-json-final-verification.md).

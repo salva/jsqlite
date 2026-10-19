@@ -1018,7 +1018,7 @@ export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|
  */
 /** expr.c TK_AGG_COLUMN: shared compile-time state, consumed during emission. */
 export interface AggregateColumnOwner {
- directMode:boolean;useSortingIdx:boolean;sortingIndexRegister:number;sourceRegisters?:number;
+ directMode:boolean;useSortingIdx:boolean;sortingIndexRegister:number;sourceRegisters?:number;sourceRegister?:(index:number)=>number;
  readonly columns:Map<number,{iSorterColumn:number;accumulatorRegister:number}>;
 }
 export type ResolvedExpressionLocation =

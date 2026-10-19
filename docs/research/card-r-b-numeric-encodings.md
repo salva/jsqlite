@@ -1,0 +1,19 @@
+# Numeric receipt encoding correction
+
+## Scope and source comparison
+
+The original `card-r-b-numeric-native.json` remains unchanged: all506 SQL, ordering and old observations are retained. The public numeric-header test now compares the independently captured per-encoding observations rather than applying UTF8 observations to UTF16 databases. It asserts original SQL and case-object identity, receipt SHA/source ID, all three encoding inventories, every five-field column metadata object, storage classes, exact REAL IEEE754 bits (including signed zero/infinity), integer BigInt, NULL, text and BLOB bytes, SQLite errors, ROW/DONE and first/reset behavior. Errors are collected per phase without dropping later cases. No JSONB transcoding or candidate-derived expectation rewriting occurs.
+
+Pinned `json.c:jsonParseFuncArg` first uses `jsonArgIsJsonb`, then falls through to `sqlite3_value_text` for non-admitted BLOBs. `jsonbValidityCheck` distinguishes INT/INT5 from FLOAT/FLOAT5 payload syntax; numeric-looking bytes do not override header admission. TS4937 already retains these distinctions, parse offsets, private `jsonSqlText` conversion/release and VM callback database-encoding publication. Consequently certain malformed-header BLOBs admitted only as UTF8 text must error in UTF16. No runtime change is warranted unless full comparison exposes a mismatch.
+
+## Receipt provenance and applicability
+
+`card-r-b-numeric-encodings-native.json` is a byte-identical retained copy of independent reviewer capture `work:///cards/card-r-e/json-encoding-union-diagnose/numeric-native-classification.json`, SHA256 **a6328d0ca838cedb5c98bd976efe147d19277691450eb814f76e27f564bded77**. Not a fresh capture or a newly certified build. [[card:card-r-e]] accepted387 and primary proc-4a05b926666e report all506 SQL in each actual database encoding:0 differences from original UTF8 expectations,24 differences in each UTF16 encoding. Full native receipt retains five metadata fields and two typed step observations per statement; it does not retain DONE/reset/finalize return codes separately. Candidate tests check ROW/DONE and reset expectations under the existing public reset contract; native reset occurred between retained runs. Do not infer native allocator/resource or complete lifecycle certification.
+
+Native library SHA **b74284142511a672e841ef5c370cab35f2d873912082319831759459bba05347**, existing reviewer `review37-verify/oracle-profile/build/libsqlite3-oracle.so`; source ID `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc` (3.53.4). Profile includes metadata/math, as attributed by reviewer387; no independent rebuild claimed here. Source archive identity remains in `reference/sqlite/manifest.json`.
+
+Execution baseline is independently assembled4937 manifest SHA **fcc0fcc083d91e17147dda95a16dae9d5bbebb23dc844bcd72d08dfe71d3cdda**, `work:///cards/card-r-e/json-encoding-union-diagnose/source`. Every file authenticated before copying to owned `numeric-encoding/source` (proc-ddaddeea5c20 exit0). Only numeric test and added receipt change execution inputs; all runtime files and eight-family replacements are preserved. Attributed patch/manifest are adjacent in `card-r-b-numeric-encodings-delivery`.
+
+## Verification
+
+Initial new comparator proc-89fcdc20204d failed3/3: native NULL observations omit a `value` member while public API returns null. Corrected comparator's NULL storage-class branch, not native receipt or runtime. This is a harness schema error, not a candidate semantic mismatch. Final focused/typecheck results and patch identity are in current [[card:card-r-b]] status; whole-card configured/native8, immutable20k, source/resource/public API, package and independent combined acceptance remain open. No MAIN/default-index adoption.

@@ -80,6 +80,8 @@ export interface MemDiagnostic {
 export interface MemLimits { readonly maxLength?: number }
 export type MemAffinity = "blob" | "text" | "numeric" | "integer" | "real" | "flexnum";
 export interface SetBytesOptions extends MemLimits {
+  /** OP_Blob/OP_Column source encoding; API BLOBs default to UTF8. */
+  readonly encoding?: DatabaseEncoding;
   readonly ownership?: MemOwnership;
   readonly lifetime?: BorrowLifetime | BorrowToken;
   readonly terminated?: boolean;
@@ -112,7 +114,7 @@ function numericCodeUnits(bytes: Uint8Array, encoding: DatabaseEncoding): number
   for (let i = 0; i + 1 < bytes.length; i += 2) result.push(little ? bytes[i]! | (bytes[i + 1]! << 8) : (bytes[i]! << 8) | bytes[i + 1]!);
   return result;
 }
-function atoi64Prefix(input: readonly number[]): Atoi64Result {
+export function atoi64Prefix(input: readonly number[]): Atoi64Result {
   let i = 0;
   while (i < input.length && SQLITE_SPACES.has(input[i]!)) i++;
   let negative = false;
@@ -131,7 +133,7 @@ function atoi64Prefix(input: readonly number[]): Atoi64Result {
   if (significantDigits > 19 || magnitude > limit) return { value: negative ? INT64_MIN : INT64_MAX, rc: magnitude === 9223372036854775808n && !negative ? 3 : 2, integerPrefixEnd: prefixEnd };
   return { value: negative ? -magnitude : magnitude, rc: extra ? 1 : 0, integerPrefixEnd: prefixEnd };
 }
-function atof(inputWithTail: readonly number[]): AtoFResult {
+export function atof(inputWithTail: readonly number[]): AtoFResult {
   const nul = inputWithTail.indexOf(0);
   const input = nul < 0 ? inputWithTail : inputWithTail.slice(0, nul);
   let i = 0; while (i < input.length && SQLITE_SPACES.has(input[i]!)) i++;
@@ -375,8 +377,24 @@ export class Mem {
   setText(bytes: Uint8Array, encoding: DatabaseEncoding, options: SetBytesOptions = {}): void {
     this.#setBytes("text", bytes, encoding, options);
   }
+  /** Private result-owner handoff (vdbemem.c:SetStr with dynamic destructor).
+   * Caller relinquishes all mutable aliases, including subarray backing storage.
+   * Unlike setText's SQLITE_TRANSIENT analogue this never copies the allocation.
+   * Not exposed through the public bindings or column API. */
+  adoptText(bytes: Uint8Array, encoding: DatabaseEncoding): void {
+    checkedLength(bytes.byteLength, undefined);
+    this.#drop(); this.#manifest = "text";
+    this.#bytes = { kind:"text",bytes,encoding,ownership:"owned",terminated:false,zeroTail:0 };
+  }
+  /** Private SQLITE_DYNAMIC BLOB handoff. Caller relinquishes every mutable
+   * alias to the backing allocation; public setBlob keeps copying its input. */
+  adoptBlob(bytes: Uint8Array, encoding: DatabaseEncoding = "utf-8"): void {
+    checkedLength(bytes.byteLength, undefined);
+    this.#drop(); this.#manifest = "blob";
+    this.#bytes = { kind:"blob",bytes,encoding,ownership:"owned",terminated:false,zeroTail:0 };
+  }
   setBlob(bytes: Uint8Array, options: SetBytesOptions = {}): void {
-    this.#setBytes("blob", bytes, "utf-8", options);
+    this.#setBytes("blob", bytes, options.encoding ?? "utf-8", options);
   }
   #setBytes(kind: "text" | "blob", bytes: Uint8Array, encoding: DatabaseEncoding, options: SetBytesOptions): void {
     const zeroTail = options.zeroTail ?? 0;
@@ -571,7 +589,8 @@ export class Mem {
     if (this.#manifest === "null") return;
     if (affinity === "blob" && this.#bytes?.kind === "blob") return;
     if (affinity === "text" || affinity === "blob") {
-      if (this.#bytes?.kind === "blob" && affinity === "text") this.#forceByteType("text", "utf-8");
+      // valueToText marks MEM_Str without overwriting producer enc; conversion follows.
+      if (this.#bytes?.kind === "blob" && affinity === "text") this.#forceByteType("text", this.#bytes.encoding);
       if (this.#bytes?.kind !== "text" && affinity === "text") {
         if (this.#numeric === null) throw new MemStateError("ordinary Mem value has no cast representation");
         this.stringify(encoding, true);
@@ -626,6 +645,26 @@ export class Mem {
     const state = this.#checkedBytes();
     if (state.kind !== "text") throw new MemStateError("Mem does not contain TEXT");
     return state.bytes;
+  }
+  async withBlobBytes<T>(control:{reserve:(bytes:number)=>void;release:(bytes:number)=>void;checkpoint:()=>Promise<void>},use:(bytes:Uint8Array)=>Promise<T>):Promise<T>{
+    const state=this.#checkedBytes();
+    if(state.kind!=="blob")throw new MemStateError("Mem does not contain BLOB");
+    await control.checkpoint();
+    if(state.zeroTail===0)return await use(state.bytes);
+    const size=state.bytes.length+state.zeroTail;
+    control.reserve(size);
+    try{
+      await control.checkpoint();
+      const bytes=new Uint8Array(size);
+      // Zero initialization is performed by the host allocator. Explicit copy
+      // and zero-tail work probes bound subsequent cooperative execution.
+      for(let i=0;i<size;i+=256){
+        await control.checkpoint();
+        this.#checkedBytes();
+        if(i<state.bytes.length)bytes.set(state.bytes.subarray(i,Math.min(i+256,state.bytes.length)),i);
+      }
+      return await use(bytes);
+    }finally{control.release(size)}
   }
   blobValue(): Uint8Array {
     const state = this.#checkedBytes();
@@ -750,7 +789,7 @@ export function memFromRawRecord(raw: RawRecordValue, lifetime?: BorrowLifetime 
     case "integer": result.setInt64(raw.value); break;
     case "real": result.setDouble(raw.value); break;
     case "text": if (!lifetime) throw new MemError("invalid-state", "raw TEXT borrow requires lifetime"); result.setText(raw.bytes, raw.encoding, { ownership: "borrowed", lifetime }); break;
-    case "blob": if (!lifetime) throw new MemError("invalid-state", "raw BLOB borrow requires lifetime"); result.setBlob(raw.bytes, { ownership: "borrowed", lifetime }); break;
+    case "blob": if (!lifetime) throw new MemError("invalid-state", "raw BLOB borrow requires lifetime"); result.setBlob(raw.bytes, { ownership: "borrowed", lifetime, ...(raw.encoding === undefined ? {} : { encoding: raw.encoding }) }); break;
   }
   return result;
 }
@@ -762,7 +801,9 @@ export function memFromPublic(value: SqliteValue, encoding: DatabaseEncoding, li
   else if (typeof value === "string") {
     const utf8 = encodeText(value, "utf-8"); checkedLength(utf8.byteLength, limits.maxLength);
     result.setText(encodeText(value, encoding), encoding, { ...(limits.maxLength === undefined ? {} : { maxLength: limits.maxLength }), ownership: "owned" });
-  } else result.setBlob(value, { ...(limits.maxLength === undefined ? {} : { maxLength: limits.maxLength }), ownership: "owned" });
+  // vdbeapi.c:bindText assigns ENC(db) after SetStr(enc=0) for bind_blob.
+  // This is producer metadata only: binary bytes are never transcoded here.
+  } else result.setBlob(value, { ...(limits.maxLength === undefined ? {} : { maxLength: limits.maxLength }), ownership: "owned", encoding });
   result.markFromBind(); return result;
 }
 export function memToPublicInitial(value: Mem): SqliteValue {

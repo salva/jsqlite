@@ -1,5 +1,59 @@
 # SQLite-to-TypeScript translation guide
 
+### JSON5 value-name and label admission
+
+`json.c:aNanInfName/jsonTranslateTextToBlob` → `Parser.literal`: ordered,
+case-insensitive name prefix plus source alphanumeric boundary produces FLOAT
+`9e999` or actual NULL. Standard lowercase literals retain distinct failure/
+fallthrough rules; signed numeric inf retains its different suffix admission.
+`Parser.object` rejects successfully parsed non-TEXT labels before identifier
+fallback; quoted labels remain strings. Complete-text trailing NUL is C EOF.
+No independent whole-token scanner or NaN-shaped numeric node is used for names.
+[Source comparison and finite native/public tests](research/card-r-a-json-token-green.md).
+
+
+### Quoted string production and TEXT5 rendering
+
+`json.c:jsonTranslateTextToBlob(parse_string)` → `Parser.str`: admission,
+current error cursor and TEXT/TEXTJ/TEXT5 tag production share one pass; quoted
+labels and values immediately consume its raw-spelling/tag result. Single quote
+syntax alone leaves TEXT; raw nonzero controls are JSON5-only TEXT5, NUL fails
+at the current cursor. `jsonTranslateBlobToText(TEXT5)` → `translateStringSteps`
+escapes raw controls through the shared canonical quoting primitive. Container
+separator mismatch preserves current cursor before consumption.
+[Source comparison, finite tests and resource boundaries](research/card-r-a-json-string-green.md).
+
+
+### JSON5 whitespace and comment production
+
+Pinned `json.c:json5Whitespace` → `json.ts:Parser.ws/spaceAt`: exact ASCII
+and UTF8-codepoint classes, line-comment CR/LF/U+2028/U+2029 ends and complete-only
+block-comment cursor commits. Required-child EOF preserves the caller's entry
+cursor; top-level trailing whitespace uses the separate conversion path. Existing
+strict/JSON5 parser modes encode native nonstandard admission. Label continuation
+shares the classifier; `value` owns native literal/alnum boundaries so comments
+following null/true/false reach the scanner. JSON's UTF8 decoder preserves BOM
+for parser admission instead of silently dropping it. No JS-whitespace broadening.
+[Source comparison and finite native/public evidence](research/card-r-a-json-ws-green.md).
+Strict JSONB validation and json_error_position use a shared resumable source-ordered validator/parser, driven asynchronously by Function/PureFunc after admission. Reached elements and scalar-payload chunks, including consecutive TEXT5 line-continuation bypass inside unescape, charge work and allow scheduler suspension; flags4 keeps its superficial short circuit. This is bounded cooperative execution, not exact native heap/accounting parity. [Evidence and limits](research/card-r-a-json-validation-progress.md).
+
+### TEXT JSON label and escape error ownership
+
+Pinned `json.c:jsonTranslateTextToBlob` object fallback and string escape branches
+map to `json.ts:Parser.label/str/object`. Unquoted labels retain raw spelling and
+TEXT/TEXTJ tag using `sqlite3JsonId1/2` and `jsonIs4HexB` admission, with decoded
+keys supplied to consumers. Colon lookahead does not consume the failing token;
+its recursive parse failure takes precedence. Quoted invalid escape offsets name
+the escape code, not the following digit. JSONB-first document classification and
+TEXT character-position publication remain separate, unchanged callers.
+[Finite source/native/public evidence](research/card-r-a-json-text-green.md).
+
+
+Physical/JSON Window inputs now enter the shared Window rewrite before scalar
+module projection, retaining positioned sourceRow payload and independent rowid.
+Finite typed/full-metadata and lifecycle author evidence, source comparison and
+remaining acceptance gates: [mixed Window correction](research/mixed-json-window/README.md).
+
 Shared scalar aggregate expressions now dispatch to AggInfo by aggregate
 ownership throughout EList rather than only a root aggregate node. The metadata
 producer receives the linked argument carrier and positioned parent binding;
@@ -678,6 +732,39 @@ Represented ordinary, formatter, pattern, date/time and enabled math functions
 execute; read-only changes/last-insert counters remain zero. JSON scalar,
 aggregate/window and bounded eponymous each/tree sources are present. JSON TEXT
 uses private subtype 74; SQLite JSONB is subtype-0 BLOB, not PostgreSQL JSONB.
+`json_type` and `json_array_length` share document-first admission and reached
+private SQL-to-TEXT path coercion with extraction; NULL paths cannot mask a
+malformed document. Missing paths return NULL; non-array length is zero.
+The same private coercion primitive handles edit paths and numeric inputs to
+validity/error-position inspection without mutating caller Mem storage classes.
+Only paths use C-string termination. Quoted path labels are raw spans with escape flags, not strict JSON string values. Shared read/edit/table-root lookup compares original label payloads using jsonLabelCompare raw/escaped branches; mutation retains producer label tags and defers TEXT rendering until output. [Source comparison and finite evidence](research/card-r-b-quoted-path.md). [Source comparison, bounded caller audit and
+typed evidence](research/card-r-b-scalar-admission.md).
+Ordinary extraction and arrows share `jsonExtractFunc` in TypeScript: document
+admission precedes sequential private Mem path-to-TEXT conversion, lookup and
+result/error handling. A reached NULL path returns NULL without examining later
+paths; it does not mask an earlier document or path error. Single-path containers
+retain JSON subtype only for ordinary TEXT extraction; JSON_BLOB produces BLOB
+directly for single-path containers. Multipath JSON_BLOB follows upstream's
+JSON text accumulation and reparse before binary output; missing values become
+JSON null. Numeric nodes retain the producer's INT/INT5/FLOAT/FLOAT5 header and
+raw payload. Scalar return and json_type consume that header, not a spelling
+heuristic; text rendering and binary encoding remain separate consumers.
+[Numeric source comparison and finite typed evidence](research/card-r-b-numeric.md).
+[Extraction evidence and boundaries](research/card-r-b-extract.md).
+Arrows translate `jsonExtractFunc` JSON_ABPATH: parse the document first,
+convert a private path Mem to TEXT while retaining its original storage class,
+preserve full dollar-prefixed paths, then produce INTEGER indices (negative
+from-end), alphanumeric labels, bracket abbreviations or quoted labels. Lookup
+errors name the original path. Only private semantic path errors qualify for
+that diagnostic rewrite; arbitrary control failures retain identity. Recursive
+table-root parent discovery follows jsonEachPathLength candidate/payload
+identity, skipping only semantic lookup errors. Array-insertion contextual errors
+use a distinct private sentinel. Lazy sentinel-class initialization avoids the
+demonstrated public index/VM/JSON module cycle without changing public error
+ownership. [Finite source/caller evidence](research/card-r-b-lazy-jsonb-delivery/root-parent-errors/evidence.md).
+`->` returns JSON-subtyped TEXT; `->>` returns SQL
+values with no container subtype. VDBE dispatch checks result size like extraction.
+[Source comparison and finite typed oracle evidence](research/card-r-b-arrow.md).
 JSON sources expose eight visible fields; hidden json/root are explicit-only and
 retain empty declared types. Resolved direct columns publish virtual-column
 metadata; aliases override, computed names retain exact expression spans. JSON
@@ -792,3 +879,82 @@ Pinned metadata/typed rows and reset comparisons:60 variants/180 native runs;
 no new upstream assertion credit or denominator change. Direct controls include
 admission and suspended cancellation/deadline recovery. See
 [finite evidence](research/direct-json-window/README.md).
+
+### JSON parser and validator depth ownership
+
+TEXT nesting counts object/array productions only; scalar leaves do not consume
+a level. The pinned limit accepts1000 containers and rejects1001. JSONB render
+starts at depth0, while json_valid strict flag8 starts at depth1 as in
+`jsonValidFunc`;1000 arrays around null render but fail strict validation.
+This is not a universal eager-validation policy. Minimal header threshold,
+encoding, lifecycle and native comparison evidence: [boundary correction](research/card-r-a-json-boundary-green.md).
+
+
+JSON paths are consumed one reached step at a time by `pathStep`, shared by
+read lookup and edit traversal. `jsonLookupStep`'s ordering is retained: dot labels
+are parsed before object shape checks, bracket shape checks precede index parsing,
+and NOTFOUND returns without consuming the remaining suffix. Missing-container
+construction receives the unparsed tail. Within a bracket step, bounded decimal
+accumulation follows `jsonLookupStep`: a from-end distance exceeding the current
+array length returns NOTFOUND before closing-delimiter validation; ordinary
+numeric indices and in-range/zero from-end distances validate `]` first. Thus
+unreachable suffixes do not error; reached syntax errors still do. Extraction,
+type/length, arrows and TEXT/JSONB edits share these transitions; regressions:
+`json-path-reachability.test.mjs` and `json-from-end-delimiter-order.test.mjs`.
+[Native boundary evidence](research/card-r-b-path-reachability.md) and
+[[card:card-r-b]] status record the finite verification boundary.
+JSON edits translate `jsonLookupStep`/`jsonCreateEditSubstructure` missing-label
+and array-end creation in the shared private copy-on-write node owner: choose an
+empty object/array from the remaining path, recurse, and publish only on success.
+Absent out-of-range descendants leave no empty shells; existing scalar shapes
+are not promoted. Private nodes replace native byte-buffer splicing, with copied
+ancestor arrays rather than in-place size-delta adjustment; this is a representation
+tradeoff, not browser necessity or an alternative evaluator. Focused regression:
+`json-missing-edit-substructure.test.mjs`; scoped evidence: [[card:card-r-b]] status.
+Merge patch uses a private editable JSONB buffer, translating `jsonMergePatch`'s
+per-member first-match scan, single NULL deletion, recursive delta save/restore,
+append and header-size adjustment. `jsonBlobOverwrite` preserves extent by widening
+replacement size headers when native can absorb a small shrink. Raw labels and
+untouched payloads remain byte slices, not decoded/re-encoded objects. TEXT input
+uses the shared parser/encoder; admitted JSONB is checked incrementally along the
+merge path. Target parsing precedes SQL-NULL patch handling; recursive calls use
+the native depth guard. Both TEXT/JSONB functions share this owner. Labels compare
+as byte spans (raw memcmp or incremental native escape/UTF-8 reading); TEXT output
+translates `jsonTranslateBlobToText` into owned Mem UTF-8 bytes, not JS strings.
+Byte consumers such as hex preserve invalid UTF-8 before the public JS-string
+adapter's lossy decoding boundary.
+[Merge-patch evidence and limits](research/card-r-b-mergepatch.md) records finite
+native comparisons and remaining malformed/resource validation boundaries.
+`json_valid` follows `json.c:jsonValidFunc`: int64-coerce and validate flags
+1..15 before document NULL/type dispatch; NULL flags coerce to zero and error.
+The focused public flags-order regression also checks TEXT/REAL/BLOB flag
+coercion, NULL result metadata, and reset/reuse (`json-valid-flags-order.test.mjs`).
+
+### Shared JSONB validation and error production
+
+`jsonbValidityCheck` owns byte grammar and absolute 1-based error offsets;
+`json_valid` deep flag8 and `json_error_position` consume the same return at
+depth1. Superficial flag4 trusts `jsonArgIsJsonb` admission, including its small
+ambiguous-BLOB deep check; other BLOB documents retain TEXT/JSON5 fallback.
+Validation does not decode/render a tree: raw TEXT bytes, nonminimal headers,
+INT/INT5/FLOAT/FLOAT5 grammar, escaped payloads, label/value alternation,
+truncation and depth offsets follow pinned `json.c`. The unescape length/status
+projection includes resumable recursive line bypass, non-validating nibble conversion and
+12-byte surrogate-pair consumption; outer Unicode grammar still checks four hex
+digits independently. Limited UTF-8 reads consume at most four bytes, not an
+unbounded continuation run. [Finite branch evidence](research/card-r-a-jsonb-unicode-green.md); [nested bypass control evidence](research/card-r-a-json-text5-progress.md). Decode/render remains a
+separate demand path, not a validity or error-offset oracle. TEXT error offsets
+still convert the existing parser's character production; BLOB offsets are bytes.
+[Finite native/public comparison, control branches and limits](research/card-r-a-jsonb-validation-green.md).
+
+### Numeric JSON production
+
+Parser.numeric translates jsonTranslateTextToBlob sign/zero/hex/dot/exponent
+control and error production. Raw spelling reaches shared numeric consumers;
+jsonErrorPosition converts produced character indices, not token guesses.
+Trailing-junk errors retain initialized offset0 as jsonConvertTextToBlob does.
+[Finite native/public evidence and timing qualification](research/card-r-a-numeric-green.md).
+
+### JSON table Filter admission/root ownership
+
+`JsonTableRewind` passes root Mem without coercion. `openJsonTableCursor` follows `jsonEachFilter`: admit/parse document first (NULL is empty), then privately convert root with the existing SQL-text helper, stop at C NUL and validate/lookup. BLOB conversion preserves source encoding; caller registers remain unchanged. Hidden root is the converted lookup string; hidden json retains its owning input. Demand/metadata/traversal contracts are unchanged. [Source comparison and finite evidence](research/json-table-root/README.md).

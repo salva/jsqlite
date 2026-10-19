@@ -1,0 +1,2780 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "shape": "input",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?1)",
+      "count": 1,
+      "names": [
+        "?1"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "anonymous",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?)",
+      "count": 1,
+      "names": [
+        null
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "numbered",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?3)",
+      "count": 3,
+      "names": [
+        null,
+        null,
+        "?3"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "[2,8]",
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "named",
+      "sql": "SELECT count(*),sum(atom)+length(:doc) FROM json_each(:doc)",
+      "count": 1,
+      "names": [
+        ":doc"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)+length(:doc)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "where",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?1) WHERE atom>?2",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "group",
+      "sql": "SELECT type,sum(atom) FROM json_each(?1) GROUP BY type HAVING sum(atom)>?2",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "result",
+      "sql": "SELECT sum(atom)+?2 FROM json_each(?1)",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "sum(atom)+?2",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "subquery",
+      "sql": "SELECT (SELECT sum(atom) FROM json_each(?1)) FROM json_each(?2)",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "(SELECT sum(atom) FROM json_each(?1))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-8",
+      "shape": "window",
+      "sql": "SELECT atom,sum(atom) OVER () FROM json_each(?1)",
+      "count": 1,
+      "names": [
+        "?1"
+      ],
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "sum(atom) OVER ()",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "input",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?1)",
+      "count": 1,
+      "names": [
+        "?1"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "anonymous",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?)",
+      "count": 1,
+      "names": [
+        null
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "numbered",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?3)",
+      "count": 3,
+      "names": [
+        null,
+        null,
+        "?3"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "[2,8]",
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "named",
+      "sql": "SELECT count(*),sum(atom)+length(:doc) FROM json_each(:doc)",
+      "count": 1,
+      "names": [
+        ":doc"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)+length(:doc)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "where",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?1) WHERE atom>?2",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "group",
+      "sql": "SELECT type,sum(atom) FROM json_each(?1) GROUP BY type HAVING sum(atom)>?2",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "result",
+      "sql": "SELECT sum(atom)+?2 FROM json_each(?1)",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "sum(atom)+?2",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "subquery",
+      "sql": "SELECT (SELECT sum(atom) FROM json_each(?1)) FROM json_each(?2)",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "(SELECT sum(atom) FROM json_each(?1))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16le",
+      "shape": "window",
+      "sql": "SELECT atom,sum(atom) OVER () FROM json_each(?1)",
+      "count": 1,
+      "names": [
+        "?1"
+      ],
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "sum(atom) OVER ()",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "input",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?1)",
+      "count": 1,
+      "names": [
+        "?1"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "anonymous",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?)",
+      "count": 1,
+      "names": [
+        null
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "numbered",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?3)",
+      "count": 3,
+      "names": [
+        null,
+        null,
+        "?3"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "[2,8]",
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "named",
+      "sql": "SELECT count(*),sum(atom)+length(:doc) FROM json_each(:doc)",
+      "count": 1,
+      "names": [
+        ":doc"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)+length(:doc)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "14"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "15"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "where",
+      "sql": "SELECT count(*),sum(atom) FROM json_each(?1) WHERE atom>?2",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "count(*)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "0"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "group",
+      "sql": "SELECT type,sum(atom) FROM json_each(?1) GROUP BY type HAVING sum(atom)>?2",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "sum(atom)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": []
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "result",
+      "sql": "SELECT sum(atom)+?2 FROM json_each(?1)",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "sum(atom)+?2",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "1"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "11"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": [
+            [
+              {
+                "type": "null"
+              }
+            ]
+          ]
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "subquery",
+      "sql": "SELECT (SELECT sum(atom) FROM json_each(?1)) FROM json_each(?2)",
+      "count": 2,
+      "names": [
+        "?1",
+        "?2"
+      ],
+      "columns": [
+        {
+          "name": "(SELECT sum(atom) FROM json_each(?1))",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]",
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]",
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    },
+    {
+      "encoding": "UTF-16be",
+      "shape": "window",
+      "sql": "SELECT atom,sum(atom) OVER () FROM json_each(?1)",
+      "count": 1,
+      "names": [
+        "?1"
+      ],
+      "columns": [
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "sum(atom) OVER ()",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "runs": [
+        {
+          "bindings": null,
+          "rows": []
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[1,2,4]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "7"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": [
+            "[2,8]"
+          ],
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "8"
+              },
+              {
+                "type": "integer",
+                "value": "10"
+              }
+            ]
+          ]
+        },
+        {
+          "bindings": null,
+          "rows": []
+        }
+      ],
+      "fixtureSha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44"
+    }
+  ]
+}

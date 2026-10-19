@@ -1,0 +1,855 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "sql": "SELECT json_extract('bad',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad','$[',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',NULL,'$[')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',1)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',9223372036854775807)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',-9223372036854775808)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',1.25)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',x'24')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',x'31')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad','$.x',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad','bad',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('bad',NULL,'bad')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract('{}',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('{}','$[',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('{}',NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('{}',1)",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT json_extract('{}',9223372036854775807)",
+      "error": "bad JSON path: '9223372036854775807'"
+    },
+    {
+      "sql": "SELECT json_extract('{}',-9223372036854775808)",
+      "error": "bad JSON path: '-9223372036854775808'"
+    },
+    {
+      "sql": "SELECT json_extract('{}',1.25)",
+      "error": "bad JSON path: '1.25'"
+    },
+    {
+      "sql": "SELECT json_extract('{}',x'24')",
+      "type": "text",
+      "value": "{}"
+    },
+    {
+      "sql": "SELECT json_extract('{}',x'31')",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT json_extract('{}','$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('{}','bad',NULL)",
+      "error": "bad JSON path: 'bad'"
+    },
+    {
+      "sql": "SELECT json_extract('{}',NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('[1]',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('[1]','$[',NULL)",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('[1]',1)",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',9223372036854775807)",
+      "error": "bad JSON path: '9223372036854775807'"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',-9223372036854775808)",
+      "error": "bad JSON path: '-9223372036854775808'"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',1.25)",
+      "error": "bad JSON path: '1.25'"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',x'24')",
+      "type": "text",
+      "value": "[1]"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',x'31')",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT json_extract('[1]','$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('[1]','bad',NULL)",
+      "error": "bad JSON path: 'bad'"
+    },
+    {
+      "sql": "SELECT json_extract('[1]',NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,'$[',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,1)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,9223372036854775807)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,-9223372036854775808)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,1.25)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,x'24')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,x'31')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,'$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,'bad',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(NULL,NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),'$[',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),1)",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),9223372036854775807)",
+      "error": "bad JSON path: '9223372036854775807'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),-9223372036854775808)",
+      "error": "bad JSON path: '-9223372036854775808'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),1.25)",
+      "error": "bad JSON path: '1.25'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),x'24')",
+      "type": "text",
+      "value": "{}"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),x'31')",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),'$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),'bad',NULL)",
+      "error": "bad JSON path: 'bad'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{}'),NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a')",
+      "type": "text",
+      "value": "[1]"
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a'))",
+      "type": "text",
+      "value": "[[1]]"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.b')",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.b'))",
+      "type": "text",
+      "value": "[1.0]"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.c')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.c'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.z')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.z'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a','$.b','$.z')",
+      "type": "text",
+      "value": "[[1],1.0,null]"
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a','$.b','$.z'))",
+      "type": "text",
+      "value": "[[[1],1.0,null]]"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$','$.a')",
+      "type": "text",
+      "value": "[{\"a\":[1],\"b\":1.0,\"c\":null},[1]]"
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$','$.a'))",
+      "type": "text",
+      "value": "[[{\"a\":[1],\"b\":1.0,\"c\":null},[1]]]"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a[0].',NULL)",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a[0].',NULL))",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}',NULL,'$.a[0].')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(json_extract('{\"a\":[1],\"b\":1.0,\"c\":null}',NULL,'$.a[0].'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a')",
+      "type": "text",
+      "value": "[1]"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a'))",
+      "type": "text",
+      "value": "[[1]]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.b')",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.b'))",
+      "type": "text",
+      "value": "[1.0]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.c')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.c'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.z')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.z'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a','$.b','$.z')",
+      "type": "text",
+      "value": "[[1],1.0,null]"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a','$.b','$.z'))",
+      "type": "text",
+      "value": "[[[1],1.0,null]]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$','$.a')",
+      "type": "text",
+      "value": "[{\"a\":[1],\"b\":1.0,\"c\":null},[1]]"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$','$.a'))",
+      "type": "text",
+      "value": "[[{\"a\":[1],\"b\":1.0,\"c\":null},[1]]]"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a[0].',NULL)",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a[0].',NULL))",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),NULL,'$.a[0].')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(json_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),NULL,'$.a[0].'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad','$[',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',NULL,'$[')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',1)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',9223372036854775807)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',-9223372036854775808)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',1.25)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',x'24')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',x'31')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad','$.x',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad','bad',NULL)",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('bad',NULL,'bad')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}','$[',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',1)",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',9223372036854775807)",
+      "error": "bad JSON path: '9223372036854775807'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',-9223372036854775808)",
+      "error": "bad JSON path: '-9223372036854775808'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',1.25)",
+      "error": "bad JSON path: '1.25'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',x'24')",
+      "type": "blob",
+      "value": "0C"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',x'31')",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}','$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}','bad',NULL)",
+      "error": "bad JSON path: 'bad'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{}',NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]','$[',NULL)",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',1)",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',9223372036854775807)",
+      "error": "bad JSON path: '9223372036854775807'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',-9223372036854775808)",
+      "error": "bad JSON path: '-9223372036854775808'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',1.25)",
+      "error": "bad JSON path: '1.25'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',x'24')",
+      "type": "blob",
+      "value": "2B1331"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',x'31')",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]','$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]','bad',NULL)",
+      "error": "bad JSON path: 'bad'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('[1]',NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,'$[',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,1)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,9223372036854775807)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,-9223372036854775808)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,1.25)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,x'24')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,x'31')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,'$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,'bad',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(NULL,NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),'$[',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),NULL,'$[')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),1)",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),9223372036854775807)",
+      "error": "bad JSON path: '9223372036854775807'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),-9223372036854775808)",
+      "error": "bad JSON path: '-9223372036854775808'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),1.25)",
+      "error": "bad JSON path: '1.25'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),x'24')",
+      "type": "blob",
+      "value": "0C"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),x'31')",
+      "error": "bad JSON path: '1'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),'$.x',NULL)",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),'bad',NULL)",
+      "error": "bad JSON path: 'bad'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{}'),NULL,'bad')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a')",
+      "type": "blob",
+      "value": "2B1331"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a'))",
+      "type": "text",
+      "value": "[[1]]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.b')",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.b'))",
+      "type": "text",
+      "value": "[1.0]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.c')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.c'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.z')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.z'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a','$.b','$.z')",
+      "type": "blob",
+      "value": "8B2B133135312E3000"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a','$.b','$.z'))",
+      "type": "text",
+      "value": "[[[1],1.0,null]]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$','$.a')",
+      "type": "blob",
+      "value": "CB13CC0E17612B1331176235312E301763002B1331"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$','$.a'))",
+      "type": "text",
+      "value": "[[{\"a\":[1],\"b\":1.0,\"c\":null},[1]]]"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a[0].',NULL)",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}','$.a[0].',NULL))",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}',NULL,'$.a[0].')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract('{\"a\":[1],\"b\":1.0,\"c\":null}',NULL,'$.a[0].'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a')",
+      "type": "blob",
+      "value": "2B1331"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a'))",
+      "type": "text",
+      "value": "[[1]]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.b')",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.b'))",
+      "type": "text",
+      "value": "[1.0]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.c')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.c'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.z')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.z'))",
+      "type": "text",
+      "value": "[null]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a','$.b','$.z')",
+      "type": "blob",
+      "value": "8B2B133135312E3000"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a','$.b','$.z'))",
+      "type": "text",
+      "value": "[[[1],1.0,null]]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$','$.a')",
+      "type": "blob",
+      "value": "CB13CC0E17612B1331176235312E301763002B1331"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$','$.a'))",
+      "type": "text",
+      "value": "[[{\"a\":[1],\"b\":1.0,\"c\":null},[1]]]"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a[0].',NULL)",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),'$.a[0].',NULL))",
+      "error": "bad JSON path: '$.a[0].'"
+    },
+    {
+      "sql": "SELECT jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),NULL,'$.a[0].')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_array(jsonb_extract(jsonb('{\"a\":[1],\"b\":1.0,\"c\":null}'),NULL,'$.a[0].'))",
+      "type": "text",
+      "value": "[null]"
+    }
+  ]
+}

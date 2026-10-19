@@ -1,0 +1,19 @@
+# Quoted path labels — scoped source correction
+
+Delivery input is complete `148ae4755e1ac9398fc86ae44c38bc9e5693516c` (tree `1dc3c03b0e7761fada2f3b636d01ee732a7b6f4e`), not the older shared workspace. The isolated export preserves that input's representation/literal/string/whitespace/Unicode, numeric, raw-patch and Window changes. See independent finding in [review](card-r-e-jsonb-error-position-review.md) and accepted card status137 for exact original bytes.
+
+## Owner and branch comparison
+
+Pinned json.c `jsonLookupStep` dot branch scans a quoted span, skipping backslash plus following byte, rejects absent closing quote, allows empty quoted label and sets rawKey from presence of backslash. Unquoted labels end at dot/bracket and must be nonempty. Object shape is checked after dot syntax. Object labels preserve TEXT/TEXTJ/TEXT5/TEXTRAW tags; `jsonLabelCompare` uses raw memcmp when both operands are raw and otherwise `jsonLabelCompareEscaped` / `jsonUnescapeOneChar`. Comparison is not strict string-value parsing. Missing label exits before parsing the remaining tail. Existing bracket/index ordering is unchanged.
+
+TS `pathStep` previously reparsed the span with strict Parser. The correction retains payload/tag; `pathLabelIndex` uses the existing source-derived byte comparators, now sharing `jsonReadLabel` with the key projection needed for object-column consumers. `jsonLookup` covers extraction, inspection, arrows and table root selection; `editNode` uses the same first-label index. Matched mutations retain original label key/tag rather than replacing it with path spelling. Newly created labels retain TEXT5 or TEXTRAW as source `jsonBlobAppendNode` does. TEXT label rendering consumes retained tags, separately from binary publication: invalid escape label insertion may produce JSONB while TEXT output reports malformed JSON. No Parser catch or SQL example special-case is introduced. String-value parsing remains independent.
+
+The JS decoded key remains a representation projection; raw payloads own comparison and output. Invalid UTF8 remains an existing lossy decoded-key boundary, not a reason for the original path substitution. No new algorithm exception or scope exclusion.
+
+## Tests and hypotheses
+
+`card-r-b-capture-quoted-path.py` obtains typed expected rows/errors from pinned development C API, asserts complete source ID, and retains exact SQL hex-to-TEXT bytes. Public `json-quoted-path.test.mjs` repeats after reset in UTF8/16LE/16BE with finalize/close; storage class/value and SQLite error kind/code/extendedCode/message are checked. Finalize-error equality and full origin metadata/resource-zero are not certified.
+
+Initial 1372 native cases were captured before implementation. Public baseline failed3/3. Removing strict reparse and replacing decoded-key equality fixed lookup but failed mutations: raw path spellings were double quoted and matched updates replaced producer keys. Retaining labels and rendering from tags fixed that first matrix3/3. Expanded2156 cases added arrows, table-root count, binary mutation output; this exposed premature TEXT rendering rejecting malformed escape insertion that native JSONB accepts. Deferred rendering to TEXT publication rather than performing it in editNode. Final2156 cases ×two executions ×three encodings =12936 executions,3/3; typecheck and prior scalar/extraction/arrow/numeric tests total15/15. No oracle exclusions.
+
+Finite matrix includes raw LF/control1, escaped newline, empty keys, quote/backslash, escaped Unicode and unpaired surrogate spellings, unknown/truncated escape, EOF quote/backslash, reached/unreached tails, JSON5 vertical-tab label and TEXT/actual JSONB input. This is not exhaustive malformed/path validation. Detailed command/result locators and export identity are in current card status; full standard/independent combined acceptance remains open.

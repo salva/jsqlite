@@ -1,0 +1,591 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "sql": "SELECT '[11,22]' -> -1",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> -1",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> -1",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> -1",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> 0",
+      "type": "text",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> 0",
+      "type": "text",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> 0",
+      "type": "integer",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> 0",
+      "type": "integer",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> 1",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> 1",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> 1",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> 1",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> -2",
+      "type": "text",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> -2",
+      "type": "text",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> -2",
+      "type": "integer",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> -2",
+      "type": "integer",
+      "value": "11"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> -3",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> -3",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> -3",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> -3",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' -> 9223372036854775807",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> 9223372036854775807",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> 9223372036854775807",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> 9223372036854775807",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' -> -9223372036854775808",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> -9223372036854775808",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> -9223372036854775808",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> -9223372036854775808",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' -> 1.0",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> 1.0",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> 1.0",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> 1.0",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' -> NULL",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> NULL",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> NULL",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> NULL",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' -> '1'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> '1'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> '1'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> '1'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' -> '[1]'",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> '[1]'",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> '[1]'",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> '[1]'",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> '$[1]'",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> '$[1]'",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> '$[1]'",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> '$[1]'",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> '[#-1]'",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> '[#-1]'",
+      "type": "text",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> '[#-1]'",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> '[#-1]'",
+      "type": "integer",
+      "value": "22"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> '[x]'",
+      "error": "bad JSON path: '[x]'"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> '[x]'",
+      "error": "bad JSON path: '[x]'"
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> '[x]'",
+      "error": "bad JSON path: '[x]'"
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> '[x]'",
+      "error": "bad JSON path: '[x]'"
+    },
+    {
+      "sql": "SELECT '[11,22]' -> x'31'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') -> x'31'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[11,22]' ->> x'31'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('[11,22]') ->> x'31'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> 'a.b'",
+      "type": "text",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> 'a.b'",
+      "type": "text",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> 'a.b'",
+      "type": "integer",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> 'a.b'",
+      "type": "integer",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> '1'",
+      "type": "text",
+      "value": "9"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> '1'",
+      "type": "text",
+      "value": "9"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> '1'",
+      "type": "integer",
+      "value": "9"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> '1'",
+      "type": "integer",
+      "value": "9"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> 1",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> 1",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> 1",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> 1",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> 1.0",
+      "type": "text",
+      "value": "8"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> 1.0",
+      "type": "text",
+      "value": "8"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> 1.0",
+      "type": "integer",
+      "value": "8"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> 1.0",
+      "type": "integer",
+      "value": "8"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> 'a_b'",
+      "type": "text",
+      "value": "6"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> 'a_b'",
+      "type": "text",
+      "value": "6"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> 'a_b'",
+      "type": "integer",
+      "value": "6"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> 'a_b'",
+      "type": "integer",
+      "value": "6"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> ''",
+      "error": "bad JSON path: ''"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> ''",
+      "error": "bad JSON path: ''"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> ''",
+      "error": "bad JSON path: ''"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> ''",
+      "error": "bad JSON path: ''"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> '\"a.b\"'",
+      "error": "bad JSON path: '\"a.b\"'"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> '\"a.b\"'",
+      "error": "bad JSON path: '\"a.b\"'"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> '\"a.b\"'",
+      "error": "bad JSON path: '\"a.b\"'"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> '\"a.b\"'",
+      "error": "bad JSON path: '\"a.b\"'"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> '$'",
+      "type": "text",
+      "value": "{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> '$'",
+      "type": "text",
+      "value": "{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> '$'",
+      "type": "text",
+      "value": "{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> '$'",
+      "type": "text",
+      "value": "{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> '$.a.b'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> '$.a.b'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> '$.a.b'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> '$.a.b'",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' -> '$.\"a.b\"'",
+      "type": "text",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') -> '$.\"a.b\"'",
+      "type": "text",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT '{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}' ->> '$.\"a.b\"'",
+      "type": "integer",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT jsonb('{\"a.b\":7,\"1\":9,\"1.0\":8,\"a_b\":6,\"\":5}') ->> '$.\"a.b\"'",
+      "type": "integer",
+      "value": "7"
+    },
+    {
+      "sql": "SELECT 'bad' -> NULL",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb('bad') -> NULL",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT 'bad' ->> NULL",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb('bad') ->> NULL",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT NULL -> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb(NULL) -> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT NULL ->> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb(NULL) ->> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{}' -> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('{}') -> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '{}' ->> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT jsonb('{}') ->> '$['",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT '[1]' -> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT jsonb('[1]') -> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT '[1]' ->> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT jsonb('[1]') ->> '$['",
+      "error": "bad JSON path: '$['"
+    },
+    {
+      "sql": "SELECT json_array('{\"a\":[1]}' -> 'a')",
+      "type": "text",
+      "value": "[[1]]"
+    },
+    {
+      "sql": "SELECT json_array('{\"a\":[1]}' ->> 'a')",
+      "type": "text",
+      "value": "[\"[1]\"]"
+    }
+  ]
+}

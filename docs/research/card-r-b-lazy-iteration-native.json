@@ -1,0 +1,4115 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "encodings": {
+    "utf8": [
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B13310F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B13310F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B13310F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B13310F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B133100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B133100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B133100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B133100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'4B13311B0F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'4B13311B0F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'4B13311B0F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'4B13311B0F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B17FF00'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FF",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FF",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FF",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FF",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B17FF00'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B17FF00' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B17FF00' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      }
+    ],
+    "utf16le": [
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B13310F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B13310F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B13310F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B13310F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B133100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B133100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B133100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B133100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'4B13311B0F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'4B13311B0F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'4B13311B0F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'4B13311B0F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B17FF00'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FDFF",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FDFF",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FDFF",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FDFF",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B17FF00'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B17FF00' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B17FF00' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      }
+    ],
+    "utf16be": [
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B13310F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B13310F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B13310F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B13310F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B13310F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B13310F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B13310F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B133100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B133100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B133100') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B133100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B133100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B133100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B133100' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'4B13311B0F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "integer",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "31",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'4B13311B0F'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "4",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'4B13311B0F') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4B13311B0F",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'4B13311B0F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'4B13311B0F' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'4B13311B0F' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3B17FF00'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FFFD",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FFFD",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FFFD",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "FFFD",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3B17FF00'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(x'3B17FF00') LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(?1) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "array",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3B17FF00",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3B17FF00' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT id FROM json_each(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3B17FF00' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT type FROM json_tree(CAST(x'3B17FF00' AS TEXT)) LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      }
+    ]
+  }
+}

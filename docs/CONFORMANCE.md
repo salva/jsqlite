@@ -921,3 +921,7 @@ Pinned metadata/typed rows and reset comparisons:60 variants/180 native runs;
 no new upstream assertion credit or denominator change. Direct controls include
 admission and suspended cancellation/deadline recovery. See
 [finite evidence](research/direct-json-window/README.md).
+
+## JSON validation execution controls
+
+`json-validation-progress.test.mjs` retains the million-NULL JSONB witness and exercises real post-admission scheduler suspension for strict validation and binary/TEXT error-position parsing, work/cancel/deadline saved-error/reset/recovery. This is finite author evidence, not full-suite or whole-SQLite credit. [Evidence and limitations](research/card-r-a-json-validation-progress.md).

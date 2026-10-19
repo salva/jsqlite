@@ -1,0 +1,20 @@
+{
+  "base_manifest_sha256": "aa1b02d7603b10c4d340cac807b0f93efb78b5b7d87ebcb3033bd653d5bb173e",
+  "base_files": 4965,
+  "additional_files": {
+    "test/conformance/json-aggregate-integration-native.test.mjs": "56325b6e05ef25448adcd62b09a80d4b83a58f3bea123a41eeae1605fc2c65b2",
+    "docs/research/card-r-e-capture-aggregate-integration.py": "3323a7b6641eafc916b60233134b2ef87f4326060f65677cda2fe9b43326ef56",
+    "docs/research/card-r-e-aggregate-integration-native.json": "57d76ee86ac98eb76c3dc6775815150f4fe07b0a2dfeb0493dab0254d8cebf9b"
+  },
+  "base_json_sha256": "4d2009a767e8aaad49878e60f3fa13a294d1f35f609c8fcc14cde35d6e3a72b5",
+  "result_json_sha256": "7a9d04a75b1037a627fbb8c4031089ba2314e3ba2a1eb69a21a19a85fcb97acf",
+  "exports": {
+    "json-real-producer.test.mjs": "75671d13b3077ce18699fff48262abfcb50b02c7b34460d0c85762ecbaecabd4",
+    "runtime.patch": "16b242c4b015bccc2ff1f7f8d65c058ab33f05c1772037b08cb9bf9db1f5d0b2",
+    "json-aggregate-real-native.test.mjs": "d26e83bcfb96840f84ff4adfcc06cb0f17a9cfe32c045992324ea5e90736a223",
+    "card-r-b-capture-json-real.py": "2df6e5ae4af9290dcf6dc668cf31fc785b332ea79ab30f18d4c0feba9e975e39",
+    "card-r-b-json-real-native.json": "b055cd5f6a4a3c8cb7b7e886196bd5f3413e6e9b49779cb5724d4510319f060e",
+    "card-r-b-capture-aggregate-real.py": "72efbb96155c3d80d80d63c14056d223236795f8b2adc9512d14dbb41eeeb363",
+    "card-r-b-aggregate-real-native.json": "fabfc91cf73373ed602d197be7746d0d42b9d3efbcf2e579e5c411a69cad3110"
+  }
+}

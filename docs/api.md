@@ -1,5 +1,10 @@
 # Public API contract
 
+Physical/JSON Window inputs now enter the shared Window rewrite before scalar
+module projection, retaining positioned sourceRow payload and independent rowid.
+Finite typed/full-metadata and lifecycle author evidence, source comparison and
+remaining acceptance gates: [mixed Window correction](research/mixed-json-window/README.md).
+
 ### Read-only metadata PRAGMA (bounded consumers)
 
 The seven admitted metadata modules expose independent cursor `rowid`, `_rowid_`
@@ -421,7 +426,7 @@ JSON scalar inspection, constructors, mutation/merge patch, json/jsonb,
 json_valid, json_extract and ->/->> execute through ordinary Statement values.
 Canonical JSON is TEXT with private subtype 74; SQLite JSONB is a subtype-0 BLOB
 (`Uint8Array`), not PostgreSQL JSONB. Malformed JSON raises a SQLite error; work,
-result-byte, cancellation and deadline limits still apply. `json_pretty` accepts
+result-byte, cancellation and deadline limits still apply. Strict `json_valid` JSONB validation and `json_error_position` binary/TEXT scanning cooperatively checkpoint after input admission; superficial flags4 does not perform a deep scan. See [finite execution evidence](research/card-r-a-json-validation-progress.md). `json_pretty` accepts
 one or two arguments and returns ordinary TEXT (subtype 0), or NULL for a NULL
 document. Omitted/NULL indentation defaults to four spaces; other indentation
 values use SQLite text conversion, truncated at the first NUL. Duplicate keys
@@ -584,3 +589,5 @@ Pinned metadata/typed rows and reset comparisons:60 variants/180 native runs;
 no new upstream assertion credit or denominator change. Direct controls include
 admission and suspended cancellation/deadline recovery. See
 [finite evidence](research/direct-json-window/README.md).
+
+JSON table functions admit the document before converting their optional root: NULL document returns no rows, malformed document errors before invalid-root errors. Root SQL values convert privately to text in their source encoding; lookup and hidden root stop at the first NUL. Caller bindings are not mutated. [Finite source-based evidence](research/json-table-root/README.md).

@@ -66,6 +66,8 @@ export interface RawText {
 }
 export interface RawBlob {
   readonly storageClass: "blob";
+  /** OP_Column source encoding metadata, not a conversion of the BLOB. */
+  readonly encoding?: DatabaseEncoding;
   /** Borrowed from the record argument; its owner must outlive this value. */
   readonly bytes: Uint8Array;
 }
@@ -158,7 +160,7 @@ function decodeSerial(serialType: bigint, payload: Uint8Array, encoding: Databas
     return { storageClass: "real", bits, value, classification };
   }
   if (serialType === 8n || serialType === 9n) return { storageClass: "integer", value: serialType - 8n };
-  if ((serialType & 1n) === 0n) return { storageClass: "blob", bytes: payload };
+  if ((serialType & 1n) === 0n) return { storageClass: "blob", bytes: payload, encoding };
   return { storageClass: "text", bytes: payload, encoding };
 }
 

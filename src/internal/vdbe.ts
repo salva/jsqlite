@@ -39,7 +39,7 @@ import {sqliteFormat,sqliteRound} from "./printf.ts";
 import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 import {evaluateMathFunction,isMathFunction} from "./math.ts";
-import { jsonArrayLength, jsonArrow, jsonConstruct, openJsonTableCursor, jsonEdit, jsonErrorPosition, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonPretty, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode, type JsonTableCursor } from "./json.ts";
+import { appendJsonStringBytes, jsonAggregateBlob, jsonAggregateValueBytes, appendJsonAggregateBlob, withJsonAggregateLabel, jsonArrayLength, jsonInspectAsync, jsonEditAsync, jsonArrow, jsonConstruct, openJsonTableCursor, jsonEdit, jsonErrorPosition, jsonErrorPositionAsync, jsonExtractAsync, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonPretty, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonValidAsync, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode, type JsonTableCursor } from "./json.ts";
 
 import {sqlite3WindowRewrite, type WindowRewriteGraph} from "./window-rewrite.ts";
 // vdbe.c OP_Affinity/OP_TypeCheck REAL post-applyAffinity branch. Keep
@@ -2396,7 +2396,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
   if(expression.kind==="column") {
     const aggregate=expression.aggregateColumn;
     if(aggregate?.owner.directMode&&!aggregate.owner.useSortingIdx&&aggregate.owner.sourceRegisters!==undefined){
-      const target=allocate();ops.push({code:"Copy",p1:aggregate.owner.sourceRegisters+aggregate.iAgg,p2:target});
+      const target=allocate();ops.push({code:"Copy",p1:aggregate.owner.sourceRegister?.(aggregate.iAgg)??aggregate.owner.sourceRegisters+aggregate.iAgg,p2:target});
       if(expression.index>=0&&expression.affinity==="real")ops.push({code:"RealAffinity",p1:target});
       return target;
     }
@@ -4085,6 +4085,7 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
     const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
     if((expression.kind==='scalar-subquery'||expression.kind==='in-subquery')&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if((expression.resolved??nestedPlans.get(expression.select)?.plan)?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
+    if(selectHasAggregate(expression.select)||expression.select.hasGroupBy||expression.select.hasHaving)return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if(expression.select.result.length!==1)throw new JSQLiteError('sqlite',`sub-select returns ${expression.select.result.length} columns - expected 1`,{code:1});
     const entry=nestedPlans.get(expression.select),item=expression.select.result[0];
     if(!entry||!item?.reduction||expression.kind==='in-subquery'||expression.select.hasValues)throw new JSQLiteError('unsupported','this scalar subquery shape is not implemented',{unsupportedClassification:'temporary'});
@@ -6369,7 +6370,9 @@ export function compileTableSelect(select: SelectNode, schema: SchemaGraph, data
   const produced=compileTableSelectProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:"output"}});
   if(produced.ops!==builder.ops)throw new JSQLiteError("internal","table producer did not consume enclosing builder");
   builder.ops.push({code:"Halt"});
-  return Object.freeze({...produced,ops:builder.finish(),registers:builder.registers});
+  // vdbeaux.c:sqlite3VdbeMakeReady consumes final Parse.nVar/pVList,
+  // after deferred producer input emission has assigned every variable.
+  return Object.freeze({...produced,ops:builder.finish(),registers:builder.registers,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name})))});
 }
 
 function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, database: BtreeDatabase, maxRows: number, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;consume?:(first:number,count:number)=>void;scalarPrepared?:boolean;sharedLimit?:LimitRegisters;linkedPlan?:ReturnType<typeof expandAndResolveSelect>;expressionBinding?:ResolvedExpressionBinding}): Program {
@@ -6384,10 +6387,21 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // json.c's eponymous-only JSON table cursors.  Inputs are evaluated by the
   // ordinary expression VM, then xFilter-shaped state is owned by the statement.
   const jsonNames=new Set(["json_each","json_tree","jsonb_each","jsonb_tree"]);
+  const resolveModulePlan=()=>{try{return expandAndResolveSelect(select,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}};
+  // select.c: SF_Aggregate owns the entire result expression, not just
+  // a root aggregate. Keep linked module identity through AggInfo input.
+  if(schema&&select.from.items.length===1&&jsonNames.has(select.from.items[0]!.tableName.toLowerCase())&&!selectHasWindow(select)&&(selectHasAggregate(select)||select.hasGroupBy||select.hasHaving)){
+    const linkedPlan=shared?.linkedPlan??resolveModulePlan();
+    const parameters=shared?.parameters??{maximum:0,names:[],named:new Map<string,number>()};
+    return compileAggregateSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops:builder.ops,parameters,destination:shared?.destination??{kind:'output'},linkedPlan,...(shared?.expressionBinding?{expressionBinding:shared.expressionBinding}:{})});
+  }
+  if(!shared?.linkedPlan&&!select.from.derived&&!select.from.cteDerived?.length&&select.from.items.length===1&&jsonNames.has(select.from.items[0]!.tableName.toLowerCase())){
+    shared={...shared,builder,parameters:shared?.parameters??{maximum:0,names:[],named:new Map<string,number>()},destination:shared?.destination??{kind:'output'},linkedPlan:resolveModulePlan()};
+  }
   const metadataNames=new Set(Object.keys(METADATA_MODULE_COLUMNS)),privateNames=new Set([...jsonNames,...metadataNames]);
   // WindowRewrite owns the outer ORDER/LIMIT. Keep the genuine module SrcItem
   // on its shared WHERE coroutine instead of the scalar-only module shortcut.
-  if(selectHasWindow(select)&&select.from.items.length===1&&privateNames.has(select.from.items[0]!.tableName.toLowerCase())){
+  if(selectHasWindow(select)&&(select.from.items.some(item=>jsonNames.has(item.tableName.toLowerCase()))||(select.from.items.length===1&&privateNames.has(select.from.items[0]!.tableName.toLowerCase())))){
     const resolved=expandAndResolveSelect(select,schema);
     const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,shared);
     if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','window functions are not implemented',{unsupportedClassification:'temporary'});
@@ -6757,11 +6771,11 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       const havingTree=select.having?.reduction?bindColumns(expressionFromReduction(select.having.reduction)):null;
       const finalized=(tree:Expression):Expression=>{if(tree.kind==="aggregate"){const index=groupedEntries.findIndex(entry=>entry!==null&&entry.name===tree.name&&entry.args.length===tree.args.length&&entry.args.every((arg,i)=>sameExpression(arg,tree.args[i]!)));if(index<0)throw new JSQLiteError("unsupported",`this ${jsonTableName} HAVING aggregate is not projected`,{unsupportedClassification:"temporary"});return{kind:"register",index:states[index]!};}if(tree.kind==="unary")return{...tree,value:finalized(tree.value)};if(tree.kind==="vector")return {...tree,fields:tree.fields.map(finalized)};if(tree.kind==="binary")return{...tree,left:finalized(tree.left),right:finalized(tree.right)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:finalized(tree.value)};if(tree.kind==="call")return{...tree,args:tree.args.map(finalized)};return tree;};
       const emitSteps=()=>groupedEntries.forEach((entry,index)=>{if(entry){const args=entry.args.map(arg=>{const rebound=bindSorterSnapshot(arg,rowStart,rowWidth,sorted+keyCount);return compileExpressionTree(rebound,ops,allocate,parameters)});ops.push({code:"AggStep",name:entry.name,args,p2:states[index]!,collation:entry.collation});}}),emitGroup=()=>{groupedEntries.forEach((entry,index)=>{if(entry)ops.push({code:"AggFinal",name:entry.name,p1:states[index]!})});let reject:number|null=null;if(havingTree){const test=compileExpressionTree(finalized(havingTree),ops,allocate,parameters);reject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}const out=registers+1;for(let i=0;i<resultTrees.length;i++){registers++;const tree=resultTrees[i]!,source=tree.kind==="aggregate"?states[i]!:saved+groupTrees.findIndex(group=>group.kind==="register"&&tree.kind==="register"&&group.index===tree.index);ops.push({code:"Copy",p1:source,p2:out+i});}emitSelectDestination(ops,shared?.destination??{kind:"output"},out,resultTrees.length);if(reject!==null)(ops[reject] as {p2:number}).p2=ops.length;};
-      const step=ops.length;emitSteps();const advance=ops.length;ops.push({code:"SorterNext",p1:sorter,p2:0},{code:"Goto",p2:0});const nextRow=ops.length;(ops[advance] as {p2:number}).p2=nextRow;ops.push({code:"SorterData",p1:sorter,p2:sorted,count:keyCount+rowWidth});const compare=ops.length;ops.push({code:"CompareGroup",left:sorted,right:saved,count:keyCount,keyInfo,jump:step});emitGroup();ops.push({code:"AggReset",registers:states.filter(Boolean)});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});ops.push({code:"Goto",p2:step});const finish=ops.length;(ops[advance+1] as {p2:number}).p2=finish;emitGroup();const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:jsonTableName,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+      const step=ops.length;emitSteps();const advance=ops.length;ops.push({code:"SorterNext",p1:sorter,p2:0},{code:"Goto",p2:0});const nextRow=ops.length;(ops[advance] as {p2:number}).p2=nextRow;ops.push({code:"SorterData",p1:sorter,p2:sorted,count:keyCount+rowWidth});const compare=ops.length;ops.push({code:"CompareGroup",left:sorted,right:saved,count:keyCount,keyInfo,jump:step});emitGroup();ops.push({code:"AggReset",registers:states.filter(Boolean)});for(let i=0;i<keyCount;i++)ops.push({code:"Copy",p1:sorted+i,p2:saved+i});ops.push({code:"Goto",p2:step});const finish=ops.length;(ops[advance+1] as {p2:number}).p2=finish;emitGroup();const halt=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=halt;if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>jsonResultMetadata(result,resultTrees[index]!,[rowStart],[jsonTableName],undefined,[rowIdentity]))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
     }
     const aggregateOnly=resultTrees.length>0&&resultTrees.every(tree=>tree.kind==="aggregate"&&!tree.distinct&&!tree.filter&&!tree.orderBy.length);
     if(aggregateOnly){
-      const states=resultTrees.map(()=>allocate()),rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:jsonCursor,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}resultTrees.forEach((tree,index)=>{const aggregate=tree as Extract<Expression,{kind:"aggregate"}>,args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));ops.push({code:"AggStep",name:aggregate.name,args,p2:states[index]!,collation:aggregate.collation});});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;resultTrees.forEach((tree,index)=>ops.push({code:"AggFinal",name:(tree as Extract<Expression,{kind:"aggregate"}>).name,p1:states[index]!}));const outputStart=registers+1;for(const state of states){registers++;ops.push({code:"Copy",p1:state,p2:registers});}emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,states.length);if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map(result=>Object.freeze({name:result.alias??expressionName(result),declaredType:null,database:null,table:jsonTableName,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+      const states=resultTrees.map(()=>allocate()),rewind=ops.length;ops.push(metadata?{code:"MetadataFilter",p1:jsonCursor,input:input!,...(root===undefined?{}:{database:root}),schema,module:jsonTableName,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0}:{code:"JsonTableRewind",p1:jsonCursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:jsonTableName.endsWith("tree"),binaryContainers:jsonTableName.startsWith("jsonb_"),rowStart,columns:demandedColumns,...(rowIdentity===undefined?{}:{rowIdentity}),p2:0});const loop=ops.length;let skip:number|null=null;if(predicateTree){const predicate=compileExpressionTree(bindColumns(predicateTree),ops,allocate,parameters,undefined,true);skip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}resultTrees.forEach((tree,index)=>{const aggregate=tree as Extract<Expression,{kind:"aggregate"}>,args=aggregate.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));ops.push({code:"AggStep",name:aggregate.name,args,p2:states[index]!,collation:aggregate.collation});});const next=ops.length;if(skip!==null)(ops[skip] as {p2:number}).p2=next;ops.push({code:metadata?"MetadataNext":"JsonTableNext",p1:jsonCursor,rowStart,...(rowIdentity===undefined?{}:{rowIdentity}),p2:loop});const finish=ops.length;(ops[rewind] as {p2:number}).p2=finish;resultTrees.forEach((tree,index)=>ops.push({code:"AggFinal",name:(tree as Extract<Expression,{kind:"aggregate"}>).name,p1:states[index]!}));const outputStart=registers+1;for(const state of states){registers++;ops.push({code:"Copy",p1:state,p2:registers});}emitSelectDestination(ops,shared?.destination??{kind:"output"},outputStart,states.length);if(!shared)ops.push({code:"Halt"});builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(select.result.map((result,index)=>jsonResultMetadata(result,resultTrees[index]!,[rowStart],[jsonTableName],undefined,[rowIdentity]))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
     }
     if(resultTrees.some(tree=>tree.kind==="aggregate"))throw new JSQLiteError("unsupported",`this ${jsonTableName} aggregate composition is not implemented`,{unsupportedClassification:"temporary"});
     // select.c:tag-select-0100 drops superfluous ORDER BY for SRT_Exists.
@@ -6783,7 +6797,8 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const skipExistsProjection=sorter===null&&shared?.destination.kind==="exists"?ops.length:null;
     if(skipExistsProjection!==null)ops.push({code:"Goto",p2:0});
     if(star)visibleColumns.forEach((_,i)=>demandedColumns.add(i));
-    const outputs=star?visibleColumns.map((_,i)=>compileExpressionTree({kind:"register",index:rowStart+i},ops,allocate,parameters)):resultTrees.map(tree=>compileExpressionTree(tree,ops,allocate,parameters));
+    const compileProjection=(tree:Expression):number=>{builder.registers=registers;const value=compileExpressionTree(tree,ops,allocate,parameters,compileRowSubquery);registers=Math.max(registers,builder.registers);return value;};
+    const outputs=star?visibleColumns.map((_,i)=>compileProjection({kind:"register",index:rowStart+i})):resultTrees.map(compileProjection);
     // ResultRow and sorter payloads require contiguous registers.
     const contiguous=outputs.every((value,index)=>value===outputs[0]!+index);let outputStart=outputs[0]!;
     if(!contiguous){outputStart=registers+1;for(const value of outputs){registers++;ops.push({code:"Copy",p1:value,p2:registers});}}
@@ -7840,7 +7855,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
 
 /** select.c:sqlite3Select aggregate-without-GROUP tranche. AggInfo entries own
  * accumulator registers; ordinary expression lowering consumes AggFinal values. */
-export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|undefined,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, parent?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:import("./select-program.ts").SelectDest;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]};linkedPlan?:ReturnType<typeof expandAndResolveSelect>;scalarPrepared?:boolean;sharedLimit?:LimitRegisters;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;expressionBinding?:ResolvedExpressionBinding;input?:{first:number;rowIdentities?:boolean;emit:(consume:()=>void)=>void}}):Program {
+export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|undefined,database:BtreeDatabase,maxRows:number,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, parent?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:import("./select-program.ts").SelectDest;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]};linkedPlan?:ReturnType<typeof expandAndResolveSelect>;scalarPrepared?:boolean;sharedLimit?:LimitRegisters;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;expressionBinding?:ResolvedExpressionBinding;input?:{first:number;sourceRegister?:(index:number)=>number;rowIdentities?:boolean;emit:(consume:()=>void)=>void}}):Program {
 
 
  // select.c:updateAccumulator consumes the positioned WHERE row. Keep the
@@ -7849,14 +7864,19 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
  if(!parent?.input&&parent?.linkedPlan?.sources.length===1&&parent.linkedPlan.sources[0]!.table.kind==='json-module'){
   const linkedPlan=parent.linkedPlan,source=linkedPlan.sources[0]!,builder=parent.builder;
   const first=builder.range(source.table.columns.length+1);
+  let currentRow:number|undefined;
+  const sourceRegister=(index:number)=>index<source.table.columns.length&&currentRow!==undefined?currentRow+index:first+index;
   const inputSelect:SelectNode={...select,where:null,result:[],groupBy:[],having:null,orderBy:[],limit:null,offset:null,hasGroupBy:false,hasHaving:false,hasOrderBy:false,hasLimit:false,hasDistinct:false};
   return compileAggregateSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{
-   ...parent,input:{first,rowIdentities:true,emit:consume=>{
+   ...parent,input:{first,sourceRegister,rowIdentities:true,emit:consume=>{
     compileInnerTableSelect(inputSelect,linkedPlan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{
      builder,ops:parent.ops,parameters:parent.parameters,destination:{kind:'output'},
      ...(parent.expressionBinding?{expressionBinding:parent.expressionBinding}:{}),
      sourceRow:(_source,row,rowid)=>{
-      for(let i=0;i<source.table.columns.length;i++)parent.ops.push({code:'Copy',p1:row+i,p2:first+i});
+      // Bind the positioned source to AggInfo, not a pre-evaluated row.
+      // Copies emitted inside CASE/FILTER now become xColumn exactly where
+      // the executed expression demands them. Saved/group rows still copy.
+      currentRow=row;
       parent.ops.push({code:'Copy',p1:rowid,p2:first+source.table.columns.length});
      },consumeRow:consume
     });
@@ -8070,7 +8090,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
  const whereTree=select.where?expressionFromReduction(select.where.reduction!):null;
  if(whereTree){const aggregate=nestedAggregate(whereTree,true);if(aggregate)throw new JSQLiteError("sqlite",`misuse of aggregate: ${aggregate}()`,{code:1});}
  // resolve.c:resolveOrderGroupBy preserves a matching source name, then substitutes a result expression when source lookup misses.
- const columnOwner:import("./resolve.ts").AggregateColumnOwner={directMode:true,useSortingIdx:false,sortingIndexRegister:0,columns:new Map(),...(sourceRegisters===undefined?{}:{sourceRegisters})};
+ const columnOwner:import("./resolve.ts").AggregateColumnOwner={directMode:true,useSortingIdx:false,sortingIndexRegister:0,columns:new Map(),...(sourceRegisters===undefined?{}:{sourceRegisters}),...(parent?.input?.sourceRegister?{sourceRegister:parent.input.sourceRegister}:{})};
  const resultLocation:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:reference=>{
   const index=aggregatePlan.sources.indexOf(reference.source),source=aggregateSources[index];
   if(!source){if(parent?.expressionBinding)return parent.expressionBinding.location(reference,0);return {kind:'cursor',cursor:parent?.cursorFor?.(reference.source)??reference.source.cursorId};}
@@ -8394,7 +8414,7 @@ const outputStart=selectProgramBuilder.range(select.result.length);
   // Its WHERE rejection skips SorterInsert; no Next cursor exists to branch to.
   const keys=groups.map(group=>compileExpressionTree(group,ops,allocate,parameters)),combined=selectProgramBuilder.range(keyCount+width);keys.forEach((value,i)=>ops.push({code:"Copy",p1:value,p2:combined+i}));for(const source of aggregateSources)for(let i=0;i<source.table.columns.length+(parent?.input?.rowIdentities?1:0);i++){
     const target=combined+keyCount+source.base+i;
-    if(sourceRegisters!==undefined)ops.push({code:'Copy',p1:sourceRegisters+source.base+i,p2:target});
+    if(sourceRegisters!==undefined)ops.push({code:'Copy',p1:parent?.input?.sourceRegister?.(source.base+i)??sourceRegisters+source.base+i,p2:target});
     else{
       const identity=aggregatePlan.sources[aggregateSources.indexOf(source)]!;
       const value=compileExpressionTree(bindResolvedExpression({kind:'column',name:source.table.columns[i]!.name,index:i},resolvedColumnCarrier(identity,i),()=>source.cursor,true,{policy:'scalar',location:ref=>({kind:'cursor',cursor:aggregateSources[aggregatePlan.sources.indexOf(ref.source)]!.cursor})}),ops,allocate,parameters);
@@ -8545,23 +8565,29 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
   const result=(name==="json_extract"?jsonExtract:jsonbExtract)(a[0]!,a.slice(1),units=>{charge(units);control?.check()});
   checkSize(valueBytes(result));return result;
  }
- if(name==="json_arrow"||name==="json_arrow_sql")return jsonArrow(a[0]!,a[1]!,name==="json_arrow_sql",units=>{charge(units);control?.check()});
+ if(name==="json_arrow"||name==="json_arrow_sql"){
+  const result=jsonArrow(a[0]!,a[1]!,name==="json_arrow_sql",units=>{charge(units);control?.check()});
+  checkSize(valueBytes(result));return result;
+ }
  if(name==="json_type"){return jsonType(a[0]!,a[1],units=>{charge(units);control?.check()})}
  if(name==="json_array_length"){return jsonArrayLength(a[0]!,a[1],units=>{charge(units);control?.check()})}
- if(name==="json_error_position")return jsonErrorPosition(a[0]!);
+ if(name==="json_error_position")return jsonErrorPosition(a[0]!,units=>{charge(units);control?.check()});
  if(name==="json_quote")return jsonQuote(a[0]!);
  if(["json_array","json_object","jsonb_array","jsonb_object"].includes(name)){const result=jsonConstruct(name.endsWith("array")?"array":"object",a,name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
  if(/jsonb?_(?:insert|replace|set|remove|array_insert)$/.test(name)){const mode=name.endsWith("array_insert")?"array_insert":name.slice(name.indexOf("_")+1) as "insert"|"replace"|"set"|"remove";const result=jsonEdit(a[0]!,a.slice(1),mode,units=>{charge(units);control?.check()},name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
  if(name==="json_patch"||name==="jsonb_patch"){const result=jsonPatch(a[0]!,a[1]!,units=>{charge(units);control?.check()},name==="jsonb_patch");checkSize(valueBytes(result));return result}
  if(name==="json_pretty")throw new JSQLiteError("internal","pretty requires asynchronous Function execution");
  if(name==="json_valid"){
-  if(a[0]!.initialStorageClass==="null")return out;
+  // json.c:jsonValidFunc coerces/validates flags before document NULL handling.
   let flags=1;
   if(a.length===2){
-   if(a[1]!.initialStorageClass==="null")return out;
-   flags=Number(a[1]!.integerValue());
+   const flagValue=new Mem();flagValue.copyFrom(a[1]!);
+   flagValue.cast("integer",encoding);
+   flags=flagValue.initialStorageClass==="null"?0:Number(flagValue.integerValue());
   }
-  out.setInt64(jsonValid(a[0]!,flags,units=>{charge(units);control?.check()})?1n:0n);return out;
+  const valid=jsonValid(a[0]!,flags,units=>{charge(units);control?.check()});
+  if(valid!==null)out.setInt64(valid?1n:0n);
+  return out;
  }
  if(name==="likely"||name==="unlikely"||name==="likelihood")return a[0]!;
  if(name==="subtype"){out.setInt64(BigInt(a[0]!.subtypeValue()));return out}
@@ -8620,7 +8646,7 @@ function concatenateMem(left:Mem,right:Mem,encoding:DatabaseEncoding,maxBytes=Nu
 }
 function evaluateExpression(e:Expression,encoding:DatabaseEncoding,columns?:readonly Mem[]):Mem{
  if(e.kind==="vector")throw new JSQLiteError("sqlite","row value misused",{code:1});
- const out=new Mem();if(e.kind==="register"||e.kind==="aggregate"||e.kind==="scalar-subquery"||e.kind==="in-subquery"||e.kind==="in-list"||e.kind==="between")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value);return out}
+ const out=new Mem();if(e.kind==="register"||e.kind==="aggregate"||e.kind==="scalar-subquery"||e.kind==="in-subquery"||e.kind==="in-list"||e.kind==="between")throw new JSQLiteError("internal","lowered expression reached evaluator");if(e.kind==="variable")throw new JSQLiteError("internal","variables are compiled before execution");if(e.kind==="mem")return e.value;if(e.kind==="column"){out.copyFrom(columns![e.index]!);return out}if(e.kind==="literal"){if(e.value===null)out.setNull();else if(typeof e.value==="bigint")out.setInt64(e.value);else if(typeof e.value==="number")out.setDouble(e.value);else if(typeof e.value==="string")out.setText(new TextEncoder().encode(e.value),"utf-8");else out.setBlob(e.value,{encoding});return out}
  if(e.kind==="unary"){const v=evaluateExpression(e.value,encoding,columns);if(e.op==="+")return v;if(e.op==="-"){const z=new Mem();z.setInt64(0n);return arithmeticBinary("subtract",z,v)}return e.op==="~"?bitwiseNot(v):logicalNot(v)}
  if(e.kind==="cast"){const v=evaluateExpression(e.value,encoding,columns);v.cast(e.affinity,encoding);return v}
  if(e.kind==="collate")return evaluateExpression(e.value,encoding,columns);
@@ -8635,6 +8661,7 @@ interface AggregateFunctionContext<State> {
  readonly maxResultBytes:number;
  readonly budget:PrivateStateByteBudget;
  readonly inverseCapable:boolean;
+ readonly control:PrivateStateControl;
  state():State;
  currentState():State|undefined;
  setResult(value:Mem):void;
@@ -8644,10 +8671,10 @@ interface AggregateDefinition<State=unknown> {
  readonly name:string;
  readonly arities:readonly number[];
  create(context:AggregateFunctionContext<State>):State;
- step(context:AggregateFunctionContext<State>,args:readonly Mem[]):boolean|void;
- readonly inverse?: (context:AggregateFunctionContext<State>,args:readonly Mem[])=>void;
- readonly value?: (context:AggregateFunctionContext<State>)=>void;
- final(context:AggregateFunctionContext<State>):void;
+ step(context:AggregateFunctionContext<State>,args:readonly Mem[]):boolean|void|Promise<boolean|void>;
+ readonly inverse?: (context:AggregateFunctionContext<State>,args:readonly Mem[])=>void|Promise<void>;
+ readonly value?: (context:AggregateFunctionContext<State>)=>void|Promise<void>;
+ final(context:AggregateFunctionContext<State>):void|Promise<void>;
  readonly cleanup?: (state:State)=>void;
 }
 interface SumCtx {rSum:number;rErr:number;iSum:bigint;cnt:bigint;approx:boolean;ovrfl:boolean}
@@ -8666,7 +8693,7 @@ interface NthValueCtx {nStep:bigint;value:Mem|null}
 interface LastValueCtx {nVal:bigint;value:Mem|null}
 interface ExtremaCtx {values:Mem[];bytes:number;inverseCapable:boolean}
 interface ConcatCtx {values:{text:string;separator:string;bytes:number}[];bytes:number}
-interface JsonAggregateCtx {items:{key:string|null;value:JsonNode;bytes:number}[];bytes:number}
+interface JsonAggregateCtx {buffer:Uint8Array;used:number;bytes:number;error:unknown}
 const emptySum=():SumCtx=>({rSum:0,rErr:0,iSum:0n,cnt:0n,approx:false,ovrfl:false});
 const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Object.freeze({
  // window.c:row_numberStep/row_numberValue use an int64 aggregate context.
@@ -8707,39 +8734,169 @@ function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{ret
 function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{name,arities:name==="string_agg"?[2]:[1,2],create:()=>({values:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return;const text=aggregateText(value),separator=a[1]?.initialStorageClass==="null"?"":a[1]?aggregateText(a[1]):",",state=c.state(),prefix=state.values.length?separator:"",bytes=new TextEncoder().encode(prefix+text).byteLength;if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.values.push({text,separator:prefix,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:(c,a)=>{if(!a[0]||a[0]!.initialStorageClass==="null")return;const state=c.currentState();if(!state?.values.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.values.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes);if(state.values.length){const first=state.values[0]!,separatorBytes=new TextEncoder().encode(first.separator).byteLength;first.separator="";first.bytes-=separatorBytes;state.bytes-=separatorBytes;c.budget.release(separatorBytes)}},value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>s.values.length=0}}
 function aggregateText(input:Mem):string{const copy=new Mem();copy.copyFrom(input);if(copy.initialStorageClass!=="text")copy.stringify("utf-8");return copy.textValue()}
 function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),state=c.currentState();if(state?.values.length)out.setText(new TextEncoder().encode(state.values.map(value=>value.separator+value.text).join("")),"utf-8");c.setResult(out)}
+async function jsonAggregateAppend(c:AggregateFunctionContext<JsonAggregateCtx>,bytes:Uint8Array):Promise<void>{
+ const s=c.state();if(s.error)throw s.error;
+ const used=s.used+bytes.length;
+ if(used>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");
+ // Charge retained allocation capacity (including space made reusable by
+ // inverse), not only nUsed. Geometric growth is JsonStringGrow's amortization;
+ // the cap here is project output policy, not native allocator sizing.
+ if(used>s.buffer.length){
+  const capacity=Math.min(c.maxResultBytes,Math.max(used,s.buffer.length*2,32));
+  // The old allocation remains live while copying into its replacement.
+  // Reserve the full new capacity during overlap, then refund the old one.
+  const previous=s.bytes;c.budget.reserve(capacity,"aggregate state exceeds total byte limit");
+  try{
+   const next=new Uint8Array(capacity);
+   for(let at=0;at<s.used;at+=256){await c.control.checkpoint(1);next.set(s.buffer.subarray(at,Math.min(s.used,at+256)),at)}
+   s.buffer=next;s.bytes=capacity;
+  }
+  catch(error){c.budget.release(capacity);throw error}
+  c.budget.release(previous);
+ }
+ for(let at=0;at<bytes.length;at+=256){await c.control.checkpoint(1);s.buffer.set(bytes.subarray(at,Math.min(bytes.length,at+256)),s.used+at)}
+ s.used=used;
+}
+async function jsonAggregateQuote(c:AggregateFunctionContext<JsonAggregateCtx>,bytes:Uint8Array):Promise<void>{
+ const capacity=Math.max(6,Math.min(bytes.length,32)*6);
+ c.budget.reserve(capacity,"aggregate quote scratch exceeds total byte limit");
+ try{const scratch=new Uint8Array(capacity);await appendJsonStringBytes(bytes,scratch,part=>jsonAggregateAppend(c,part),()=>c.control.checkpoint(1))}
+ finally{c.budget.release(capacity)}
+}
+async function jsonAggregateCompact(c:AggregateFunctionContext<JsonAggregateCtx>,buffer:Uint8Array,used:number):Promise<number>{
+ buffer[0]=123;let i=1,j=1,inString=false,nextCheck=1;
+ for(;i<used;i++){
+  if(i>=nextCheck){await c.control.checkpoint(1);nextCheck=i+256}
+  const byte=buffer[i]!;
+  if(byte===34){inString=!inString;buffer[j++]=byte}
+  else if(byte===92){buffer[j++]=byte;buffer[j++]=buffer[++i]!}
+  else if(byte===64&&!inString){if(buffer[i+1]===44)i++;else if(buffer[j-1]===44)j--}
+  else buffer[j++]=byte;
+ }
+ return j;
+}
 function jsonAggregateDefinition(name:"json_group_array"|"jsonb_group_array"|"json_group_object"|"jsonb_group_object"):AggregateDefinition<JsonAggregateCtx>{
  const object=name.endsWith("object"),binary=name.startsWith("jsonb_");
- const result=(c:AggregateFunctionContext<JsonAggregateCtx>):void=>{const items=c.currentState()?.items??[];const node:JsonNode=object?{kind:"object",entries:items.filter(x=>x.key!==null).map(x=>[x.key!,x.value] as const)}:{kind:"array",values:items.map(x=>x.value)};const out=binary?jsonbResult(node):jsonTextResult(node);const size=out.initialStorageClass==="blob"?out.blobValue().length:new TextEncoder().encode(out.textValue()).length;if(size>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.setResult(out)};
- return{name,arities:object?[2]:[1],create:()=>({items:[],bytes:0}),step:(c,a)=>{let key:string|null=null;if(object){const label=a[0]!;if(label.initialStorageClass!=="null")key=aggregateText(label)}const value=jsonNodeFromSqlValue(a[object?1:0]!);const bytes=new TextEncoder().encode((key===null?"":key)+renderJson(value)).length,state=c.state();if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.items.push({key,value,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:c=>{const state=c.currentState();if(!state?.items.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.items.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes)},value:result,final:result,cleanup:s=>s.items.length=0};
+ const result=async(c:AggregateFunctionContext<JsonAggregateCtx>,final:boolean):Promise<void>=>{
+  const s=c.currentState();let output:Uint8Array,temporary=0;
+  if(!s)output=new Uint8Array(object?[123,125]:[91,93]);
+  else{
+   if(s.error)throw s.error;
+   // Compute's zero terminator is scratch, not a project logical output byte.
+   await jsonAggregateAppend(c,new Uint8Array([object?125:93]));
+   if(final){if(object&&s.buffer[0]===64)s.used=await jsonAggregateCompact(c,s.buffer,s.used);output=s.buffer.subarray(0,s.used)}
+   else{
+    try{
+     c.budget.reserve(s.used,"aggregate value exceeds total byte limit");temporary=s.used;
+     output=new Uint8Array(s.used);
+     for(let at=0;at<s.used;at+=256){await c.control.checkpoint(1);output.set(s.buffer.subarray(at,Math.min(s.used,at+256)),at)}
+     if(object&&output[0]===64)output=output.subarray(0,await jsonAggregateCompact(c,output,output.length));
+    }catch(error){if(temporary){c.budget.release(temporary);temporary=0}throw error}
+    finally{s.used--}
+   }
+  }
+  // xValue is transient: copy unconditionally, then compact only when the @
+  // flag is present. Final adopts the retained allocation in-place.
+  const out=new Mem();
+  try{
+   if(binary){const blob=await jsonAggregateBlob(output,{reserve:n=>c.budget.reserve(n,"aggregate JSONB source exceeds total byte limit"),release:n=>c.budget.release(n),checkpoint:async n=>{await c.control.checkpoint(n)},charge:n=>c.control.snapshotCheckpoint?.(n),check:()=>c.control.snapshotCheckpoint?.(0)});try{out.moveFrom(blob)}finally{blob.release()}}
+   else{out.adoptText(output,"utf-8");out.setSubtype(74)}
+   c.setResult(out);
+  }catch(error){out.release();throw error}
+  finally{if(temporary)c.budget.release(temporary)}
+  // Final transfers the retained allocation to Mem, whose callback result is
+  // moved through FunctionContext. xValue owns an independent transient copy.
+  // Common aggregate cleanup refunds the single capacity reservation once.
+  if(final&&s){s.buffer=new Uint8Array(0);s.used=0}
+ };
+ return {
+  name,arities:object?[2]:[1],create:()=>({buffer:new Uint8Array(0),used:0,bytes:0,error:undefined}),
+  step:async(c,args)=>{
+   const s=c.state();
+   try{
+    const appendRow=async(label:Uint8Array|null):Promise<void>=>{
+    if(s.used===0)await jsonAggregateAppend(c,new Uint8Array([object?123:91]));
+    else if(s.used>1)await jsonAggregateAppend(c,new Uint8Array([44]));
+    if(object){
+     if(label===null){s.buffer[0]=64;await jsonAggregateAppend(c,new Uint8Array([64]));return}
+     await jsonAggregateQuote(c,label);await jsonAggregateAppend(c,new Uint8Array([58]));
+    }
+    const value=args[object?1:0]!;
+    if(value.initialStorageClass==="text"){
+     // sqlite3_value_text exposes UTF-8 storage; a borrowed private Mem avoids
+     // eagerly duplicating already-UTF8 arguments. Only transcoding allocates.
+     const copy=new Mem(),conversion=value.recordConversionBytes(undefined,"utf-8");
+     c.budget.reserve(conversion,"JSON argument conversion exceeds total byte limit");
+     try{
+      copy.shallowCopyFrom(value);await c.control.checkpoint(1);copy.changeEncoding("utf-8");
+      await c.control.checkpoint(1);
+      if(value.subtypeValue()===74)await jsonAggregateAppend(c,copy.textBytes());
+      else await jsonAggregateQuote(c,copy.textBytes());
+     }finally{copy.release();c.budget.release(conversion)}
+    }else if(value.initialStorageClass==="blob")await appendJsonAggregateBlob(value,bytes=>jsonAggregateAppend(c,bytes),async()=>{await c.control.checkpoint(1)},()=>{if(s.used>0)s.used--},{reserve:n=>c.budget.reserve(n,"JSON BLOB expansion exceeds total byte limit"),release:n=>c.budget.release(n)});
+    else await jsonAggregateAppend(c,jsonAggregateValueBytes(value));
+    };
+    if(object)await withJsonAggregateLabel(args[0]!,{reserve:n=>c.budget.reserve(n,"JSON label conversion exceeds total byte limit"),release:n=>c.budget.release(n),checkpoint:async n=>{await c.control.checkpoint(n)}},appendRow);
+    else await appendRow(null);
+   }catch(error){s.error=error;throw error}
+  },
+  inverse:async c=>{
+   const s=c.currentState();if(!s||s.used<1)throw new JSQLiteError("internal",`${name} inverse without stepped value`);
+   let i=1,inString=false,nest=0,nextCheck=1;
+   for(;i<s.used;i++){
+    if(i>=nextCheck){await c.control.checkpoint(1);nextCheck=i+256}
+    const byte=s.buffer[i]!;if(byte===44&&!inString&&nest===0)break;
+    if(byte===34)inString=!inString;else if(byte===92)i++;
+    else if(!inString){if(byte===123||byte===91)nest++;if(byte===125||byte===93)nest--}
+   }
+   const old=s.used;
+   if(i<old){
+    // memmove towards the beginning. Keep each host copy bounded and preserve
+    // forward order across overlapping source/destination chunks.
+    const nextUsed=old-i;
+    for(let at=1;at<nextUsed;at+=256){
+     await c.control.checkpoint(1);
+     s.buffer.copyWithin(at,i+at,Math.min(old,i+at+256));
+    }
+    s.used=nextUsed;
+   }else s.used=1;
+   // Native inverse retains its allocation for subsequent Step calls. The
+   // capacity remains charged until final/error/reset cleanup, not refunded
+   // merely because nUsed shrank.
+  },
+  value:c=>result(c,false),final:c=>result(c,true),
+  cleanup:s=>{s.buffer=new Uint8Array(0);s.used=0;s.error=undefined}
+ };
 }
 class AggregateContext<State> implements AggregateFunctionContext<State>{
  readonly #result=new FunctionContext();
- readonly cell:Mem;readonly definition:AggregateDefinition<State>;readonly encoding:DatabaseEncoding;readonly collation:BuiltinCollation;readonly maxResultBytes:number;readonly budget:PrivateStateByteBudget;readonly inverseCapable:boolean;
- constructor(cell:Mem,definition:AggregateDefinition<State>,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false){this.cell=cell;this.definition=definition;this.encoding=encoding;this.collation=collation;this.maxResultBytes=maxResultBytes;this.budget=budget;this.inverseCapable=inverseCapable}
+ readonly cell:Mem;readonly definition:AggregateDefinition<State>;readonly encoding:DatabaseEncoding;readonly collation:BuiltinCollation;readonly maxResultBytes:number;readonly budget:PrivateStateByteBudget;readonly inverseCapable:boolean;readonly control:PrivateStateControl;
+ constructor(cell:Mem,definition:AggregateDefinition<State>,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false,control:PrivateStateControl={checkpoint:()=>{},snapshotCheckpoint:()=>{}}){this.control=control;this.cell=cell;this.definition=definition;this.encoding=encoding;this.collation=collation;this.maxResultBytes=maxResultBytes;this.budget=budget;this.inverseCapable=inverseCapable}
  currentState():State|undefined{return this.cell.aggregateState()?.context as State|undefined}
  state():State{let state=this.currentState();if(state===undefined){state=this.definition.create(this);this.cell.setAggregate({definition:this.definition,context:state,cleanup:()=>{try{this.definition.cleanup?.(state!)}finally{const bytes=(state as any).bytes;if(typeof bytes==="number")this.budget.release(bytes)}}})}return state}
  setResult(value:Mem):void{this.#result.setResult(value)} setError(error:unknown):void{this.#result.setError(error)}
  takeResult():Mem{return this.#result.takeResult()}
 }
-function aggregateContext(cell:Mem,name:string,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false):AggregateContext<any>{const definition=aggregateDefinitions[name];if(!definition)throw new JSQLiteError("internal",`missing aggregate definition: ${name}`);const stored=cell.aggregateState()?.definition;if(stored&&stored!==definition)throw new JSQLiteError("internal","aggregate definition changed for context");return new AggregateContext(cell,definition,encoding,collation,maxResultBytes,budget,inverseCapable)}
-function aggregateStep(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false):boolean{
- const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget,inverseCapable);let changed=false;
- try{changed=context.definition.step(context,args)===true}catch(error){context.setError(error)}
+function aggregateContext(cell:Mem,name:string,encoding:DatabaseEncoding,collation:BuiltinCollation,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false,control?:PrivateStateControl):AggregateContext<any>{const definition=aggregateDefinitions[name];if(!definition)throw new JSQLiteError("internal",`missing aggregate definition: ${name}`);const stored=cell.aggregateState()?.definition;if(stored&&stored!==definition)throw new JSQLiteError("internal","aggregate definition changed for context");return new AggregateContext(cell,definition,encoding,collation,maxResultBytes,budget,inverseCapable,control)}
+async function aggregateStep(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,inverseCapable=false,control?:PrivateStateControl):Promise<boolean>{
+ const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget,inverseCapable,control);let changed=false;
+ try{changed=(await context.definition.step(context,args))===true}catch(error){context.setError(error)}
  // xStep may report through sqlite3_result_error() without throwing. Consume
  // its transient result/error before the VM advances to another opcode.
  const result=context.takeResult();result.release();return changed;
 }
-function aggregateInverse(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget):void{const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget,true);try{if(!context.definition.inverse)throw new JSQLiteError("internal",`aggregate ${name} has no inverse callback`);context.definition.inverse(context,args)}catch(error){context.setError(error);context.takeResult()}}
-function aggregateResult(cell:Mem,name:string,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,destructive:boolean):Mem{const context=aggregateContext(cell,name,encoding,"binary",maxResultBytes,budget);try{const callback=destructive?context.definition.final:context.definition.value;if(!callback)throw new JSQLiteError("internal",`aggregate ${name} has no value callback`);callback(context);const result=context.takeResult();if(destructive)cell.setNull();return result}catch(error){context.setError(error);throw error}}
+async function aggregateInverse(cell:Mem,name:string,args:readonly Mem[],collation:BuiltinCollation,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,control:PrivateStateControl):Promise<void>{const context=aggregateContext(cell,name,encoding,collation,maxResultBytes,budget,true,control);try{if(!context.definition.inverse)throw new JSQLiteError("internal",`aggregate ${name} has no inverse callback`);await context.definition.inverse(context,args)}catch(error){context.setError(error);context.takeResult()}}
+// Result publication is VM-owned: callback errors/cleanup precede conversion.
+// OP_AggFinal/Value and vdbeapi.c:setResultStrOrError/result_value share this
+// boundary in TS. Mem conversion is a no-op for NULL/numeric/BLOB values.
+function publishFunctionResult(result:Mem,encoding:DatabaseEncoding,maxResultBytes:number):Mem {
+ try{result.changeEncoding(encoding);if(valueBytes(result)>maxResultBytes)throw new JSQLiteError("limit","string or blob too big");return result}catch(error){result.release();throw error}
+}
+async function aggregateResult(cell:Mem,name:string,encoding:DatabaseEncoding,maxResultBytes:number,budget:PrivateStateByteBudget,destructive:boolean,control:PrivateStateControl):Promise<Mem>{const context=aggregateContext(cell,name,encoding,"binary",maxResultBytes,budget,false,control);try{const callback=destructive?context.definition.final:context.definition.value;if(!callback)throw new JSQLiteError("internal",`aggregate ${name} has no value callback`);await callback(context);const result=context.takeResult();try{if(destructive)cell.setNull()}catch(error){result.release();throw error}return publishFunctionResult(result,encoding,maxResultBytes)}catch(error){context.setError(error);throw error}}
 
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
 function range(): never { throw new JSQLiteError("sqlite", "column or parameter index out of range", { code: 25 }); }
 
-/** Final instruction selection for the ten positional module bindings. This
- * preserves instruction addresses (including coroutine/branch destinations).
- * The compiler allocates each source occurrence a disjoint row range; only
- * reads of that range are columns. Copies of delivered/saved rows stay Copy.
- */
 function finalizeJsonColumnReads(program:Program):Program {
   const columns=new Map<number,{cursor:number;column:number}>();
   for(const op of program.ops)if(op.code==="JsonTableRewind")for(let i=0;i<JSON_TABLE_COLUMNS.length;i++){
@@ -8891,10 +9048,10 @@ export class VdbeStatement implements Statement {
             this.#jsonCursors.delete(op.p1);
             this.#jsonNullColumns.delete(op.p1);
             if(op.input===undefined){this.#pc=op.p2;break;}
-            const input=this.#registers[op.input]!,root=op.root===undefined?"$":this.#registers[op.root]!.initialStorageClass==="null"?null:this.#registers[op.root]!.textValue();
+            const input=this.#registers[op.input]!,root=op.root===undefined?"$":this.#registers[op.root]!;
             const charge=(units:number)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}};
-            const cursor=openJsonTableCursor(input,op.recursive,charge,root??"$",op.binaryContainers,(oldBytes,newBytes)=>this.#privateBytes.replace(oldBytes,newBytes,"JSON table cursor exceeds private-state byte limit"),op.columns,true);this.#jsonCursors.set(op.p1,cursor);
-            const row=root===null?null:cursor.next();if(op.rowIdentity!==undefined)this.#registers[op.rowIdentity]!.setInt64(0n);if(row===null){cursor.close();this.#jsonCursors.delete(op.p1);this.#pc=op.p2;break;}
+            const cursor=openJsonTableCursor(input,op.recursive,charge,root,op.binaryContainers,(oldBytes,newBytes)=>this.#privateBytes.replace(oldBytes,newBytes,"JSON table cursor exceeds private-state byte limit"),op.columns,true);this.#jsonCursors.set(op.p1,cursor);
+            const row=cursor.next();if(op.rowIdentity!==undefined)this.#registers[op.rowIdentity]!.setInt64(0n);if(row===null){cursor.close();this.#jsonCursors.delete(op.p1);this.#pc=op.p2;break;}
             for(let i=0;i<row.length&&i<JSON_TABLE_COLUMNS.length;i++){this.#registers[op.rowStart+i]!.setNull();}
             break;
           }
@@ -9282,7 +9439,7 @@ export class VdbeStatement implements Statement {
           case "Integer": {const old=this.#inSets.get(op.p2);if(old){for(const value of old.values)value.release();this.#privateBytes.release(old.bytes);this.#inSets.delete(op.p2);}this.#registers[op.p2]!.setInt64(op.p1);break;}
           case "Real": this.#registers[op.p2]!.setDouble(op.p1); break;
           case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
-          case "Blob": this.#registers[op.p2]!.setBlob(op.p1); break;
+          case "Blob": this.#registers[op.p2]!.setBlob(op.p1,{encoding:this.#program.encoding}); break;
           case "RowSetTest": {
             if (!Number.isInteger(op.p4) || op.p4 < -1 || this.#registers[op.p3]!.initialStorageClass !== "integer") throw new JSQLiteError("internal", "invalid RowSetTest operands");
             const control = this.#privateControl(options,limit,started);
@@ -9311,7 +9468,7 @@ export class VdbeStatement implements Statement {
             const target=this.#registers[op.p2]!;
             if(this.#jsonNullColumns.get(op.p1)?.has(op.column)){target.setNull();break;}
             const cursor=this.#jsonCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","column on unopened JSON table cursor");
-            const value=cursor.column!(op.column);this.#chargeValue(value,options,limit,started);target.copyFrom(value);break;
+            const value=cursor.column!(op.column);target.copyFrom(value);if(target.initialStorageClass==="text")target.changeEncoding(this.#program.encoding);this.#chargeValue(target,options,limit,started);break;
           }
           case "Copy": {const source=this.#registers[op.p1]!;this.#chargeValue(source,options,limit,started);this.#registers[op.p2]!.copyFrom(source);break;}
           case "Once": if(this.#once.has(op.p1))this.#pc=op.p2;else this.#once.add(op.p1); break;
@@ -9340,14 +9497,34 @@ export class VdbeStatement implements Statement {
           case "WindowRangeTest": {if(windowRangeTest(this.#registers[op.candidate]!,this.#registers[op.current]!,op.offset===undefined?undefined:this.#registers[op.offset]!,op.mode,op.descending,op.collation,op.bigNull))this.#pc=op.jump;break;}
           case "CompareJump": {let result=0;const control=this.#privateControl(options,limit,started);for(let i=0;i<op.count;i++){await control.checkpoint(1);const index=op.permutation?.[i]??i,term=op.keyInfo.terms[i]!;result=compareMem(this.#registers[op.left+index]!,this.#registers[op.right+index]!,term.collation);if(result!==0){if(term.nullsLarge&&(this.#registers[op.left+index]!.initialStorageClass === "null"||this.#registers[op.right+index]!.initialStorageClass === "null"))result=-result;if(term.desc)result=-result;break;}}this.#pc=result<0?op.less:result>0?op.greater:op.equal;break;}
           case "CompareGroup": {let equal=true;const control=this.#privateControl(options,limit,started);for(let i=0;i<op.count;i++){await control.checkpoint(1);if(compareMem(this.#registers[op.left+i]!,this.#registers[op.right+i]!,op.keyInfo.terms[i]!.collation)!==0){equal=false;break}}if(equal)this.#pc=op.jump;break;}
-          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const changed=aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#inverseAggregates.has(op.p2));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
-          case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes);break;}
-          case "AggFinal": this.#registers[op.p1]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true));break;
-          case "AggValue": this.#registers[op.p2]!.moveFrom(aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false));break;
+          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const changed=await aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#inverseAggregates.has(op.p2),this.#privateControl(options,limit,started));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
+          case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);await aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#privateControl(options,limit,started));break;}
+          case "AggFinal": this.#registers[op.p1]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true,this.#privateControl(options,limit,started)));break;
+          case "AggValue": this.#registers[op.p2]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false,this.#privateControl(options,limit,started)));break;
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>this.#currentTime??(this.#currentTime=(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment).nowUnixMilliseconds()),...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
  const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:async(units:number)=>{await this.#privateControl(options,limit,started).checkpoint(units)},charge:control.charge,check:control.check,checkSize:control.checkSize};
- this.#registers[op.p2]!.moveFrom(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)));
- }else this.#registers[op.p2]!.moveFrom(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)));break;}
+ this.#registers[op.p2]!.moveFrom(publishFunctionResult(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)),this.#program.encoding,this.#program.maxResultBytes));
+ }else if(op.name==="json_type"||op.name==="json_array_length"){
+ const result=await runAsyncFunctionContext(()=>jsonInspectAsync(args[0]!,args[1],op.name==="json_array_length",control.charge,(units)=>this.#privateControl(options,limit,started).checkpoint(units)));
+ this.#registers[op.p2]!.moveFrom(publishFunctionResult(result,this.#program.encoding,this.#program.maxResultBytes));
+ }else if(/^(json|jsonb)_(set|insert|replace|remove|array_insert)$/.test(op.name)){
+ const mode=op.name.slice(op.name.indexOf("_")+1) as "set"|"insert"|"replace"|"remove"|"array_insert";
+ const result=await runAsyncFunctionContext(()=>jsonEditAsync(args[0]!,args.slice(1),mode,control.charge,op.name.startsWith("jsonb_"),(units)=>this.#privateControl(options,limit,started).checkpoint(units)));
+ this.#registers[op.p2]!.moveFrom(publishFunctionResult(result,this.#program.encoding,this.#program.maxResultBytes));
+ }else if(op.name==="json_extract"||op.name==="jsonb_extract"||op.name==="json_arrow"||op.name==="json_arrow_sql"){
+ const mode=op.name==="json_extract"?"text":op.name==="jsonb_extract"?"blob":op.name==="json_arrow_sql"?"sql":"json";
+ const checkpoint=(units:number)=>this.#privateControl(options,limit,started).checkpoint(units);
+ const result=await runAsyncFunctionContext(()=>jsonExtractAsync(args[0]!,args.slice(1),mode,checkpoint,control.charge));
+ this.#registers[op.p2]!.moveFrom(publishFunctionResult(result,this.#program.encoding,this.#program.maxResultBytes));
+ }else if(op.name==="json_valid"||op.name==="json_error_position"){
+ const checkpoint=(units:number)=>this.#privateControl(options,limit,started).checkpoint(units);
+ const result=await runAsyncFunctionContext(async()=>{
+  if(op.name==="json_error_position")return jsonErrorPositionAsync(args[0]!,checkpoint);
+  let flags=1;if(args.length===2){const flagValue=new Mem();flagValue.copyFrom(args[1]!);try{flagValue.cast("integer",this.#program.encoding);flags=flagValue.initialStorageClass==="null"?0:Number(flagValue.integerValue())}finally{flagValue.release()}}
+  const valid=await jsonValidAsync(args[0]!,flags,checkpoint),out=new Mem();if(valid!==null)out.setInt64(valid?1n:0n);return out;
+ });
+ this.#registers[op.p2]!.moveFrom(publishFunctionResult(result,this.#program.encoding,this.#program.maxResultBytes));
+ }else this.#registers[op.p2]!.moveFrom(publishFunctionResult(runFunctionContext(()=>evaluateFunction(op.name,args,this.#program.encoding,op.collation,control)),this.#program.encoding,this.#program.maxResultBytes));break;}
           case "ElseEq": {if(truth(this.#registers[op.p1]!)===true)this.#pc=op.jump;break;}
           case "ShortCircuit": {const value=truth(this.#registers[op.p1]!);if((op.kind==="and"&&value===false)||(op.kind==="or"&&value===true)){this.#registers[op.p2]!.setInt64(op.kind==="and"?0n:1n);this.#pc=op.jump}break;}
           case "Boolean": {const x=truth(this.#registers[op.p1]!),y=truth(this.#registers[op.p2]!),v=op.kind==="and"?(x===false||y===false?false:x===null||y===null?null:true):(x===true||y===true?true:x===null||y===null?null:false);v===null?this.#registers[op.p3]!.setNull():this.#registers[op.p3]!.setInt64(v?1n:0n);break;}

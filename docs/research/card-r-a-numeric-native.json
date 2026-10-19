@@ -1,0 +1,300 @@
+{
+  "identity": {
+    "version": "3.53.4",
+    "source": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"
+  },
+  "cases": [
+    {
+      "text": "1e",
+      "position": 2,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "[1e]",
+      "position": 3,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e+",
+      "position": 3,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e-",
+      "position": 3,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": " 1e",
+      "position": 3,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "[\"é\",1e]",
+      "position": 7,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "[\"😀\",1e+]",
+      "position": 8,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "01",
+      "position": 2,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "-01",
+      "position": 2,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "+01",
+      "position": 2,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "0x",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "0xg",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "-0x",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "+0x",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "0x10",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "16",
+      "hex": "4430783130"
+    },
+    {
+      "text": "-0x10",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "-16",
+      "hex": "542D30783130"
+    },
+    {
+      "text": "+0x10",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "16",
+      "hex": "4430783130"
+    },
+    {
+      "text": ".e",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": ".5",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "0.5",
+      "hex": "262E35"
+    },
+    {
+      "text": "-.5",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "-0.5",
+      "hex": "362D2E35"
+    },
+    {
+      "text": "+.5",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "0.5",
+      "hex": "262E35"
+    },
+    {
+      "text": "1.",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "1.0",
+      "hex": "26312E"
+    },
+    {
+      "text": "1.e2",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "1.0e2",
+      "hex": "46312E6532"
+    },
+    {
+      "text": "1.e",
+      "position": 3,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e2e3",
+      "position": 4,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e2.3",
+      "position": 4,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1..2",
+      "position": 3,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e+2",
+      "position": 0,
+      "strict": 1,
+      "json5": 1,
+      "canonical": "1e+2",
+      "hex": "4531652B32"
+    },
+    {
+      "text": "-",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "+",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": ".",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e/*x*/",
+      "position": 2,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "[1e+]",
+      "position": 4,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "{\"é\":1e-}",
+      "position": 8,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "[\"😀\", 1e-]",
+      "position": 9,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "[1,2]",
+      "position": 0,
+      "strict": 1,
+      "json5": 1,
+      "canonical": "[1,2]",
+      "hex": "4B13311332"
+    },
+    {
+      "text": "1/*x*/",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "1",
+      "hex": "1331"
+    },
+    {
+      "text": "1x",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "1e2x",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "+Inf",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "9e999",
+      "hex": "553965393939"
+    },
+    {
+      "text": "-Infinity",
+      "position": 0,
+      "strict": 0,
+      "json5": 1,
+      "canonical": "-9e999",
+      "hex": "652D3965393939"
+    },
+    {
+      "text": "true",
+      "position": 0,
+      "strict": 1,
+      "json5": 1,
+      "canonical": "true",
+      "hex": "01"
+    },
+    {
+      "text": "tru",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    },
+    {
+      "text": "nulx",
+      "position": 1,
+      "strict": 0,
+      "json5": 0
+    }
+  ]
+}

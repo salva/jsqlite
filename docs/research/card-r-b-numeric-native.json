@@ -1,0 +1,2598 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "sql": "SELECT json_extract(x'1331','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'1331','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT x'1331' ->> '$'",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type(x'1331')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'1331')",
+      "type": "text",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'1331'))",
+      "type": "text",
+      "value": "1331"
+    },
+    {
+      "sql": "SELECT json_extract(x'232d30','$')",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'232d30','$')",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT x'232d30' ->> '$'",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT json_type(x'232d30')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'232d30')",
+      "type": "text",
+      "value": "-0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'232d30'))",
+      "type": "text",
+      "value": "232D30"
+    },
+    {
+      "sql": "SELECT json_extract(x'33312e30','$')",
+      "realHex": "0x1.f000000000000p+4",
+      "type": "real",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'33312e30','$')",
+      "realHex": "0x1.f000000000000p+4",
+      "type": "real",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT x'33312e30' ->> '$'",
+      "realHex": "0x1.f000000000000p+4",
+      "type": "real",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT json_type(x'33312e30')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'33312e30')",
+      "type": "text",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'33312e30'))",
+      "type": "text",
+      "value": "4533312E30"
+    },
+    {
+      "sql": "SELECT json_extract(x'33316530','$')",
+      "realHex": "0x1.f000000000000p+4",
+      "type": "real",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'33316530','$')",
+      "realHex": "0x1.f000000000000p+4",
+      "type": "real",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT x'33316530' ->> '$'",
+      "realHex": "0x1.f000000000000p+4",
+      "type": "real",
+      "value": "31.0"
+    },
+    {
+      "sql": "SELECT json_type(x'33316530')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'33316530')",
+      "type": "text",
+      "value": "31e0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'33316530'))",
+      "type": "text",
+      "value": "4533316530"
+    },
+    {
+      "sql": "SELECT json_extract(x'232b31','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'232b31','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT x'232b31' ->> '$'",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type(x'232b31')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'232b31')",
+      "type": "text",
+      "value": "+1"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'232b31'))",
+      "type": "text",
+      "value": "232B31"
+    },
+    {
+      "sql": "SELECT json_extract(x'232e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'232e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT x'232e35' ->> '$'",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT json_type(x'232e35')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'232e35')",
+      "type": "text",
+      "value": ".5"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'232e35'))",
+      "type": "text",
+      "value": "232E35"
+    },
+    {
+      "sql": "SELECT json_extract(x'23312e','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'23312e','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'23312e' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'23312e')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'23312e')",
+      "type": "text",
+      "value": "1."
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'23312e'))",
+      "type": "text",
+      "value": "23312E"
+    },
+    {
+      "sql": "SELECT json_extract(x'4330783130','$')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'4330783130','$')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT x'4330783130' ->> '$'",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT json_type(x'4330783130')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'4330783130')",
+      "type": "text",
+      "value": "0x10"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'4330783130'))",
+      "type": "text",
+      "value": "4330783130"
+    },
+    {
+      "sql": "SELECT json_extract(x'c3132d307838303030303030303030303030303030','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c3132d307838303030303030303030303030303030','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c3132d307838303030303030303030303030303030' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c3132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c3132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "-0x8000000000000000"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c3132d307838303030303030303030303030303030'))",
+      "type": "text",
+      "value": "C3132D307838303030303030303030303030303030"
+    },
+    {
+      "sql": "SELECT json_extract(x'c312307866666666666666666666666666666666','$')",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c312307866666666666666666666666666666666','$')",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT x'c312307866666666666666666666666666666666' ->> '$'",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT json_type(x'c312307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c312307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "0xffffffffffffffff"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c312307866666666666666666666666666666666'))",
+      "type": "text",
+      "value": "C312307866666666666666666666666666666666"
+    },
+    {
+      "sql": "SELECT json_extract(x'c31339323233333732303336383534373735383037','$')",
+      "type": "integer",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c31339323233333732303336383534373735383037','$')",
+      "type": "integer",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT x'c31339323233333732303336383534373735383037' ->> '$'",
+      "type": "integer",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT json_type(x'c31339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c31339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c31339323233333732303336383534373735383037'))",
+      "type": "text",
+      "value": "C31339323233333732303336383534373735383037"
+    },
+    {
+      "sql": "SELECT json_extract(x'c31339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c31339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c31339323233333732303336383534373735383038' ->> '$'",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c31339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c31339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c31339323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C31339323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c3142d39323233333732303336383534373735383038','$')",
+      "type": "integer",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c3142d39323233333732303336383534373735383038','$')",
+      "type": "integer",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT x'c3142d39323233333732303336383534373735383038' ->> '$'",
+      "type": "integer",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT json_type(x'c3142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c3142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c3142d39323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C3142D39323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c3142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c3142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c3142d39323233333732303336383534373735383039' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c3142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c3142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "-9223372036854775809"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c3142d39323233333732303336383534373735383039'))",
+      "type": "text",
+      "value": "C3142D39323233333732303336383534373735383039"
+    },
+    {
+      "sql": "SELECT json_extract(x'533165393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'533165393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'533165393939' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'533165393939')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'533165393939')",
+      "type": "text",
+      "value": "1e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'533165393939'))",
+      "type": "text",
+      "value": "533165393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'6331652d393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'6331652d393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'6331652d393939' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'6331652d393939')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'6331652d393939')",
+      "type": "text",
+      "value": "1e-999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'6331652d393939'))",
+      "type": "text",
+      "value": "6331652D393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'33626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'33626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'33626164' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'33626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json(x'33626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'33626164'))",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract(x'03','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'03','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'03' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'03')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'03')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'03'))",
+      "type": "text",
+      "value": "03"
+    },
+    {
+      "sql": "SELECT json_extract(x'1431','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'1431','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT x'1431' ->> '$'",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type(x'1431')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'1431')",
+      "type": "text",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'1431'))",
+      "type": "text",
+      "value": "1431"
+    },
+    {
+      "sql": "SELECT json_extract(x'242d30','$')",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'242d30','$')",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT x'242d30' ->> '$'",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT json_type(x'242d30')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'242d30')",
+      "type": "text",
+      "value": "-0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'242d30'))",
+      "type": "text",
+      "value": "242D30"
+    },
+    {
+      "sql": "SELECT json_extract(x'34312e30','$')",
+      "realHex": "0x1.4800000000000p+5",
+      "type": "real",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'34312e30','$')",
+      "realHex": "0x1.4800000000000p+5",
+      "type": "real",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT x'34312e30' ->> '$'",
+      "realHex": "0x1.4800000000000p+5",
+      "type": "real",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT json_type(x'34312e30')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'34312e30')",
+      "type": "text",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'34312e30'))",
+      "type": "text",
+      "value": "4534312E30"
+    },
+    {
+      "sql": "SELECT json_extract(x'34316530','$')",
+      "realHex": "0x1.4800000000000p+5",
+      "type": "real",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'34316530','$')",
+      "realHex": "0x1.4800000000000p+5",
+      "type": "real",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT x'34316530' ->> '$'",
+      "realHex": "0x1.4800000000000p+5",
+      "type": "real",
+      "value": "41.0"
+    },
+    {
+      "sql": "SELECT json_type(x'34316530')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'34316530')",
+      "type": "text",
+      "value": "41e0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'34316530'))",
+      "type": "text",
+      "value": "4534316530"
+    },
+    {
+      "sql": "SELECT json_extract(x'242b31','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'242b31','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT x'242b31' ->> '$'",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type(x'242b31')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'242b31')",
+      "type": "text",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'242b31'))",
+      "type": "text",
+      "value": "242B31"
+    },
+    {
+      "sql": "SELECT json_extract(x'242e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'242e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT x'242e35' ->> '$'",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT json_type(x'242e35')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'242e35')",
+      "type": "text",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'242e35'))",
+      "type": "text",
+      "value": "242E35"
+    },
+    {
+      "sql": "SELECT json_extract(x'24312e','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'24312e','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'24312e' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'24312e')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'24312e')",
+      "type": "text",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'24312e'))",
+      "type": "text",
+      "value": "24312E"
+    },
+    {
+      "sql": "SELECT json_extract(x'4430783130','$')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'4430783130','$')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT x'4430783130' ->> '$'",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT json_type(x'4430783130')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'4430783130')",
+      "type": "text",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'4430783130'))",
+      "type": "text",
+      "value": "4430783130"
+    },
+    {
+      "sql": "SELECT json_extract(x'c4132d307838303030303030303030303030303030','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c4132d307838303030303030303030303030303030','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c4132d307838303030303030303030303030303030' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c4132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c4132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c4132d307838303030303030303030303030303030'))",
+      "type": "text",
+      "value": "C4132D307838303030303030303030303030303030"
+    },
+    {
+      "sql": "SELECT json_extract(x'c412307866666666666666666666666666666666','$')",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c412307866666666666666666666666666666666','$')",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT x'c412307866666666666666666666666666666666' ->> '$'",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT json_type(x'c412307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c412307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "18446744073709551615"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c412307866666666666666666666666666666666'))",
+      "type": "text",
+      "value": "C412307866666666666666666666666666666666"
+    },
+    {
+      "sql": "SELECT json_extract(x'c41339323233333732303336383534373735383037','$')",
+      "type": "integer",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c41339323233333732303336383534373735383037','$')",
+      "type": "integer",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT x'c41339323233333732303336383534373735383037' ->> '$'",
+      "type": "integer",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT json_type(x'c41339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c41339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "9.0e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c41339323233333732303336383534373735383037'))",
+      "type": "text",
+      "value": "C41339323233333732303336383534373735383037"
+    },
+    {
+      "sql": "SELECT json_extract(x'c41339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c41339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c41339323233333732303336383534373735383038' ->> '$'",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c41339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c41339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "9.0e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c41339323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C41339323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c4142d39323233333732303336383534373735383038','$')",
+      "type": "integer",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c4142d39323233333732303336383534373735383038','$')",
+      "type": "integer",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT x'c4142d39323233333732303336383534373735383038' ->> '$'",
+      "type": "integer",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT json_type(x'c4142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c4142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "-9.0e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c4142d39323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C4142D39323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c4142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c4142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c4142d39323233333732303336383534373735383039' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c4142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'c4142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "-9.0e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c4142d39323233333732303336383534373735383039'))",
+      "type": "text",
+      "value": "C4142D39323233333732303336383534373735383039"
+    },
+    {
+      "sql": "SELECT json_extract(x'543165393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'543165393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'543165393939' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'543165393939')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'543165393939')",
+      "type": "text",
+      "value": "2457"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'543165393939'))",
+      "type": "text",
+      "value": "543165393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'6431652d393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'6431652d393939','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'6431652d393939' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'6431652d393939')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'6431652d393939')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'6431652d393939'))",
+      "type": "text",
+      "value": "6431652D393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'34626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'34626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'34626164' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'34626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json(x'34626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'34626164'))",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract(x'04','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'04','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'04' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'04')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json(x'04')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'04'))",
+      "type": "text",
+      "value": "04"
+    },
+    {
+      "sql": "SELECT json_extract(x'1531','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'1531','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'1531' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'1531')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'1531')",
+      "type": "text",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'1531'))",
+      "type": "text",
+      "value": "1531"
+    },
+    {
+      "sql": "SELECT json_extract(x'252d30','$')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'252d30','$')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT x'252d30' ->> '$'",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT json_type(x'252d30')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'252d30')",
+      "type": "text",
+      "value": "-0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'252d30'))",
+      "type": "text",
+      "value": "252D30"
+    },
+    {
+      "sql": "SELECT json_extract(x'35312e30','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'35312e30','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'35312e30' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'35312e30')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'35312e30')",
+      "type": "text",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'35312e30'))",
+      "type": "text",
+      "value": "35312E30"
+    },
+    {
+      "sql": "SELECT json_extract(x'35316530','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'35316530','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'35316530' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'35316530')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'35316530')",
+      "type": "text",
+      "value": "1e0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'35316530'))",
+      "type": "text",
+      "value": "35316530"
+    },
+    {
+      "sql": "SELECT json_extract(x'252b31','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'252b31','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'252b31' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'252b31')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'252b31')",
+      "type": "text",
+      "value": "+1"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'252b31'))",
+      "type": "text",
+      "value": "252B31"
+    },
+    {
+      "sql": "SELECT json_extract(x'252e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'252e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT x'252e35' ->> '$'",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT json_type(x'252e35')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'252e35')",
+      "type": "text",
+      "value": ".5"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'252e35'))",
+      "type": "text",
+      "value": "252E35"
+    },
+    {
+      "sql": "SELECT json_extract(x'25312e','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'25312e','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'25312e' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'25312e')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'25312e')",
+      "type": "text",
+      "value": "1."
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'25312e'))",
+      "type": "text",
+      "value": "25312E"
+    },
+    {
+      "sql": "SELECT json_extract(x'4530783130','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'4530783130','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'4530783130' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'4530783130')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'4530783130')",
+      "type": "text",
+      "value": "0x10"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'4530783130'))",
+      "type": "text",
+      "value": "4530783130"
+    },
+    {
+      "sql": "SELECT json_extract(x'c5132d307838303030303030303030303030303030','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c5132d307838303030303030303030303030303030','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'c5132d307838303030303030303030303030303030' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'c5132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c5132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "-0x8000000000000000"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c5132d307838303030303030303030303030303030'))",
+      "type": "text",
+      "value": "C5132D307838303030303030303030303030303030"
+    },
+    {
+      "sql": "SELECT json_extract(x'c512307866666666666666666666666666666666','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c512307866666666666666666666666666666666','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'c512307866666666666666666666666666666666' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'c512307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c512307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "0xffffffffffffffff"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c512307866666666666666666666666666666666'))",
+      "type": "text",
+      "value": "C512307866666666666666666666666666666666"
+    },
+    {
+      "sql": "SELECT json_extract(x'c51339323233333732303336383534373735383037','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c51339323233333732303336383534373735383037','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c51339323233333732303336383534373735383037' ->> '$'",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c51339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c51339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c51339323233333732303336383534373735383037'))",
+      "type": "text",
+      "value": "C51339323233333732303336383534373735383037"
+    },
+    {
+      "sql": "SELECT json_extract(x'c51339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c51339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c51339323233333732303336383534373735383038' ->> '$'",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c51339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c51339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c51339323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C51339323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c5142d39323233333732303336383534373735383038','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c5142d39323233333732303336383534373735383038','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c5142d39323233333732303336383534373735383038' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c5142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c5142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c5142d39323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C5142D39323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c5142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c5142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c5142d39323233333732303336383534373735383039' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c5142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c5142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "-9223372036854775809"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c5142d39323233333732303336383534373735383039'))",
+      "type": "text",
+      "value": "C5142D39323233333732303336383534373735383039"
+    },
+    {
+      "sql": "SELECT json_extract(x'553165393939','$')",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'553165393939','$')",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT x'553165393939' ->> '$'",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT json_type(x'553165393939')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'553165393939')",
+      "type": "text",
+      "value": "1e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'553165393939'))",
+      "type": "text",
+      "value": "553165393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'6531652d393939','$')",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'6531652d393939','$')",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT x'6531652d393939' ->> '$'",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT json_type(x'6531652d393939')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'6531652d393939')",
+      "type": "text",
+      "value": "1e-999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'6531652d393939'))",
+      "type": "text",
+      "value": "6531652D393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'35626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'35626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'35626164' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'35626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json(x'35626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'35626164'))",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract(x'05','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'05','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'05' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'05')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'05')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'05'))",
+      "type": "text",
+      "value": "05"
+    },
+    {
+      "sql": "SELECT json_extract(x'1631','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'1631','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'1631' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'1631')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'1631')",
+      "type": "text",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'1631'))",
+      "type": "text",
+      "value": "1631"
+    },
+    {
+      "sql": "SELECT json_extract(x'262d30','$')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'262d30','$')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT x'262d30' ->> '$'",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT json_type(x'262d30')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'262d30')",
+      "type": "text",
+      "value": "-0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'262d30'))",
+      "type": "text",
+      "value": "262D30"
+    },
+    {
+      "sql": "SELECT json_extract(x'36312e30','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'36312e30','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'36312e30' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'36312e30')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'36312e30')",
+      "type": "text",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'36312e30'))",
+      "type": "text",
+      "value": "36312E30"
+    },
+    {
+      "sql": "SELECT json_extract(x'36316530','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'36316530','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'36316530' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'36316530')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'36316530')",
+      "type": "text",
+      "value": "1e0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'36316530'))",
+      "type": "text",
+      "value": "36316530"
+    },
+    {
+      "sql": "SELECT json_extract(x'262b31','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'262b31','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'262b31' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'262b31')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'262b31')",
+      "type": "text",
+      "value": "+1"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'262b31'))",
+      "type": "text",
+      "value": "262B31"
+    },
+    {
+      "sql": "SELECT json_extract(x'262e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'262e35','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT x'262e35' ->> '$'",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT json_type(x'262e35')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'262e35')",
+      "type": "text",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'262e35'))",
+      "type": "text",
+      "value": "262E35"
+    },
+    {
+      "sql": "SELECT json_extract(x'26312e','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'26312e','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'26312e' ->> '$'",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'26312e')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'26312e')",
+      "type": "text",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'26312e'))",
+      "type": "text",
+      "value": "26312E"
+    },
+    {
+      "sql": "SELECT json_extract(x'4630783130','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'4630783130','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'4630783130' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'4630783130')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'4630783130')",
+      "type": "text",
+      "value": "0x10"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'4630783130'))",
+      "type": "text",
+      "value": "4630783130"
+    },
+    {
+      "sql": "SELECT json_extract(x'c6132d307838303030303030303030303030303030','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c6132d307838303030303030303030303030303030','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'c6132d307838303030303030303030303030303030' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'c6132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c6132d307838303030303030303030303030303030')",
+      "type": "text",
+      "value": "-0x8000000000000000"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c6132d307838303030303030303030303030303030'))",
+      "type": "text",
+      "value": "C6132D307838303030303030303030303030303030"
+    },
+    {
+      "sql": "SELECT json_extract(x'c612307866666666666666666666666666666666','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c612307866666666666666666666666666666666','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'c612307866666666666666666666666666666666' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'c612307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c612307866666666666666666666666666666666')",
+      "type": "text",
+      "value": "0xffffffffffffffff"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c612307866666666666666666666666666666666'))",
+      "type": "text",
+      "value": "C612307866666666666666666666666666666666"
+    },
+    {
+      "sql": "SELECT json_extract(x'c61339323233333732303336383534373735383037','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c61339323233333732303336383534373735383037','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c61339323233333732303336383534373735383037' ->> '$'",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c61339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c61339323233333732303336383534373735383037')",
+      "type": "text",
+      "value": "9223372036854775807"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c61339323233333732303336383534373735383037'))",
+      "type": "text",
+      "value": "C61339323233333732303336383534373735383037"
+    },
+    {
+      "sql": "SELECT json_extract(x'c61339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c61339323233333732303336383534373735383038','$')",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c61339323233333732303336383534373735383038' ->> '$'",
+      "realHex": "0x1.0000000000000p+63",
+      "type": "real",
+      "value": "9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c61339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c61339323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c61339323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C61339323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c6142d39323233333732303336383534373735383038','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c6142d39323233333732303336383534373735383038','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c6142d39323233333732303336383534373735383038' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c6142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c6142d39323233333732303336383534373735383038')",
+      "type": "text",
+      "value": "-9223372036854775808"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c6142d39323233333732303336383534373735383038'))",
+      "type": "text",
+      "value": "C6142D39323233333732303336383534373735383038"
+    },
+    {
+      "sql": "SELECT json_extract(x'c6142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'c6142d39323233333732303336383534373735383039','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT x'c6142d39323233333732303336383534373735383039' ->> '$'",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type(x'c6142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'c6142d39323233333732303336383534373735383039')",
+      "type": "text",
+      "value": "-9223372036854775809"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'c6142d39323233333732303336383534373735383039'))",
+      "type": "text",
+      "value": "C6142D39323233333732303336383534373735383039"
+    },
+    {
+      "sql": "SELECT json_extract(x'563165393939','$')",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'563165393939','$')",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT x'563165393939' ->> '$'",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT json_type(x'563165393939')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'563165393939')",
+      "type": "text",
+      "value": "1e999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'563165393939'))",
+      "type": "text",
+      "value": "563165393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'6631652d393939','$')",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'6631652d393939','$')",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT x'6631652d393939' ->> '$'",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT json_type(x'6631652d393939')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'6631652d393939')",
+      "type": "text",
+      "value": "1e-999"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'6631652d393939'))",
+      "type": "text",
+      "value": "6631652D393939"
+    },
+    {
+      "sql": "SELECT json_extract(x'36626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'36626164','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'36626164' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'36626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json(x'36626164')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'36626164'))",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_extract(x'06','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'06','$')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT x'06' ->> '$'",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT json_type(x'06')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json(x'06')",
+      "error": "malformed JSON"
+    },
+    {
+      "sql": "SELECT hex(jsonb(x'06'))",
+      "type": "text",
+      "value": "06"
+    },
+    {
+      "sql": "SELECT json_extract('1','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type('1')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT hex(jsonb('1'))",
+      "type": "text",
+      "value": "1331"
+    },
+    {
+      "sql": "SELECT json_extract('1.0','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type('1.0')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('1.0'))",
+      "type": "text",
+      "value": "35312E30"
+    },
+    {
+      "sql": "SELECT json_extract('1e0','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type('1e0')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('1e0'))",
+      "type": "text",
+      "value": "35316530"
+    },
+    {
+      "sql": "SELECT json_extract('+1','$')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type('+1')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT hex(jsonb('+1'))",
+      "type": "text",
+      "value": "1331"
+    },
+    {
+      "sql": "SELECT json_extract('-0','$')",
+      "type": "integer",
+      "value": "0"
+    },
+    {
+      "sql": "SELECT json_type('-0')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT hex(jsonb('-0'))",
+      "type": "text",
+      "value": "232D30"
+    },
+    {
+      "sql": "SELECT json_extract('-0.0','$')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT json_type('-0.0')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('-0.0'))",
+      "type": "text",
+      "value": "452D302E30"
+    },
+    {
+      "sql": "SELECT json_extract('0x10','$')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT json_type('0x10')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT hex(jsonb('0x10'))",
+      "type": "text",
+      "value": "4430783130"
+    },
+    {
+      "sql": "SELECT json_extract('-0x8000000000000000','$')",
+      "realHex": "-0x1.0000000000000p+63",
+      "type": "real",
+      "value": "-9.2233720368547758e+18"
+    },
+    {
+      "sql": "SELECT json_type('-0x8000000000000000')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT hex(jsonb('-0x8000000000000000'))",
+      "type": "text",
+      "value": "C4132D307838303030303030303030303030303030"
+    },
+    {
+      "sql": "SELECT json_extract('0xffffffffffffffff','$')",
+      "realHex": "0x1.0000000000000p+64",
+      "type": "real",
+      "value": "1.8446744073709552e+19"
+    },
+    {
+      "sql": "SELECT json_type('0xffffffffffffffff')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT hex(jsonb('0xffffffffffffffff'))",
+      "type": "text",
+      "value": "C412307866666666666666666666666666666666"
+    },
+    {
+      "sql": "SELECT json_extract('1e999','$')",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT json_type('1e999')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('1e999'))",
+      "type": "text",
+      "value": "553165393939"
+    },
+    {
+      "sql": "SELECT json_extract('NaN','$')",
+      "type": "null",
+      "value": null
+    },
+    {
+      "sql": "SELECT json_type('NaN')",
+      "type": "text",
+      "value": "null"
+    },
+    {
+      "sql": "SELECT hex(jsonb('NaN'))",
+      "type": "text",
+      "value": "00"
+    },
+    {
+      "sql": "SELECT json_extract('Infinity','$')",
+      "realHex": "inf",
+      "type": "real",
+      "value": "Inf"
+    },
+    {
+      "sql": "SELECT json_type('Infinity')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('Infinity'))",
+      "type": "text",
+      "value": "553965393939"
+    },
+    {
+      "sql": "SELECT json_extract('.5','$')",
+      "realHex": "0x1.0000000000000p-1",
+      "type": "real",
+      "value": "0.5"
+    },
+    {
+      "sql": "SELECT json_type('.5')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('.5'))",
+      "type": "text",
+      "value": "262E35"
+    },
+    {
+      "sql": "SELECT json_extract('1.','$')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type('1.')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT hex(jsonb('1.'))",
+      "type": "text",
+      "value": "26312E"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[0]')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'cb0c133144307831301531262d30','$[0]')",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT x'cb0c133144307831301531262d30' ->> 0",
+      "type": "integer",
+      "value": "1"
+    },
+    {
+      "sql": "SELECT json_type(x'cb0c133144307831301531262d30','$[0]')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT typeof(json_extract(x'cb0c133144307831301531262d30','$[0]'))",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(x'cb0c133144307831301531262d30','$[0]'))",
+      "type": "text",
+      "value": "[1]"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[0]')+0.0",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[1]')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'cb0c133144307831301531262d30','$[1]')",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT x'cb0c133144307831301531262d30' ->> 1",
+      "type": "integer",
+      "value": "16"
+    },
+    {
+      "sql": "SELECT json_type(x'cb0c133144307831301531262d30','$[1]')",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT typeof(json_extract(x'cb0c133144307831301531262d30','$[1]'))",
+      "type": "text",
+      "value": "integer"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(x'cb0c133144307831301531262d30','$[1]'))",
+      "type": "text",
+      "value": "[16]"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[1]')+0.0",
+      "realHex": "0x1.0000000000000p+4",
+      "type": "real",
+      "value": "16.0"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[2]')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'cb0c133144307831301531262d30','$[2]')",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT x'cb0c133144307831301531262d30' ->> 2",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_type(x'cb0c133144307831301531262d30','$[2]')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT typeof(json_extract(x'cb0c133144307831301531262d30','$[2]'))",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(x'cb0c133144307831301531262d30','$[2]'))",
+      "type": "text",
+      "value": "[1.0]"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[2]')+0.0",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[3]')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT jsonb_extract(x'cb0c133144307831301531262d30','$[3]')",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT x'cb0c133144307831301531262d30' ->> 3",
+      "realHex": "-0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT json_type(x'cb0c133144307831301531262d30','$[3]')",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT typeof(json_extract(x'cb0c133144307831301531262d30','$[3]'))",
+      "type": "text",
+      "value": "real"
+    },
+    {
+      "sql": "SELECT json_array(json_extract(x'cb0c133144307831301531262d30','$[3]'))",
+      "type": "text",
+      "value": "[0.0]"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$[3]')+0.0",
+      "realHex": "0x0.0p+0",
+      "type": "real",
+      "value": "0.0"
+    },
+    {
+      "sql": "SELECT hex(jsonb_extract(x'cb0c133144307831301531262d30','$','$'))",
+      "type": "text",
+      "value": "CB16AB13312331361331232D30AB13312331361331232D30"
+    },
+    {
+      "sql": "SELECT json_extract(x'cb0c133144307831301531262d30','$','$')",
+      "type": "text",
+      "value": "[[1,16,1,-0],[1,16,1,-0]]"
+    },
+    {
+      "sql": "SELECT sum(json_extract(x'cb0c133144307831301531262d30','$[2]'))",
+      "realHex": "0x1.0000000000000p+0",
+      "type": "real",
+      "value": "1.0"
+    },
+    {
+      "sql": "SELECT json_group_array(json_extract(x'cb0c133144307831301531262d30','$[2]'))",
+      "type": "text",
+      "value": "[1.0]"
+    }
+  ]
+}

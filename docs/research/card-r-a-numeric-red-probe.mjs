@@ -1,0 +1,4 @@
+import {openFixture} from './public-api-adapter.mjs';
+import {startFixtureServer} from './fixture-server.mjs';
+const b=await startFixtureServer(new URL('../fixtures',import.meta.url).pathname);
+try{for(const enc of ['utf8','utf16le','utf16be']){const db=await openFixture(new Request(`http://127.0.0.1:${b.port}/fixture/${b.token}/encoding-${enc}`));try{for(const text of ['1e','[1e]','1e+','1e-',' 1e','["é",1e]','["😀",1e+]','1.','0x','01','.e','1e2','1e+2']){const s=db.prepare('SELECT json_error_position(?1),json_valid(?1,2)').statement;try{s.bind(1,text);await s.step();const result=[s.columnType(0),s.column(0).toString(),s.column(1).toString()];s.reset();await s.step();if(s.column(0).toString()!==result[1])throw Error('reset drift');console.log(JSON.stringify({enc,text,result}));}finally{s.finalize()}}}finally{db.closeDeferred()}}}finally{await new Promise(r=>b.server.close(r))}

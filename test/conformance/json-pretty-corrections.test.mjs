@@ -87,20 +87,39 @@ test('pretty scanner/render generators yield within bound scalar after input pre
  assert.throws(()=>s.reset(),e=>e===first);s.bind(1,'{}');assert.equal(await s.step(),'row');s.finalize();
 }));
 
-// R2a: observe decoded-string publication, not just preflight or later append.
-// Each scanner joins its decoded character array before returning. The strict
-// classifier scans the same encoded spelling again. Public controls must run
-// between these two publications even when every index advances by 2 or 6.
+// R2a: single-pass scan progress, excluding preflight and post-publication work.
+// Observe decoded pushes as consumed input positions, and delegate the real
+// clock/scheduler. No second strict-reparse publication exists any longer.
 for(const [label,escape] of [['six-width-u',String.raw`\u0041`],['two-width-backslash',String.raw`\\`]])
  test(`escape-dense ${label} classification crosses checkpoints before publication`,()=>withDb({},async db=>{
-  const document='"'+escape.repeat(3000)+'"';
+  const document='"'+escape.repeat(3000)+'"',decoded=escape.length===6?'A':'\\';
   const s=db.prepare('SELECT json_pretty(?1)').statement;s.bind(1,document);
-  const originalJoin=Array.prototype.join,originalNow=Date.now;let ticks=0;const publications=[];
-  Date.now=()=>{ticks++;return 1000};
-  Array.prototype.join=function(separator){if(this.length===3000&&this.every(c=>c===(escape.length===6?'A':'\\')))publications.push(ticks);return originalJoin.call(this,separator)};
-  try{assert.equal(await s.step({timeoutMs:100000}),'row')}finally{Array.prototype.join=originalJoin;Date.now=originalNow;s.finalize()}
-  assert.ok(publications.length>=2,'decoded scan and strict classification observed');
-  assert.ok(publications[1]-publications[0]>=Math.floor(document.length/256),`classification checkpoints: delta ${publications[1]-publications[0]}, input ${document.length}`);
+  const originalJoin=Array.prototype.join,originalPush=Array.prototype.push,originalNow=Date.now;
+  const yieldTask=ExecutionTaskScheduler.prototype.yield;
+  let scanner,positions=0,ticks=0,lastTick=0,lastPosition=0,maxGap=0,checks=0,publications=0;
+  Date.now=()=>{ticks++;return originalNow()};
+  ExecutionTaskScheduler.prototype.yield=function(){return yieldTask.call(this)};
+  Array.prototype.push=function(...items){
+   if(!scanner&&this.length===0&&items.length===1&&items[0]===decoded)scanner=this;
+   if(this===scanner){
+    assert.deepEqual(items,[decoded]);positions++;
+    if(positions===1){lastTick=ticks;lastPosition=positions}
+    else if(ticks!==lastTick){maxGap=Math.max(maxGap,positions-lastPosition);lastPosition=positions;lastTick=ticks;checks++}
+   }
+   return originalPush.apply(this,items);
+  };
+  Array.prototype.join=function(separator){
+   if(this===scanner){publications++;maxGap=Math.max(maxGap,positions-lastPosition);assert.equal(positions,3000);}
+   return originalJoin.call(this,separator);
+  };
+  try{
+   assert.equal(await s.step({timeoutMs:100000}),'row');
+   assert.equal(s.columnType(0),'text');assert.equal(s.column(0),escape.length===6?document:JSON.stringify(decoded.repeat(3000)));
+  }finally{Array.prototype.join=originalJoin;Array.prototype.push=originalPush;Date.now=originalNow;ExecutionTaskScheduler.prototype.yield=yieldTask;s.finalize()}
+  assert.equal(publications,1,'single decoded publication');
+  const stride=Math.ceil(256/escape.length);
+  assert.ok(checks>=Math.floor((3000-1)/stride),`scanner checkpoint density: ${checks}`);
+  assert.ok(maxGap<=stride,`consumed-input checkpoint gap ${maxGap*escape.length} exceeds ${stride*escape.length}`);
  }));
 
 function escapedDocument(escape,count,shape){
@@ -116,9 +135,12 @@ function escapedDocument(escape,count,shape){
 for(const [name,escape,count,decoded] of [['u0041',String.raw`\u0041`,3000,'A'],['backslash',String.raw`\\`,9000,'\\']])
  for(const shape of ['scalar','label','jsonb-scalar','jsonb-label'])
   test(`escape-dense ${name} ${shape} controls interrupt classification, save error and reuse`,()=>withDb({},async db=>{
-   for(const mode of ['work','cancel','deadline']){
+   // Real-clock binary deadlines and same-workload negative controls live in
+   // json-pretty-live-binary.test.mjs; do not force time in that byte path.
+   for(const mode of (shape.startsWith('jsonb-')?['work','cancel']:['work','cancel','deadline'])){
     const s=db.prepare('SELECT json_pretty(?1)').statement;s.bind(1,escapedDocument(escape,count,shape));
-    const join=Array.prototype.join,now=Date.now,yieldTask=ExecutionTaskScheduler.prototype.yield;
+    const join=Array.prototype.join,subarray=Uint8Array.prototype.subarray,now=Date.now,yieldTask=ExecutionTaskScheduler.prototype.yield;
+    const binary=shape.startsWith('jsonb-');let renderedPayload=false;
     let publications=0,expired=false,cancelArmed=false,suspended=false,resumed=false;
     const abort=new AbortController();
     // Classification may have only one host-task suspension. MessageChannel
@@ -136,6 +158,17 @@ for(const [name,escape,count,decoded] of [['u0041',String.raw`\u0041`,3000,'A'],
      }
      return pending;
     };
+    // Binary TEXTJ publication copies raw bytes (jsonTranslateBlobToText),
+    // never decoding or Array.join-ing the escaped spelling. Observe entry
+    // into the real reached-payload renderer after preflight instead.
+    if(binary)Uint8Array.prototype.subarray=function(start,end){
+     const result=subarray.call(this,start,end);
+     if(result.length===escape.length*count&&result[0]===92){
+      renderedPayload=true;
+      if(mode==='deadline')expired=true;if(mode==='cancel')cancelArmed=true;
+     }
+     return result;
+    };
     Array.prototype.join=function(separator){
      if(this.length===count&&this.every(c=>c===decoded)){
       publications++;
@@ -146,9 +179,10 @@ for(const [name,escape,count,decoded] of [['u0041',String.raw`\u0041`,3000,'A'],
     if(mode==='deadline')Date.now=()=>expired?1002:1000;
     let first;try{
      first=await s.step(mode==='work'?{maxWorkUnits:230}:mode==='cancel'?{signal:abort.signal}:{timeoutMs:2}).then(()=>null,e=>e);
-    }finally{Array.prototype.join=join;Date.now=now;ExecutionTaskScheduler.prototype.yield=yieldTask}
+    }finally{Array.prototype.join=join;Uint8Array.prototype.subarray=subarray;Date.now=now;ExecutionTaskScheduler.prototype.yield=yieldTask}
     assert.equal(first?.kind,mode==='work'?'limit':mode==='cancel'?'cancelled':'timeout',`${name}/${shape}/${mode}`);
-    assert.equal(publications,1,'failure within scanner/classifier, before second decoded publication');
+    if(binary){assert.equal(renderedPayload,true,'interruption after admission at reached raw payload');assert.equal(publications,0,'binary TEXTJ must not decode for publication')}
+    else assert.equal(publications,1,'failure within scanner/classifier, before second decoded publication');
     if(mode==='cancel'){assert.equal(suspended,true,'cooperative suspension inside classification');assert.equal(resumed,true,'real scheduler task completed')}
     await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.reset(),e=>e===first);
     s.bind(1,'{}');assert.equal(await s.step(),'row');assert.equal(s.column(0),'{}');s.finalize();

@@ -1,0 +1,35 @@
+--- a/src/internal/json.ts
++++ b/src/internal/json.ts
+@@ -1,5 +1,5 @@
+ import { JSQLiteError } from "../index.ts";
+-import { Mem, atof, atoi64Prefix } from "./mem.ts";
++import { Mem, atof, atoi64Prefix, sqliteQuoteReal } from "./mem.ts";
+ 
+ /** SQLite 3.53.4 src/json.c foundation. Nodes retain ordered object entries and
+  * raw numeric spelling; they are deliberately not host JSON values. */
+@@ -548,7 +548,7 @@
+  switch(value.initialStorageClass){
+   case"null":return{kind:"null"};
+   case"integer":return{kind:"number",raw:value.integerValue().toString(),json5:false};
+-  case"real":{const n=value.realValue();return{kind:"number",raw:Number.isFinite(n)?(Number.isInteger(n)?`${n}.0`:String(n)):(n<0?"-9e999":"9e999"),json5:false}}
++  case"real":{const n=value.realValue();return{kind:"number",raw:sqliteQuoteReal(n),json5:false}}
+   case"blob":{const b=value.blobValue();if(!jsonArgIsJsonb(b))throw new JSQLiteError("sqlite","JSON cannot hold BLOB values",{code:1});return binaryNode(b.slice(),0,0,()=>{})}
+   case"text":{if(value.subtypeValue()===74)return parseJsonMem(value,true);
+    const copy=new Mem();copy.copyFrom(value);try{copy.cast("text","utf-8");return binaryNode(element(10,copy.textBytes().slice()),0,0,()=>{})}finally{copy.release()}
+@@ -1055,7 +1055,15 @@
+  if(delta){const saved=doc.delta;doc.delta=delta;doc.adjust(at);doc.delta+=saved-delta}
+  return true;
+ }
+-export function jsonEdit(value:Mem,args:readonly Mem[],mode:"set"|"insert"|"replace"|"remove"|"array_insert",charge:(n:number)=>void=()=>{},blob=false):Mem{if(value.initialStorageClass==="null"){const out=new Mem();return out}let root=parseJsonMem(value,true,charge);const binary=jsonBinarySpans.get(root);const editable=binary?new JsonPatchBlob(binary.bytes.slice(),charge):undefined;const stride=mode==="remove"?1:2;if(args.length%stride)throw new JSQLiteError("sqlite",`json_${mode}() needs an odd number of arguments`,{code:1});for(let i=0;i<args.length;i+=stride){if(args[i]!.initialStorageClass==="null"){if(mode==="remove"){const out=new Mem();return out}continue}const path=jsonSqlText(args[i]!)!.split("\0",1)[0]!;if(!path.startsWith("$"))throw badPath(path);if(mode==="remove"&&path==="$"){const out=new Mem();return out}if(mode==="array_insert"&&path==="$"){jsonNodeFromSqlValue(args[i+1]!);continue}try{if(editable){editBinary(editable,0,path,1,mode==="remove"?undefined:jsonNodeFromSqlValue(args[i+1]!),mode,0,charge)}else root=editNode(root,path,1,mode==="remove"?undefined:jsonNodeFromSqlValue(args[i+1]!),mode,0,charge)}catch(error){if(error instanceof JSQLiteError&&error.message==="not an array element")throw new JSQLiteError("sqlite",`not an array element: '${path.replaceAll("'","''")}'`,{code:1});throw error}}if(editable){if(!blob)return jsonBlobText(editable.bytes,charge);const out=new Mem();out.setBlob(editable.bytes);return out}return blob?jsonbResult(root):jsonTextResult(root)}
++/** json.c:jsonFunctionArgToBlob differs from jsonAppendSqlValue for FLOAT:
++ * mutations consume sqlite3_value_text and canonicalize Inf to 9e999. */
++function jsonEditValue(value:Mem):JsonNode {
++ if(value.initialStorageClass!=="real")return jsonNodeFromSqlValue(value);
++ const n=value.realValue();
++ if(Number.isNaN(n))return{kind:"null"};
++ return{kind:"number",raw:Number.isFinite(n)?jsonSqlText(value)!:n<0?"-9e999":"9e999",json5:false,numericType:5};
++}
++export function jsonEdit(value:Mem,args:readonly Mem[],mode:"set"|"insert"|"replace"|"remove"|"array_insert",charge:(n:number)=>void=()=>{},blob=false):Mem{if(value.initialStorageClass==="null"){const out=new Mem();return out}let root=parseJsonMem(value,true,charge);const binary=jsonBinarySpans.get(root);const editable=binary?new JsonPatchBlob(binary.bytes.slice(),charge):undefined;const stride=mode==="remove"?1:2;if(args.length%stride)throw new JSQLiteError("sqlite",`json_${mode}() needs an odd number of arguments`,{code:1});for(let i=0;i<args.length;i+=stride){if(args[i]!.initialStorageClass==="null"){if(mode==="remove"){const out=new Mem();return out}continue}const path=jsonSqlText(args[i]!)!.split("\0",1)[0]!;if(!path.startsWith("$"))throw badPath(path);if(mode==="remove"&&path==="$"){const out=new Mem();return out}if(mode==="array_insert"&&path==="$"){jsonEditValue(args[i+1]!);continue}try{if(editable){editBinary(editable,0,path,1,mode==="remove"?undefined:jsonEditValue(args[i+1]!),mode,0,charge)}else root=editNode(root,path,1,mode==="remove"?undefined:jsonEditValue(args[i+1]!),mode,0,charge)}catch(error){if(error instanceof JSQLiteError&&error.message==="not an array element")throw new JSQLiteError("sqlite",`not an array element: '${path.replaceAll("'","''")}'`,{code:1});throw error}}if(editable){if(!blob)return jsonBlobText(editable.bytes,charge);const out=new Mem();out.setBlob(editable.bytes);return out}return blob?jsonbResult(root):jsonTextResult(root)}
+ // Private editable JsonParse analogue for jsonMergePatch. Offsets always refer
+ // to the current target buffer; delta belongs to the current recursive frame.
+ class JsonPatchBlob {

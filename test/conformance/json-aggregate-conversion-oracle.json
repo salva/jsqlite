@@ -1,0 +1,10 @@
+[
+ {"expression":"'a'||char(10)||'b'","array":"5B48615C6E62","object":"AC48615C6E6248615C6E62"},
+ {"expression":"cast(x'FF' as text)","array":"2B17FF","object":"4C17FF17FF"},
+ {"expression":"'x'","array":"2B1778","object":"4C17781778"},
+ {"expression":"1.0","array":"4B35312E30","object":"8C37312E3035312E30"},
+ {"expression":"json('{\"x\": [1,2]}')","array":"8B7C17784B13311332","object":"CC17C80D7B5C22785C223A5B312C325D7D7C17784B13311332"},
+ {"expression":"'a'||char(0)||'b'","array":"9B88615C753030303062","object":"BC176188615C753030303062"},
+ {"expression":"'\\\"'","array":"5B485C5C5C22","object":"AC485C5C5C22485C5C5C22"},
+ {"expression":"json('{x:0x10}')","array":"6B5C1778233136","object":"CC11A87B5C22785C223A31367D5C1778233136"}
+]

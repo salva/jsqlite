@@ -1,0 +1,140 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "expression": "hex(jsonb_patch(x'4C17FF1331',x'3C17FF00'))",
+      "step": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(json_patch(x'4C17FF1331','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B22FF223A317D"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17FF1331','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "4C17FF1331"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17FF1331',x'3C17FE00'))",
+      "step": 100,
+      "type": 3,
+      "value": "4C17FF1331"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17FF1331',x'4C17FF1332'))",
+      "step": 100,
+      "type": 3,
+      "value": "4C17FF1332"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17611331',x'3C176100'))",
+      "step": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17611331',x'88615C753030363100'))",
+      "step": 100,
+      "type": 3,
+      "value": "88615C753030363100"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17611331',x'8C685C753030363100'))",
+      "step": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17611331',x'8C695C783631202000'))",
+      "step": 100,
+      "type": 3,
+      "value": "4C17611331"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17FF1331',x'8C685C753030666600'))",
+      "step": 100,
+      "type": 3,
+      "value": "4C17FF1331"
+    },
+    {
+      "expression": "hex(json_patch(x'4C1AFF1331','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B22FF223A317D"
+    },
+    {
+      "expression": "hex(json_patch(x'4C18FF1331','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B22FF223A317D"
+    },
+    {
+      "expression": "hex(json_patch(x'4C19FF1331','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B22FF223A317D"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17611331',x'8C695C753030363100'))",
+      "step": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'4C17611331',x'3C1A6100'))",
+      "step": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'6C376100621331',x'8C685C753030363100'))",
+      "step": 100,
+      "type": 3,
+      "value": "0C"
+    },
+    {
+      "expression": "hex(jsonb_patch(x'6C376100621331',x'3C176100'))",
+      "step": 100,
+      "type": 3,
+      "value": "6C376100621331"
+    },
+    {
+      "expression": "hex(json_patch(x'3C1A2200','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B225C22223A6E756C6C7D"
+    },
+    {
+      "expression": "hex(json_patch(x'3C1A5C00','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B225C5C223A6E756C6C7D"
+    },
+    {
+      "expression": "hex(json_patch(x'3C1A0100','{}'))",
+      "step": 100,
+      "type": 3,
+      "value": "7B225C7530303031223A6E756C6C7D"
+    },
+    {
+      "expression": "hex(json_patch(x'3C195C00','{}'))",
+      "step": 1,
+      "error": "malformed JSON"
+    },
+    {
+      "expression": "hex(json_patch(x'2C1761','{}'))",
+      "step": 1,
+      "error": "malformed JSON"
+    },
+    {
+      "expression": "hex(jsonb_patch('{}',x'2C1761'))",
+      "step": 1,
+      "error": "malformed JSON"
+    }
+  ]
+}

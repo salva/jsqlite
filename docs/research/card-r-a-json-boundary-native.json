@@ -1,0 +1,185 @@
+{
+  "identity": "'3.53.4','2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc'",
+  "headers": [
+    {
+      "payload": 11,
+      "prefix": "B7",
+      "blobSha256": "d1aee5272f548df0780291d084e7aff451c7f0a54384ac52a1eb8806de1a9d95",
+      "nativeExactHexMatched": true,
+      "strict": 1,
+      "renderLength": 13
+    },
+    {
+      "payload": 12,
+      "prefix": "C70C",
+      "blobSha256": "111ef0489d56c0c9c39302190cdf6fe3d2e10900615a22089716c54ec49b3246",
+      "nativeExactHexMatched": true,
+      "strict": 1,
+      "renderLength": 14
+    },
+    {
+      "payload": 255,
+      "prefix": "C7FF",
+      "blobSha256": "aa8a37a5adfc817047ab43052f60f729b633d960f66c5e9e71c37df7001186d9",
+      "nativeExactHexMatched": true,
+      "strict": 1,
+      "renderLength": 257
+    },
+    {
+      "payload": 256,
+      "prefix": "D70100",
+      "blobSha256": "67393791108435d67d508ea197d74d10bccae2e0c9cb7d2e57851fa48ded779d",
+      "nativeExactHexMatched": true,
+      "strict": 1,
+      "renderLength": 258
+    },
+    {
+      "payload": 65535,
+      "prefix": "D7FFFF",
+      "blobSha256": "01c4db58e2d44c76bf95ee450be86169c7610a8911859e642e8bc53c3df13875",
+      "nativeExactHexMatched": true,
+      "strict": 1,
+      "renderLength": 65537
+    },
+    {
+      "payload": 65536,
+      "prefix": "E700010000",
+      "blobSha256": "fe9a1c6f18206333a9023e71aa3d206896600396df70d96518ec23e620be707b",
+      "nativeExactHexMatched": true,
+      "strict": 1,
+      "renderLength": 65538
+    }
+  ],
+  "depth": [
+    {
+      "container": "[",
+      "leaf": "0",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "[",
+      "leaf": "null",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "[",
+      "leaf": "\"x\"",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "[",
+      "leaf": "[]",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "[",
+      "leaf": "{}",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "0",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "null",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "\"x\"",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "[]",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "{}",
+      "depth": 1000,
+      "valid": 1
+    },
+    {
+      "jsonbNullArrays": 1000,
+      "valid": 0,
+      "blobSha256": "668c368232eb53ab4ea1733f4510fd4f72806eabc7728afef4fc811c7b7bc426"
+    },
+    {
+      "container": "[",
+      "leaf": "0",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "[",
+      "leaf": "null",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "[",
+      "leaf": "\"x\"",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "[",
+      "leaf": "[]",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "[",
+      "leaf": "{}",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "0",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "null",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "\"x\"",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "[]",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "container": "{\"a\":",
+      "leaf": "{}",
+      "depth": 1001,
+      "valid": 0
+    },
+    {
+      "jsonbNullArrays": 1001,
+      "valid": 0,
+      "blobSha256": "c633da345f4b146d3d7dcd4bdb8a98715866425fd22ea40147b2a17d9e4c18fa"
+    }
+  ]
+}

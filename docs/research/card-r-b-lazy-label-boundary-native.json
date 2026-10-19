@@ -1,0 +1,7730 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "encodings": {
+    "utf8": [
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'4C17610000',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'4C17610000')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'4C17610000')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'4C17610000' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'4C17610000' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'4C17610000' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "61",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "61",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "61",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "61",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'3C176100',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'3C176100')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'3C176100')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'3C176100' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'3C176100' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'3C176100' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'5C1761001762',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'5C1761001762')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'5C1761001762')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'5C1761001762' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'5C1761001762' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'5C1761001762' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "62",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'6C176100C70162',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'6C176100C70162')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'6C176100C70162')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'6C176100C70162' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'6C176100C70162' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'6C176100C70162' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "00",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'5C1761001700',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'5C1761001700')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'5C1761001700')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'5C1761001700' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'5C1761001700' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'5C1761001700' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      }
+    ],
+    "utf16le": [
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'4C17610000',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'4C17610000')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'4C17610000')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'4C17610000' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'4C17610000' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'4C17610000' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6100",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6100",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6100",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6100",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'3C176100',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'3C176100')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'3C176100')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'3C176100' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'3C176100' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'3C176100' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'5C1761001762',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'5C1761001762')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'5C1761001762')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'5C1761001762' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'5C1761001762' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'5C1761001762' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "6200",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'6C176100C70162',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'6C176100C70162')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'6C176100C70162')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'6C176100C70162' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'6C176100C70162' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'6C176100C70162' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'5C1761001700',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'5C1761001700')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'5C1761001700')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'5C1761001700' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'5C1761001700' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'5C1761001700' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      }
+    ],
+    "utf16be": [
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'4C17610000'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'4C17610000') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'4C17610000',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'4C17610000')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "5",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'4C17610000')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "4C17610000",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'4C17610000' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'4C17610000' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'4C17610000' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'4C17610000' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'4C17610000' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'3C176100'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0061",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0061",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0061",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0061",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'3C176100') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.a",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'3C176100',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'3C176100')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'3C176100')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "{\"a\":null}",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "3C176100",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'3C176100' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'3C176100' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'3C176100' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'3C176100' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'3C176100' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'5C1761001762'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'5C1761001762') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'5C1761001762',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'5C1761001762')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "7",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'5C1761001762')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "5C1761001762",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'5C1761001762' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'5C1761001762' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'5C1761001762' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'5C1761001762' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'5C1761001762' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'6C176100C70162'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0062",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'6C176100C70162') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.b",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'6C176100C70162',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'6C176100C70162')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "8",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'6C176100C70162')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "6C176100C70162",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'6C176100C70162' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'6C176100C70162' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'6C176100C70162' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'6C176100C70162' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'6C176100C70162' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "2",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "null,text",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(x'5C1761001700'))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(?1))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "3",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "0000",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(x'5C1761001700') ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(?1) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "text",
+            "value": "$.\"\"",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(x'5C1761001700',8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(?1,8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(x'5C1761001700')",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(?1)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "6",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(x'5C1761001700')",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(?1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "bind": "5C1761001700",
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_each(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT group_concat(type) FROM json_each(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT count(*) FROM json_tree(CAST(x'5C1761001700' AS TEXT)))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(key) FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT hex(value) FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT (SELECT fullkey FROM json_each(CAST(x'5C1761001700' AS TEXT)) ORDER BY id DESC LIMIT 1)",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_valid(CAST(x'5C1761001700' AS TEXT),8)",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "0",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json_error_position(CAST(x'5C1761001700' AS TEXT))",
+        "runs": [
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          },
+          {
+            "rc": 100,
+            "type": "integer",
+            "value": "1",
+            "done": 101,
+            "reset": 0
+          }
+        ],
+        "finalize": 0
+      },
+      {
+        "sql": "SELECT json(CAST(x'5C1761001700' AS TEXT))",
+        "runs": [
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          },
+          {
+            "rc": 1,
+            "error": "malformed JSON",
+            "reset": 1
+          }
+        ],
+        "finalize": 0
+      }
+    ]
+  }
+}
