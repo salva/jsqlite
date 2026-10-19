@@ -6,7 +6,35 @@ class Runner(unittest.TestCase):
   import subprocess
   result=subprocess.run([sys.executable,'tools/test/integration.py','--jobs','0'],capture_output=True,text=True)
   self.assertEqual(result.returncode,2)
-  self.assertIn('--jobs must be positive',result.stderr)
+  self.assertIn('--jobs must be 1',result.stderr)
+ def test_serial_batch_ceiling_and_defaults(self):
+  import subprocess, json
+  work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'batch-controls'
+  work.mkdir(parents=True,exist_ok=True)
+  files=[]
+  for name,source in [('slow',"setTimeout(()=>{},5000);"),('unrun',"console.log('must-not-run');"),('next',"console.log('next-batch');")]:
+   file=work/f'{name}.test.mjs';file.write_text(source);files.append(str(file))
+  env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(work/'bounded'))
+  proc=subprocess.run([sys.executable,'tools/test/integration.py','--batch-size','2','--batch-seconds','1',*files],env=env,capture_output=True,text=True,timeout=15)
+  self.assertEqual(proc.returncode,1,proc.stdout+proc.stderr)
+  report=json.loads((work/'bounded/integration-run/manifest.json').read_text())
+  self.assertEqual(report['watchdog_seconds'],60)
+  self.assertEqual(report['concurrency'],1)
+  self.assertEqual(report['files'],files)
+  self.assertEqual(report['not_run'],[files[1]])
+  self.assertEqual([r['file'] for r in report['results']],[files[0],files[2]])
+  self.assertEqual(report['results'][0]['timeout_scope'],'batch')
+  self.assertEqual(report['results'][1]['classification'],'completed')
+  self.assertEqual(report['batches'][0]['classification'],'timeout')
+  self.assertEqual(report['batches'][1]['classification'],'completed')
+  self.assertEqual(report['input_drift'],[])
+  env['SAIVAGE_CARD_WORK_ROOT']=str(work/'defaults')
+  proc=subprocess.run([sys.executable,'tools/test/integration.py',files[2]],env=env,capture_output=True,text=True,timeout=15)
+  self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
+  report=json.loads((work/'defaults/integration-run/manifest.json').read_text())
+  self.assertEqual((report['batch_size'],report['batch_seconds'],report['watchdog_seconds']),(80,600,60))
+  self.assertEqual(report['not_run'],[])
+
  def test_exits_and_watchdog(self):
   work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'integration-runner-tests';work.mkdir(exist_ok=True)
   for i,(source,expected) in enumerate([('pass','completed'),('raise SystemExit(7)','fail'),('import time; time.sleep(20)','timeout')]):

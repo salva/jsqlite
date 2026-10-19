@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Development-only bounded integration runner. A watchdog is failure, not credit."""
-import argparse, concurrent.futures, hashlib, json, os, pathlib, signal, subprocess, time
+import argparse, hashlib, json, os, pathlib, signal, subprocess, time
 
 
 # Development-only positional fixture ownership, shared by planning and invocation.
@@ -108,17 +108,66 @@ def component(command, log, seconds, env):
                 log=str(log), log_sha256=hashlib.sha256(log.read_bytes()).hexdigest())
 
 
+def run_batches(files, work, work_root, env, file_seconds, batch_size,
+                batch_seconds, report, save):
+    """Serial ordered batches; each has an independent safety ceiling.
+
+    A ceiling stops that batch, records its unrun tail, and permits the next
+    batch. Fixtures and frozen input identity belong to the whole invocation.
+    """
+    report['batches'] = []
+    report['not_run'] = []
+    for start in range(0, len(files), batch_size):
+        selected = files[start:start + batch_size]
+        began = time.monotonic()
+        batch = dict(files=selected, results=[], not_run=[], classification='completed')
+        report['batches'].append(batch)
+        for offset, file in enumerate(selected):
+            remaining = batch_seconds - (time.monotonic() - began)
+            if remaining <= 0:
+                batch['classification'] = 'timeout'
+                batch['not_run'] = selected[offset:]
+                report['not_run'].extend(batch['not_run'])
+                break
+            result = component(test_command(file, work_root),
+                               work/f'{start + offset:03d}.log',
+                               min(file_seconds, remaining), env)
+            result['file'] = file
+            result['timeout_scope'] = ('batch' if remaining < file_seconds else 'file') if result['classification'] == 'timeout' else None
+            batch['results'].append(result)
+            report['results'].append(result)
+            if result['classification'] != 'completed':
+                batch['classification'] = 'fail'
+            if result['timeout_scope'] == 'batch':
+                batch['classification'] = 'timeout'
+                batch['not_run'] = selected[offset + 1:]
+                report['not_run'].extend(batch['not_run'])
+                save()
+                print(result['classification'], result['exit'], file, flush=True)
+                break
+            save()
+            print(result['classification'], result['exit'], file, flush=True)
+        batch['seconds'] = round(time.monotonic() - began, 3)
+        save()
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('files', nargs='*')
-    p.add_argument('--jobs', type=int, default=1, help='positive file concurrency (default: serial; avoids resource contention)')
-    p.add_argument('--watchdog-seconds', type=int, default=30, help='positive per-file watchdog; recorded in manifest (default: 30)')
+    p.add_argument('--jobs', type=int, default=1, help='must be 1: batches execute serially')
+    p.add_argument('--batch-size', type=int, default=80, help='maximum files per serial batch (default: 80)')
+    p.add_argument('--batch-seconds', type=int, default=600, help='independent per-batch safety ceiling (default: 600)')
+    p.add_argument('--watchdog-seconds', type=int, default=60, help='positive per-file watchdog (default: 60)')
     p.add_argument('--oracle-library', type=pathlib.Path, help='existing dev oracle; capture producers verify the pinned source identity')
     args = p.parse_args()
     if args.watchdog_seconds < 1:
         p.error('--watchdog-seconds must be positive')
-    if args.jobs < 1:
-        p.error('--jobs must be positive')
+    if args.jobs != 1:
+        p.error('--jobs must be 1 for serial batches')
+    if args.batch_size < 1 or args.batch_size > 80:
+        p.error('--batch-size must be between 1 and 80')
+    if args.batch_seconds < 1:
+        p.error('--batch-seconds must be positive')
     work = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']) / 'integration-run'
     work.mkdir(parents=True, exist_ok=True)
     root = pathlib.Path.cwd()
@@ -141,7 +190,9 @@ def main():
                   status=git('status', '--porcelain').decode(),
                   index_sha256=hashlib.sha256(git('ls-files', '--stage', '-z')).hexdigest(),
                   inputs=hashes, files=files, node=subprocess.check_output(['node','--version'],text=True).strip(),
-                  watchdog_seconds=args.watchdog_seconds, concurrency=args.jobs, prerequisites=[], results=[])
+                  watchdog_seconds=args.watchdog_seconds, concurrency=args.jobs,
+                  batch_size=args.batch_size, batch_seconds=args.batch_seconds,
+                  prerequisites=[], results=[])
     def save():
         (work/'manifest.json').write_text(json.dumps(report, indent=2)+'\n')
     save()
@@ -180,18 +231,11 @@ def main():
         report['prerequisites'].append(result); save()
         if result['classification'] != 'completed':
             report['not_run'] = files; save(); return 1
-    def run(pair):
-        i, file = pair
-        result = component(test_command(file, work_root), work/f'{i:03d}.log',args.watchdog_seconds,env)
-        result['file'] = file
-        return result
-    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
-        for result in executor.map(run, enumerate(files)):
-            report['results'].append(result); save()
-            print(result['classification'], result['exit'], result['file'], flush=True)
+    run_batches(files, work, work_root, env, args.watchdog_seconds,
+                args.batch_size, args.batch_seconds, report, save)
     report['input_drift'] = [f for f,h in hashes.items() if not pathlib.Path(f).is_file() or hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()!=h]
     save()
-    return int(bool(report['input_drift']) or any(r['classification']!='completed' for r in report['results']))
+    return int(bool(report['input_drift']) or bool(report['not_run']) or any(r['classification']!='completed' for r in report['results']))
 
 if __name__ == '__main__':
     raise SystemExit(main())
