@@ -997,27 +997,47 @@ names) now resolve and execute through shared VDBE Function dispatch. The owning
 wrapper translation is `src/internal/math.ts`, mapped to `func.c:ceilingFunc`,
 `logFunc`, `math1Func`, `math2Func`, and `piFunc`; it retains Mem numeric/storage
 semantics and NaN-to-NULL. ECMAScript `Math` is the browser-safe libm adaptation.
-The immutable public corpus passes 21/21 cases and 63/63 observations across
-UTF-8, UTF-16LE and UTF-16BE. The added `log(B,X)` discriminator preserves the
-pinned asymmetry between numeric-type conversion of `B` and value-double
-numeric-prefix/BLOB conversion of `X`. Cross-host finite transcendental last-bit identity
-remains a portability limit, not an advertised guarantee.
+The accepted corpus contains 23 cases/69 typed observations over UTF-8,
+UTF-16LE and UTF-16BE. `valueNumericTypeCopy` follows numericType rather than
+NUMERIC affinity: INTEGER rounding inputs remain INTEGER; math callback results
+are REAL and NaN becomes NULL. Binary log preserves second-argument value-double
+conversion only after base/domain admission. Signed-int64 endpoints and coercion
+neighbors expose INTEGER-to-double loss rather than normalizing payloads.
+ECMAScript Math/libm finite last-bit portability remains a qualification.
+Current combined input carries the exact five accepted math9049173 blobs with
+DATE/provider/admission through d7d7. See
+[combined provenance and validation](../research/card-q-a-b-combined-r3.md).
+Earlier revision-bound counts remain provenance in accepted card records, not
+current corpus denominators.
 
-### Revision 2026-09-20 — ordinary math endpoint evidence ([[card:card-q-b-b]])
+## Provider-admission correction (current bounded author evidence)
 
-Current-tree review corrects the earlier ordinary-math evidence denominator. The
-immutable public corpus now has 22 selected cases and 66 typed observations over
-UTF-8, UTF-16LE, and UTF-16BE for the unchanged 30 registration rows / 29 names.
-The added `signed-int64-extrema` case independently captures both signed 64-bit
-endpoints through every INTEGER-preserving rounding alias and representative
-REAL-producing unary/binary wrappers (`sqrt`, `sin`, `pow`, and `mod`). Its
-validator requires exact INTEGER payloads, REAL/NULL storage classes, and pinned
-IEEE-754 payloads in all three encodings, exposing the intentional
-INTEGER-to-double precision loss rather than inferring it from smaller values.
-The public TypeScript runner matches 66/66 observations. This revision strengthens
-the claimed evidence; it does not widen the implementation scope or erase the
-documented ECMAScript-Math/C-libm last-bit portability limit for finite
-transcendentals.
+Independent review of8c6d0599 found strftime NULL-format ordering and a stale
+bounded-work threshold. Owning format-first short-circuit and finite23/24 work
+assertions now have native/public regression coverage; see
+[R1/R2 evidence](../research/card-q-a-b-provider-r1-r2.md). Prior selected green
+checks did not cover those branches; independent reassessment is still required.
+
+
+Earlier date follow-ups did not establish absence of remaining source findings.
+The provider assessment reproduced per-entry clock reset, UTC producer provenance,
+and reachable virtual-generated purity gaps despite passing calendar/date24 cases.
+Current repair adds those paths, generated registration rejection, failed-clock
+retry and private tuple/error checks. The source-shaped ownership and residual
+matrix are in [provider repair](../research/card-q-a-b-provider-repair.md).
+Existing selected credit remains29/29 and120 typed observations/three encodings;
+new108 private-admission and15 registration checks are zero-credit diagnostics.
+Original date argument-admission follow-up replaces direct BLOB/REAL coercion with
+private `Mem.valueText`, consumer C-string boundaries, numeric raw-state admission
+and range-before-cast guards. Its typed carrier/range diagnostics remain separate
+from corpus credit; [evidence](../research/card-q-a-b-date-admission.md) qualifies
+current author checks and remaining independent review.
+Bounded54 generated metadata/nested/STORED observations and21 constant-walker
+cases across three encodings now pass; real-task-after-acquisition tests preserve
+entry caches across yields and subquery/independent statement controls. The native
+walker probe exposed missing CASE/BETWEEN/IN/vector traversal, corrected at shared
+scalar lowering. All these additions remain zero-credit diagnostics.
+This is not independent provider acceptance or a no-findings claim.
 
 ## Revision 2026-09-21 — date/time 24:00 cache-state correction
 

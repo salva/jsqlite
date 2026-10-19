@@ -2,14 +2,20 @@
 // The host Date object is confined to the clock/local-zone adapter; parsing and
 // UTC calendar arithmetic use SQLite's integer-Julian representation.
 import {Mem} from "./mem.ts";
+import {JSQLiteError} from '../index.ts';
 import type {DatabaseEncoding} from "./record.ts";
-import {decodeSqliteText} from "./utf.ts";
 
 const DAY=86400000n, UNIX_EPOCH=210866760000000n, MAX=464269060799999n;
 export interface DateTimeEnvironment { nowUnixMilliseconds():bigint; localFieldsAtUnixSecond(second:bigint):{year:number;month:number;day:number;hour:number;minute:number;second:number}|null }
 /** Internal construction seam; deliberately absent from public OpenOptions. */
 export const dateTimeEnvironmentOption:unique symbol=Symbol("jsqlite.dateTimeEnvironment");
 export class LocalTimeUnavailableError extends Error {constructor(){super("local time unavailable");this.name="LocalTimeUnavailableError";}}
+export const invalidDateTimeClock=-UNIX_EPOCH;
+export function acquireDateTimeClock(env:DateTimeEnvironment):bigint{
+ // VFS failure produces zero iJD. Preserve VM-owned cancellation/errors.
+ try{const milliseconds=env.nowUnixMilliseconds();return typeof milliseconds==='bigint'&&milliseconds+UNIX_EPOCH>0n&&milliseconds+UNIX_EPOCH<=MAX?milliseconds:-UNIX_EPOCH;}
+ catch(error){if(error instanceof JSQLiteError)throw error;return -UNIX_EPOCH;}
+}
 export const defaultDateTimeEnvironment:DateTimeEnvironment={
  nowUnixMilliseconds:()=>BigInt(Date.now()),
  localFieldsAtUnixSecond(second){const n=Number(second)*1000;if(!Number.isFinite(n))return null;const d=new Date(n);if(Number.isNaN(d.getTime()))return null;return{year:d.getFullYear(),month:d.getMonth()+1,day:d.getDate(),hour:d.getHours(),minute:d.getMinutes(),second:d.getSeconds()}}
@@ -37,8 +43,10 @@ function fields(iJD:bigint){
 function asciiLower(s:string){let r="";for(const c of s){const n=c.charCodeAt(0);r+=n>=65&&n<=90?String.fromCharCode(n+32):c}return r}
 const asciiTrim=(s:string)=>s.replace(/^[\t\n\v\f\r ]+|[\t\n\v\f\r ]+$/g,"");
 function parseNumber(s:string):number|null{if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(s))return null;const n=Number(s);return Number.isFinite(n)?n:null}
+// date.c:setRawDateNumber: raw seconds survive even when JD admission fails.
+function rawDateNumber(r:number):DT{const validJD=r>=0&&r<5373484.5;return{iJD:validJD?BigInt(Math.trunc(r*86400000+0.5)):0n,subsec:false,raw:r,validJD}}
 function parseText(input:string):DT|null{
- const s=input;if(asciiLower(s)==="now")return null;const numeric=parseNumber(asciiTrim(s));if(numeric!==null){const x=BigInt(Math.round(numeric*86400000));return{iJD:valid(x)?x:0n,subsec:false,raw:numeric,validJD:valid(x)}}
+ const s=input;if(asciiLower(s)==="now")return null;const numeric=parseNumber(asciiTrim(s));if(numeric!==null)return rawDateNumber(numeric);
  let i=0,sign=1;if(s[i]==="-"){sign=-1;i++}const take=(n:number)=>{if(i+n>s.length)return null;let v=0;for(let k=0;k<n;k++){const c=s.charCodeAt(i+k);if(c<48||c>57)return null;v=v*10+c-48}i+=n;return v};
  let y:number|undefined,m:number|undefined,d:number|undefined,h=0,mi=0,sec=0,hasDate=false;
  const first=take(4);if(first!==null&&s[i]==="-"){hasDate=true;y=sign*first;i++;m=take(2)??undefined;if(m===undefined||s[i++]!=="-")return null;d=take(2)??undefined;if(d===undefined)return null;if(i<s.length&&(s.charCodeAt(i)<=32||s[i]==="T")){while(i<s.length&&(s.charCodeAt(i)<=32||s[i]==="T"))i++;if(i===s.length){h=0;mi=0;sec=0}else{h=take(2)??-1;if(s[i++]!==":")return null;mi=take(2)??-1;if(i<s.length&&s[i]===":"){i++;const ss=take(2);if(ss===null)return null;sec=ss;if(i<s.length&&s[i]==="."){let p=.1;i++;if(i>=s.length||s.charCodeAt(i)<48||s.charCodeAt(i)>57)return null;while(i<s.length&&s.charCodeAt(i)>=48&&s.charCodeAt(i)<=57){sec+=(s.charCodeAt(i++)-48)*p;p*=.1}sec=Math.min(sec,ss+0.999)}}}}}
@@ -46,33 +54,65 @@ function parseText(input:string):DT|null{
  while(i<s.length&&s.charCodeAt(i)<=32)i++;let tz=0;if(i<s.length&&(s[i]==="Z"||s[i]==="z"))i++;else if(i<s.length&&(s[i]==="+"||s[i]==="-")){const sg=s[i++]==="-"?-1:1,th=take(2),colon=s[i++]===":",tm=colon?take(2):null;if(th===null||tm===null||th>14||tm>59)return null;tz=sg*(th*60+tm)}while(i<s.length&&s.charCodeAt(i)<=32)i++;if(i!==s.length)return null;
  const jd=jdFromYmd(y!,m!,d!,h,mi,sec);if(jd===null)return null;const out:DT={iJD:jd-BigInt(tz)*60000n,subsec:false,nFloor:Math.max(0,d!-monthDays(y!,m!)),isUtc:tz!==0||/[zZ]/.test(s)};if(tz===0&&hasDate){out.parsedYmd={year:y!,month:m!,day:d!};out.sourceYmd={year:y!,month:m!,day:d!};out.sourceHms={hour:h,minute:mi,second:sec}}return out;
 }
-function textArg(v:Mem,encoding:DatabaseEncoding):string|null{if(v.initialStorageClass==="null")return null;if(v.initialStorageClass==="blob")return decodeSqliteText(v.blobValue(),"utf-8");if(v.initialStorageClass==="text")return v.textValue();if(v.initialStorageClass==="integer")return v.integerValue().toString();return String(v.realValue())}
-function parse(v:Mem|undefined,encoding:DatabaseEncoding,now:()=>bigint):DT|null{if(!v)return{iJD:UNIX_EPOCH+now(),subsec:false};const s=textArg(v,encoding);if(s===null)return null;const key=asciiLower(s);if(key==="now")return{iJD:UNIX_EPOCH+now(),subsec:false};if(key==="subsec"||key==="subsecond")return{iJD:UNIX_EPOCH+now(),subsec:true};return parseText(s)}
+// sqlite3_value_text on a private Mem copy owns encoding and numeric spelling.
+// Date parsers and strftime scan C strings; modifiers retain their full extent.
+function textArg(v:Mem,_encoding:DatabaseEncoding):string|null{return v.valueText()}
+function cString(s:string):string{const end=s.indexOf('\0');return end<0?s:s.slice(0,end)}
+function currentDateTime(now:()=>bigint,subsec=false):DT|null{
+ // date.c:setDateTimeToCurrent; acquisition failures are represented by the
+ // owning VDBE clock seam, not by catching arbitrary execution failures here.
+ const iJD=UNIX_EPOCH+now();
+ return iJD>0n?{iJD,validJD:true,isUtc:true,isLocal:false,subsec}:null;
+}
+function parse(v:Mem|undefined,encoding:DatabaseEncoding,now:()=>bigint,control?:DateTimeControl):DT|null{
+ if(!v){control?.notPure?.();return currentDateTime(now);}
+ if(v.initialStorageClass==='integer')return rawDateNumber(Number(v.integerValue()));
+ if(v.initialStorageClass==='real')return rawDateNumber(v.realValue());
+ const text=textArg(v,encoding);if(text===null)return null;
+ const s=cString(text),name=asciiLower(s);
+ if(name==="now"){control?.notPure?.();return currentDateTime(now);}
+ if(name==="subsec"||name==="subsecond"){control?.notPure?.();return currentDateTime(now,true);}
+ return parseText(s);
+}
 function localJulian(iJD:bigint,env:DateTimeEnvironment):bigint{
  let mapped=iJD,yearDiff=0;const low=210866760000000n,high=213014145600000n;
  if(iJD<low||iJD>high){const f=fields(iJD);yearDiff=2000+(f.year%4)-f.year;const x=jdFromYmd(f.year+yearDiff,f.month,f.day,f.hour,f.minute,f.second);if(x===null)throw new LocalTimeUnavailableError();mapped=x}
- let l:ReturnType<DateTimeEnvironment["localFieldsAtUnixSecond"]>;try{l=env.localFieldsAtUnixSecond(divFloor(mapped-UNIX_EPOCH,1000n))}catch{throw new LocalTimeUnavailableError()}
- if(!l||!Number.isInteger(l.year)||!Number.isInteger(l.month)||!Number.isInteger(l.day)||!Number.isInteger(l.hour)||!Number.isInteger(l.minute)||!Number.isInteger(l.second)||l.month<1||l.month>12||l.day<1||l.day>monthDays(l.year,l.month)||l.hour<0||l.hour>23||l.minute<0||l.minute>59||l.second<0||l.second>59)throw new LocalTimeUnavailableError();
+ let l:ReturnType<DateTimeEnvironment["localFieldsAtUnixSecond"]>;try{l=env.localFieldsAtUnixSecond(divFloor(mapped-UNIX_EPOCH,1000n))}catch(error){if(error instanceof JSQLiteError)throw error;throw new LocalTimeUnavailableError()}
+ if(!l||!Number.isSafeInteger(l.year)||!Number.isInteger(l.month)||!Number.isInteger(l.day)||!Number.isInteger(l.hour)||!Number.isInteger(l.minute)||!Number.isInteger(l.second)||l.month<1||l.month>12||l.day<1||l.day>monthDays(l.year,l.month)||l.hour<0||l.hour>23||l.minute<0||l.minute>59||l.second<0||l.second>59)throw new LocalTimeUnavailableError();
  const local=jdFromYmd(l.year-yearDiff,l.month,l.day,l.hour,l.minute,l.second);if(local===null)throw new LocalTimeUnavailableError();return local+(iJD%1000n+1000n)%1000n;
 }
-function apply(dt:DT,mod:string,env:DateTimeEnvironment,idx:number):boolean{
+function apply(dt:DT,mod:string,env:DateTimeEnvironment,idx:number,control?:DateTimeControl):boolean{
+ // isDate passes sqlite3_value_bytes as well as text. In this pinned
+ // parseModifier every consuming branch uses strcmp/parseHhMmSs or recomputes
+ // n with a NUL scan (numeric prefix/unit); the incoming extent is overwritten.
+ // Keep this ownership here, not in shared textArg or the Mem producer.
+ mod=cString(mod);
  if(mod!==asciiTrim(mod))return false;const z=asciiLower(mod);if(z==="subsec"||z==="subsecond"){dt.subsec=true;return true}
- if(z==="auto"){if(idx>1)return false;if(dt.raw===undefined)return true;if(dt.validJD){delete dt.raw;return true}if(dt.raw>=-210866760000&&dt.raw<=253402300799){dt.iJD=UNIX_EPOCH+BigInt(Math.round(dt.raw*1000));dt.validJD=valid(dt.iJD);delete dt.raw;return dt.validJD}return false}
+ if(z==="auto"){if(idx>1)return false;if(dt.raw===undefined)return true;if(dt.validJD){delete dt.raw;return true}if(dt.raw>=-210866760000&&dt.raw<=253402300799){dt.iJD=BigInt(Math.trunc(dt.raw*1000+Number(UNIX_EPOCH)+0.5));dt.validJD=valid(dt.iJD);delete dt.raw;return dt.validJD}return false}
  delete dt.sourceYmd;delete dt.sourceHms;
  if(z.startsWith("start of ")&&dt.parsedYmd){const p=dt.parsedYmd,f=fields(dt.iJD),day=z==="start of day"?p.day:1,month=z==="start of year"?1:p.month,x=jdFromYmd(p.year,month,day);if(x===null)return false;dt.iJD=x;delete dt.parsedYmd;dt.nFloor=0;return z==="start of day"||z==="start of month"||z==="start of year"}
  delete dt.parsedYmd;
  const compound=/^([+-])(\d{4,5})-(\d{2})-(\d{2})(?: (\d{2}):(\d{2})(?::(\d{2}(?:\.\d+)?))?)?$/.exec(z);
  if(compound){const sign=compound[1]==="-"?-1:1,y=Number(compound[2]),m=Number(compound[3]),d=Number(compound[4]);if(m>=12||d>=31)return false;let f=fields(dt.iJD),month=f.month+sign*m,year=f.year+sign*y;while(month>12){month-=12;year++}while(month<1){month+=12;year--}dt.nFloor=Math.max(0,f.day-monthDays(year,month));const shifted=jdFromYmd(year,month,f.day,f.hour,f.minute,f.second);if(shifted===null)return false;dt.iJD=shifted+BigInt(sign*d)*DAY;if(compound[5]){const h=Number(compound[5]),mi=Number(compound[6]),sec=Number(compound[7]??0);if(h>24||mi>59||sec>=60)return false;dt.iJD+=BigInt(sign)*roundedMs((h*3600+mi*60+sec)*1000)}return valid(dt.iJD)}
  if(z==="julianday"){if(idx>1||dt.raw===undefined||!dt.validJD)return false;delete dt.raw;return true}
- if(z==="unixepoch"){if(idx>1||dt.raw===undefined)return false;dt.iJD=UNIX_EPOCH+BigInt(Math.round(dt.raw*1000));dt.validJD=valid(dt.iJD);delete dt.raw;return dt.validJD}
+ if(z==="unixepoch"){if(idx>1||dt.raw===undefined)return false;const r=dt.raw*1000+Number(UNIX_EPOCH);if(!(r>=0&&r<464269060800000))return false;dt.iJD=BigInt(Math.trunc(r+0.5));dt.validJD=true;delete dt.raw;return true}
  let f=fields(dt.iJD);if(z==="start of day"){dt.iJD=jdFromYmd(f.year,f.month,f.day)!;return true}if(z==="start of month"){dt.iJD=jdFromYmd(f.year,f.month,1)!;return true}if(z==="start of year"){dt.iJD=jdFromYmd(f.year,1,1)!;return true}
  if(z.startsWith("weekday ")){const n=parseNumber(z.slice(8));if(n===null||n<0||n>=7||!Number.isInteger(n))return false;const current=Number(divFloor(dt.iJD+129600000n,DAY)%7n);dt.iJD+=BigInt((n-current+7)%7)*DAY;return true}
- if(z==="localtime"){if(dt.isLocal)return true;dt.iJD=localJulian(dt.iJD,env);dt.isUtc=false;dt.isLocal=true;return true}
- if(z==="utc"){if(dt.isUtc)return true;const original=dt.iJD;let guess=original,error=0n,count=0;do{guess-=error;error=localJulian(guess,env)-original}while(error!==0n&&count++<3);dt.iJD=guess;dt.isUtc=true;dt.isLocal=false;return true}
+ if(z==="localtime"){control?.notPure?.();if(dt.isLocal)return true;dt.iJD=localJulian(dt.iJD,env);dt.isUtc=false;dt.isLocal=true;return true}
+ if(z==="utc"){control?.notPure?.();if(dt.isUtc)return true;const original=dt.iJD;let guess=original,error=0n,count=0;do{guess-=error;error=localJulian(guess,env)-original}while(error!==0n&&count++<3);dt.iJD=guess;dt.isUtc=true;dt.isLocal=false;return true}
  const words=z.split(" ").filter(Boolean);if(words.length===2){const n=parseNumber(words[0]!);if(n===null)return false;let unit=words[1]!;if(unit.endsWith("s"))unit=unit.slice(0,-1);if(unit==="second"||unit==="minute"||unit==="hour"||unit==="day"){const mul=unit==="second"?1000:unit==="minute"?60000:unit==="hour"?3600000:86400000,limit=unit==="second"?4.6427e14:unit==="minute"?7.7379e12:unit==="hour"?1.2897e11:5373485;if(n<=-limit||n>=limit)return false;dt.iJD+=roundedMs(n*mul);dt.nFloor=0;return valid(dt.iJD)}if(unit==="month"||unit==="year"){const limit=unit==="month"?176546:14713;if(n<=-limit||n>=limit)return false;f=fields(dt.iJD);const whole=Math.trunc(n),fraction=n-whole;let y=f.year+(unit==="year"?whole:0),m=f.month+(unit==="month"?whole:0);while(m>12){m-=12;y++}while(m<1){m+=12;y--}dt.nFloor=Math.max(0,f.day-monthDays(y,m));const x=jdFromYmd(y,m,f.day,f.hour,f.minute,f.second);if(x===null)return false;dt.iJD=x+roundedMs(fraction*(unit==="year"?365:30)*86400000);return valid(dt.iJD)}}
  // [+|-]HH:MM[:SS[.FFF]] follows parseHhMmSs and retains only time-of-day.
  if(z[0]==="+"||z[0]==="-"){const clock=/^([+-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?$/.exec(z);if(clock){const sg=clock[1]==="-"?-1:1,hh=Number(clock[2]),mm=Number(clock[3]),whole=Number(clock[4]??0);if(hh>24||mm>59||whole>59)return false;let fraction=clock[5]?Number(`0.${clock[5]}`):0;fraction=Math.min(fraction,0.999);const amount=roundedMs((hh*3600+mm*60+whole+fraction)*1000)%DAY;dt.iJD+=BigInt(sg)*amount;return valid(dt.iJD)}}
  if(z==="ceiling"){dt.nFloor=0;return true}if(z==="floor"){dt.iJD-=BigInt(dt.nFloor??0)*DAY;dt.nFloor=0;return valid(dt.iJD)}return false;
+}
+// date.c:isDate owns modifier processing, final JD admission and single-arg
+// calendar normalization for all callers, including both timediff operands.
+function isDate(args:Mem[],encoding:DatabaseEncoding,now:()=>bigint,env:DateTimeEnvironment,control?:DateTimeControl):DT|null{
+ const dt=parse(args[0],encoding,now,control);if(!dt)return null;
+ for(let i=1;i<args.length;i++){const m=textArg(args[i]!,encoding);if(m===null||!apply(dt,m,env,i,control))return null}
+ if(dt.validJD===false||!valid(dt.iJD))return null;
+ if(args.length===1&&dt.sourceYmd&&dt.sourceYmd.day>28)delete dt.sourceYmd;
+ return dt;
 }
 const pad=(n:number,w=2)=>Math.abs(n).toString().padStart(w,"0");
 const signedWidth=(n:number,w:number)=>n<0?`-${Math.abs(n).toString().padStart(Math.max(0,w-1),"0")}`:n.toString().padStart(w,"0");
@@ -80,10 +120,18 @@ function displayFields(dt:DT):CivilFields{const f=fields(dt.iJD),ymd=dt.sourceYm
 function dateString(dt:DT,time:boolean,onlyTime=false){const f=displayFields(dt),y=f.year<0?`-${pad(f.year,4)}`:pad(f.year,4),s=Math.min(59.999,Math.max(0,f.second));const sec=dt.subsec?`${pad(Math.floor(s))}.${pad(Math.round((s-Math.floor(s))*1000),3)}`:pad(Math.floor(s));const d=`${y}-${pad(f.month)}-${pad(f.day)}`,t=`${pad(f.hour)}:${pad(f.minute)}:${sec}`;return onlyTime?t:time?`${d} ${t}`:d}
 function formatJulian(iJD:bigint){const n=Number(iJD)/86400000;return n.toPrecision(16).replace(/(?:\.0+|(?:(\.[0-9]*?)0+))(?=e|$)/i,'$1').replace(/e\+/i,'e+')}
 function outputText(s:string,control?:DateTimeControl){const bytes=new TextEncoder().encode(s);control?.checkSize(bytes.byteLength);const out=new Mem();out.setText(bytes,"utf-8");return out}
-export interface DateTimeControl {readonly maxResultBytes:number;charge(units:number):void;check():void;checkSize(bytes:number):void}
+export interface DateTimeControl {notPure?():void;readonly maxResultBytes:number;charge(units:number):void;check():void;checkSize(bytes:number):void}
 export function evaluateDateTime(name:string,args:Mem[],encoding:DatabaseEncoding,now:()=>bigint,env=defaultDateTimeEnvironment,control?:DateTimeControl):Mem{
- const out=new Mem();if(name==="timediff"){
-  const d1=parse(args[0],encoding,now),d2=parse(args[1],encoding,now);if(!d1||!d2)return out;
+ const out=new Mem();
+ // date.c:strftimeFunc coerces argv[0] and returns on NULL before isDate.
+ const formatValue=name==='strftime'&&args[0]?textArg(args[0],encoding):null;
+ const format=formatValue===null?null:cString(formatValue);
+ if(name==='strftime'&&format===null)return out;
+ if(name==="timediff"){
+  // date.c:timediffFunc admits each complete isDate sequentially. VM argument
+  // expressions have already run; only date-owned admission short-circuits.
+  const d1=isDate(args.slice(0,1),encoding,now,env,control);if(!d1)return out;
+  const d2=isDate(args.slice(1,2),encoding,now,env,control);if(!d2)return out;
   const a=fields(d1.iJD),b=fields(d2.iJD),positive=d1.iJD>=d2.iJD;let y:number,m:number,ay=b.year,am=b.month;
   if(positive){
    y=a.year-b.year;if(y)ay=a.year;m=a.month-b.month;if(m<0){y--;m+=12}if(m)am=a.month;
@@ -98,9 +146,9 @@ export function evaluateDateTime(name:string,args:Mem[],encoding:DatabaseEncodin
   const x=anchor-d1.iJD,day=x/DAY,rem=x%DAY,h=rem/3600000n,mi=rem%3600000n/60000n,ms=rem%60000n;
   return outputText(`-${pad(y,4)}-${pad(m)}-${pad(Number(day))} ${pad(Number(h))}:${pad(Number(mi))}:${pad(Number(ms/1000n))}.${pad(Number(ms%1000n),3)}`,control)
  }
- const dt=parse(name==="strftime"?args[1]:args[0],encoding,now);if(!dt)return out;try{for(let i=name==="strftime"?2:1;i<args.length;i++){const m=textArg(args[i]!,encoding);if(m===null||!apply(dt,m,env,i))return out}}catch(e){if(e instanceof Error&&e.message==="local time unavailable")throw e;return out}const dateArgCount=name==="strftime"?args.length-1:args.length;if(dateArgCount===1&&dt.sourceYmd&&dt.sourceYmd.day>28)delete dt.sourceYmd;if(dt.validJD===false||!valid(dt.iJD))return out;
+ const dt=isDate(name==="strftime"?args.slice(1):args,encoding,now,env,control);if(!dt)return out;
  if(name==="julianday"){out.setDouble(Number(dt.iJD)/86400000);return out}if(name==="unixepoch"){const ms=dt.iJD-UNIX_EPOCH;if(dt.subsec)out.setDouble(Number(ms)/1000);else out.setInt64(divFloor(ms,1000n));return out}if(name==="date"||name==="current_date")return outputText(dateString(dt,false),control);if(name==="time"||name==="current_time")return outputText(dateString(dt,true,true),control);if(name==="datetime"||name==="current_timestamp")return outputText(dateString(dt,true),control);
- if(name==="strftime"){const formatMem=args[0];if(!formatMem)return out;const format=textArg(formatMem,encoding);if(format===null)return out;const actual=dt;const f=displayFields(actual),displayHour=f.hour,jan=jdFromYmd(f.year,1,1,f.hour,f.minute,f.second)!,dayOfYear=Number((actual.iJD-jan+43200000n)/DAY),monday=Number((actual.iJD+43200000n)/DAY%7n),sunday=Number((actual.iJD+129600000n)/DAY%7n);let r="";
+ if(name==="strftime"&&format!==null){const actual=dt;const f=displayFields(actual),displayHour=f.hour,jan=jdFromYmd(f.year,1,1,f.hour,f.minute,f.second)!,dayOfYear=Number((actual.iJD-jan+43200000n)/DAY),monday=Number((actual.iJD+43200000n)/DAY%7n),sunday=Number((actual.iJD+129600000n)/DAY%7n);let r="";
  for(let i=0;i<format.length;i++){control?.charge(1);if(format[i]!=="%"){r+=format[i];continue}const c=format[++i];if(!c)return out;
   if(c==="%")r+="%";else if(c==="Y")r+=signedWidth(f.year,4);else if(c==="m")r+=pad(f.month);else if(c==="d")r+=pad(f.day);else if(c==="e")r+=pad(f.day).replace(/^0/,' ');else if(c==="F")r+=`${signedWidth(f.year,4)}-${pad(f.month)}-${pad(f.day)}`;
   else if(c==="H")r+=pad(displayHour);else if(c==="k")r+=pad(displayHour).replace(/^0/,' ');else if(c==="I"||c==="l"){const h=displayHour%12||12;r+=c==="I"?pad(h):pad(h).replace(/^0/,' ')}else if(c==="p"||c==="P")r+=displayHour>=12?(c==="p"?"PM":"pm"):(c==="p"?"AM":"am");else if(c==="R")r+=`${pad(displayHour)}:${pad(f.minute)}`;else if(c==="T")r+=`${pad(displayHour)}:${pad(f.minute)}:${pad(Math.floor(f.second))}`;

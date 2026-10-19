@@ -724,9 +724,55 @@ These bounded injections do not establish host latency or native allocation pari
 routines map to `functions.ts`, `ordinary-scalars.ts`, `pattern.ts`, `printf.ts`,
 `date-time.ts`, `math.ts`, `json.ts`, `utf.ts`, `mem.ts`, `comparison.ts`.
 Registry arity/flags and VM Function dispatch own execution; no host callback or
-native fallback. Preserve source numeric coercions, overflow, ASCII-only built-in
+native fallback. The private date environment samples lazily per VDBE step entry,
+not per reset or async continuation. Shared current-time production sets UTC
+provenance and requires positive iJD. Constant/slow-changing calls with constant
+arguments retain results through `Once`; this is distinct from clock stability.
+See [controlled native/public admission evidence](research/card-q-a-a-provider-admission.md)
+and `test/conformance/run-date-time-provider-ts.mjs`. Virtual-generated bindings
+now retain self-reference context through PureFunc/P5 to FunctionContext and
+reached date eligibility checks (including localtime/utc before provenance bypass).
+The private adapter maps clock acquisition failure to invalid current time and
+rejects unsafe local years without swallowing VM errors. Failed acquisition is
+not cached: later date calls in the same entry retry, as native zero iCurrentTime
+does. Clearly nondeterministic registrations are rejected during generated schema
+resolution, including unreachable branches; conditional date calls remain legal
+until reached. `strftimeFunc` coerces the format and returns on NULL before
+`isDate`, so an unreached date dependency cannot acquire providers or raise
+conditional nondeterminism; SQL argument expressions still execute normally.
+Date admission uses private-copy `Mem.valueText` (including BLOB carrier encoding
+and SQLite numeric spelling), except INTEGER/REAL date arguments enter raw-number
+state directly. Date/format parsers own C-NUL termination. Pinned `parseModifier`
+receives the byte extent but overwrites it before consumption; its own string
+scans terminate at NUL. `setRawDateNumber` and unixepoch/auto validate native ranges
+before integer conversion, retaining unresolved raw seconds for NULL rejection.
+The shared `isDate` owner completes modifiers, JD/range admission and single-argument
+calendar normalization. `timediffFunc` completes operand one before admitting
+operand two, without suppressing VM argument-expression evaluation or reached
+second-operand purity/provider errors.
+[Argument admission evidence](research/card-q-a-b-date-admission.md) records typed
+encoding/carrier and range diagnostics separately from selected corpus credit.
+The constant-expression walker retains CASE/BETWEEN/IN/vector
+children while excluding columns/registers/subqueries and volatile calls, matching
+expr.c ownership rather than SQL spelling. Bounded three-encoding generated
+metadata/nested/STORED controls and real-task cache tests pass; these are not
+schema-wide or exhaustive constant-expression equivalence claims.
+See [repair evidence and remaining delivery work](research/card-q-a-b-provider-repair.md).
+Preserve source numeric coercions, overflow, ASCII-only built-in
 case folding, embedded-NUL rules, collation and database-encoding conversion.
 JS Date/RegExp/JSON.parse/stringify are not substitutes for translated semantics.
+
+
+Enabled math uses `Mem.valueNumericTypeCopy` (`vdbe.c:numericType`), not NUMERIC
+affinity. INTEGER rounding inputs remain INTEGER; callback doubles produce REAL
+and NaN becomes NULL. Binary log converts its second operand with value-double
+only after base/domain gates. ECMAScript Math replaces host libm in the browser;
+finite transcendental last bits remain host-dependent, not cross-libm guarantees.
+The accepted corpus is 23 cases/69 typed observations in three encodings;
+30 registration rows/29 names remain enabled. Date selected credit remains
+29 assertions (18 upstream +11 controls), public40/120; admission117/234 and
+provider/generated controls earn zero added corpus credit.
+[Combined delivery provenance and affected validation](research/card-q-a-b-combined-r3.md).
 
 Represented ordinary, formatter, pattern, date/time and enabled math functions
 execute; read-only changes/last-insert counters remain zero. JSON scalar,

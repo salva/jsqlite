@@ -10,19 +10,19 @@ const text="x".repeat(1024);
 const errorShape=e=>({kind:e.kind,code:e.code,extendedCode:e.extendedCode,message:e.message});
 try {
   const db=await open(request("empty"),{limits:{maxWorkUnits:100000,maxResultBytes:1000000}});
-  // Current shared SELECT routing: 7 executed ops to ROW (3 Gotos,
-  // Variable, Function, Copy, ResultRow) + input4 + hex scan4 + copy8 =23.
-  // f1a5b3b had 4 ops /20 units; 48bf18c8 added setup/body routing.
+  // expr.c constant-function factoring adds executed Once before Variable.
+  // 8 executed ops to ROW (3 Gotos, Once, Variable, Function, Copy,
+  // ResultRow) + input4 + hex scan4 + copy8 =24. Keep Once charged.
   // vdbe.c counts Goto too. Do not exempt routing or increase connection limits.
   const boundary=db.prepare("SELECT hex(?1)").statement;assert.ok(boundary);
   boundary.bind(1,text);
   let workError;
-  try{await boundary.step({maxWorkUnits:22})}catch(e){workError=e}
+  try{await boundary.step({maxWorkUnits:23})}catch(e){workError=e}
   assert.deepEqual(errorShape(workError),{kind:"limit",code:null,extendedCode:null,message:"statement exceeds maxWorkUnits"});
   await assert.rejects(()=>boundary.step(),e=>e===workError);
   assert.throws(()=>boundary.reset(),e=>e===workError);
   boundary.bind(1,text);
-  assert.equal(await boundary.step({maxWorkUnits:23}),"row");
+  assert.equal(await boundary.step({maxWorkUnits:24}),"row");
   assert.equal(boundary.columnType(0),"text");
   assert.equal(boundary.columnText(0),"78".repeat(1024));
   boundary.finalize();
@@ -71,5 +71,5 @@ try {
     assert.throws(()=>growing.finalize(),e=>e===growingError);
     const reusable=encoded.prepare("SELECT k FROM storage_values NOT INDEXED").statement;assert.ok(reusable);assert.equal(await reusable.step(),"row");assert.equal(reusable.columnText(0),"min");reusable.finalize();encoded.close();
   }
-  console.log(JSON.stringify({schema:"jsqlite-expression-bounded-ts/1",outcome:"pass",checks:["exact-work-22-23-and-reset-reuse","abort-checkpoint-and-reuse","deadline-checkpoint-and-finalize","replace-preflight-and-reuse","column-output-limit","column-replace-all-encodings-and-connection-reuse"]}));
+  console.log(JSON.stringify({schema:"jsqlite-expression-bounded-ts/1",outcome:"pass",checks:["exact-work-23-24-and-reset-reuse","abort-checkpoint-and-reuse","deadline-checkpoint-and-finalize","replace-preflight-and-reuse","column-output-limit","column-replace-all-encodings-and-connection-reuse"]}));
 } finally {await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()));}

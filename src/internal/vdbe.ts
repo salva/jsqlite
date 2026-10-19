@@ -36,7 +36,7 @@ import {branchConsumedTerms, analyzeWhere, btreeLoops, orRuntimeArmClause, where
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
-import {evaluateDateTime, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
+import {evaluateDateTime, invalidDateTimeClock, acquireDateTimeClock, defaultDateTimeEnvironment, LocalTimeUnavailableError, type DateTimeEnvironment} from "./date-time.ts";
 import { sqlitePatternCompare, validateLikeEscape } from "./pattern.ts";
 import {evaluateMathFunction,isMathFunction} from "./math.ts";
 import { appendJsonStringBytes, jsonAggregateBlob, jsonAggregateValueBytes, appendJsonAggregateBlob, withJsonAggregateLabel, jsonArrayLength, jsonInspectAsync, jsonEditAsync, jsonArrow, jsonConstruct, openJsonTableCursor, jsonEdit, jsonErrorPosition, jsonErrorPositionAsync, jsonExtractAsync, jsonExtract, jsonNodeFromSqlValue, jsonPatch, jsonPretty, jsonQuote, jsonTextResult, jsonType, jsonValid, jsonValidAsync, jsonbExtract, jsonbMemResult, jsonbResult, parseJsonMem, renderJson, JSON_EACH_COLUMNS, JSON_TABLE_COLUMNS, type JsonNode, type JsonTableCursor } from "./json.ts";
@@ -66,7 +66,7 @@ type Expression =
  | {kind:"vector";fields:Expression[]}
  | {kind:"collate";value:Expression;collation:BuiltinCollation}
  | {kind:"cast";value:Expression;affinity:MemAffinity}
- | {kind:"call";name:string;args:Expression[];deferredAffinity?:true}
+ | {kind:"call";name:string;args:Expression[];pureContext?:'generated';deferredAffinity?:true}
  | {kind:"aggregate";name:string;args:Expression[];collation:BuiltinCollation;distinct:boolean;filter:Expression|null;orderBy:AggregateOrderTerm[]}
  | {kind:"scalar-subquery";select:SelectNode;exists?:true;resolved?:import('./resolve.ts').ResolvedSelect|undefined}
  | {kind:"in-subquery";left:Expression;select:SelectNode;negated:boolean;resolved?:import('./resolve.ts').ResolvedSelect|undefined}
@@ -134,7 +134,7 @@ type Op =
   | { readonly code:"TypeCheck"; readonly p1:number; readonly affinity:MemAffinity; readonly table:string; readonly column:string; readonly type:string }
   | { readonly code:"Affinity"; readonly p1:number; readonly affinity:MemAffinity }
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
-  | { readonly code: "Function" | "PureFunc"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
+  | { readonly code: "Function" | "PureFunc"; readonly p5?:'generated'; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "AggStep"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation; readonly changed?:number }
   | { readonly code: "AggInverse"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "AggFinal"; readonly name:string; readonly p1:number }
@@ -1957,6 +1957,11 @@ interface ParameterBuilder { maximum: number; readonly names: (string | null)[];
 
 /** Shared scalar-result owner, corresponding to sqlite3_context and its result Mem. */
 export class FunctionContext {
+  readonly callSite:{name:string;pureContext?:'generated'}|undefined;
+  constructor(callSite?:{name:string;pureContext?:'generated'}){this.callSite=callSite;}
+  notPure():void {
+    if(this.callSite?.pureContext==='generated')throw new JSQLiteError('sqlite',`non-deterministic use of ${this.callSite.name}() in a generated column`,{code:1});
+  }
   readonly #result = new Mem();
   #resultCleanup: (() => void) | null = null;
   readonly #auxData = new Map<number,{value:unknown;cleanup:(() => void)|null}>();
@@ -2081,7 +2086,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
           filter:value.filter&&filterExpr?bindResolvedExpression(value.filter,owned(filterExpr),cursorFor,true,binding,generatedBusy):value.filter,
           orderBy:value.orderBy.map((term,index)=>{const node=ordered[index]?.children.find((part):part is Reduction=>part.kind==='reduction'&&(part.signature.startsWith('expr ::=')||part.signature.startsWith('term ::=')));if(!node)throw new JSQLiteError('internal','aggregate order lost reduction');return {...term,expression:bindResolvedExpression(term.expression,owned(node),cursorFor,true,binding,generatedBusy)};})};
       }
-      if(value.kind==='call'||value.kind==='aggregate'&&binding?.policy!=='derived-predicate'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,args:value.args.map((arg,index)=>bindResolvedExpression(arg,child(infixFunctionChild(carrier.reduction.signature,index)),cursorFor,preserveScalarLeaves,binding,generatedBusy))};
+      if(value.kind==='call'||value.kind==='aggregate'&&binding?.policy!=='derived-predicate'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,...(value.kind==='call'&&carrier.selfReference?{pureContext:carrier.selfReference}:{}),args:value.args.map((arg,index)=>bindResolvedExpression(arg,child(infixFunctionChild(carrier.reduction.signature,index)),cursorFor,preserveScalarLeaves,binding,generatedBusy))};
       if(preserveScalarLeaves){
         const bindChild=(expression:Expression,index:number)=>bindResolvedExpression(expression,child(index),cursorFor,true,binding,generatedBusy);
         if(value.kind==='in-list'&&(binding?.policy==='scalar'||binding?.policy==='window-filter'||binding?.policy==='window-source'||binding?.policy==='ordinary-aggregate'))return {...value,left:bindChild(value.left,0),values:value.values.map((term,index)=>bindChild(term,index+1))};
@@ -2490,7 +2495,27 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
       return r;
     }
     if(expression.name==="iif"||expression.name==="if") {const r=allocate(),ends:number[]=[];let i=0;for(;i+1<expression.args.length;i+=2){const condition=emit(expression.args[i]!),skip=ops.length;ops.push({code:"IfNot",p1:condition,p2:0});const value=emit(expression.args[i+1]!);ops.push({code:"Copy",p1:value,p2:r});ends.push(ops.length);ops.push({code:"Goto",p2:0});(ops[skip] as {p2:number}).p2=ops.length}if(i<expression.args.length){const value=emit(expression.args[i]!);ops.push({code:"Copy",p1:value,p2:r})}else ops.push({code:"Null",p2:r});for(const end of ends)(ops[end] as {p2:number}).p2=ops.length;return r;}
-    const args=expression.args.map(emit),r=allocate(),coll=functionArgumentCollation(expression.name,expression.args);if(coll!=="binary")ops.push({code:"CollSeq",collation:coll});ops.push({code:"Function",name:expression.name,args,p2:r,collation:coll});return r;
+    // expr.c function coding: slow-changing calls with constant arguments
+    // execute inside OP_Once. The clock itself is only stable within one entry.
+    const isConstantArgument=(value:Expression):boolean=>{
+      if(value.kind==="literal"||value.kind==="variable")return true;
+      if(value.kind==="unary"||value.kind==="cast"||value.kind==="collate")return isConstantArgument(value.value);
+      if(value.kind==="binary")return isConstantArgument(value.left)&&isConstantArgument(value.right);
+      // expr.c:exprNodeIsConstant defaults to walking CASE/BETWEEN/IN/vector
+      // children. Column/register/subquery owners below remain nonconstant.
+      if(value.kind==="case")return (value.operand===null||isConstantArgument(value.operand))&&value.pairs.every(pair=>pair.every(isConstantArgument))&&(value.otherwise===null||isConstantArgument(value.otherwise));
+      if(value.kind==="between")return [value.value,value.lower,value.upper].every(isConstantArgument);
+      if(value.kind==="in-list")return isConstantArgument(value.left)&&value.values.every(isConstantArgument);
+      if(value.kind==="vector")return value.fields.every(isConstantArgument);
+      if(value.kind==="call"){const flags=builtinFunction(value.name)?.flags;return !!flags&&(flags.includes("constant")||flags.includes("slow-changing"))&&value.args.every(isConstantArgument);}
+      return false;
+    };
+    const flags=builtinFunction(expression.name)?.flags;
+    const once=flags&&(flags.includes("slow-changing")||flags.includes("constant"))&&expression.args.every(isConstantArgument)?allocate():undefined;
+    const onceAt=ops.length;if(once!==undefined)ops.push({code:"Once",p1:once,p2:0});
+    const args=expression.args.map(emit),r=allocate(),coll=functionArgumentCollation(expression.name,expression.args);if(coll!=="binary")ops.push({code:"CollSeq",collation:coll});ops.push({code:expression.pureContext?"PureFunc":"Function",...(expression.pureContext?{p5:expression.pureContext}:{}),name:expression.name,args,p2:r,collation:coll});
+    if(once!==undefined)(ops[onceAt] as {p2:number}).p2=ops.length;
+    return r;
   }
   if(expression.kind==="mem"||expression.kind==="aggregate")throw new JSQLiteError("internal","execution-only expression reached scalar lowering");
   const result=allocate(),endJumps:number[]=[],base=expression.operand?emit(expression.operand):null;
@@ -7002,7 +7027,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         }
         e.index=selectedPhysical&&!selectedNeedsTableLookup?storageColumn(e.index):tableStorageColumn(e.index);e.cursor=0;return e;
       }
-      if(e.kind==="vector")e.fields=e.fields.map(assign);else if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="in-list"){e.left=assign(e.left);e.values=e.values.map(assign)}else if(e.kind==="between"){e.value=assign(e.value);e.lower=assign(e.lower);e.upper=assign(e.upper)}else if(e.kind==="call"||e.kind==="aggregate")e.args=e.args.map(assign);else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
+      if(e.kind==="vector")e.fields=e.fields.map(assign);else if(e.kind==="unary"||e.kind==="cast"||e.kind==="collate")e.value=assign(e.value);else if(e.kind==="binary"){e.left=assign(e.left);e.right=assign(e.right)}else if(e.kind==="in-subquery")e.left=assign(e.left);else if(e.kind==="in-list"){e.left=assign(e.left);e.values=e.values.map(assign)}else if(e.kind==="between"){e.value=assign(e.value);e.lower=assign(e.lower);e.upper=assign(e.upper)}else if(e.kind==="call"||e.kind==="aggregate"){if(e.kind==="call"&&generatedBusy.size)e.pureContext='generated';e.args=e.args.map(assign);}else if(e.kind==="case"){if(e.operand)e.operand=assign(e.operand);e.pairs=e.pairs.map(x=>[assign(x[0]),assign(x[1])]);if(e.otherwise)e.otherwise=assign(e.otherwise)}return e;
     };
     return assign(input);
   };
@@ -8549,7 +8574,7 @@ function functionArgumentCollation(name:string,args:readonly Expression[]):Built
  return 'binary';
 }
 function valueBytes(value:Mem):number{return value.initialStorageClass==="text"?value.textBytes().byteLength:value.initialStorageClass==="blob"?value.blobValue().byteLength:0;}
-interface ScalarControl { charge(units:number):void; check():void; checkSize(bytes:number):void; readonly maxResultBytes:number; now?():bigint; readonly dateTimeEnvironment?:DateTimeEnvironment }
+interface ScalarControl { notPure?():void; charge(units:number):void; check():void; checkSize(bytes:number):void; readonly maxResultBytes:number; now?():bigint; readonly dateTimeEnvironment?:DateTimeEnvironment }
 function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"binary"|BuiltinCollation="binary",control?:ScalarControl):Mem{
  const out=new Mem(),charge=(units:number)=>control?.charge(units),checkSize=(bytes:number)=>{if(!Number.isSafeInteger(bytes)||bytes<0||(control&&bytes>control.maxResultBytes))throw new JSQLiteError("limit","string or blob too big")};
  const workBytes=(bytes:number)=>{if(bytes>0)charge(Math.ceil(bytes/256))},checkpoint=(index:number)=>{if((index&255)===0){charge(1);control?.check()}};
@@ -8985,6 +9010,9 @@ export class VdbeStatement implements Statement {
     if (!Number.isSafeInteger(limit) || limit < 0) misuse("maxWorkUnits must be a finite nonnegative safe integer");
     if (options.timeoutMs !== undefined && (!Number.isFinite(options.timeoutMs) || options.timeoutMs < 0)) misuse("timeoutMs must be finite and nonnegative");
     const release = this.#admit();
+    // vdbe.c sqlite3VdbeExec: iCurrentTime is per execution entry, not
+    // per reset and not per function call or asynchronous continuation.
+    this.#currentTime = null;
     this.#state = "running";
     this.#invalidateRow();
     const started = Date.now();
@@ -9501,7 +9529,7 @@ export class VdbeStatement implements Statement {
           case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);await aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#privateControl(options,limit,started));break;}
           case "AggFinal": this.#registers[op.p1]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true,this.#privateControl(options,limit,started)));break;
           case "AggValue": this.#registers[op.p2]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false,this.#privateControl(options,limit,started)));break;
-          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>this.#currentTime??(this.#currentTime=(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment).nowUnixMilliseconds()),...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
+          case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={notPure:()=>new FunctionContext({name:op.name,...(op.code==='PureFunc'&&op.p5?{pureContext:op.p5}:{})}).notPure(),maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>{if(this.#currentTime!==null)return this.#currentTime;const sample=acquireDateTimeClock(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment);if(sample!==invalidDateTimeClock)this.#currentTime=sample;return sample;},...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
  const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:async(units:number)=>{await this.#privateControl(options,limit,started).checkpoint(units)},charge:control.charge,check:control.check,checkSize:control.checkSize};
  this.#registers[op.p2]!.moveFrom(publishFunctionResult(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)),this.#program.encoding,this.#program.maxResultBytes));
  }else if(op.name==="json_type"||op.name==="json_array_length"){

@@ -1,3 +1,4 @@
+import {builtinFunction,builtinFunctionIsPure} from './functions.ts';
 import {JSQLiteError} from '../index.ts';
 import {METADATA_MODULE_COLUMNS,metadataHiddenColumns,metadataColumnDeclaredType} from './pragma.ts';
 import {jsonTableDeclaration} from './json-table-plan.ts';
@@ -967,6 +968,7 @@ export function bindTransientProducer(table:TableNode,producer:ResolvedSelect):v
  * Unsupported productions remain present so consumers reject before execution.
  */
 export interface ResolvedExpressionCarrier {
+ readonly selfReference?:'generated';
  readonly reduction:ExprReduction;
  /** Original lexical edge before resolveAlias/parenthesis substitution. */
  readonly sourceReduction?:ExprReduction;
@@ -986,7 +988,18 @@ export function resolvedGeneratedExpressionCarrier(source:ResolvedSource,columnI
  if(!expression?.reduction||expression.reduction.kind!=='reduction')throw new NameResolutionError('generated column lost reduction');
  const context:NameContext={sources:[source],pNext:null,columnUses:[],nRef:0};
  resolveAgainstSources(expression,[source],[],false,true,true,[],[],context);
- return resolvedExpressionCarrier({columnUses:context.columnUses},expression.reduction);
+ const mark=(carrier:ResolvedExpressionCarrier):ResolvedExpressionCarrier=>{
+  // resolve.c:resolveExprStep checks registrations even in unreached branches.
+  // Conditional date purity is instead checked at the reached PureFunc call.
+  const node=carrier.reduction;
+  const first=node.children.find(child=>child.kind==='terminal');
+  const name=first?.kind==='terminal'?sqliteAsciiFold(identifier(first.value.text)):'';
+  const isCall=node.signature.startsWith('expr ::= ID|INDEXED|JOIN_KW LP')||['current_time','current_date','current_timestamp'].includes(name);
+  const definition=isCall?builtinFunction(name):undefined;
+  if(definition&&!builtinFunctionIsPure(definition))throw new NameResolutionError('non-deterministic functions prohibited in generated columns');
+  return {...carrier,selfReference:'generated',children:carrier.children.map(mark)};
+ };
+ return mark(resolvedExpressionCarrier({columnUses:context.columnUses},expression.reduction));
 }
 export function resolvedExpressionCarrier(plan:Pick<ResolvedSelect,'columnUses'|'aliasUses'> & Partial<Pick<ResolvedSelect,'nested'>>,reduction:ExprReduction):ResolvedExpressionCarrier {
  const uses=new Map(plan.columnUses.map(use=>[use.expression,use]));

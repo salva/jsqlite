@@ -63,7 +63,7 @@ const entries: readonly BuiltinFunctionDefinition[] = Object.freeze([
 if(entries.length!==50) throw new Error("ordinary scalar registry must contain 50 rows");
 // date.c keeps these registrations separate; lookup and OP_Function are shared.
 const dateEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
- definition("julianday",[],C,true,0),definition("unixepoch",[],C,true,0),definition("date",[],C,true,0),definition("time",[],C,true,0),definition("datetime",[],C,true,0),definition("strftime",[],C,true,1),definition("timediff",[2],C,true),definition("current_time",[0],V,true),definition("current_date",[0],V,true),definition("current_timestamp",[0],V,true),
+ definition("julianday",[],C,true,0),definition("unixepoch",[],C,true,0),definition("date",[],C,true,0),definition("time",[],C,true,0),definition("datetime",[],C,true,0),definition("strftime",[],C,true,1),definition("timediff",[2],C,true),definition("current_time",[0],S,true),definition("current_date",[0],S,true),definition("current_timestamp",[0],S,true),
 ]);
 // func.c's SQLITE_ENABLE_MATH_FUNCTIONS block. Multiple FuncDef rows for log
 // are represented by its exact arity set, just as the ordinary catalog does.

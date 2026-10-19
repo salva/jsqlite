@@ -414,6 +414,34 @@ promised.
 [json.ts](../src/internal/json.ts), [utf.ts](../src/internal/utf.ts),
 [mem.ts](../src/internal/mem.ts).
 
+`date.c:setDateTimeToCurrent/osLocaltime/toLocaltime/parseModifier(utc)`,
+`vdbeapi.c:sqlite3StmtCurrentTime`, `vdbe.c:iCurrentTime` and
+`os.c:sqlite3OsCurrentTimeInt64` → private `date-time.ts` environment,
+`index.ts` symbol enrollment and `VdbeStatement` Function clock. Entry reset
+and UTC provenance use the shared producer; failed clock acquisition remains
+uncached so later calls retry as `sqlite3StmtCurrentTime` does.
+`resolve.c:resolveExprStep` registration checks/Expr.op2 → generated carrier and
+both virtual bindings → PureFunc/P5 → FunctionContext.notPure → reached date
+branches. Tests: `run-date-time-provider-ts.mjs`, `run-date-time-provider-failure-ts.mjs`,
+`run-date-time-generated-matrix-ts.mjs` (native metadata/nested/STORED matrix),
+`run-date-time-once-ts.mjs` (expr.c constant walker), `run-date-time-entry-ts.mjs`
+(real-task/independent entry cache) and `run-date-time-registration-ts.mjs`.
+[Admission assessment](research/card-q-a-a-provider-admission.md),
+[repair evidence and residual matrix](research/card-q-a-b-provider-repair.md).
+`date.c:strftimeFunc` format/NULL short-circuit precedes `isDate` in
+`evaluateDateTime`; generated native/public matrix and ordinary provider/failure
+runners cover NULL formats and reached nonNULL neighbors. Constant scalar Once
+is a charged opcode: bounded-expression regression retains a finite23-fail/24-row
+boundary for `hex(?1)`, including saved-error/reset/reuse (same evidence link).
+`date.c:isDate`/`setRawDateNumber` → shared `isDate`/`parse`/`rawDateNumber`;
+`timediffFunc` → sequential complete `isDate` admission before calendar consumers;
+value_text → private
+`Mem.valueText`, with consumer-owned C-NUL boundaries in parse/format/apply.
+`parseModifier` numeric prefix/unit branches overwrite incoming n before use;
+unixepoch/auto preserve floating add-before-round and range-before-cast order.
+[Argument receipts/generator and public runner](research/card-q-a-b-date-admission.md)
+cover these paths without changing selected upstream denominators.
+
 `json.c:jsonLookupStep` reached-step path parsing and shape/NOTFOUND exits →
 `json.ts:pathStep/jsonLookup/editNode/pathLabelIndex` (unparsed tail threaded into construction;
 raw quoted spans plus escape flags, producer-label byte comparison via `jsonReadLabel`,
@@ -653,3 +681,15 @@ Control failures are never inferred from message text. Tests:
 `json-root-parent-errors.test.mjs`, `json-root-parent-native.test.mjs`,
 `json-path-control.test.mjs`. [Owner source comparison](research/card-r-b-lazy-jsonb-delivery/root-parent-errors/evidence.md);
 [combined independent verification](research/card-r-e-json-final-verification.md).
+
+### Enabled math and combined scalar callers
+
+`func.c:ceilingFunc/logFunc/math1Func/math2Func/piFunc` and
+`vdbe.c:numericType` → `math.ts`, `Mem.valueNumericTypeCopy` → registry
+`functions.ts` → resolver/`select-compiler.ts` Function lowering → `vdbe.ts`.
+Tests: `run-math-cases-ts.mjs` (23 cases/69 typed observations, 30 registration
+rows/29 names), `math-manifest.test.py`; INTEGER-preserving rounding and
+second-operand log coercion retain source ownership. ECMAScript Math is the
+browser-safe libm adaptation; finite host last-bit qualifications persist.
+DATE/provider mappings above use the same combined callers, not a parallel
+execution path. [Combined provenance/validation](research/card-q-a-b-combined-r3.md).

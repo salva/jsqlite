@@ -419,6 +419,21 @@ compatibility credit.
   embedded NUL, NULL/domain and result limits remain observable. Host registration
   is not exposed. Read-only last_insert_rowid/changes/total_changes return INTEGER
   zero; sqlite_log is a NULL-producing no-op without a host log callback.
+- Enabled math uses SQLite numeric-type admission, preserves INTEGER rounding
+  inputs and REAL callback results, and maps NaN to NULL. Finite transcendental
+  last bits may differ by host libm/ECMAScript Math; no cross-host bit identity
+  is guaranteed. See [combined evidence](research/card-q-a-b-combined-r3.md).
+- Date/format arguments follow SQLite SQL-to-TEXT conversion, including carried
+  BLOB encoding. Date strings and formats stop at C NUL; pinned modifier branches
+  also stop at their own C-string scans. Numeric storage enters raw-date state
+  without stringification; invalid/out-of-range date values return NULL.
+- Current date/time acquisition is lazy per VM step entry (not across all rows);
+  constant-expression Once reuse is separate. UTC-provenance current time avoids
+  local conversion. Invalid private clock acquisition yields NULL and may retry
+  within the entry; unavailable local conversion errors. Virtual generated date
+  calls enforce reached-branch nondeterminism, while clearly nondeterministic
+  registrations are rejected during schema resolution. No public clock/provider
+  enrollment API is supplied.
 
 ## JSON built-ins
 
