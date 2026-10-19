@@ -53,6 +53,32 @@ class Runner(unittest.TestCase):
   for result in report['results']:
    self.assertEqual(result['log_sha256'],hashlib.sha256(pathlib.Path(result['log']).read_bytes()).hexdigest())
 
+ def test_successful_component_cannot_hide_input_drift(self):
+  """Exit zero is insufficient when an executed input changes after hashing."""
+  import subprocess, json, hashlib, tempfile
+  work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])
+  with tempfile.TemporaryDirectory(prefix='runner-input-drift-',dir=work) as directory:
+   root=pathlib.Path(directory)
+   file=root/'mutates.test.mjs'
+   file.write_text("import fs from 'node:fs';fs.appendFileSync(new URL(import.meta.url),'\\n// changed during execution\\n');console.log('completed-control');\n")
+   before=hashlib.sha256(file.read_bytes()).hexdigest()
+   env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(root/'evidence'))
+   proc=subprocess.run([sys.executable,'tools/test/integration.py',str(file)],env=env,capture_output=True,text=True,timeout=30)
+   self.assertEqual(proc.returncode,1,proc.stdout+proc.stderr)
+   report=json.loads((root/'evidence/integration-run/manifest.json').read_text())
+   self.assertEqual(report['files'],[str(file)])
+   self.assertEqual(report['prerequisites'],[])
+   self.assertEqual(report['input_drift'],[str(file)])
+   self.assertEqual(report['inputs'][str(file)],before)
+   self.assertNotEqual(before,hashlib.sha256(file.read_bytes()).hexdigest())
+   self.assertEqual(len(report['results']),1)
+   result=report['results'][0]
+   self.assertEqual(result['classification'],'completed')
+   self.assertEqual(result['exit'],0)
+   log=pathlib.Path(result['log']).read_bytes()
+   self.assertIn(b'completed-control',log)
+   self.assertEqual(result['log_sha256'],hashlib.sha256(log).hexdigest())
+
  def test_fixture_plan_and_chinook_invocation(self):
   root=pathlib.Path('/purpose/run');library=root/'oracle.so'
   plan=runner.prerequisite_commands(['test/storage/skipscan-prefix-seek.test.mjs','test/conformance/skipscan-stat1-producer.test.mjs','test/conformance/where-operand-admission-public.test.mjs'],library,root)
@@ -64,6 +90,36 @@ class Runner(unittest.TestCase):
   command=runner.test_command('test/conformance/run-audit-chinook-b1-b5-ts.mjs')
   self.assertNotIn('--test',command);self.assertEqual(command[-1],'examples/browser/chinook.sqlite')
   self.assertIn('--test',runner.test_command('test/value/mem.test.mjs'))
+ def test_date_fixture_plan_matches_positional_invocation(self):
+  root=pathlib.Path('/purpose/date-run');library=root/'oracle.so'
+  files=list(runner.DATE_FIXTURES)
+  plan=runner.prerequisite_commands(files,library,root)
+  self.assertEqual(len(plan),5)  # identity guard plus four producers
+  self.assertEqual(plan[0][-2:],[str(library),str(root/'date-native')])
+  for file,producer in zip(files,plan[1:]):
+   script,output=runner.DATE_FIXTURES[file]
+   target=str(root/'date-native'/output)
+   self.assertEqual(producer,['python3',script,str(library),target])
+   self.assertEqual(runner.test_command(file,root),['node','--experimental-strip-types',file,target])
+   with self.assertRaises(ValueError):runner.test_command(file)
+   self.assertEqual(len(runner.prerequisite_commands([file],library,root)),2)
+  # A misspelled/ordinary test must not silently acquire unrelated fixtures.
+  self.assertEqual(runner.prerequisite_commands(['test/value/mem.test.mjs'],library,root),[])
+
+ def test_date_identity_guard_rejects_wrong_source_before_outputs(self):
+  import subprocess, tempfile
+  with tempfile.TemporaryDirectory(prefix='date-pin-negative-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory)
+   # Exercise the actual guard in a fresh Python process without needing a
+   # second native SQLite build. The fixture producer must never be reached.
+   (root/'ctypes.py').write_text("c_char_p=object()\nclass Source:\n def __call__(self):return b'wrong-source'\nclass CDLL:\n def __init__(self,path):self.sqlite3_sourceid=Source()\n")
+   command=runner.prerequisite_commands(list(runner.DATE_FIXTURES),root/'wrong.so',root)[0]
+   env=dict(os.environ,PYTHONPATH=str(root),PYTHONDONTWRITEBYTECODE='1')
+   result=subprocess.run(command,env=env,capture_output=True,text=True,timeout=10)
+   self.assertNotEqual(result.returncode,0)
+   self.assertIn('wrong-source',result.stderr)
+   self.assertFalse((root/'date-native').exists())
+
  def test_watchdog_contains_descendant_after_leader_exits(self):
   import subprocess, time
   work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'integration-runner-tests';work.mkdir(exist_ok=True)

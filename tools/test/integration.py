@@ -3,9 +3,33 @@
 import argparse, concurrent.futures, hashlib, json, os, pathlib, signal, subprocess, time
 
 
+# Development-only positional fixture ownership, shared by planning and invocation.
+DATE_FIXTURES = {
+    'test/conformance/run-date-time-admission-ts.mjs': ('docs/research/card-q-a-b-date-admission.py', 'admission'),
+    'test/conformance/run-date-time-generated-matrix-ts.mjs': ('docs/research/card-q-a-b-generated-matrix.py', 'generated-matrix'),
+    'test/conformance/run-date-time-generated-ts.mjs': ('docs/research/card-q-a-a-generated-probe.py', 'generated.db'),
+    'test/conformance/run-date-time-registration-ts.mjs': ('docs/research/card-q-a-b-registration-fixtures.py', 'registration'),
+}
+
+
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    selected = [f for f in DATE_FIXTURES if f in files]
+    if selected:
+        # Older diagnostic producers print identity but do not assert it.
+        # Reject a wrong native library before creating any fixture.
+        commands.append(['python3', '-c',
+            "import ctypes,json,pathlib,sys; "
+            "lib=ctypes.CDLL(sys.argv[1]); lib.sqlite3_sourceid.restype=ctypes.c_char_p; "
+            "actual=lib.sqlite3_sourceid().decode(); "
+            "expected=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text())['sqliteSourceId']; "
+            "assert actual==expected,(actual,expected); "
+            "pathlib.Path(sys.argv[2]).mkdir(parents=True,exist_ok=True); print(actual)",
+            str(library), str(work_root/'date-native')])
+        for file in selected:
+            script, output = DATE_FIXTURES[file]
+            commands.append(['python3', script, str(library), str(work_root/'date-native'/output)])
     names = {pathlib.Path(f).name for f in files}
     if names & {'where-operand-admission-public.test.mjs', 'where-order-consumption-public.test.mjs', 'skipscan-seek-consumer.test.mjs'}:
         for script, output in [('operand-admission', 'r1-native'), ('order-consumption', 'r2-native')]:
@@ -24,7 +48,12 @@ def prerequisite_commands(files, library, work_root):
     return commands
 
 
-def test_command(file):
+def test_command(file, work_root=None):
+    if file in DATE_FIXTURES:
+        if work_root is None:
+            raise ValueError('date fixture command requires a planned work root')
+        return ['node', '--experimental-strip-types', file,
+                str(work_root/'date-native'/DATE_FIXTURES[file][1])]
     # This script requires a positional fixture, unlike node:test suites.
     if file == 'test/conformance/run-audit-chinook-b1-b5-ts.mjs':
         return ['node', '--experimental-strip-types', file, 'examples/browser/chinook.sqlite']
@@ -118,7 +147,7 @@ def main():
                 report['not_run'] = files; save(); return 1
         report['generated_inputs'] = {
             str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-            for directory in ('r1-native', 'r2-native', 'skipscan-native')
+            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native')
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
         save()
@@ -131,7 +160,7 @@ def main():
             report['not_run'] = files; save(); return 1
     def run(pair):
         i, file = pair
-        result = component(test_command(file), work/f'{i:03d}.log',args.watchdog_seconds,env)
+        result = component(test_command(file, work_root), work/f'{i:03d}.log',args.watchdog_seconds,env)
         result['file'] = file
         return result
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as executor:
