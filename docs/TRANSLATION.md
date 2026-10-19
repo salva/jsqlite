@@ -402,7 +402,12 @@ not established. [Retained reprepare evidence](research/card-h-b-reprepare/READM
 `whereexpr.c`, `where.c`, `wherecode.c` produce terms, candidate loops, paths and
 loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
-LogEst estimates retain dependency and join-barrier ownership. The represented
+LogEst estimates retain dependency and join-barrier ownership. Output adjustment
+reads the current syntactic RHS directly from the parser carrier (the analogue
+of `Expr.pRight`), without allocating an operand inventory or memoizing borrowed
+mutable graphs; progress checking still precedes the read. This preserves live
+operand identity across calls. See [[card:card-s-f-b]] status for bounded
+performance evidence; it is not whole-suite acceptance. The represented
 solver uses the upstream bounded path-choice shape; it is not full optimizer
 coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 

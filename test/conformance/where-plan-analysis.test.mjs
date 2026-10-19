@@ -2259,3 +2259,37 @@ test('AddBtree forced full-scan debit precedes the same isolated recursive owner
  assert.equal(terminal.completion.done,true);
  }
 });
+test('output RHS projection matches filtered Expr ordinal across carrier shapes',async()=>{
+ const {readFileSync}=await import('node:fs');
+ const source=readFileSync(new URL('../../src/internal/where-plan.ts',import.meta.url),'utf8');
+ const body=source.match(/function expressionOperand\(node:ExprReduction,ordinal:number\):ExprReduction\|undefined \{([\s\S]*?)\n\}/)[1];
+ const project=new Function('node','ordinal',body);
+ const expr=n=>({kind:'reduction',signature:'expr ::= '+n,children:[]});
+ const lhs=expr('lhs'),rhs=expr('rhs'),third=expr('third');
+ const terminal={kind:'terminal',value:'='},nonExpr={kind:'reduction',signature:'exprlist ::= expr',children:[rhs]};
+ for(const children of [[],[terminal],[lhs],[terminal,lhs,nonExpr,terminal,rhs,third],[nonExpr,rhs,lhs]]){
+  const carrier={children};
+  for(const ordinal of [0,1,2,3])assert.equal(project(carrier,ordinal),children.filter(x=>x.kind==='reduction'&&x.signature.startsWith('expr ::='))[ordinal]);
+ }
+ const carrier={children:[lhs,rhs]};assert.equal(project(carrier,1),rhs);
+ carrier.children=[third,lhs];assert.equal(project(carrier,1),lhs);
+});
+test('output RHS projection retains live carrier identity and progress ordering',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+ const s=schema(encoding),r=resolve('SELECT id FROM t WHERE blob=7',s),c=analyzeWhere(r).clause;
+ const zero=analyzeWhere(resolve('SELECT id FROM t WHERE blob=0',s)).clause;
+ const root=c.terms[0].expression.reduction;
+ const operands=n=>n.children.filter(x=>x.kind==='reduction'&&x.signature.startsWith('expr ::='));
+ const rhs=operands(root)[1],replacement=operands(zero.terms[0].expression.reduction)[1];
+ const children=[...root.children],borrowed={...root,children};
+ const term={...c.terms[0],expression:{...c.terms[0].expression,reduction:borrowed}};
+ const clause=wherePlanning.whereClause([term]);
+ const scan=progressCheck=>btreeLoops(r.sources[0],0,clause,{notIndexed:true,resolved:r,neededColumns:new Set([ROWID_NEEDED]),orderBy:[],planBudget:{remaining:10n,progressCheck}})[0];
+ assert.equal(scan().outputRows,180n);
+ let calls=0;const changed=scan(()=>{calls++;children[children.indexOf(rhs)]=replacement;});
+ assert.ok(calls>0);assert.equal(changed.outputRows,190n);
+ assert.equal(scan().outputRows,190n,'subsequent invocation observes live replacement, no identity memo');
+ const sentinel=new Error('progress before operand read');
+ assert.throws(()=>scan(()=>{throw sentinel;}),e=>e===sentinel);
+ }
+});

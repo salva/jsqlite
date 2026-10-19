@@ -331,7 +331,7 @@ function outputAdjust(loop:BtreeWhereLoop,clause:WhereClause,budget:WherePlanBud
   if((term.operator==="eq"||term.operator==="is")&&!truth.high.has(term)){
    // sqlite3ExprIsInteger tests the syntactic right operand, not the indexed
    // orientation. Only literal +/- integer leaves qualify, not folded math.
-   const root=term.expression.reduction,rhs=root?.kind==="reduction"?exprChildren(root)[1]:undefined;
+   const root=term.expression.reduction,rhs=root?.kind==="reduction"?expressionOperand(root,1):undefined;
    const smallValue=rhs?exprInteger32(rhs):null,small=smallValue!==null&&smallValue>=-1n&&smallValue<=1n;
    const k=small?10n:20n;if(reduce<k){truth.heuristic.add(term);reduce=k;}
   }
@@ -777,6 +777,15 @@ export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sou
 
 type ExprReduction=LemonValue<SqlToken>&{readonly kind:"reduction"};
 function exprChildren(node:ExprReduction):ExprReduction[]{return node.children.filter((x):x is ExprReduction=>x.kind==="reduction"&&x.signature.startsWith("expr ::="));}
+/** Project the parser carrier's Expr child without allocating an inventory.
+ * where.c:3090 reads pExpr->pRight. No memo: borrowed mutable carriers must
+ * remain live, including after the output-adjustment progress callback. */
+function expressionOperand(node:ExprReduction,ordinal:number):ExprReduction|undefined {
+ for(const child of node.children)if(child.kind==="reduction"&&child.signature.startsWith("expr ::=")){
+  if(ordinal--===0)return child;
+ }
+ return undefined;
+}
 function asExpr(node:ExprReduction):ExprNode {const tokens:SqlToken[]=[];const collect=(x:LemonValue<SqlToken>):void=>{if(x.kind==="terminal"){if(x.value)tokens.push(x.value);}else x.children.forEach(collect)};collect(node);return Object.freeze({kind:"tokens",tokens:Object.freeze(tokens),reduction:node});}
 function unwrap(node:ExprReduction):ExprReduction {let at=node;while(at.signature==="expr ::= LP expr RP"||at.signature.startsWith("expr ::= expr COLLATE")){const child=exprChildren(at)[0];if(!child)break;at=child;}return at;}
 /** expr.c:sqlite3ExprSkipCollateAndLikely, with parse.y parentheses as

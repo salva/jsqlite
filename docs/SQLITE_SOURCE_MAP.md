@@ -306,6 +306,14 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
+`where.c:whereLoopOutputAdjust` (3037ff, `pExpr->pRight` at3090) →
+`where-plan.ts:outputAdjust/expressionOperand`: live ordinal RHS projection,
+no per-insertion child array or cross-call mutable-graph memo. Progress/error
+ordering and all-encoding borrowed-carrier replacement are covered by
+`where-plan-analysis.test.mjs` (output RHS projection); original150+150/21002
+budget stress remains unchanged. Bounded timing evidence: [[card:card-s-f-b]] status.
+
+
 `whereexpr.c:sqlite3WhereExprAnalyze` → [where-plan.ts](../src/internal/where-plan.ts)
 terms/dependencies. `where.c:whereLoopAddBtree`, `wherePathSolver`,
 `sqlite3WhereBegin`, `sqlite3WhereEnd` → candidate/path/level state and SELECT
