@@ -471,8 +471,8 @@ parameters retain lexical generated-terminal identity before LIMIT/WHERE lowerin
 Explicit ORDER COLLATE set-rewrite metadata follows native rightmost type/origin
 with leftmost names, separately from compound key collation. Tests and current
 working-copy boundaries: [filtered compound evidence](research/card-j-d-b-a-c-filtered/README.md).
-Unordered table sets retain the bounded typed ephemeral route. Ordered ordinary
-full-row table arms now feed per-arm sorter coroutines and the existing
+Unordered ordinary table UNION ALL arms scan sequentially. Ordered ordinary
+and unordered non-ALL full-row table arms feed per-arm sorter coroutines and the existing
 same-VM A/B merge owner; initial empty A ends EXCEPT/INTERSECT without evaluating
 B, while UNION/ALL positions B. WHERE, projection and local DISTINCT remain
 scan-owned, and lexical parameters and metadata retain their preceding owners.

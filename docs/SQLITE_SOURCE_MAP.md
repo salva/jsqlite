@@ -634,7 +634,7 @@ These are bounded delivered consumers, not independent histograms or arbitrary n
 
 `expr.c:sqlite3CodeRhsOfIN/sqlite3ExprCodeIN` → `vdbe.ts:compileWideSubquery` linked joined binding, correlated no-Once SRT_Set and packed probe; RIGHT downstream readiness remains with joined continuation. Exact original positives and adjacent atomic ordered-compound gate: `test/conformance/right-nested.test.mjs`. [Native-first typed three-encoding and affected control/lifecycle evidence](research/right-nested-in/README.md). No runtime admission change or general nested-join completeness claimed.
 
-Ordered filtered/projected full-row ordinary table arms use resolved scan destinations into the same-VM A/B merge; separate order/permutation and full-output duplicate keys, initial-empty A scheduling, balanced UNION/ALL and independent ALL capacities map to `select.c:multiSelectByMerge` and `resolve.c:resolveCompoundOrderBy`. [Current bounded source/test evidence](research/card-j-d-b-a-c-filtered/MERGE.md). Unordered table sets retain typed ephemeral production.
+Ordered filtered/projected full-row ordinary table arms use resolved scan destinations into the same-VM A/B merge; separate order/permutation and full-output duplicate keys, initial-empty A scheduling, balanced UNION/ALL and independent ALL capacities map to `select.c:multiSelectByMerge` and `resolve.c:resolveCompoundOrderBy`. [Current bounded source/test evidence](research/card-j-d-b-a-c-filtered/MERGE.md). Unordered ordinary table UNION ALL scans sequentially; unordered non-ALL uses the same full-row merge via `select.c:multiSelect`'s invented ORDER route. Local DISTINCT remains scan-owned typed ephemeral production. [Wide native/source evidence](research/compound-wide-repair.md).
 
 ### Ordered mixed metadata consumers
 
@@ -702,4 +702,4 @@ browser-safe libm adaptation; finite host last-bit qualifications persist.
 DATE/provider mappings above use the same combined callers, not a parallel
 execution path. [Combined provenance/validation](research/card-q-a-b-combined-r3.md).
 
-`select.c:selectInnerLoop` nResultCol/nSdst → `compileSimpleTableCompound` resolved expanded width, contiguous row, full-row local DISTINCT/ephemeral destinations. `multiSelectByMerge` duplicate versus ORDER keys → existing shared merge with full-row callback payload and retained-arm identity. [Tests](../test/conformance/compound-multi-output.test.mjs), [repair evidence](research/multi-output-compound-repair.md).
+`select.c:selectInnerLoop` nResultCol/nSdst → `compileSimpleTableCompound` resolved expanded width, contiguous row and full-row local DISTINCT ephemeral destination (not compound set accumulation). `multiSelectByMerge` duplicate versus ORDER keys → existing shared merge with full-row callback payload and retained-arm identity. [Tests](../test/conformance/compound-multi-output.test.mjs), [repair evidence](research/multi-output-compound-repair.md).
