@@ -30,7 +30,21 @@ adding `json_each('[1]')` as a mixed module source rejects atomically at prepare
 with the existing precise unsupported message, followed by successful SELECT1.
 No runtime error is relabeled as prepare failure.
 
-## Cross-owner proposed patch — not applied
+## Original-owner correction (author evidence; independent acceptance pending)
+
+[[card:card-j-d-b-a-c]] repaired the original gate on observed parent
+`757ccdebed27dd5aaeac049fe13023a4557c1e0f`. The gate now selects the merge
+function by TypeScript syntax ownership, retains the executable caller range,
+and checks the complete direct-call edge inventory plus key/LIMIT helper bodies
+and coroutine destination implementation. The earlier lexical proposal below
+is retained as provenance, not the delivered patch. All positive BalancedMerge
+checks and all five forbidden controls remain; independent retained FULL replay
+is excluded, not permitted inside the merge. Public affected callers and five
+separate disposable mutations are author verification, not independent approval.
+Current exact results and candidate preservation are in the original owner's
+`status.md`; no full-beta acceptance is implied.
+
+## Earlier cross-owner proposed patch — provenance only
 
 `select-derived-table-compound-owner.test.mjs` has no established original-card
 ownership here. Planner/ROOT [[card:card-j]] must adjudicate/apply this bounded

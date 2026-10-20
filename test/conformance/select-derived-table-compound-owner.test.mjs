@@ -1,6 +1,42 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import ts from 'typescript';
+
+// Syntax-owned merge: adjacent retained FULL replay (select.c 0488) is
+// independent. Audit direct edges, including nested closures and callbacks,
+// so new helper delegation cannot silently escape the ownership gate.
+function mergeOwner(source){
+ const parsed=ts.createSourceFile('vdbe.ts',source,ts.ScriptTarget.Latest,true);
+ const node=parsed.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='emitScalarCompoundMerge');
+ assert.ok(node?.body);
+ const calls=new Set();
+ const visit=node=>{if(ts.isCallExpression(node))calls.add(node.expression.getText(parsed));ts.forEachChild(node,visit);};
+ visit(node);
+ assert.deepEqual([...calls].sort(),[
+  'Array.from','Math.ceil','Object.assign','Object.freeze','[0,1].map',
+  'builder.cursor','builder.range','builder.register','child.arms.every',
+  'child.arms.map','child.arms.reduce','child.arms.slice','child.arms.slice(1).some',
+  'child.orderBy.some','compileScalarSelect','computeLimitRegisters',
+  'emitArm','emitMerge','emitScalarCompoundMerge','emitSelectDestination',
+  'ends.push','expandAndResolveSelect','explicitCollation','expressionFromReduction',
+  'mergeOrder.forEach','mergeOrder.map','mergeOrder.push','mergeOrder.some',
+  'ops.push','order.forEach','output','resolveCompoundMergeOrder',
+  'resolveTransientArm','resolvedCompoundCollation','sqliteAsciiFold','tailEnds.push','terms.map'
+ ].sort());
+ const forbidden=/OpenEphemeral|SetDelete|SetRetainIntersection|child\.ops|relocateControlTargets/;
+ // These reachable helpers produce binding/key/LIMIT state, not set graphs.
+ // Scan complete syntax bodies as well as the caller and recursive merge.
+ for(const name of ['resolveTransientArm','resolveCompoundMergeOrder','computeLimitRegisters']){
+  const helper=parsed.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text===name);
+  assert.ok(helper?.body,`missing ${name}`);
+  assert.doesNotMatch(helper.getText(parsed),forbidden);
+ }
+ const destinations=fs.readFileSync(new URL('../../src/internal/select-program.ts',import.meta.url),'utf8');
+ assert.doesNotMatch(destinations,forbidden);
+ assert.match(destinations,/if\(dest.kind==="coroutine"\)\{[\s\S]*?code:"Copy"[\s\S]*?code:"Yield"/);
+ return node.getText(parsed);
+}
 
 // select.c:multiSelect and tag-select-0482 share the enclosing Parse/Vdbe.
 // This slice gate complements, and does not replace, the broader owner gate.
@@ -30,7 +66,7 @@ test('table compound derived producer emits into enclosing coroutine destination
 test('ordered scalar compound derived producer owns wide rows and multiple keys',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered){',source.indexOf('function compileDerivedProducer('));
- const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
+ const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+mergeOwner(source);
  assert.match(branch,/builder.range\(width\)/);
  // ORDER identity is resolved once by the shared per-arm alias/expression owner.
  assert.match(branch,/resolveCompoundMergeOrder\(child,/);
@@ -53,7 +89,7 @@ test('ordered and streaming compound VALUES arms emit every row in parent',()=>{
 test('set and mixed VALUES arms finish intersection after the complete right arm',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered)',source.indexOf('function compileDerivedProducer('));
- const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
+ const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+mergeOwner(source);
  assert.match(branch,/for\(const expressions of arm.valuesRows\?\?\[arm.result\]\)/);
  assert.match(branch,/operator==='intersect'\|\|operator==='union-all'/);
  assert.match(branch,/explicitCollation/);
@@ -63,7 +99,7 @@ test('set and mixed VALUES arms finish intersection after the complete right arm
 test('set derived producer compares and yields complete multi-column keys',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered)',source.indexOf('function compileDerivedProducer('));
- const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
+ const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+mergeOwner(source);
  assert.match(branch,/keyFieldCount:width/);
  assert.match(branch,/builder.range\(width\)/);
  assert.match(branch,/code:'CompareJump'/);
@@ -73,7 +109,7 @@ test('set derived producer compares and yields complete multi-column keys',()=>{
 test('represented ordered sets sort prefix and ALL tail before shared limits',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered)',source.indexOf('function compileDerivedProducer('));
- const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
+ const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+mergeOwner(source);
  assert.match(branch,/root&&limit\?\.offset/);
  assert.match(branch,/keyInfo:mergeKeyInfo/);
  assert.match(branch,/child.hasOrderBy\?child.arms.length-1/);
@@ -257,7 +293,7 @@ test('unordered retained sets recursively compose source merge coroutine graph',
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=source.indexOf('  }else if(setProducer||mixedProducer||ordered){');
  assert.ok(start>=0);
- const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+source.slice(source.indexOf('function emitScalarCompoundMerge('),source.indexOf('function compileDerivedProducer('));
+ const branch=source.slice(start,source.indexOf('  }else if(unionProducer||groupedAllProducer)',start))+mergeOwner(source);
  // select.c BalancedMerge recursively splits identical UNION/ALL suffixes;
  // mixed prefixes remain left-associated, with immutable first/count ranges.
  assert.match(branch,/operator==='union'\|\|operator==='union-all'/);
@@ -267,7 +303,7 @@ test('unordered retained sets recursively compose source merge coroutine graph',
  assert.match(branch,/code:'CompareJump'/);
  assert.match(branch,/previous-key suppression precedes OFFSET/);
  assert.match(branch,/if\(root&&limit\)/);
- assert.doesNotMatch(branch,/OpenEphemeral|SetDelete|SetRetainIntersection|child\.ops/);
+ assert.doesNotMatch(branch,/OpenEphemeral|SetDelete|SetRetainIntersection|child\.ops|relocateControlTargets/);
 });
 
 test('ordered physical DISTINCT arms compose shared merge and retain arm DISTINCT carrier',()=>{
