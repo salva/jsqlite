@@ -365,7 +365,7 @@ Evidence: [[card:card-k]], [[card:card-s]],
 [card-s status](record:///status.md?card=card-s), prior map advanced-index/selected
 WHERE sections, [mutable audit tail](reviews/translation-fidelity-2026-09-14.md).
 
-Current boundaries: one RIGHT/FULL barrier; selected expression/partial/covering/
+Current boundaries: per-barrier RIGHT/FULL state; selected expression/partial/covering/
 WITHOUT ROWID paths, not optimizer completeness. Genuine IPK/rowid proof and
 complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
 sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit
@@ -754,6 +754,14 @@ DATE/provider mappings above use the same combined callers, not a parallel
 execution path. [Combined provenance/validation](research/card-q-a-b-combined-r3.md).
 
 `select.c:selectInnerLoop` nResultCol/nSdst → `compileSimpleTableCompound` resolved expanded width, contiguous row and full-row local DISTINCT ephemeral destination (not compound set accumulation). `multiSelectByMerge` duplicate versus ORDER keys → existing shared merge with full-row callback payload and retained-arm identity. [Tests](../test/conformance/compound-multi-output.test.mjs), [repair evidence](research/multi-output-compound-repair.md).
+
+## Retained recursive prefix RIGHT/FULL
+
+`select.c` CteUse/tag-select-0484 and `wherecode.c:sqlite3WhereRightJoinLoop`
+→ `vdbe.ts:compileRecursiveJoinedSelect` retainedCursors/cursorFor → existing
+`compileInnerTableSelect` per-barrier match/drain. Physical RHS identity remains rowid;
+retained prefix handles receive NullRow before drain reads. Retained RHS is still gated.
+[Native/public metadata, duplicate and alias discriminators](research/recursive-join/right-full-evidence.md).
 
 ## Bounded recursive JOIN-arm compounds
 

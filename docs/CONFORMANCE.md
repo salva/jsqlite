@@ -906,9 +906,12 @@ bind/reset and operation controls are covered by `recursive-cte-join.test.mjs`.
 See [source comparison and exact evidence](research/recursive-join/README.md).
 Admission regressions in `cte-admission.test.mjs` preserve represented derived
 inner-join and distinct multiple-recursive routes; these are separate from the
-physical-join specialization. This does not close SQL outer joins, repeated
-references to one recursive declaration, broader nested WITH composition,
-unrepresented joined compound/window inputs or original225/release obligations.
+physical-join specialization. Retained recursive prefixes additionally support
+RIGHT/FULL physical RHS: [54 native/public typed and metadata comparisons](research/recursive-join/right-full-evidence.md)
+include duplicates, empty prefix, ON/WHERE, aggregate and independent downstream
+alias readers, each reset twice. This does not close retained recursive RHS,
+broader nested WITH composition, unrepresented joined compound/window inputs or
+original225/release obligations. No additional upstream assertion credit is claimed.
 
 
 ## Direct JSON Window input

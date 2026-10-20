@@ -29,7 +29,7 @@ for(const encoding of ['UTF-8','UTF-16le','UTF-16be'])test(`recursive physical j
  const longSql='WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<100000) SELECT sum(t.x) FROM r JOIN t ON r.x=t.x';
  const long=db.prepare(longSql).statement,controller=new AbortController();let fired=false;const timer=setTimeout(()=>{fired=true;controller.abort();},0);
  try{await assert.rejects(long.step({signal:controller.signal}),e=>e.kind==='cancelled');assert.equal(fired,true);assert.throws(()=>long.reset(),e=>e.kind==='cancelled');}finally{clearTimeout(timer);long.finalize();}
- for(const sql of [prefix+'SELECT sum(t.x) FROM r RIGHT JOIN t ON r.x=t.x'])assert.throws(()=>db.prepare(sql),e=>e.kind==='unsupported'&&e.unsupportedClassification==='temporary');
+ companions.push([prefix+'SELECT sum(t.x) FROM r RIGHT JOIN t ON r.x=t.x',[],[[6n]]]);
  for(const [sql,binds,expected] of companions){const s=db.prepare(sql).statement;try{for(let pass=0;pass<2;pass++){binds.forEach((value,i)=>s.bind(i+1,value));const rows=[];while(await s.step()==='row')rows.push(Array.from({length:s.columnCount},(_,i)=>s.column(i)));assert.deepEqual(rows,expected,sql);s.reset();}}finally{s.finalize();}}
  }finally{db?.closeDeferred();globalThis.fetch=old;}
 });

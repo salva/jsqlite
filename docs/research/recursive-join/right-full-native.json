@@ -1,0 +1,4001 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "cases": [
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON 0 ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON NULL ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x WHERE r.x IS NULL ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a RIGHT JOIN t ON a.x=t.x JOIN r b ON b.x=t.x ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a RIGHT JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT sum(t.x) FROM r RIGHT JOIN t ON r.x=t.x",
+      "metadata": [
+        {
+          "name": "sum(t.x)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON 0 ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON NULL ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x WHERE r.x IS NULL ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a FULL JOIN t ON a.x=t.x JOIN r b ON b.x=t.x ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a FULL JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT sum(t.x) FROM r FULL JOIN t ON r.x=t.x",
+      "metadata": [
+        {
+          "name": "sum(t.x)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON 0 ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON NULL ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x WHERE r.x IS NULL ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a RIGHT JOIN t ON a.x=t.x JOIN r b ON b.x=t.x ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a RIGHT JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT sum(t.x) FROM r RIGHT JOIN t ON r.x=t.x",
+      "metadata": [
+        {
+          "name": "sum(t.x)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON 0 ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON NULL ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x WHERE r.x IS NULL ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a FULL JOIN t ON a.x=t.x JOIN r b ON b.x=t.x ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a FULL JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT sum(t.x) FROM r FULL JOIN t ON r.x=t.x",
+      "metadata": [
+        {
+          "name": "sum(t.x)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON 0 ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON NULL ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x WHERE r.x IS NULL ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a RIGHT JOIN t ON a.x=t.x JOIN r b ON b.x=t.x ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a RIGHT JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT r.x,t.x FROM r RIGHT JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT sum(t.x) FROM r RIGHT JOIN t ON r.x=t.x",
+      "metadata": [
+        {
+          "name": "sum(t.x)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON 0 ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON NULL ORDER BY t.x,r.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x WHERE r.x IS NULL ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a FULL JOIN t ON a.x=t.x JOIN r b ON b.x=t.x ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT a.x,t.x,b.x FROM r a FULL JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        },
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) SELECT r.x,t.x FROM r FULL JOIN t ON r.x=t.x ORDER BY t.x",
+      "metadata": [
+        {
+          "name": "x",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "x",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "x"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) SELECT sum(t.x) FROM r FULL JOIN t ON r.x=t.x",
+      "metadata": [
+        {
+          "name": "sum(t.x)",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    }
+  ]
+}

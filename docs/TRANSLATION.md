@@ -712,8 +712,11 @@ positions but preserves each handle's flag; callers rewind before reading.
 [Cursor branch evidence](research/recursive-join/left-evidence.md).
 Repeated aliases share one producer/storage lifetime and use OpenDup handles with
 independent reader positions and NULL state (select.c CteUse tag-select-0484).
-RIGHT/FULL joins and joined compound/window shapes not represented by another
-owner remain bounded temporary gaps; the represented recursive physical INNER
+Retained recursive prefixes support RIGHT/FULL consumers with physical RHS through
+the existing per-barrier WHERE owner, including ordinary aggregate consumers.
+Retained recursive RHS drain binding and unrepresented joined compound/window
+shapes remain temporary gaps. [Bounded evidence](research/recursive-join/right-full-evidence.md).
+The represented recursive physical INNER
 join plus row_number window is supported, not a missing-feature prediction.
 [Repeated-reader source comparison and evidence](research/recursive-join/repeated-evidence.md). Materializing this retained input charges all producer
 rows before consumer output; it does not promise streaming latency or planner
