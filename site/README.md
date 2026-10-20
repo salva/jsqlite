@@ -1,12 +1,12 @@
 # Public documentation and playground
 
-This site runs the accepted `v0.0.0-alpha.6` engine, independently of development
+This site runs the accepted `v0.0.0-beta.1` engine, independently of development
 HEAD. The site itself is maintained on the `public-site` branch so autonomous
 engine development on `master` cannot implicitly change the published demo.
 
 The project is GPL 3.0 or later; see `LICENSE` and `NOTICE.md`. The deployed site
 includes the full license and a corresponding-source archive for the pinned
-engine plus the committed website/build sources. The original alpha tag is not
+engine plus the committed website/build sources. Original alpha tags are not
 rewritten. Dataset licensing remains separate.
 
 Build with Node 24+, npm, Python 3.12+ and Git:

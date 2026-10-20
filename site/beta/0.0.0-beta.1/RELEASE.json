@@ -1,0 +1,8 @@
+{
+  "version": "0.0.0-beta.1",
+  "sourceCommit": "a8bdaa90f3ba6720434b601d6e79d9855cabfc63",
+  "acceptedSource": "d2780fb63b20d560ed1f960c32b221b850e02573",
+  "packageSha256": "25b05def0ed601c2c36aa79dbad5657ce756edaadc2c8ba85dc8f004fd482a82",
+  "runtimeDist": "byte-identical to accepted beta; no post-beta engine overlay",
+  "demoWrapper": "Website-owned gzip-to-Blob adapter in app.js; release engine and query helper unchanged"
+}

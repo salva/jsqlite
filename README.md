@@ -11,12 +11,12 @@ There is no npm registry publication yet. Public documentation and a live browse
 playground are maintained independently on the `public-site` branch:
 https://salva.github.io/jsqlite/.
 
-**Current public alpha: [0.0.0-alpha.7](https://github.com/salva/jsqlite/releases/tag/v0.0.0-alpha.7).**
-Its pinned engine and unchanged accepted package come from
-`57b498caac4e337172eb07ccfa9812ef338d5fd7`, not development HEAD.
-See [release scope, known metadata-aggregation bug, installation and validation](docs/research/public-alpha-seven-deployment.md).
+**Current public beta: [0.0.0-beta.1](https://github.com/salva/jsqlite/releases/tag/v0.0.0-beta.1).**
+Its pinned engine comes from accepted local beta `d2780fb6`, packaged at
+`a8bdaa90f3ba6720434b601d6e79d9855cabfc63`, not moving development HEAD.
+See [beta scope, installation, validation and limitations](docs/releases/beta.1.md).
 The source tree below on `public-site` retains earlier development history; use
-the alpha.7 tag for that release's engine/API source. Historical local-only
+the beta.1 tag for that release's engine/API source. Historical local-only
 publication restrictions below do not govern this owner-authorized public release.
 
 A fresh TypeScript translation of SQLite's read-only C implementation and tests

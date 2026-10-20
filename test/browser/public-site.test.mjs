@@ -16,7 +16,8 @@ const server = createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
     if (!pathname.startsWith('/jsqlite/')) { response.writeHead(404).end(); return; }
-    const file = resolve(root, pathname.slice('/jsqlite/'.length) || 'index.html');
+    const relative = pathname.slice('/jsqlite/'.length);
+    const file = resolve(root, !relative || relative.endsWith('/') ? relative + 'index.html' : relative);
     if (!file.startsWith(root + '/')) { response.writeHead(404).end(); return; }
     const content = await readFile(file);
     const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.sqlite': 'application/vnd.sqlite3' }[extname(file)] || 'application/octet-stream';
@@ -36,7 +37,7 @@ try {
   const page = await browser.newPage();
   const base = process.env.JSQLITE_SITE_URL || `http://127.0.0.1:${server.address().port}/jsqlite/`;
   await page.goto(base);
-  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-alpha\.7/);
+  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-beta\.1/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
   const native = JSON.parse(await readFile(new URL('./public-examples-native.json', import.meta.url), 'utf8'));
   const pin = JSON.parse(await readFile(new URL('../../reference/sqlite/manifest.json', import.meta.url), 'utf8'));
@@ -73,6 +74,17 @@ try {
   ];
   assert.deepEqual(await page.locator('tbody td').allTextContents(), expected.flat());
   console.log(`Original Chinook query: ${Date.now() - started} ms including worker/open/prepare/render; ten native-matching rows`);
+  const betaNative = JSON.parse(await readFile(new URL('./public-beta-native.json', import.meta.url), 'utf8'));
+  assert.equal(betaNative.sourceId, pin.sqliteSourceId);
+  assert.equal(betaNative.fixtureSha256, native.fixtureSha256);
+  for (const entry of betaNative.cases) {
+    await page.locator('#sql').fill(entry.sql);
+    assert.match(await run(), /^\d+ rows? returned/, entry.id);
+    assert.deepEqual(await page.locator('thead th').allTextContents(), entry.columns, `${entry.id}: columns`);
+    assert.deepEqual(await page.locator('tbody td').allTextContents(), entry.rows.flat().map(cell => cell.value === null ? 'NULL' : cell.type === 'blob' ? `X'${cell.value}'` : String(cell.value)), `${entry.id}: rows`);
+    assert.deepEqual(await page.locator('tbody td').evaluateAll(cells => cells.map(cell => cell.title)), entry.rows.flat().map(cell => cell.type), `${entry.id}: storage classes`);
+    console.log(`Beta ${entry.id}: ${entry.rows.length} native-matching rows`);
+  }
   for (const example of examples) {
     const oracle = native.cases.find(entry => entry.id === example.id);
     assert.equal(oracle?.sql, example.sql, `${example.id}: native evidence must match exact SQL`);
@@ -97,6 +109,22 @@ try {
   for (const name of ['LICENSE', 'NOTICE.md', 'source.tar.gz']) {
     assert.equal((await page.request.get(new URL(name, base).href)).status(), 200);
   }
+  const installed = await browser.newPage();
+  await installed.goto(new URL('beta/0.0.0-beta.1/examples/browser/', base).href);
+  await installed.waitForFunction(() => !document.getElementById('run').disabled);
+  await installed.locator('#run').click();
+  await installed.waitForFunction(() => !document.getElementById('run').disabled);
+  assert.match(await installed.locator('#status').innerText(), /^PASS:/);
+  await installed.locator('#bad-open').click();
+  await installed.waitForFunction(() => !document.getElementById('run').disabled);
+  assert.match(await installed.locator('#status').innerText(), /^Error:/);
+  await installed.locator('#run').click();
+  await installed.waitForFunction(() => !document.getElementById('run').disabled);
+  assert.match(await installed.locator('#status').innerText(), /^PASS:/);
+  for (const name of ['LICENSE', 'NOTICE.md', 'RELEASE.json']) {
+    assert.equal((await installed.request.get(new URL(`beta/0.0.0-beta.1/${name}`, base).href)).status(), 200);
+  }
+  console.log('PASS: versioned beta installed-package demo, failed-open recovery and release/license links');
   console.log('PASS: public site queries, gzip fixture, /jsqlite/ path, types, errors, cancellation/reuse, mobile layout and GPL/source links');
 } finally {
   await browser?.close();

@@ -1,0 +1,89 @@
+import { JSQLiteError } from "../index.js";
+import { Mem, sqliteQuoteReal } from "./mem.js";
+import { decodeSqliteText } from "./utf.js";
+export const SQLITE_VERSION = "3.53.4";
+export const SQLITE_SOURCE_ID = "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc";
+export const SQLITE_COMPILE_OPTIONS = Object.freeze(["ATOMIC_INTRINSICS=1", "COMPILER=gcc-13.3.0", "DEFAULT_AUTOVACUUM", "DEFAULT_CACHE_SIZE=-2000", "DEFAULT_FILE_FORMAT=4", "DEFAULT_JOURNAL_SIZE_LIMIT=-1", "DEFAULT_MMAP_SIZE=0", "DEFAULT_PAGE_SIZE=4096", "DEFAULT_PCACHE_INITSZ=20", "DEFAULT_RECURSIVE_TRIGGERS", "DEFAULT_SECTOR_SIZE=4096", "DEFAULT_SYNCHRONOUS=2", "DEFAULT_WAL_AUTOCHECKPOINT=1000", "DEFAULT_WAL_SYNCHRONOUS=2", "DEFAULT_WORKER_THREADS=0", "DIRECT_OVERFLOW_READ", "ENABLE_COLUMN_METADATA", "ENABLE_MATH_FUNCTIONS", "MALLOC_SOFT_LIMIT=1024", "MAX_ATTACHED=10", "MAX_COLUMN=2000", "MAX_COMPOUND_SELECT=500", "MAX_DEFAULT_PAGE_SIZE=8192", "MAX_EXPR_DEPTH=1000", "MAX_FUNCTION_ARG=1000", "MAX_LENGTH=1000000000", "MAX_LIKE_PATTERN_LENGTH=50000", "MAX_MMAP_SIZE=0x7fff0000", "MAX_PAGE_COUNT=0xfffffffe", "MAX_PAGE_SIZE=65536", "MAX_SQL_LENGTH=1000000000", "MAX_TRIGGER_DEPTH=1000", "MAX_VARIABLE_NUMBER=32766", "MAX_VDBE_OP=250000000", "MAX_WORKER_THREADS=8", "MUTEX_PTHREADS", "SYSTEM_MALLOC", "TEMP_STORE=1", "THREADSAFE=1"]);
+export function scalarText(value) { const out = new Mem(); out.setText(new TextEncoder().encode(value), "utf-8"); return out; }
+export function asText(value, encoding) { const copy = new Mem(); copy.copyFrom(value); copy.cast("text", encoding); return copy.textValue(); }
+export function asUtf8(value) { const copy = new Mem(); copy.copyFrom(value); copy.cast("text", "utf-8"); return copy.textBytes(); }
+export function utf8Length(value) { let bytes = 0; for (const c of value) {
+    const cp = c.codePointAt(0);
+    bytes += cp <= 0x7f ? 1 : cp <= 0x7ff ? 2 : cp <= 0xffff ? 3 : 4;
+} return bytes; }
+export function decodeUnistr(value, maxBytes = Number.MAX_SAFE_INTEGER, checkpoint) { const parts = []; let bytes = 0, visited = 0; const append = (text) => { bytes += utf8Length(text); if (!Number.isSafeInteger(bytes) || bytes > maxBytes)
+    throw new JSQLiteError("limit", "string or blob too big"); parts.push(text); }; for (let i = 0; i < value.length; i++) {
+    if ((visited++ & 255) === 0)
+        checkpoint?.(256);
+    if (value[i] !== "\\") {
+        const cp = value.codePointAt(i);
+        append(String.fromCodePoint(cp));
+        if (cp > 0xffff)
+            i++;
+        continue;
+    }
+    if (value[i + 1] === "\\") {
+        append("\\");
+        i++;
+        continue;
+    }
+    let digits = 4, start = i + 1;
+    if (value[start] === "u") {
+        start++;
+        digits = 4;
+    }
+    else if (value[start] === "U") {
+        start++;
+        digits = 8;
+    }
+    else if (value[start] === "+") {
+        start++;
+        digits = 6;
+    }
+    const hex = value.slice(start, start + digits);
+    if (hex.length !== digits || !/^[0-9a-f]+$/i.test(hex))
+        throw new JSQLiteError("sqlite", "invalid Unicode escape", { code: 1 });
+    const cp = parseInt(hex, 16);
+    if (cp > 0x10ffff || (cp >= 0xd800 && cp <= 0xdfff))
+        throw new JSQLiteError("sqlite", "invalid Unicode escape", { code: 1 });
+    append(String.fromCodePoint(cp));
+    i = start + digits - 1;
+} return parts.join(""); }
+export function quoteValue(value, maxBytes = Number.MAX_SAFE_INTEGER) {
+    const admit = (bytes) => { if (!Number.isSafeInteger(bytes) || bytes > maxBytes)
+        throw new JSQLiteError("limit", "string or blob too big"); };
+    if (value.initialStorageClass === "null") {
+        admit(4);
+        return "NULL";
+    }
+    if (value.initialStorageClass === "integer") {
+        const result = value.integerValue().toString();
+        admit(result.length);
+        return result;
+    }
+    if (value.initialStorageClass === "real") {
+        const result = sqliteQuoteReal(value.realValue());
+        admit(result.length);
+        return result;
+    }
+    if (value.initialStorageClass === "blob") {
+        const bytes = value.blobValue(), size = bytes.byteLength * 2 + 3;
+        admit(size);
+        let hex = "";
+        for (const byte of bytes)
+            hex += byte.toString(16).padStart(2, "0").toUpperCase();
+        return `X'${hex}'`;
+    }
+    const text = value.textValue().split("\0", 1)[0];
+    // func.c `%Q`: delimiters plus UTF-8 input and one byte per doubled quote.
+    const size = new TextEncoder().encode(text).byteLength + 2 + (text.match(/'/g)?.length ?? 0);
+    admit(size);
+    return `'${text.replaceAll("'", "''")}'`;
+}
+export function firstCodePoint(value) { if (value.initialStorageClass === "null")
+    return null; const bytes = asUtf8(value); if (bytes.length === 0 || bytes[0] === 0)
+    return null; return decodeSqliteText(bytes, "utf-8").codePointAt(0) ?? null; }
+export function secureRandom(length, checkpoint) { const bytes = new Uint8Array(length); for (let offset = 0; offset < length; offset += 65536) {
+    checkpoint?.();
+    globalThis.crypto.getRandomValues(bytes.subarray(offset, Math.min(length, offset + 65536)));
+} return bytes; }

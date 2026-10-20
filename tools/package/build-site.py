@@ -1,4 +1,4 @@
-"""Build a static site with the accepted alpha engine, never a dirty runtime overlay."""
+"""Build a static site with the accepted release engine, never dirty runtime."""
 from pathlib import Path
 import hashlib
 import shutil
@@ -7,9 +7,9 @@ import tarfile
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-ALPHA = '57b498caac4e337172eb07ccfa9812ef338d5fd7'
-PACKAGE = ROOT / 'tools/package/releases/jsqlite2-0.0.0-alpha.7.tgz'
-PACKAGE_SHA256 = '0e1da3bf5ccb385e182e37429cc8aa3ed7301aca6bf876cd14079d114d07a0fd'
+RELEASE = 'a8bdaa90f3ba6720434b601d6e79d9855cabfc63'
+PACKAGE = ROOT / 'tools/package/releases/jsqlite2-0.0.0-beta.1.tgz'
+PACKAGE_SHA256 = '25b05def0ed601c2c36aa79dbad5657ce756edaadc2c8ba85dc8f004fd482a82'
 OUT = ROOT / '_site'
 
 def run(*args, cwd=ROOT):
@@ -19,9 +19,9 @@ scratch = ROOT / '.site-build'
 scratch.mkdir(exist_ok=True)
 with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     source = Path(temporary)
-    archive = source / 'alpha.tar'
+    archive = source / 'release.tar'
     with archive.open('wb') as stream:
-        subprocess.run(['git', 'archive', ALPHA], cwd=ROOT, stdout=stream, check=True)
+        subprocess.run(['git', 'archive', RELEASE], cwd=ROOT, stdout=stream, check=True)
     with tarfile.open(archive) as stream:
         stream.extractall(source, filter='data')
     # Deploy the independently accepted package bytes, not a fresh compilation.
@@ -31,10 +31,10 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     if OUT.exists():
         shutil.rmtree(OUT)
     shutil.copytree(ROOT / 'site', OUT, ignore=shutil.ignore_patterns('legacy-assets'))
-    # Cached alpha.6 workers/imports remain available at their immutable URLs.
+    # Cached alpha workers/imports remain available at their immutable URLs.
     shutil.copytree(ROOT / 'site/legacy-assets', OUT, dirs_exist_ok=True)
     query = (source / 'examples/browser/query.js').read_text()
-    engine_name = 'engine-' + ALPHA[:12]
+    engine_name = 'engine-' + RELEASE[:12]
     query = query.replace("'../../dist/index.js'", repr('./' + engine_name + '/index.js'))
     # Demo wrapper policy, not a change to the pinned engine.
     query = query.replace('timeoutMs: 10000', 'timeoutMs: 60000')
@@ -81,4 +81,4 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
         for name in ['LICENSE', 'NOTICE.md']:
             bundle.add(ROOT / name, arcname=name)
     (OUT / '.nojekyll').touch()
-print(f'Static site: {OUT}; engine pinned to {ALPHA}')
+print(f'Static site: {OUT}; engine pinned to {RELEASE}')

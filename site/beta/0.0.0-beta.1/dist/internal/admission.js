@@ -1,0 +1,100 @@
+import { sqliteAsciiFold } from "./sqlite-case.js";
+import { lowerOrdinaryCtes } from "./cte.js";
+/**
+ * Pre-compilation walk of every Select owner currently reachable by select.c's
+ * expansion/lowering routes. Relation-owned WITH/CteUse graphs are lowered before
+ * this residual admission walk; discovering a WITH here identifies an
+ * expression-owned or nested owner not represented by those lowering routes and
+ * rejects it atomically. Object identity sets make malformed/shared semantic
+ * graphs and recursive view references finite without changing immutable parser
+ * or schema ownership.
+ */
+export function selectGraphContainsWith(root, schema) {
+    return selectGraphAdmission(root, schema, false);
+}
+/** select.c expansion only needs schema when resolving a source. Conservative
+ * WITH/derived ownership uses the same graph traversal as residual admission. */
+export function selectGraphNeedsSchema(root) {
+    return selectGraphAdmission(root, null, true);
+}
+function selectGraphAdmission(root, schema, needsSchema) {
+    const selects = new Set();
+    const reductions = new Set();
+    const views = new Set();
+    const reduction = (node) => {
+        if (!node || node.kind === "terminal" || reductions.has(node))
+            return false;
+        reductions.add(node);
+        const semantic = node.semantic;
+        if (semantic && typeof semantic === "object" && "kind" in semantic && semantic.kind === "select") {
+            if (select(semantic))
+                return true;
+        }
+        return node.children.some(reduction);
+    };
+    const expression = (node) => reduction(node?.reduction);
+    const sources = (from) => {
+        if (needsSchema && from.items.length > 0)
+            return true;
+        if (from.derived && select(from.derived.select))
+            return true;
+        if (from.flattenedDerived && select(from.flattenedDerived.select))
+            return true;
+        for (const item of from.items) {
+            if (expression(item.on))
+                return true;
+            if (item.databaseName !== null && sqliteAsciiFold(item.databaseName) !== "main")
+                continue;
+            const view = schema?.views.get(sqliteAsciiFold(item.tableName));
+            if (view && !views.has(view)) {
+                views.add(view);
+                const lowered = lowerOrdinaryCtes(view.select);
+                if (!lowered || select(lowered))
+                    return true;
+            }
+        }
+        return false;
+    };
+    const select = (node) => {
+        if (selects.has(node))
+            return false;
+        selects.add(node);
+        if (node.with !== null) {
+            // Inspecting bodies is not needed for the decision, but their ownership is
+            // part of this graph contract and remains reachable when execution lands.
+            return true;
+        }
+        for (const arm of node.arms) {
+            if (sources(arm.from) || expression(arm.where))
+                return true;
+            for (const value of arm.result)
+                if (expression(value))
+                    return true;
+            for (const row of arm.valuesRows ?? [])
+                for (const value of row)
+                    if (expression(value))
+                        return true;
+        }
+        if (sources(node.from) || expression(node.where) || expression(node.having) || expression(node.limit) || expression(node.offset))
+            return true;
+        for (const value of node.result)
+            if (expression(value))
+                return true;
+        for (const value of node.groupBy)
+            if (expression(value))
+                return true;
+        for (const term of node.orderBy)
+            if (expression(term.expr))
+                return true;
+        for (const window of node.windowDefinitions) {
+            for (const value of window.partitionBy)
+                if (expression(value))
+                    return true;
+            for (const value of window.orderBy)
+                if (expression(value))
+                    return true;
+        }
+        return false;
+    };
+    return select(root);
+}
