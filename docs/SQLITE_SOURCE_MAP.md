@@ -248,6 +248,9 @@ claim complete upstream coverage or reproduce execution inventories.
   consumer. select.c computeLimitRegisters and wherecode.c coroutine first/next
   plus where.c materialized Gosub → parent LIMIT before sourceProducers invocation;
   register-backed Yield rows or callable Once fill and retained FULL replay.
+  select.c disableUnusedSubqueryResultColumns/tag0440 → resolved parent column
+  uses (including nested scopes), ORDER-result dependencies and slot-preserving
+  NULL rewrite before both bodies; original validation/metadata remain intact.
   Tests: retained-filter.test.mjs with pinned metadata/typed/reset/error oracle;
   [evidence](research/retained-filter.md), [demand correction](research/retained-filter-demand.md).
 

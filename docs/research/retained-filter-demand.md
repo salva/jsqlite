@@ -1,4 +1,34 @@
-# Retained filter F5 invocation decision
+# Retained filter invocation and column-demand decisions
+
+## F6 column demand
+
+Pinned select.c5305 disableUnusedSubqueryResultColumns/tag0440 runs after resolution
+and before0482/0488. Parent SrcItem.colUsed includes nested consumers; child ORDER
+result references also retain their slots. DISTINCT/aggregate/window/correlated
+sources decline pruning (CTEs/compound are outside this adapter's admission).
+The retained adapter now uses resolved source identity for demand, expands result
+slots, preserves ORDER aliases/ordinals/structurally matching expressions, and
+substitutes NULL only for unused slots before both coroutine and materialized
+compilation. Metadata is computed from the original producer. Original child
+lowering into an unpublished builder preserves prepare validation and unsafe gates;
+its cost is duplicated prepare work, not runtime execution or a parallel evaluator.
+Parameters are retained in source position order before pruning, including unused
+anonymous variables. No platform-based algorithm substitution is claimed.
+
+Native-first final capture proc-06f03c0c2544 covers46 cases per encoding: original28
+objects preserved plus18 F6/control cases (both exact witnesses, used output,
+ORDER alias/ordinal/expression, filter/outer ORDER/nested use, FULL materialization
+with unused and ON-demanded result, DISTINCT, prepare errors, stars and parameters).
+Public21/21 plus chained tsc passed on mutable inputs. Two reset cycles and bound
+2/NULL/0/7 remain in the existing capture/public harness. Native library43f3 and
+source identity remain unchanged. Final exact-export evidence is recorded in the
+card status, not inferred from this mutable run. Earlier replacement-tool dollar
+interpolation corrupted added query JSON twice; corrected literal bytes with a
+JSON generator before final native capture. A transient valid double-dollar capture
+was superseded and supplies no final witness credit. Source tests did not fail on
+final inputs. This is author repair evidence, not independent delta acceptance.
+
+## F5 invocation
 
 Pinned select.c tags0482/0488 keep producer bodies behind InitCoroutine or Goto/Once/Return. Parent LIMIT initialization precedes WHERE invocation. Implement genuine single-source coroutine SelectDest with register-backed locations and Yield first/next; repeated/FULL sources get callable Once fills invoked at scan entry. No algorithm substitution or parallel evaluator. Blocking child ORDER/top-N remains compileTableSelect-owned, not made artificially lazy.
 

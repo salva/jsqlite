@@ -7,7 +7,11 @@ import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 const native=JSON.parse(readFileSync(new URL('../../docs/research/retained-filter-native.json',import.meta.url)));
 assert.equal(native.variants.length,3);
 for(const variant of native.variants){
- assert.equal(variant.cases.length,28,'original membership cases plus F5 and demand controls must remain captured');
+ assert.equal(variant.cases.length,46,'original membership and F5 cases plus F6 demand and validation controls must remain captured');
+  const witnesses=variant.cases.filter(item=>item.sql.startsWith("SELECT d.x FROM(SELECT x,json_extract('bad',")&&(item.sql.endsWith(')d WHERE d.x>0')||item.sql.endsWith(')d WHERE d.x>0 LIMIT 1'))&&item.sql.includes('ORDER BY x LIMIT 2'));
+ assert.equal(witnesses.length,2,'both exact F6 witnesses retained');
+ assert.deepEqual(witnesses.map(item=>item.runs[0].rows.map(row=>row[0].value)),[['1','2'],['1']]);
+ assert.ok(witnesses.every(item=>item.prepare===0&&item.runs.every(run=>run.end===101)));
  for(const fragment of ["json_extract('bad',",'LIMIT abs(-9223372036854775808)']){
   const witness=variant.cases.find(item=>item.sql.includes(fragment)&&item.sql.endsWith('LIMIT 0'));
   assert.ok(witness,'exact F5 witness retained');assert.equal(witness.prepare,0);

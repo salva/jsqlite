@@ -7,7 +7,7 @@ import {StorageLimitError} from './storage.ts';
 import { VdbeHostAdmission } from "./vdbe-host-admission.ts";
 import {beginPrefixLoop,emitPrefixSeek,finishPrefixLoop,type PrefixLoop} from './where-prefix.ts';
 import { RowSet } from "./rowset.ts";
-import {bindRecursiveCurrent,bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
+import {expressionStructurallyEqual,bindRecursiveCurrent,bindSchemaSourceProvenance,resolvedResultColumn,resolvedProducerProjection} from "./resolve.ts";
 import {findSchemaTable,integerPrimaryKeyColumn,freezeTransientTable,tableColumnToStorage} from "./schema.ts";
 import {resolvedColumnCarrier,resolvedGeneratedExpressionCarrier,resolvedExpressionCarrier,type ResolvedExpressionCarrier,type ResolvedSource,type ResolvedExpressionBinding} from './resolve.ts';
 // First compiled no-FROM scalar SELECT slice. The instruction/register split
@@ -5196,15 +5196,17 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   return Object.freeze({ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:columns!,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
-function retainSelectParameters(select:SelectNode,parameters:ParameterBuilder):void {
+function retainSelectParameters(select:SelectNode,parameters:ParameterBuilder,additional:readonly SelectNode[]=[]):void {
   // expr.c sqlite3ExprAssignVarNumber runs in parse order, before WHERE or
   // LIMIT lowering order. Retain variable identities from generated reductions;
   // never number anonymous parameters in execution/code-generation order.
   const variables=new Map<number,{text:string;startByte:number}>();
   const retainVariables=(value:LemonValue<SqlToken>):void=>{if(value.kind==='terminal'){if(value.value.kind==='variable')variables.set(value.value.startByte,value.value);}else value.children.forEach(retainVariables);};
-  for(const arm of select.arms){for(const expression of arm.result)if(expression.reduction)retainVariables(expression.reduction);if(arm.where?.reduction)retainVariables(arm.where.reduction);}
-  for(const term of select.orderBy)retainVariables(term.expr.reduction!);
-  if(select.limit)retainVariables(select.limit.reduction!);if(select.offset)retainVariables(select.offset.reduction!);
+  for(const node of [select,...additional]){
+  for(const arm of node.arms){for(const expression of arm.result)if(expression.reduction)retainVariables(expression.reduction);if(arm.where?.reduction)retainVariables(arm.where.reduction);}
+  for(const term of node.orderBy)retainVariables(term.expr.reduction!);
+  if(node.limit)retainVariables(node.limit.reduction!);if(node.offset)retainVariables(node.offset.reduction!);
+  }
   parameters.positions??=new Map();
   for(const token of [...variables.values()].sort((a,b)=>a.startByte-b.startByte)){
     if(parameters.positions.has(token.startByte))continue;
@@ -5748,7 +5750,23 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
     const end=ops.length;for(const at of tailEnds)(ops[at] as {p2:number}).p2=end;
 }
 
-// select.c tags0482/0488: retained FROM producers invoked by WHERE demand.
+// select.c:5305/tag0440. Resolve and validate before replacing unused EList
+// slots, retaining width and selected ORDER-result dependencies.
+function disableUnusedRetainedResults(child:SelectNode,plan:ReturnType<typeof expandAndResolveSelect>,used:ReadonlySet<number>):SelectNode {
+ if(plan.correlated||child.hasDistinct||child.hasGroupBy||child.hasHaving||child.hasCompound||selectHasAggregate(child)||selectHasWindow(child))return child;
+ const demanded=new Set(used);
+ for(const index of plan.orderResultColumns)if(index!==null)demanded.add(index);
+ for(const term of child.orderBy){
+  const index=plan.result.findIndex(entry=>expressionStructurallyEqual(entry.expression,term.expr,child.from.items));
+  if(index>=0)demanded.add(index);
+ }
+ const parsed=parseSql('SELECT NULL').statement;
+ if(!parsed||parsed.kind!=='select')throw new JSQLiteError('internal','NULL expression parse failed');
+ const result=plan.result.map((entry,index)=>({...(!demanded.has(index)?parsed.result[0]!:entry.expression),alias:entry.name}));
+ return {...child,result,arms:child.arms.map(arm=>({...arm,result}))};
+}
+
+// select.c tags0440/0482/0488: retained FROM producers invoked by WHERE demand.
 function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
  const sources=select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
  if(!select.where||!sources.length||sources.length!==select.from.items.length||select.hasCompound||select.hasDistinct||select.hasGroupBy||select.hasHaving||selectHasWindow(select)||selectHasAggregate(select))return undefined;
@@ -5761,8 +5779,14 @@ function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:Btr
  builder.reserveCursorsThrough(Math.max(...expanded.sources.map(source=>source.cursorId)));
  const readers=new Map<ResolvedSource,number>();
  const sourceProducers=new Map<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>();
+ retainSelectParameters(select,parameters,sources.map(source=>source.select));
  for(const source of sources){
   const resolved=expanded.sources[source.index]!,cursor=builder.cursor(),width=tables.get(source.index)!.columns.length;
+  // Preserve all prepare-time lowering gates in an unpublished program. None
+  // of this validation bytecode executes or enters the enclosing builder.
+  compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  const childPlan=expandAndResolveSelect(source.select,schema);
+  const child=disableUnusedRetainedResults(source.select,childPlan,jsonColumnDemand(expanded,resolved));
   readers.set(resolved,cursor);
   // select.c tag-select-0482: single FROM term can yield directly. The
   // child sorter, if needed, remains a blocking owner before its first Yield.
@@ -5772,7 +5796,7 @@ function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:Btr
    const register=builder.register(),first=builder.range(width),skip=ops.length;
    ops.push({code:'InitCoroutine',p1:register,p2:0,p3:skip+1});
    const entry=ops.length;
-   compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'coroutine',register,first}});
+   compileTableSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'coroutine',register,first}});
    ops.push({code:'EndCoroutine',p1:register,p2:0});(ops[skip] as {p2:number}).p2=ops.length;
    sourceProducers.set(resolved,{coroutine:{register,first,entry}});
   }else{
@@ -5782,7 +5806,7 @@ function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:Btr
    ops.push({code:'Goto',p2:0});const entry=ops.length,once=ops.length;
    ops.push({code:'Once',p1:builder.register(),p2:0});
    ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:Array.from({length:width},()=>({collation:'binary' as const}))})});
-   compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor}});
+   compileTableSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor}});
    (ops[once] as {p2:number}).p2=ops.length;ops.push({code:'Return',p1:register});(ops[skip] as {p2:number}).p2=ops.length;
    sourceProducers.set(resolved,{materialize:{register,entry}});
   }
