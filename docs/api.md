@@ -382,8 +382,10 @@ compatibility credit.
   LEFT nullable-side OR also retains selected execution and null extension.
   Nullable ON/USING factoring exclusions do not prohibit LEFT admission; forced and
   NOT INDEXED guards remain unchanged. This does not expand aggregate admission
-  or promise optimizer parity. WITHOUT ROWID RIGHT/FULL match tracking remains temporary
-  unsupported (ordinary rowid RIGHT/FULL admission is unchanged).
+  or promise optimizer parity. WITHOUT ROWID RIGHT/FULL uses complete typed primary
+  keys for per-barrier match tracking and unmatched output; built-in PK collation,
+  sort order and database encoding are retained. This does not imply arbitrary
+  joined aggregate/window/compound admission.
 - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
   precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses
   complete projected keys. Equal complete ORDER keys have no public deterministic
@@ -558,7 +560,8 @@ strategy completeness is not claimed.
 
 Selected persistent WR OR uses physical PK dedup in shared ordinary/INNER/simple
 scalar and represented safe LEFT consumers. WITHOUT ROWID RIGHT/FULL tracking
-remains temporary unsupported. Represented STAT4-sensitive bindings may trigger
+uses the same complete physical PK identity in matching and drain.
+Represented STAT4-sensitive bindings may trigger
 bounded reprepare while retaining bindings; no planner/timing/work-count parity
 is promised. Ordinary joined direct-column projection retains column metadata,
 storage classes and early LIMIT termination.

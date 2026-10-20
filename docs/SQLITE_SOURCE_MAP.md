@@ -1,5 +1,18 @@
 # SQLite source map
 
+### RIGHT/FULL WITHOUT ROWID identity
+
+`where.c:7393–7425` per-level nKeyCol/KeyInfo match store and disabling
+WHERE_IDX_ONLY → `vdbe.ts:compileInnerTableSelect` rightStates and primary-bound
+RHS interior. `wherecode.c:2738–2802/sqlite3WhereRightJoinLoop` PK aiColumn reads,
+ON-before-WHERE insertion and unmatched membership → shared `emitPrimaryKeyRead`,
+`case5KeyInfo`, packed MakeRecord/IdxInsert/Found; drain receives the active
+column binding and positions the interior primary reader before Gosub.
+`emitCase5Identity` shares only PK reads, not the OR algorithm.
+`without-rowid-right-full.test.mjs` compares pinned typed values/metadata in all
+encodings across two resets, mixed rowid/WR, RTRIM duplicate-prefix and empty
+sources; [evidence and boundaries](research/recursive-join/wr-right-full-evidence.md).
+
 ### JSON5 value-name and label admission
 
 `json.c:aNanInfName/jsonTranslateTextToBlob` → `Parser.literal`: ordered,

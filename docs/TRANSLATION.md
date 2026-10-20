@@ -451,7 +451,12 @@ coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 
 Ordinary comma/CROSS/INNER/LEFT and represented repeated/mixed rowid RIGHT/FULL
 barriers are admitted at the documented gates. ON belongs to match testing; LEFT null extension precedes
-WHERE. RIGHT/FULL has separate unmatched-row tracking/drain. WITHOUT ROWID RIGHT/FULL match tracking remains temporary unsupported; arbitrary
+WHERE. RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
+or the complete typed WITHOUT ROWID primary key (KeyInfo order/collation/encoding).
+The RHS interior reads the primary reader, positioned from the active drain key;
+covering-only RHS binding is disabled as in pinned `where.c`. See
+[WR source and finite evidence](research/recursive-join/wr-right-full-evidence.md).
+Arbitrary
 aggregate/correlation compositions are not implied. USING/NATURAL projection and metadata must
 retain the semantic source selected by the resolver.
 

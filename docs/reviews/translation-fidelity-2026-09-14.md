@@ -4725,7 +4725,10 @@ primary identity, physical column ordinals and secondary PK lookup, not a new
 evaluator or removal of the fence alone. New typed/native metadata/reset controls,
 selected/off-path corruption and LEFT/resources tests are in
 `without-rowid-joined.test.mjs`; manifest-checked capture script is retained.
-WR RIGHT/FULL Rowid match tracking remains honestly rejected; broader SELECT
+WR RIGHT/FULL now uses per-barrier complete PK tracking and active drain
+positioning, rather than Rowid on WR storage. See
+[WR corrective evidence](../research/recursive-join/wr-right-full-evidence.md)
+for source comparison, finite coverage and remaining phase-resource gaps. Broader SELECT
 fences and parent width-owning rerun are not waived. Ordinary69 and advanced
 runner verification are recorded with exact results in this card's status; no
 clean mixed-checkout/export or whole-goal approval follows from these tests.

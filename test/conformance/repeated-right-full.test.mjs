@@ -22,15 +22,10 @@ function cell(s,i){const type=s.columnType(i),v=s.column(i);
 }
 function metadata(s){return Array.from({length:s.columnCount},(_,i)=>{const m=s.columnMetadata(i);return {name:m.name,declType:m.declaredType,database:m.database,table:m.table,origin:m.origin}})}
 async function rows(s){const out=[];while(await s.step()==='row')out.push(Array.from({length:s.columnCount},(_,i)=>cell(s,i)));return out}
-// Repeated barriers now execute below; retain the composite-key admission boundary.
-for(const enc of Object.keys(corpus.fixtures))test(`atomic WITHOUT ROWID barrier boundary ${enc}`,()=>withDb(enc,async db=>{
- const c=corpus.cases.find(c=>c.encoding===enc&&c.tags.includes('wr-boundary'));
- assert.throws(()=>db.prepare(c.sql),e=>e.kind==='unsupported'&&/WITHOUT ROWID RIGHT\/FULL match keys/.test(e.message));
- const s=db.prepare('SELECT 1').statement;try{assert.equal(await s.step(),'row');assert.equal(s.column(0),1n);assert.equal(await s.step(),'done')}finally{s.finalize()}
-}));
+// The former WR rejection is now a native execution assertion below.
 // Source-based admission assertions execute normally; no rejected success gets credit.
 {
- for(const c of corpus.cases.filter(c=>!c.tags.includes('wr-boundary')))test(`native acceptance ${c.encoding}/${c.id}`,()=>withDb(c.encoding,async db=>{
+ for(const c of corpus.cases)test(`native acceptance ${c.encoding}/${c.id}`,()=>withDb(c.encoding,async db=>{
  if(c.native.prepare.kind==='error'){
   assert.throws(()=>db.prepare(c.sql),e=>e.kind==='sqlite'&&e.code===c.native.prepare.resultCode&&e.extendedCode===c.native.prepare.extendedCode&&e.message===c.native.prepare.message);return;
  }
