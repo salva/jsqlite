@@ -875,6 +875,14 @@ retain empty declared types. Resolved direct columns publish virtual-column
 metadata; aliases override, computed names retain exact expression spans. JSON
 row extraction preserves INTEGER/REAL and storage classes through grouping.
 
+The bounded two-source physical-left/JSON-right INNER/LEFT consumer uses ordinary
+resolved USING/NATURAL ownership: hidden fields are not NATURAL keys, unqualified
+shared names and stars retain left ownership, and generated equalities keep left
+affinity/collation at the ON barrier. Resolved SrcItem identities survive explicit
+reductions, stars, ORDER and child SELECT linking; lazy JSON columns register demand
+at each binding location. Result descriptors retain source metadata. RIGHT/FULL
+and reverse correlation remain temporary gaps on this route.
+[Source comparison and bounded regression evidence](research/json-mixed-using/README.md).
 The bounded physical-left/JSON-right CROSS/INNER/LEFT producer rebinds arguments
 per outer row. Mixed predicates resolve against the complete physical/virtual
 visible and hidden source scope before scheduling, preserving ambiguity errors.

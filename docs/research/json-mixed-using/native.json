@@ -1,0 +1,1249 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "version": "3.53.4",
+  "librarySha": "8d3a57c33418e6273e85046b7a8b664ad47827660658dfacef0136416c9f48f3",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "file": "UTF-8.sqlite",
+      "sha256": "479eaf6c3fd89f72ae3e1ac1464280a04c52229e772c9c065515690b207f1198",
+      "cases": [
+        {
+          "sql": "SELECT * FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id,j.key",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "id"
+            },
+            {
+              "name": "key",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "key"
+            },
+            {
+              "name": "js",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "jt",
+              "origin": "js"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "type",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "type"
+            },
+            {
+              "name": "atom",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "atom"
+            },
+            {
+              "name": "id",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "id"
+            },
+            {
+              "name": "parent",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "parent"
+            },
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "fullkey"
+            },
+            {
+              "name": "path",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "path"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b32302c32315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b315d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b32302c32315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b315d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM jt NATURAL JOIN json_each(jt.js) j ORDER BY jt.id",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "id"
+            },
+            {
+              "name": "key",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "key"
+            },
+            {
+              "name": "js",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "jt",
+              "origin": "js"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "type",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "type"
+            },
+            {
+              "name": "atom",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "atom"
+            },
+            {
+              "name": "parent",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "parent"
+            },
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "fullkey"
+            },
+            {
+              "name": "path",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "path"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "file": "UTF-16le.sqlite",
+      "sha256": "0cffcdb999c7680524bcc0a784d516902328563685dda777825fa3eb5fa52c08",
+      "cases": [
+        {
+          "sql": "SELECT * FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id,j.key",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "id"
+            },
+            {
+              "name": "key",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "key"
+            },
+            {
+              "name": "js",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "jt",
+              "origin": "js"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "type",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "type"
+            },
+            {
+              "name": "atom",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "atom"
+            },
+            {
+              "name": "id",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "id"
+            },
+            {
+              "name": "parent",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "parent"
+            },
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "fullkey"
+            },
+            {
+              "name": "path",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "path"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b32302c32315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b315d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b32302c32315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b315d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM jt NATURAL JOIN json_each(jt.js) j ORDER BY jt.id",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "id"
+            },
+            {
+              "name": "key",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "key"
+            },
+            {
+              "name": "js",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "jt",
+              "origin": "js"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "type",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "type"
+            },
+            {
+              "name": "atom",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "atom"
+            },
+            {
+              "name": "parent",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "parent"
+            },
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "fullkey"
+            },
+            {
+              "name": "path",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "path"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "file": "UTF-16be.sqlite",
+      "sha256": "bd7e2e7efd923877fd4f992acefc749c86c7af53c826f3bcd46a594100cece4b",
+      "cases": [
+        {
+          "sql": "SELECT * FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id,j.key",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "id"
+            },
+            {
+              "name": "key",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "key"
+            },
+            {
+              "name": "js",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "jt",
+              "origin": "js"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "type",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "type"
+            },
+            {
+              "name": "atom",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "atom"
+            },
+            {
+              "name": "id",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "id"
+            },
+            {
+              "name": "parent",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "parent"
+            },
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "fullkey"
+            },
+            {
+              "name": "path",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "path"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b32302c32315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b315d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b32302c32315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "21"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "4"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b315d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM jt NATURAL JOIN json_each(jt.js) j ORDER BY jt.id",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "id",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "id"
+            },
+            {
+              "name": "key",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "jt",
+              "origin": "key"
+            },
+            {
+              "name": "js",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "jt",
+              "origin": "js"
+            },
+            {
+              "name": "value",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "value"
+            },
+            {
+              "name": "type",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "type"
+            },
+            {
+              "name": "atom",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "atom"
+            },
+            {
+              "name": "parent",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "parent"
+            },
+            {
+              "name": "fullkey",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "fullkey"
+            },
+            {
+              "name": "path",
+              "declaredType": null,
+              "database": "main",
+              "table": "json_each",
+              "origin": "path"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "5b31302c31315d"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "696e7465676572"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "10"
+                  },
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "245b305d"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "24"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

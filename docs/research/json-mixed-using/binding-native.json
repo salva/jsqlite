@@ -1,0 +1,1958 @@
+[
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key+0 AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key COLLATE nocase AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT jt.key,j.key FROM jt LEFT JOIN json_each(jt.js) j USING(key,key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "key",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key FROM jt LEFT JOIN json_each(jt.js) j USING(key) WHERE key=1 ORDER BY key",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT * FROM jt NATURAL JOIN json_each('[]') j",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "id",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "id"
+      },
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "jt",
+        "origin": "js"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      },
+      {
+        "name": "type",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "type"
+      },
+      {
+        "name": "atom",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "atom"
+      },
+      {
+        "name": "parent",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "parent"
+      },
+      {
+        "name": "fullkey",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "fullkey"
+      },
+      {
+        "name": "path",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "path"
+      }
+    ],
+    "rows": [],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT * FROM jt LEFT JOIN json_each(jt.js) j USING(id,key) ORDER BY 1",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "id",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "id"
+      },
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "jt",
+        "origin": "js"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      },
+      {
+        "name": "type",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "type"
+      },
+      {
+        "name": "atom",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "atom"
+      },
+      {
+        "name": "parent",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "parent"
+      },
+      {
+        "name": "fullkey",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "fullkey"
+      },
+      {
+        "name": "path",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "path"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "5b31302c31315d"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "696e7465676572"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "245b305d"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "24"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "5b32302c32315d"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT j.rowid,jt.rowid FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "rowid",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "json_each",
+        "origin": "rowid"
+      },
+      {
+        "name": "rowid",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "rowid"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "2"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key,j.value FROM jt JOIN json_each(jt.js) j USING(key) WHERE j.key=key ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT (SELECT key) FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "(SELECT key)",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT (SELECT j.key) FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "(SELECT j.key)",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key FROM jt JOIN json_each(jt.js) jt USING(key)",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key FROM jt AS J JOIN json_each(J.js) j USING(key)",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT key AS value FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "value",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT * FROM jt NATURAL JOIN json_each(jt.js) j USING(key)",
+    "prepare": 1,
+    "error": "a NATURAL join may not have an ON or USING clause"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key+0 AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key COLLATE nocase AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT jt.key,j.key FROM jt LEFT JOIN json_each(jt.js) j USING(key,key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "key",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key FROM jt LEFT JOIN json_each(jt.js) j USING(key) WHERE key=1 ORDER BY key",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT * FROM jt NATURAL JOIN json_each('[]') j",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "id",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "id"
+      },
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "jt",
+        "origin": "js"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      },
+      {
+        "name": "type",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "type"
+      },
+      {
+        "name": "atom",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "atom"
+      },
+      {
+        "name": "parent",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "parent"
+      },
+      {
+        "name": "fullkey",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "fullkey"
+      },
+      {
+        "name": "path",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "path"
+      }
+    ],
+    "rows": [],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT * FROM jt LEFT JOIN json_each(jt.js) j USING(id,key) ORDER BY 1",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "id",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "id"
+      },
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "jt",
+        "origin": "js"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      },
+      {
+        "name": "type",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "type"
+      },
+      {
+        "name": "atom",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "atom"
+      },
+      {
+        "name": "parent",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "parent"
+      },
+      {
+        "name": "fullkey",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "fullkey"
+      },
+      {
+        "name": "path",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "path"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "5b31302c31315d"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "696e7465676572"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "245b305d"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "24"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "5b32302c32315d"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT j.rowid,jt.rowid FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "rowid",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "json_each",
+        "origin": "rowid"
+      },
+      {
+        "name": "rowid",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "rowid"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "2"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key,j.value FROM jt JOIN json_each(jt.js) j USING(key) WHERE j.key=key ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT (SELECT key) FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "(SELECT key)",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT (SELECT j.key) FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "(SELECT j.key)",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key FROM jt JOIN json_each(jt.js) jt USING(key)",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key FROM jt AS J JOIN json_each(J.js) j USING(key)",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT key AS value FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "value",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT * FROM jt NATURAL JOIN json_each(jt.js) j USING(key)",
+    "prepare": 1,
+    "error": "a NATURAL join may not have an ON or USING clause"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key+0 AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key COLLATE nocase AS z,j.value FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY z DESC,j.value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "z",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT jt.key,j.key FROM jt LEFT JOIN json_each(jt.js) j USING(key,key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "key",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key FROM jt LEFT JOIN json_each(jt.js) j USING(key) WHERE key=1 ORDER BY key",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT * FROM jt NATURAL JOIN json_each('[]') j",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "id",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "id"
+      },
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "jt",
+        "origin": "js"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      },
+      {
+        "name": "type",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "type"
+      },
+      {
+        "name": "atom",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "atom"
+      },
+      {
+        "name": "parent",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "parent"
+      },
+      {
+        "name": "fullkey",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "fullkey"
+      },
+      {
+        "name": "path",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "path"
+      }
+    ],
+    "rows": [],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT * FROM jt LEFT JOIN json_each(jt.js) j USING(id,key) ORDER BY 1",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "id",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "id"
+      },
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "js",
+        "declaredType": "TEXT",
+        "database": "main",
+        "table": "jt",
+        "origin": "js"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      },
+      {
+        "name": "type",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "type"
+      },
+      {
+        "name": "atom",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "atom"
+      },
+      {
+        "name": "parent",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "parent"
+      },
+      {
+        "name": "fullkey",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "fullkey"
+      },
+      {
+        "name": "path",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "path"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "5b31302c31315d"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "696e7465676572"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "245b305d"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "24"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "2"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "text",
+          "utf8Hex": "5b32302c32315d"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT j.rowid,jt.rowid FROM jt LEFT JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "rowid",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "json_each",
+        "origin": "rowid"
+      },
+      {
+        "name": "rowid",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "rowid"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "2"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key,j.value FROM jt JOIN json_each(jt.js) j USING(key) WHERE j.key=key ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      },
+      {
+        "name": "value",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "value"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        },
+        {
+          "type": "integer",
+          "value": "10"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        },
+        {
+          "type": "integer",
+          "value": "21"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT (SELECT key) FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "(SELECT key)",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT (SELECT j.key) FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY jt.id",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "(SELECT j.key)",
+        "declaredType": null,
+        "database": "main",
+        "table": "json_each",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key FROM jt JOIN json_each(jt.js) jt USING(key)",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key FROM jt AS J JOIN json_each(J.js) j USING(key)",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "key",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT key AS value FROM jt JOIN json_each(jt.js) j USING(key) ORDER BY value",
+    "prepare": 0,
+    "metadata": [
+      {
+        "name": "value",
+        "declaredType": "INTEGER",
+        "database": "main",
+        "table": "jt",
+        "origin": "key"
+      }
+    ],
+    "rows": [
+      [
+        {
+          "type": "integer",
+          "value": "0"
+        }
+      ],
+      [
+        {
+          "type": "integer",
+          "value": "1"
+        }
+      ]
+    ],
+    "end": 101
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT * FROM jt NATURAL JOIN json_each(jt.js) j USING(key)",
+    "prepare": 1,
+    "error": "a NATURAL join may not have an ON or USING clause"
+  }
+]
