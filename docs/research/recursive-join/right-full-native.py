@@ -8,6 +8,8 @@ l=C.CDLL(sys.argv[1]); P=C.c_void_p
 for name,args,result in [
  ('sqlite3_sourceid',[],C.c_char_p),('sqlite3_open',[C.c_char_p,C.POINTER(P)],C.c_int),
  ('sqlite3_prepare_v2',[P,C.c_char_p,C.c_int,C.POINTER(P),P],C.c_int),
+ ('sqlite3_column_bytes',[P,C.c_int],C.c_int),('sqlite3_column_text',[P,C.c_int],P),
+ ('sqlite3_column_blob',[P,C.c_int],P),('sqlite3_column_double',[P,C.c_int],C.c_double),
  ('sqlite3_step',[P],C.c_int),('sqlite3_column_count',[P],C.c_int),
  ('sqlite3_column_type',[P,C.c_int],C.c_int),('sqlite3_column_int64',[P,C.c_int],C.c_longlong),
  ('sqlite3_reset',[P],C.c_int),('sqlite3_finalize',[P],C.c_int),('sqlite3_close',[P],C.c_int),
@@ -26,6 +28,18 @@ for kind in ['RIGHT','FULL']:
   prefix+f'SELECT a.x,t.x,b.x FROM r a {kind} JOIN t ON a.x=t.x JOIN r b ON b.x=1 ORDER BY t.x,a.x,b.x',
   'WITH RECURSIVE r(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM r WHERE x<3) '+f'SELECT r.x,t.x FROM r {kind} JOIN t ON r.x=t.x ORDER BY t.x',
   prefix+f'SELECT sum(t.x) FROM r {kind} JOIN t ON r.x=t.x']
+ for on in ['t.x=r.x','0','NULL']:
+  cases.append(prefix+f'SELECT t.x,r.x FROM t {kind} JOIN r ON {on} ORDER BY t.x,r.x')
+ cases += [prefix+f'SELECT * FROM t {kind} JOIN r ON t.x=r.x',
+  prefix+f'SELECT * FROM t {kind} JOIN r a ON t.x=a.x JOIN r b ON a.x=b.x',
+  prefix+f'SELECT t.x,r.x FROM t {kind} JOIN r ON t.x=r.x WHERE t.x IS NULL ORDER BY r.x',
+  prefix+f'SELECT t.x,a.x,b.x FROM t {kind} JOIN r a ON t.x=a.x FULL JOIN r b ON a.x=b.x ORDER BY t.x,a.x,b.x',
+  prefix+f'SELECT t.x,r.x FROM t {kind} JOIN r ON t.x=0 ORDER BY t.x,r.x',
+  'WITH RECURSIVE r(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM r WHERE x<2) '+f'SELECT t.x,r.x FROM t {kind} JOIN r ON t.x=r.x ORDER BY t.x,r.x',
+  'WITH RECURSIVE r(x) AS (VALUES(1),(1) UNION ALL SELECT x+1 FROM r WHERE x<2) '+f'SELECT r.x FROM r {kind} JOIN r b ON r.x=0 ORDER BY r.x']
+ cases.append('WITH RECURSIVE r(x) AS (VALUES(9223372036854775807),(1.5),(NULL),(\'\'),(x\'00ff\') UNION ALL SELECT x FROM r WHERE 0) '+f'SELECT t.x,r.x FROM t {kind} JOIN r ON 0 ORDER BY r.x,t.x')
+ cases.append(prefix+f'SELECT * FROM t {kind} JOIN r ON t.x=r.x AND 0 WHERE t.x=0 ORDER BY r.x')
+ cases.append(prefix+f'SELECT DISTINCT t.x,r.x FROM t {kind} JOIN r ON t.x=r.x ORDER BY r.x LIMIT 2 OFFSET 1')
 results=[]
 for encoding in ['UTF-8','UTF-16le','UTF-16be']:
  d=P();assert l.sqlite3_open(str(root/f'test/fixtures/recursive-join/{encoding}-corrected.sqlite').encode(),C.byref(d))==0
@@ -44,8 +58,15 @@ for encoding in ['UTF-8','UTF-16le','UTF-16be']:
       assert rc==100,(rc,sql)
       row=[]
       for i in range(n):
-       t=l.sqlite3_column_type(s,i);assert t in [1,5],t
-       row.append({'type':'null'} if t==5 else {'type':'integer','value':str(l.sqlite3_column_int64(s,i))})
+       t=l.sqlite3_column_type(s,i)
+       if t==5:cell={'type':'null'}
+       elif t==1:cell={'type':'integer','value':str(l.sqlite3_column_int64(s,i))}
+       elif t==2:cell={'type':'number','value':str(l.sqlite3_column_double(s,i))}
+       else:
+        p=(l.sqlite3_column_text if t==3 else l.sqlite3_column_blob)(s,i)
+        b=C.string_at(p,l.sqlite3_column_bytes(s,i))
+        cell={'type':'string','value':b.decode()} if t==3 else {'type':'blob','value':b.hex()}
+       row.append(cell)
       rows.append(row)
      passes.append(rows);assert l.sqlite3_reset(s)==0
     assert passes[0]==passes[1]

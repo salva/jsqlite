@@ -712,9 +712,10 @@ positions but preserves each handle's flag; callers rewind before reading.
 [Cursor branch evidence](research/recursive-join/left-evidence.md).
 Repeated aliases share one producer/storage lifetime and use OpenDup handles with
 independent reader positions and NULL state (select.c CteUse tag-select-0484).
-Retained recursive prefixes support RIGHT/FULL consumers with physical RHS through
-the existing per-barrier WHERE owner, including ordinary aggregate consumers.
-Retained recursive RHS drain binding and unrepresented joined compound/window
+Retained recursive readers support RIGHT/FULL on either side through the existing
+per-barrier WHERE owner. Match and drain use the same insertion INTKEY identity
+(`Entry.sequence+1`), not values or scan positions; retained binding suppresses
+physical reopening and producer replay. Unrepresented joined compound/window
 shapes remain temporary gaps. [Bounded evidence](research/recursive-join/right-full-evidence.md).
 The represented recursive physical INNER
 join plus row_number window is supported, not a missing-feature prediction.

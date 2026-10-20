@@ -422,9 +422,9 @@ compatibility credit.
   order, and ordinary aggregate/GROUP/HAVING consumers; retained input is bounded
   and materialized once before consumer output, with independent alias readers.
   Same-operator UNION/UNION ALL recursive JOIN-arm compounds share existing full-row merge and one lazy retained producer; mixed/grouped/window/derived arms remain temporary gaps in this route. See [bounded source comparison](research/recursive-join/compound-evidence.md).
-  Retained recursive prefixes support RIGHT/FULL consumers with physical RHS.
-  A retained recursive RHS and unrepresented joined compound/window consumers
-  remain temporary unsupported. See [bounded evidence](research/recursive-join/right-full-evidence.md).
+  Retained recursive readers support RIGHT/FULL on either side, including
+  independent aliases of one declaration. Unrepresented joined compound/window
+  consumers remain temporary unsupported. See [bounded evidence](research/recursive-join/right-full-evidence.md).
   The represented physical INNER recursive join plus
   row_number window remains supported. The physical-join
   specialization does not preempt represented derived-input or distinct multiple

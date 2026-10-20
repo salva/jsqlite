@@ -8,8 +8,9 @@ receipts and previous failed patch/obsolete assertion qualifications.
 
 The recursive ordinary joined consumer previously declined every RIGHT/FULL
 before creating retained readers. Its retainedCursors/cursorFor contract already
-feeds the original shared WHERE owner. Admission now permits physical RHS while
-still declining a retained recursive RHS. No alternative evaluator, match-key
+feeds the original shared WHERE owner. Admission now permits retained RHS too:
+drain already passes retainedCursors/cursorFor into the same owner, suppressing
+physical reopening of resolver-only rootPage 0. No alternative evaluator, match-key
 descriptor or recursive queue replay was introduced. Compound/window admissions
 are unchanged; WR primary-key and module drains remain separate gaps.
 
@@ -27,9 +28,9 @@ bounded materialization tradeoff, not native streaming/work-count parity.
 
 Build with `tools/oracle/build.sh`, then run
 `python3 docs/research/recursive-join/right-full-native.py "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so"`.
-The script verifies manifest source ID and reads INTEGER/NULL plus all five
-metadata fields through pinned C APIs. `right-full-native.json` retains 54 cases
-(18 SQL × three actual corrected fixtures); each was stepped/reset twice.
+The script verifies manifest source ID and reads five storage classes and all five
+metadata fields through pinned C APIs. `right-full-native.json` retains 132 cases
+(44 SQL × three actual corrected fixtures); each was stepped/reset twice.
 The public test compares exact typed values and metadata, twice per case.
 Cases include the original red query, duplicates, false/NULL ON, WHERE, empty
 prefix, aggregate, downstream independent alias including non-null b with null a.
@@ -39,6 +40,16 @@ Run `node --experimental-strip-types --test test/conformance/recursive-cte-right
 Additional tests cover entry and post-row cancellation/reset, timer cancellation
 during long production (cooperative yield), private entry/byte limits and reuse.
 These do not establish exact failure-opcode placement inside match insertion or
-native allocation parity, all value classes, arbitrary join composition or full
+native allocation parity, arbitrary join composition or full
 product/release acceptance. Adjacent existing RIGHT/FULL resource tests remain
 separate evidence for shared match tracking; no blanket compatibility claim.
+
+RHS increment base: `bb6e16b659ddf17372c1e9fca35b37f339c4b11e`.
+Stable identity is existing private INTKEY `Entry.sequence+1` at both Rowid
+sites, shared across OpenDup records despite independent reader position/nullRow.
+No clear/refill or producer replay occurs between scans. Duplicates retain
+distinct keys; Found suppresses tracking, not joined combinations. Added native
+discriminators cover physical prefix, two retained aliases/two FULL barriers,
+false/NULL ON, WHERE, empty recursive input/output, DISTINCT/LIMIT and
+int64/REAL/NULL/empty TEXT/BLOB. Resource additions exercise retained RHS entry
+failures, post-row cancellation, first-error reset and private-byte/entry recovery.

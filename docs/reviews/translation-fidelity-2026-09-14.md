@@ -5249,9 +5249,10 @@ Author evidence is not independent approval; see LEFT evidence for revision-boun
 checks and exact patch identity. Repeated outer aliases now share one retained
 recursive producer and independent OpenDup readers through shared WHERE/AggInfo;
 see [bounded source comparison and evidence](../research/recursive-join/repeated-evidence.md).
-Retained recursive prefixes now use shared per-barrier RIGHT/FULL lowering with
-physical RHS; retained recursive RHS and unrepresented joined compound/window
-inputs remain gaps. [Finite native/public evidence](../research/recursive-join/right-full-evidence.md).
+Retained recursive readers now use shared per-barrier RIGHT/FULL lowering on
+either side, with stable insertion INTKEY identity and retained binding in drain.
+Unrepresented joined compound/window inputs remain gaps.
+[Finite native/public evidence](../research/recursive-join/right-full-evidence.md).
 The exact physical INNER recursive join plus row_number window is a matching
 positive control, not a current unsupported prediction. Source
 comparison, exact encoding/reset/metadata observations and residual evidence

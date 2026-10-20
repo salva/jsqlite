@@ -2711,10 +2711,11 @@ export function compileRecursiveJoinedSelect(select:SelectNode,schema:SchemaGrap
  const refs=select.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
  // Decline before resolution/allocation/emission: other semantic owners handle
  // derived inputs and multiple recursive declarations. Selected errors remain terminal.
- // Retained prefix readers use the shared NullRow owner. A retained RHS
- // additionally needs its declaration preserved by the unmatched drain;
- // keep that separate admission until its binding has been translated.
- if(refs.length===0||select.from.items.some(item=>item.joinFromLeft.right&&refs.includes(item))||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>!refs.includes(item)&&!schema.findTable(item.tableName)))return undefined;
+ // Retained INTKEY readers share insertion identity (Entry.sequence+1) across
+ // normal and unmatched scans. The drain carries cursorFor/retainedCursors;
+ // it must neither OpenRead the resolver-only schema nor replay Queue/Current.
+ // Producer fill finishes here before any reader enters the WHERE owner.
+ if(refs.length===0||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>!refs.includes(item)&&!schema.findTable(item.tableName)))return undefined;
  const {transient,expanded}=prepareRecursiveSource(select,owner,schema),{builder,parameters,destination}=shared,ops=builder.ops;
  const recursiveSource=expanded.sources[select.from.items.indexOf(refs[0]!) ]!;
  // Reserve resolver cursor identities before queue code allocates private ones.

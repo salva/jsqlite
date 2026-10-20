@@ -906,11 +906,12 @@ bind/reset and operation controls are covered by `recursive-cte-join.test.mjs`.
 See [source comparison and exact evidence](research/recursive-join/README.md).
 Admission regressions in `cte-admission.test.mjs` preserve represented derived
 inner-join and distinct multiple-recursive routes; these are separate from the
-physical-join specialization. Retained recursive prefixes additionally support
-RIGHT/FULL physical RHS: [54 native/public typed and metadata comparisons](research/recursive-join/right-full-evidence.md)
-include duplicates, empty prefix, ON/WHERE, aggregate and independent downstream
-alias readers, each reset twice. This does not close retained recursive RHS,
-broader nested WITH composition, unrepresented joined compound/window inputs or
+physical-join specialization. Retained recursive readers additionally support
+RIGHT/FULL on either side: [132 native/public typed and metadata comparisons](research/recursive-join/right-full-evidence.md)
+include duplicates, empty recursive input, ON/WHERE, aggregate, two RHS aliases,
+and independent downstream readers, each reset twice. Mixed value input covers
+INTEGER/REAL/NULL/empty TEXT/BLOB. This does not close broader nested WITH
+composition, unrepresented joined compound/window inputs or
 original225/release obligations. No additional upstream assertion credit is claimed.
 
 

@@ -759,8 +759,9 @@ execution path. [Combined provenance/validation](research/card-q-a-b-combined-r3
 
 `select.c` CteUse/tag-select-0484 and `wherecode.c:sqlite3WhereRightJoinLoop`
 → `vdbe.ts:compileRecursiveJoinedSelect` retainedCursors/cursorFor → existing
-`compileInnerTableSelect` per-barrier match/drain. Physical RHS identity remains rowid;
-retained prefix handles receive NullRow before drain reads. Retained RHS is still gated.
+`compileInnerTableSelect` per-barrier match/drain. Physical identity remains rowid;
+retained RHS uses `private-state.ts:rowid` insertion sequence+1 at both sites.
+Drain carries retainedCursors/cursorFor; preceding handles receive NullRow.
 [Native/public metadata, duplicate and alias discriminators](research/recursive-join/right-full-evidence.md).
 
 ## Bounded recursive JOIN-arm compounds
