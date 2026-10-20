@@ -192,6 +192,8 @@ runtime evaluator or bytecode to the delivered program. This is translated deman
 substitution. It admits noncompound single-table ORDER/LIMIT children, not
 arbitrary derived/CTE shapes. [Source comparison and finite evidence](research/retained-filter.md)
 and [invocation correction](research/retained-filter-demand.md).
+Original t1 fixture contract and cross-owner merge-gate adjudication:
+[bounded native/public evidence](research/original-test-contract.md).
 
 ## Read-only metadata PRAGMA (bounded consumers)
 

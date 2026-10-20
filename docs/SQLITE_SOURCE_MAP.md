@@ -255,6 +255,9 @@ claim complete upstream coverage or reproduce execution inventories.
   complete SelectNode.tokens in byte order plus generated reduction carriers,
   position identity shared by all existing CTE/compound/retained helper callers.
   Tests: retained-filter.test.mjs with pinned metadata/typed/reset/error oracle;
+  from-subquery-routes.test.mjs retains the original t1 ORDER/LIMIT+WHERE case
+  with exact-fixture native metadata/typed/reset proof and mixed-module prepare boundary
+  ([contract adjudication](research/original-test-contract.md));
   [evidence](research/retained-filter.md), [demand correction](research/retained-filter-demand.md).
 
 - build.c sqlite3SrcListAssignCursors / Parse.nTab; select.c tag-select-0488,

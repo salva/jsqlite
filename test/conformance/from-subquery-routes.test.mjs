@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 import http from 'node:http';
 import path from 'node:path';
 import test from 'node:test';
@@ -9,6 +10,7 @@ const here=path.dirname(new URL(import.meta.url).pathname);
 const capture=JSON.parse(fs.readFileSync(path.join(here,'cases/stage3-subquery-view.json'),'utf8'));
 const current=JSON.parse(fs.readFileSync(path.join(here,'../fixtures/CURRENT.json'),'utf8'));
 const generated=path.join(here,'../fixtures/generations',current.generationId,'generated');
+const retainedFilter=JSON.parse(fs.readFileSync(path.join(here,'cases/retained-filter-original.json'),'utf8'));
 const ids=['derived-limit-materialized'];
 
 function value(v){
@@ -157,11 +159,26 @@ test('coroutine cancellation and deadline preserve first error and restore admis
  });
 });
 
-test('completed window shape executes while unsafe unmatched derived shape rejects atomically',()=>withPublicDb('utf8',{},async db=>{
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} completed window and retained filter execute; mixed-module boundary rejects atomically`,()=>withPublicDb(encoding,{},async db=>{
  const window=db.prepare('SELECT row_number() OVER () FROM t1').statement;
  try{assert.equal(await window.step(),'row');assert.equal(window.column(0),1n)}finally{window.finalize()}
- const sql='SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1';
- assert.throws(()=>db.prepare(sql),error=>error.kind==='sqlite'||error.kind==='unsupported',sql);
+ // Restriction19 prevents flattening, not execution through tags0482/0488.
+ const variant=retainedFilter.variants.find(item=>item.encoding===encoding);
+ assert.equal(createHash('sha256').update(fs.readFileSync(path.join(generated,`subquery-${encoding}.db`))).digest('hex'),variant.sha256,'exact native fixture');
+ const expected=variant.cases[0];
+ const statement=db.prepare(expected.sql).statement;
+ try{
+  assert.deepEqual(metadata(statement),expected.metadata);
+  for(const run of expected.runs){
+   const rows=[];while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,index)=>statement.column(index)));
+   assert.equal(run.end,101);assert.deepEqual(rows,run.rows.map(row=>row.map(value)));
+   statement.reset();
+  }
+ }finally{statement.finalize()}
+ // The adjacent mixed-module caller remains outside retained-filter admission.
+ // Verify prepare is atomic, not a deferred step error, then ordinary recovery.
+ const unsafe="SELECT d.a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) d, json_each('[1]') j WHERE d.a>1";
+ assert.throws(()=>db.prepare(unsafe),error=>error.kind==='unsupported'&&error.message==='this derived mixed-module source is not implemented',unsafe);
  await scalarAdmission(db);
 }));
 

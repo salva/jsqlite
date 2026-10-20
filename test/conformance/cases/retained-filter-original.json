@@ -1,0 +1,141 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "43f3f6090f1876601a26aa0bae0ac55ca303f9b3c201193e7102f2bfec43f793",
+  "variants": [
+    {
+      "encoding": "utf8",
+      "sha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+      "cases": [
+        {
+          "sql": "SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "a",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t1",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "sha256": "0306bf9b00c44a780b34334ed9cf800f252df989fdc95a87b89ff6ad416aed45",
+      "cases": [
+        {
+          "sql": "SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "a",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t1",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "sha256": "c505412f30f61df28a9a7f3a52d53a107b9b11497216c6d6c3ab6c490836dad2",
+      "cases": [
+        {
+          "sql": "SELECT * FROM (SELECT a FROM t1 ORDER BY a LIMIT 2) WHERE a>1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "a",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t1",
+              "origin": "a"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
