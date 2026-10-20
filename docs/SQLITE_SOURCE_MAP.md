@@ -241,6 +241,15 @@ claim complete upstream coverage or reproduce execution inventories.
 
 ## Ordinary materialized producer cursors
 
+- select.c flattenSubquery restrictions 8/9/11/19, tags0482/0488 and
+  selectInnerLoop SRT_EphemTab → vdbe.ts compileRetainedFilter:
+  resolved transient producer tables, shared-builder ORDER/LIMIT child fill,
+  private retained cursor mapping → compileInnerTableSelect WHERE/FULL/order
+  consumer. Single-source uses bounded eager materialization rather than a
+  coroutine (tradeoff in guide). Tests: retained-filter.test.mjs with pinned
+  metadata/typed/reset/error oracle; [evidence](research/retained-filter.md).
+
+
 - build.c sqlite3SrcListAssignCursors / Parse.nTab; select.c tag-select-0488,
   selectInnerLoop SRT_EphemTab → vdbe.ts compileCteDerivedSources and fallback:
   shared-builder physical input cursor mapping, separate destination, fill/return

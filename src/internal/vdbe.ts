@@ -5735,6 +5735,28 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
     const end=ops.length;for(const at of tailEnds)(ops[at] as {p2:number}).p2=end;
 }
 
+// select.c tag-select-0488: complete retained FROM membership before WHERE.
+function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
+ const sources=select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
+ if(!select.where||!sources.length||sources.length!==select.from.items.length||select.hasCompound||select.hasDistinct||select.hasGroupBy||select.hasHaving||selectHasWindow(select)||selectHasAggregate(select))return undefined;
+ if(sources.some(({select:child})=>child.hasCompound||child.from.derived||child.from.cteDerived||child.from.items.length!==1||child.hasGroupBy||child.hasHaving||selectHasAggregate(child)||selectHasWindow(child)||!child.hasOrderBy||!child.hasLimit))return undefined;
+ const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()},destination:SelectDest=owner?.destination??{kind:'output'};
+ const tables=new Map<number,TableNode>();
+ for(const source of sources)tables.set(source.index,transientSourceTable(source.select,select.from.items[source.index]!.tableName,schema));
+ let expanded:ReturnType<typeof expandAndResolveSelect>;
+ try{expanded=expandAndResolveSelect(select,schema,null,builder.cursors,tables);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+ builder.reserveCursorsThrough(Math.max(...expanded.sources.map(source=>source.cursorId)));
+ const readers=new Map<ResolvedSource,number>();
+ for(const source of sources){
+  const cursor=builder.cursor(),width=tables.get(source.index)!.columns.length;
+  ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:Array.from({length:width},()=>({collation:'binary' as const}))})});
+  compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor}});
+  readers.set(expanded.sources[source.index]!,cursor);
+ }
+ const whereAccounting=compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,cursorFor:source=>readers.get(source)!,retainedCursors:new Set(readers.values())});
+ return Object.freeze({ops:owner?ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
+}
+
 function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;scalarRetained?:boolean;emitRow?:(first:number,count:number)=>void}):Program|undefined {
   if(owner?.scalarRetained){
     const child=select.from.derived?.select;
@@ -6911,6 +6933,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if(!shared)builder.ops.push({code:'Halt'});
     return Object.freeze({...compilation.program,ops:shared?builder.ops:builder.finish(),registers:builder.registers});
   }
+  const retainedFilter=compileRetainedFilter(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);if(retainedFilter)return retainedFilter;
   const cteSources=compileCteDerivedSources(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);if(cteSources){if("ops" in cteSources)return cteSources;return Object.freeze({ops:shared!.builder.ops,registers:shared!.builder.registers,encoding:database.encoding,columns:cteSources.columns,parameters:Object.freeze(shared!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});}
   const repeatedView=compileRepeatedImmutableView(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);if(repeatedView){if("ops" in repeatedView)return repeatedView;return Object.freeze({ops:shared!.builder.ops,registers:shared!.builder.registers,encoding:database.encoding,columns:repeatedView.columns,parameters:Object.freeze(shared!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});}
   const compoundDerived=compileSingleCompoundDerived(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);if(compoundDerived){if("ops" in compoundDerived)return compoundDerived;return Object.freeze({ops:shared!.builder.ops,registers:shared!.builder.registers,encoding:database.encoding,columns:compoundDerived.columns,parameters:Object.freeze(shared!.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});}
