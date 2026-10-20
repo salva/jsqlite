@@ -30,25 +30,34 @@ adding `json_each('[1]')` as a mixed module source rejects atomically at prepare
 with the existing precise unsupported message, followed by successful SELECT1.
 No runtime error is relabeled as prepare failure.
 
-## Original-owner correction (author evidence; independent acceptance pending)
+## Delivered original-owner correction and bounded independent acceptance
 
 [[card:card-j-d-b-a-c]] repaired the original gate on observed parent
-`757ccdebed27dd5aaeac049fe13023a4557c1e0f`. The gate now selects the merge
+`757ccdebed27dd5aaeac049fe13023a4557c1e0f`, delivered as
+`bcc3aa920cd4e3e47643c81ba7fa619c70df499e` (tree
+`624524f76e4c4eed4f5631312d54ad7e6b49f3ed`). The gate selects the merge
 function by TypeScript syntax ownership, retains the executable caller range,
 and checks the complete direct-call edge inventory plus key/LIMIT helper bodies
 and coroutine destination implementation. The earlier lexical proposal below
 is retained as provenance, not the delivered patch. All positive BalancedMerge
 checks and all five forbidden controls remain; independent retained FULL replay
 is excluded, not permitted inside the merge. Public affected callers and five
-separate disposable mutations are author verification, not independent approval.
-Current exact results and candidate preservation are in the original owner's
-`status.md`; no full-beta acceptance is implied.
+separate disposable forbidden-comment witnesses are author verification of lexical
+source-gate sensitivity, not executable mutation proof or independent approval.
+[Independent review36](record:///review.md?card=card-j-d-b&v=36) approves this
+bounded AST-owned correction on bcc3. [Independent accumulated review91](record:///status.md?card=card-m-f-l&v=91)
+accepts source/caller, cleanup/budget and regression/inventory on the same input:
+fresh 50/50 plus typecheck and fresh pinned original-fixture metadata/INTEGER3,
+twice/reset in all encodings. It withholds complete documentation acceptance only
+for D8, the stale pending/red assertions corrected here. Documentation adjudication
+of this correction remains independent; no full-beta acceptance is implied.
 
 ## Earlier cross-owner proposed patch — provenance only
 
-`select-derived-table-compound-owner.test.mjs` has no established original-card
-ownership here. Planner/ROOT [[card:card-j]] must adjudicate/apply this bounded
-proposal; that original file is unchanged by this delivery. Its overly broad
+At revision `757ccdebed27dd5aaeac049fe13023a4557c1e0f`, ownership of
+`select-derived-table-compound-owner.test.mjs` was not established for this card;
+Planner/ROOT [[card:card-j]] was asked to adjudicate/apply this bounded proposal.
+That delivery left the original file unchanged. Its overly broad
 concatenated range includes later `compileRetainedFilter`, whose FULL replay
 legitimately emits OpenEphemeral. The merge owner itself recursively composes
 coroutine ranges and CompareJump; no SET materialization exception is proposed.
@@ -79,7 +88,7 @@ in surrounding gates. The immediate next top-level function boundary avoids
 pulling independent pruning/retained producer ownership into the merge body.
 This does not authorize new helper delegation or a new set-materialization route.
 
-## Verification and remaining gates
+## Revision-bound author verification and remaining replay
 
 - Original focused command proc-523a4697648b: two failures, retained rejection
   assertion and over-broad ownership scan (accepted red status722).
@@ -92,17 +101,20 @@ This does not authorize new helper delegation or a new set-materialization route
   chained typecheck exit0. Complete output summary read at
   `work:///cards/card-m-f-k/processes/proc-a342eb982412/stdout.log`.
 
-The original cousin gate remains red until its owner applies an adjudicated
-patch. Additional author checks: proc-9cd7be720e0f passed20 affected compound
+On revision757 the cousin gate was still red; the delivered AST-owned correction
+and independent acceptance above supersede that pending action, not the earlier
+failed checks or the lexical proposal. Additional revision-bound author checks: proc-9cd7be720e0f passed20 affected compound
 owner/public cases but its wide-native case failed solely for missing
 WIDE_COMPOUND_FIXTURES; mutation loop after that command did not run. With the
 receipt's actual fixture directory explicitly supplied, proc-40e8a1e58180 passed
 the wide-native case (96 queries, all encodings, typed metadata/rows twice/reset).
-Proc-6a15bf4a55b9 independently injected each of the five forbidden tokens into
-the disposable merge body; all five caused the proposed assertion to fail,
-then the original disposable source was restored. No production source mutation.
+Proc-6a15bf4a55b9 separately injected each of the five forbidden tokens as a
+comment in the disposable merge body; all five caused the proposed lexical
+assertion to fail, then the original disposable source was restored. These are
+comment witnesses, not executable semantic mutations. No production source mutation.
 No combined full-beta pass is claimed. Public compound executable callers,
-negative mutation sensitivity, exact candidate tree checks and required affected
+lexical source-gate sensitivity, exact candidate tree checks and required affected
 regressions are recorded in this card's current status as performed; unchanged
-prior F5–F7 evidence stays revision-bound. Independent [[card:card-m-f-l]] must
-assess the same corrected input; ROOT [[card:card-w]] owns later full replay.
+prior F5–F7 evidence stays revision-bound. Independent [[card:card-m-f-l]] has
+assessed bcc3 as cited above; independent D8 documentation adjudication remains.
+ROOT [[card:card-w]] owns later full replay.
