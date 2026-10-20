@@ -1,0 +1,927 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "dacef3c55e931e821d1af0dc97c253e28794de3d6c10bb05862c6601b6f9730b",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "ba666849391d559449189fea2be7749529e24c8ba3b0f7df6a54a0aca49bc58f",
+      "cases": [
+        {
+          "sql": "SELECT (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 1,
+          "error": "sub-select returns 2 columns - expected 1"
+        },
+        {
+          "sql": "SELECT 2 IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 1,
+          "error": "sub-select returns 2 columns - expected 1"
+        },
+        {
+          "sql": "SELECT (2,2) IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x LIMIT 0)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (2,2) IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x UNION SELECT missing,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 1,
+          "error": "no such column: missing"
+        },
+        {
+          "sql": "SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "error": "integer overflow",
+              "reset": 1
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "integer overflow",
+              "reset": 1
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3 UNION ALL SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "096a45f30b1b9b43355e0faab17cc21c797576359a6dc05da73177bf90e6fe49",
+      "cases": [
+        {
+          "sql": "SELECT (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 1,
+          "error": "sub-select returns 2 columns - expected 1"
+        },
+        {
+          "sql": "SELECT 2 IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 1,
+          "error": "sub-select returns 2 columns - expected 1"
+        },
+        {
+          "sql": "SELECT (2,2) IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x LIMIT 0)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (2,2) IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x UNION SELECT missing,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 1,
+          "error": "no such column: missing"
+        },
+        {
+          "sql": "SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "error": "integer overflow",
+              "reset": 1
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "integer overflow",
+              "reset": 1
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3 UNION ALL SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "793b4534b5dd4e258c47e8c582a06176d614c3530dd27e571526d621bf278d58",
+      "cases": [
+        {
+          "sql": "SELECT (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 1,
+          "error": "sub-select returns 2 columns - expected 1"
+        },
+        {
+          "sql": "SELECT 2 IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 1,
+          "error": "sub-select returns 2 columns - expected 1"
+        },
+        {
+          "sql": "SELECT (2,2) IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x LIMIT 0)",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (2,2) IN (SELECT t.x,u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x) FROM t a",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "sql": "SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x UNION SELECT missing,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 1,
+          "error": "no such column: missing"
+        },
+        {
+          "sql": "SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "error": "integer overflow",
+              "reset": 1
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "error": "integer overflow",
+              "reset": 1
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3 UNION ALL SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3",
+          "prepare": 0,
+          "runs": [
+            {
+              "rows": [],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

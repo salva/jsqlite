@@ -5067,6 +5067,14 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   // DISTINCT is owned by each sqlite3Select/selectInnerLoop, not multiSelect.
   // A zero-source SELECT is one candidate; multirow VALUES needs its own filter.
   if(select.arms.some(arm=>arm.hasDistinct&&arm.origin==='values'))return undefined;
+  // multiSelect TK_ALL must reach the installed resolved full-row producer,
+  // not the narrower legacy derived adapter. Decide before emitting any arm.
+  if((select.result.length===2||select.result.length===3)&&
+     select.arms.some(arm=>arm.from.derived&&arm.from.items.length>1)&&
+     select.arms.every(arm=>arm.origin==='select'&&arm.from.items.length>0&&!arm.from.cteDerived?.length&&!arm.hasGroupBy&&!arm.hasHaving&&!selectHasAggregate({...select,...arm} as SelectNode)&&!selectHasWindow({...select,...arm} as SelectNode))&&
+     !owner?.linkedPlan&&!owner?.expressionBinding&&!owner?.sharedLimit&&!owner?.scalarPrepared){
+    return owner?compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner):compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  }
   const arms=select.arms.map(arm=>({...select,result:arm.result,from:arm.from,where:arm.where,
     hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,
     groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,orderBy:Object.freeze([]),limit:null,offset:null,

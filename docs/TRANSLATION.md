@@ -509,6 +509,12 @@ full-key coroutine merge keep their existing ownership. This is bounded author
 implementation, not arbitrary composition or independent compatibility approval.
 Source mapping, native/public tests and outstanding verification are in
 [JOIN/retained evidence](research/join-retained-compound-implementation.md).
+Unordered ALL dispatches bounded retained JOIN arms to the same resolved full-row
+producer before arm emission. Specialized linked scalar/IN/EXISTS retain their
+arity and shape gates; ordered/set table subqueries are not blanket-admitted.
+[Linked contracts and accounting](research/join-retained-compound-contracts-evidence.md)
+records finite native/error/invocation, live-key, rollback and cleanup controls.
+
 
 Bounded single-source,
 full-row ordinary table set arms resolve retained WHERE and projection

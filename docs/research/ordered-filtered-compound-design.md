@@ -1,9 +1,15 @@
 # Ordered filtered table-compound merge handoff
 
-Draft for [[card:card-j-d-b-a-a]], addressing parent system review
-`record:///review.md?card=card-j-d-b-a&v=30` R2 and the prerequisite assessment
-portion of R1. This is an implementation decision, not runtime repair, technical
-exception approval, MAIN integration approval or conformance credit.
+Current bounded joined/retained installation is committed in
+`ef3dc8e7aa297463b0588968c751ff6f7d964427`; see
+[joined implementation evidence](join-retained-compound-implementation.md) and
+[linked contract controls](join-retained-compound-contracts-evidence.md).
+Component41/system44 approved the bounded design documentation only, not runtime
+compatibility. Independent MAIN runtime acceptance remains separate. The original
+handoff below is revision-bound source/design provenance, not current admission
+or a claim that its historical commit gate is still open. The later bounded
+resolved JOIN producer supersedes the original single-source-only proposal;
+no global planner or arbitrary producer admission follows.
 
 ## Decision and boundary
 
