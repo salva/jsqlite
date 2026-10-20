@@ -636,9 +636,25 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  // resolve.c:resolveSelectStep resolves pFuncArg in this SELECT's linked
  // NameContext after WHERE. Argument-only outer references must mark the
  // child correlated before expr.c chooses Once versus per-row execution.
- for(const source of sources)for(const argument of source.arguments??[])
+ // select.c:selectCheckOnClauses/checkOnExpr checks linked cursor identity,
+ // including nested SELECTs, without rebinding against a truncated scope.
+ const checkJoinUses=(ordinal:number,uses:readonly ResolvedColumnUse[],children:readonly ResolvedSelect[],label:string):void=>{
+  const later=new Set(sources.slice(ordinal+1));
+  const check=(items:readonly ResolvedColumnUse[]):void=>{for(const use of items)if(later.has(use.source)||use.mergedSources?.some(ref=>later.has(ref.source)))throw new NameResolutionError(`${label} references tables to its right`);};
+  const visit=(plan:ResolvedSelect):void=>{check(plan.columnUses);for(const child of plan.nested)visit(child);for(const arm of plan.compoundArms??[])visit(arm);};
+  check(uses);for(const child of children)visit(child);
+ };
+ for(const [ordinal,source] of sources.entries())for(const argument of source.arguments??[]){
+  const useStart=context.columnUses.length,childStart=nested.length;
   resolveAgainstSources(argument,sources,select.result,!select.groupBy.length&&!select.result.some(hasAggregate),!select.groupBy.length&&!select.result.some(hasAggregate),true,select.windowNames,select.windowDefinitions,context,resolveNested);
- for(let i=1;i<sources.length;i++){const source=sources[i]!;if(!source.on)continue;resolveAgainstSources(source.on,sources,select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer){try{resolveAgainstSources(source.on,sources.slice(0,i+1),select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);}catch(error){if(error instanceof NameResolutionError)throw new NameResolutionError('ON clause references tables to its right');throw error;}}}
+  if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer)checkJoinUses(ordinal,context.columnUses.slice(useStart),nested.slice(childStart),'table-function argument');
+ }
+ for(let i=1;i<sources.length;i++){
+  const source=sources[i]!;if(!source.on)continue;
+  const useStart=context.columnUses.length,childStart=nested.length;
+  resolveAgainstSources(source.on,sources,select.result,true,true,true,select.windowNames,select.windowDefinitions,context,resolveNested);
+  if(source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.outer||sources.some(item=>item.joinFromLeft.right))checkJoinUses(i,context.columnUses.slice(useStart),nested.slice(childStart),'ON clause');
+ }
  for(let i=0;i<select.groupBy.length;i++){
   const expression=select.groupBy[i]!,parsed=groupByInteger(expression);
   if(parsed!==null){

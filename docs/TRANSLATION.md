@@ -143,10 +143,13 @@ The mixed physical/module producer resolves WHERE/ON against both declarations b
 
 Mixed physical/JSON RIGHT/FULL uses the common per-barrier match/interior/drain
 owner. Module rowIdentity, not visible key/id/value, supplies membership; prefix
-NULL extension clears module registers. Unmatched JSON Filter reopens the same
-module traversal over immutable input. Reparse instead of native parse reuse is
-an existing cursor-representation work/latency tradeoff, not platform necessity
-or allocation parity. Shared readiness, LTORJ, residuals, lazy Column/hidden demand
+NULL extension clears module registers. Unmatched JSON Filter reevaluates its
+selected arguments after prefix NULL extension. Like native jsonEachFilter, it
+resets traversal and parses the new input; no universal native parse reuse or
+immutable-argument guarantee is assumed. Linked outer-join table-function
+arguments reject forward source references, including nested SELECT arms;
+RIGHT fallback templates must be ready against the positioned prefix. Shared
+readiness, LTORJ, residuals, lazy Column/hidden demand
 and SelectDest remain authoritative. Finite native typed/metadata/reset evidence
 and unresolved phase/composition obligations:
 [JSON join evidence](research/recursive-join/json-right-full-evidence.md).

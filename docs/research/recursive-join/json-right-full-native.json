@@ -3861,6 +3861,394 @@
     },
     {
       "encoding": "UTF-8",
+      "sql": "SELECT * FROM json_each('[7,9]') a RIGHT JOIN json_each('[7,8]') b USING(value) ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT * FROM json_each('[7,9]') a NATURAL RIGHT JOIN json_each('[7,8]') b ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each(CASE WHEN t.id IS NULL THEN '[9]' ELSE '[7]' END) j ON 0 ORDER BY t.id,j.value",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
       "sql": "SELECT t.id,j.rowid,j.value FROM t RIGHT JOIN json_each(t.id) j ON 1",
       "metadata": [
         {
@@ -8068,6 +8456,523 @@
           {
             "type": "integer",
             "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT * FROM json_each('[7,9]') a FULL JOIN json_each('[7,8]') b USING(value) ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT * FROM json_each('[7,9]') a NATURAL FULL JOIN json_each('[7,8]') b ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each(CASE WHEN t.id IS NULL THEN '[9]' ELSE '[7]' END) j ON 0 ORDER BY t.id,j.value",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "null"
           }
         ]
       ]
@@ -11975,6 +12880,394 @@
     },
     {
       "encoding": "UTF-16le",
+      "sql": "SELECT * FROM json_each('[7,9]') a RIGHT JOIN json_each('[7,8]') b USING(value) ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT * FROM json_each('[7,9]') a NATURAL RIGHT JOIN json_each('[7,8]') b ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each(CASE WHEN t.id IS NULL THEN '[9]' ELSE '[7]' END) j ON 0 ORDER BY t.id,j.value",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
       "sql": "SELECT t.id,j.rowid,j.value FROM t RIGHT JOIN json_each(t.id) j ON 1",
       "metadata": [
         {
@@ -16182,6 +17475,523 @@
           {
             "type": "integer",
             "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT * FROM json_each('[7,9]') a FULL JOIN json_each('[7,8]') b USING(value) ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT * FROM json_each('[7,9]') a NATURAL FULL JOIN json_each('[7,8]') b ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each(CASE WHEN t.id IS NULL THEN '[9]' ELSE '[7]' END) j ON 0 ORDER BY t.id,j.value",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "null"
           }
         ]
       ]
@@ -20089,6 +21899,394 @@
     },
     {
       "encoding": "UTF-16be",
+      "sql": "SELECT * FROM json_each('[7,9]') a RIGHT JOIN json_each('[7,8]') b USING(value) ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT * FROM json_each('[7,9]') a NATURAL RIGHT JOIN json_each('[7,8]') b ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each(CASE WHEN t.id IS NULL THEN '[9]' ELSE '[7]' END) j ON 0 ORDER BY t.id,j.value",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
       "sql": "SELECT t.id,j.rowid,j.value FROM t RIGHT JOIN json_each(t.id) j ON 1",
       "metadata": [
         {
@@ -24302,6 +26500,523 @@
     },
     {
       "encoding": "UTF-16be",
+      "sql": "SELECT * FROM json_each('[7,9]') a FULL JOIN json_each('[7,8]') b USING(value) ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        },
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "key"
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "type"
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "atom"
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "id"
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "parent"
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "fullkey"
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "path"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT * FROM json_each('[7,9]') a NATURAL FULL JOIN json_each('[7,8]') b ORDER BY value,a.key,b.key",
+      "metadata": [
+        {
+          "name": "key",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "type",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "atom",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "id",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "parent",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "fullkey",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        },
+        {
+          "name": "path",
+          "declaredType": null,
+          "database": null,
+          "table": null,
+          "origin": null
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "0"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[0]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "8"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "string",
+            "value": "integer"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "string",
+            "value": "$[1]"
+          },
+          {
+            "type": "string",
+            "value": "$"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each(CASE WHEN t.id IS NULL THEN '[9]' ELSE '[7]' END) j ON 0 ORDER BY t.id,j.value",
+      "metadata": [
+        {
+          "name": "id",
+          "declaredType": "INTEGER",
+          "database": "main",
+          "table": "t",
+          "origin": "id"
+        },
+        {
+          "name": "value",
+          "declaredType": null,
+          "database": "main",
+          "table": "json_each",
+          "origin": "value"
+        }
+      ],
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "integer",
+            "value": "9"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "7"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
       "sql": "SELECT t.id,j.rowid,j.value FROM t FULL JOIN json_each(t.id) j ON 1",
       "metadata": [
         {
@@ -24342,6 +27057,170 @@
           }
         ]
       ]
+    }
+  ],
+  "errors": [
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each(k.value) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each((SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each((SELECT 1 UNION ALL SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each('[broken') j ON 0",
+      "prepare": 0,
+      "step": 1,
+      "message": "malformed JSON",
+      "reset": 1,
+      "finalize": 0
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each(k.value) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each((SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each((SELECT 1 UNION ALL SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-8",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each('[broken') j ON 0",
+      "prepare": 0,
+      "step": 1,
+      "message": "malformed JSON",
+      "reset": 1,
+      "finalize": 0
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each(k.value) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each((SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each((SELECT 1 UNION ALL SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each('[broken') j ON 0",
+      "prepare": 0,
+      "step": 1,
+      "message": "malformed JSON",
+      "reset": 1,
+      "finalize": 0
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each(k.value) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each((SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each((SELECT 1 UNION ALL SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16le",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each('[broken') j ON 0",
+      "prepare": 0,
+      "step": 1,
+      "message": "malformed JSON",
+      "reset": 1,
+      "finalize": 0
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each(k.value) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each((SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each((SELECT 1 UNION ALL SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t RIGHT JOIN json_each('[broken') j ON 0",
+      "prepare": 0,
+      "step": 1,
+      "message": "malformed JSON",
+      "reset": 1,
+      "finalize": 0
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each(k.value) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each((SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each((SELECT 1 UNION ALL SELECT k.value)) j ON 1 JOIN json_each('[7]') k ON 1",
+      "prepare": 1,
+      "message": "table-function argument references tables to its right"
+    },
+    {
+      "encoding": "UTF-16be",
+      "sql": "SELECT t.id,j.value FROM t FULL JOIN json_each('[broken') j ON 0",
+      "prepare": 0,
+      "step": 1,
+      "message": "malformed JSON",
+      "reset": 1,
+      "finalize": 0
     }
   ]
 }

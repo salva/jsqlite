@@ -372,7 +372,10 @@ compatibility credit.
   including repeated/mixed barriers, downstream ordinary joins and represented
   USING/NATURAL metadata, execute through per-level match/continuation owners.
   Mixed physical/JSON RIGHT/FULL also uses that owner with independent module
-  row identities and register-backed prefix NULL extension. Finite native tests
+  row identities and register-backed prefix NULL extension. Forward references
+  in outer-join table-function arguments reject at prepare with SQLite errors;
+  preceding-source arguments remain legal. Malformed JSON errors arise at step,
+  and reset reports the saved error after cleanup. Finite native tests
   cover all four JSON modules and both directions, not arbitrary correlation or
   virtual-table planning ([evidence](research/recursive-join/json-right-full-evidence.md)).
   Original window input on the represented joined route consumes that same

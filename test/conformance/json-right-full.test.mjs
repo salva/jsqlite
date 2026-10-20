@@ -19,12 +19,40 @@ for(const encoding of ['UTF-8','UTF-16le','UTF-16be'])test(`mixed JSON RIGHT FUL
     }));
     // No ORDER BY: preserve typed duplicates, not a particular scan order.
     const sorted=rows=>rows.map(row=>JSON.stringify(row)).sort();
-    assert.deepEqual(sorted(rows),sorted(entry.rows),entry.sql);
+    if(/\bORDER BY\b/i.test(entry.sql))assert.deepEqual(rows,entry.rows,entry.sql);
+    else assert.deepEqual(sorted(rows),sorted(entry.rows),entry.sql);
     assert.equal(await s.step(),'done');s.reset();
    }
   }finally{s.finalize();}
  }
  }finally{globalThis.fetch=old;db?.close();}
+});
+test('RIGHT FULL linked table-function forward references reject at prepare',async()=>{
+ const old=globalThis.fetch;
+ try{for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const bytes=fs.readFileSync(new URL(`./fixtures/row-width-ipk-${encoding}.db`,import.meta.url));
+  globalThis.fetch=async()=>new Response(bytes);const db=await open('https://fixture.invalid/dependencies');
+  try{for(const join of ['RIGHT','FULL'])for(const argument of ['k.value','(SELECT k.value)','(SELECT 1 UNION ALL SELECT k.value)']){
+   const sql=`SELECT t.id,j.value FROM t ${join} JOIN json_each(${argument}) j ON 1 JOIN json_each('[7]') k ON 1`;
+   assert.throws(()=>db.prepare(sql),e=>e.kind==='sqlite'&&e.message==='table-function argument references tables to its right',sql);
+  }}finally{db.close();}
+ }}finally{globalThis.fetch=old;}
+});
+test('RIGHT FULL native error phases and cleanup',async()=>{
+ const old=globalThis.fetch;
+ try{for(const encoding of ['UTF-8','UTF-16le','UTF-16be']){
+  globalThis.fetch=async()=>new Response(fs.readFileSync(new URL(`./fixtures/row-width-ipk-${encoding.toLowerCase()}.db`,import.meta.url)));
+  const db=await open('https://fixture.invalid/errors');
+  try{for(const entry of capture.errors.filter(e=>e.encoding===encoding)){
+   if(entry.prepare){assert.equal(entry.prepare,1);assert.throws(()=>db.prepare(entry.sql),e=>e.kind==='sqlite'&&e.message===entry.message);continue;}
+   assert.equal(entry.step,1);assert.equal(entry.reset,1);assert.equal(entry.finalize,0);
+   const s=db.prepare(entry.sql).statement;
+   await assert.rejects(s.step(),e=>e.kind==='sqlite'&&e.message===entry.message);
+   // Public reset reports the saved execution error after cleanup, like C rc.
+   assert.throws(()=>s.reset(),e=>e.kind==='sqlite'&&e.message===entry.message);s.finalize();
+   const recovery=db.prepare('SELECT 1').statement;assert.equal(await recovery.step(),'row');recovery.finalize();
+  }}finally{db.close();}
+ }}finally{globalThis.fetch=old;}
 });
 test('mixed JSON RIGHT FULL resource boundaries and rebind',async()=>{
  const bytes=fs.readFileSync(new URL('./fixtures/row-width-ipk-utf-8.db',import.meta.url)),old=globalThis.fetch;

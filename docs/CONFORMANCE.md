@@ -332,8 +332,11 @@ gate's 22 declared/attempted/passed/credited cases.
 
 ### Mixed JSON RIGHT/FULL bounded evidence
 
-`json-right-full.test.mjs` compares 390 pinned native SQL/encoding pairs via public
-typed cells, five metadata fields and two reset passes. All four JSON modules,
+`json-right-full.test.mjs` compares 408 pinned native SQL/encoding pairs via public
+typed cells, five metadata fields and two reset passes, with ordered assertions
+where ORDER BY is specified. A further 24 native error cases retain prepare versus
+step/reset/finalize distinctions. USING/NATURAL and CASE-after-NULL-prefix
+reevaluation supplement the original cases. All four JSON modules,
 TEXT/JSONB, both physical/module directions, duplicates, empty/NULL, ON/WHERE,
 independent aliases and bounded correlated arguments are represented. Entry
 budget failures, reset/rebind and post-unmatched cancellation are separate tests,

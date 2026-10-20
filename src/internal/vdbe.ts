@@ -4403,7 +4403,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   if(rightLevels.length)expanded.sources.forEach((source,ordinal)=>{
     if(source.table.kind!=='json-module')return;
     const prefix=(1n<<BigInt(ordinal))-1n;
-    const loop=jsonWhereLoops(expanded,source,owner?.expressionBinding?.positionedSources??new Set(),prefix)[0];
+    const loop=jsonWhereLoops(expanded,source,owner?.expressionBinding?.positionedSources??new Set(),prefix).find(candidate=>(candidate.prereq&~prefix)===0n);
     if(!loop)throw new JSQLiteError('unsupported','RIGHT JSON argument dependencies are not implemented',{unsupportedClassification:'temporary'});
     selectedBySource.set(ordinal,loop);
   });
