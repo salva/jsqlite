@@ -133,6 +133,14 @@ boundaries. The existing flattened derived outer-ORDER boundary remains temporar
 unsupported. This adds no host metadata/registration API or writes/PRAGMA mutation.
 [Evidence and remaining consumers](research/card-e-m-public-catalog.md).
 
+Bounded JOIN/retained compound arms now use the same enclosing VM resolved
+producer and projected full-row delivery for widths two/three. Retained children
+are limited to existing single-table ORDER/LIMIT producers. Sequential ALL and
+full-key coroutine merge keep their existing ownership. This is bounded author
+implementation, not arbitrary composition or independent compatibility approval.
+Source mapping, native/public tests and outstanding verification are in
+[JOIN/retained evidence](research/join-retained-compound-implementation.md).
+
 ## Connection and preparation
 
 A connection owns its statements. Operations on one connection are serialized:

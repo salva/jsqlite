@@ -502,7 +502,15 @@ including same-VM coroutine merge where implemented. Unordered non-ALL table
 compounds use the shared full-key merge, following pinned multiSelect's invented
 ORDER route; ephemeral replacement does not preserve its representatives.
 Result COLLATE retains lookup/collation ownership but has expression naming and
-no physical type/origin metadata. [Wide evidence](research/compound-wide-repair.md). Bounded single-source,
+no physical type/origin metadata. [Wide evidence](research/compound-wide-repair.md). Bounded JOIN/retained compound arms now use the same enclosing VM resolved
+producer and projected full-row delivery for widths two/three. Retained children
+are limited to existing single-table ORDER/LIMIT producers. Sequential ALL and
+full-key coroutine merge keep their existing ownership. This is bounded author
+implementation, not arbitrary composition or independent compatibility approval.
+Source mapping, native/public tests and outstanding verification are in
+[JOIN/retained evidence](research/join-retained-compound-implementation.md).
+
+Bounded single-source,
 full-row ordinary table set arms resolve retained WHERE and projection
 carriers on their shared scan cursor; false/NULL predicates skip delivery. Shared
 parameters retain lexical generated-terminal identity before LIMIT/WHERE lowering.
