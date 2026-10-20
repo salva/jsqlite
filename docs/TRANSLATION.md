@@ -267,7 +267,10 @@ as an alternative current contract.
 
 `tsconfig.build.json` emits only the current `src/` engine through pinned TS 5.9.3,
 with relative JS import rewriting; `tools/package/build.mjs` cleans output and
-normalizes declaration module specifiers via their AST. No bundler, runtime
+normalizes declaration module specifiers via their AST. Repeated ordinary prepack
+calls may restore a content-verified clean output snapshot; invalidation, cold-build
+and failure controls are documented in [build controls](../tools/package/README.md).
+No bundler, runtime
 dependency or evaluator substitution is introduced. The private experimental
 package allowlists emitted JS/declarations; native/reference/test/tool inputs
 remain outside the tarball. [Package evidence](research/card-v-a-package-evidence.md)
