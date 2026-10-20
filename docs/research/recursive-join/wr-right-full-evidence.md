@@ -1,5 +1,41 @@
 # WR RIGHT/FULL corrective slice
 
+## Caller reconciliation on 02fceb88
+
+Independent [[card:card-k-f]] status v21 found two obsolete prepare-rejection
+assertions in `or-wr-boundary.test.mjs:467–473`; its affected caller group was
+128/130. Owner red confirmation is retained in [[card:card-k-e]] status v24.
+This delta preserves BOTH original SQL shapes and the non-selected-Case5 planner
+assertion, replacing only the obsolete rejection with pinned public execution.
+`docs/research/card-s-i/capture-right-full.py` reuses the source-ID-checked C API
+recorder with original card-s-i fixtures. `native-right-full.json` records both
+shapes in all three encodings, five metadata fields, typed rows, two native reset
+passes and fixture SHA256. RIGHT returns400 rows, FULL761 per encoding. Since
+neither SQL orders its output, comparison is a sorted typed-row multiset (including
+duplicate counts), not an output-order guarantee. Public tests run both passes,
+metadata, INTEGER/NULL and stable done/reset/finalize through the existing adapter.
+No wrong-row/metadata/lifecycle mismatch was found; no runtime change is warranted.
+No new algorithm substitution, admission scope or current contract changed.
+
+Commands on the corrective input:
+
+```
+python3 docs/research/card-s-i/capture-right-full.py "$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so" > docs/research/card-s-i/native-right-full.json
+node --experimental-strip-types --test --test-concurrency=1 --test-name-pattern='RIGHT|FULL' test/conformance/or-wr-boundary.test.mjs
+node --experimental-strip-types --test --test-concurrency=1 test/conformance/or-wr-boundary.test.mjs test/conformance/without-rowid-right-full.test.mjs
+node /work/jsqlite2/node_modules/typescript/bin/tsc -p tsconfig.json
+```
+
+Native capture succeeded (proc-1f5aaf1e37ba). Focused **2/2**, combined **96/96**,
+then typecheck/diff-check passed (proc-398671363689). Full six-file affected caller
+group from f21 passed **130/130**, proc-991867650a17 (67.194s). Exact process
+stdout URLs and final committed receipt are in current card status. The added
+all-encoding public execution makes this caller group slower than the former
+prepare-only rejection; the old60s wrapper is no longer an adequate test budget.
+Settled native318/runtime checks on02 remain applicable to unchanged inputs;
+independent acceptance and broader resource obligations are not inferred here.
+
+
 ## Source and current mechanism
 
 Pinned SQLite 3.53.4 source ID:

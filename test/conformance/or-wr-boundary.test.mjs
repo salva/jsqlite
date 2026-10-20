@@ -463,14 +463,35 @@ test('WR nullable ON cannot be factored or coded before its correlated owner is 
  assert.equal(branchConsumedTerms(candidate,clause,3n).has(correlated),false,'ready nullable ON still retains owning residual');
 }));
 
-// Unsupported WR RIGHT/FULL must not become selected Case5 execution.
-for(const join of ['RIGHT','FULL'])test(`WR ${join} nullable composition retains conservative rejection`,async()=>withDb(capture.variants[0],async db=>{
- const sql=`SELECT u.x,w.n FROM u ${join} JOIN w ON (w.a=1 OR w.b=2) AND w.n=u.x`;
- const resolved=expandAndResolveSelect(parseSql(sql).statement,loadSchemaGraph(db));
- const plan=planWhere(resolved,{neededColumns:resolved.sources.map(s=>new Set(s.table.columns)),orderBy:[]});
- assert.ok(plan.path===null||plan.path.loops.every(loop=>loop.kind!=='multi-or'),'unsupported join cannot publish selected union');
- assert.throws(()=>db.prepare(sql),error=>error.kind==='unsupported'&&/WITHOUT ROWID/.test(error.message));
-}));
+// RIGHT/FULL admission does not imply selected Case5 OR. Exercise both original
+// shapes against pinned public execution, without assuming unordered scan order.
+for(const join of ['RIGHT','FULL'])test(`WR ${join} nullable composition matches pinned execution`,async()=>{
+ const native=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-i/native-right-full.json',import.meta.url)));
+ assert.equal(native.sourceId,manifest.sqliteSourceId);
+ for(const v of capture.variants)await withDb(v,async db=>{
+  const sql=`SELECT u.x,w.n FROM u ${join} JOIN w ON (w.a=1 OR w.b=2) AND w.n=u.x`;
+  const c=native.cases.find(c=>c.encoding===v.encoding&&c.sql===sql);assert.ok(c);
+  assert.equal(c.fixtureSha256,v.fixture.sha256);
+  const resolved=expandAndResolveSelect(parseSql(sql).statement,loadSchemaGraph(db));
+  const plan=planWhere(resolved,{neededColumns:resolved.sources.map(s=>new Set(s.table.columns)),orderBy:[]});
+  assert.ok(plan.path===null||plan.path.loops.every(loop=>loop.kind!=='multi-or'),'nullable OR retains non-Case5 execution');
+  const s=db.prepare(sql).statement;
+  try{
+   const metadata=()=>Array.from({length:s.columnCount},(_,i)=>{const m=s.columnMetadata(i);return {name:m.name,declaredType:m.declaredType,database:m.database,table:m.table,origin:m.origin}});
+   const bag=rows=>rows.map(row=>JSON.stringify(row)).sort();
+   for(let pass=0;pass<2;pass++){
+    assert.deepEqual(metadata(),c.metadata);
+    const rows=[];
+    while(await s.step()==='row')rows.push(Array.from({length:s.columnCount},(_,i)=>{
+     const type=s.columnType(i);assert.ok(type==='integer'||type==='null');
+     return type==='null'?{type}:{type,value:String(s.column(i))};
+    }));
+    assert.deepEqual(bag(rows),bag(c.rows),`${v.encoding} ${join} pass${pass}`);
+    assert.equal(await s.step(),'done');s.reset();
+   }
+  }finally{s.finalize()}
+ });
+});
 
 const mixed=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-i/native-mixed.json',import.meta.url)));
 for(const v of mixed.variants)test(`${v.encoding}: WR mixed typed PK union matches independent native`,async()=>withDb(v,async db=>{
