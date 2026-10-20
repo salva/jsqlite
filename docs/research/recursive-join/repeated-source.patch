@@ -1,0 +1,28 @@
+--- a/src/internal/vdbe.ts
++++ b/src/internal/vdbe.ts
+@@ -2673,7 +2673,7 @@
+  const refs=select.from.items.filter(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name));
+  // Decline before resolution/allocation/emission: other semantic owners handle
+  // derived inputs and multiple recursive declarations. Selected errors remain terminal.
+- if(refs.length!==1||select.from.items.some(item=>item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>item!==refs[0]&&!schema.findTable(item.tableName)))return undefined;
++ if(refs.length===0||select.from.items.some(item=>item.joinFromLeft.right)||select.hasCompound||selectHasWindow(select)||select.from.items.some(item=>!refs.includes(item)&&!schema.findTable(item.tableName)))return undefined;
+  const {transient,expanded}=prepareRecursiveSource(select,owner,schema),{builder,parameters,destination}=shared,ops=builder.ops;
+  const recursiveSource=expanded.sources[select.from.items.indexOf(refs[0]!) ]!;
+  // Reserve resolver cursor identities before queue code allocates private ones.
+@@ -2681,8 +2681,14 @@
+  const cursor=builder.cursor(),width=recursiveSource.table.columns.length;
+  ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:recursiveSource.table.columns.map(()=>({collation:'binary' as const}))})});
+  compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true,{builder,parameters,destination:{kind:'ephemeral',cursor}});
+- const cursorFor=(source:ResolvedSource)=>source===recursiveSource?cursor:source.cursorId;
+- const retainedCursors=new Set([cursor]);
++ // select.c tag-select-0484: materialize this CteUse once, then OpenDup
++ // for each later SrcItem. Records/lifetime are shared; reader positions and
++ // nullRow are handle-local. Do not rerun the recursive queue per alias.
++ const recursiveSources=expanded.sources.filter((_,index)=>refs.includes(select.from.items[index]!));
++ const readerCursors=new Map<ResolvedSource,number>([[recursiveSource,cursor]]);
++ for(const source of recursiveSources.slice(1)){const reader=builder.cursor();ops.push({code:'OpenDup',p1:reader,p2:cursor});readerCursors.set(source,reader);}
++ const cursorFor=(source:ResolvedSource)=>readerCursors.get(source)??source.cursorId;
++ const retainedCursors=new Set(readerCursors.values());
+  if(selectHasAggregate(select)){const program=compileAggregateSelect(select,transient,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,linkedPlan:expanded,cursorFor,retainedCursors});return Object.freeze({...program,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name})))});}
+  const whereAccounting=compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,cursorFor,retainedCursors}) as NonNullable<Program['whereAccounting']>;
+  return Object.freeze({ops,registers:builder.registers,encoding:database.encoding,columns:Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});

@@ -399,12 +399,13 @@ compatibility credit.
 - Ordinary WITH has represented flatten/coroutine/materialized and repeated-source
   routes. Recursive WITH has iterative Queue/Current, duplicate and queue-order
   behavior, body LIMIT/OFFSET separate from the outer consumer, and selected
-  aggregate/window consumers. One recursive source joined to physical tables
-  supports inner/CROSS and LEFT joins in either source order, and ordinary
-  aggregate/GROUP/HAVING consumers; retained input is bounded and materialized
-  before consumer output. RIGHT/FULL joins,
-  repeated references to one recursive declaration and unrepresented joined
-  compound/window consumers remain temporary unsupported. The physical-join
+  aggregate/window consumers. One recursive declaration joined to physical tables
+  or repeated outer aliases supports inner/CROSS and LEFT joins in either source
+  order, and ordinary aggregate/GROUP/HAVING consumers; retained input is bounded
+  and materialized once before consumer output, with independent alias readers.
+  RIGHT/FULL joins and unrepresented joined compound/window consumers remain
+  temporary unsupported; the represented physical INNER recursive join plus
+  row_number window remains supported. The physical-join
   specialization does not preempt represented derived-input or distinct multiple
   recursive declaration routes. Aggregates/windows in the recursive term itself
   are not thereby admitted. Unsupported WITH shapes fail without registering a

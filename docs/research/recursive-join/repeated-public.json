@@ -1,0 +1,2684 @@
+[
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a JOIN q b ON a.x=b.x ORDER BY a.x,b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a CROSS JOIN q b ORDER BY a.x,b.x LIMIT 4 OFFSET 1",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<3 ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT b.x,a.x FROM q b LEFT JOIN q a ON a.x=b.x AND a.x<2 ORDER BY b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,count(b.x) FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<3 GROUP BY a.x ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "count(b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,(SELECT b.x) FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<2 ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "(SELECT b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [],
+      []
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(NULL) UNION ALL SELECT x FROM q LIMIT 1) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": "q",
+        "origin": "x"
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": "q",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1),(1) UNION ALL SELECT x+1 FROM q WHERE x<2) SELECT a.x,count(b.x) FROM q a JOIN q b ON a.x=b.x GROUP BY a.x ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "count(b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-8",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<8 ORDER BY 1 DESC LIMIT 3 OFFSET 1) SELECT a.x,b.x FROM q a JOIN q b ON a.x=b.x ORDER BY a.x DESC LIMIT 2",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a JOIN q b ON a.x=b.x ORDER BY a.x,b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a CROSS JOIN q b ORDER BY a.x,b.x LIMIT 4 OFFSET 1",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<3 ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT b.x,a.x FROM q b LEFT JOIN q a ON a.x=b.x AND a.x<2 ORDER BY b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,count(b.x) FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<3 GROUP BY a.x ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "count(b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,(SELECT b.x) FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<2 ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "(SELECT b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [],
+      []
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(NULL) UNION ALL SELECT x FROM q LIMIT 1) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": "q",
+        "origin": "x"
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": "q",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1),(1) UNION ALL SELECT x+1 FROM q WHERE x<2) SELECT a.x,count(b.x) FROM q a JOIN q b ON a.x=b.x GROUP BY a.x ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "count(b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<8 ORDER BY 1 DESC LIMIT 3 OFFSET 1) SELECT a.x,b.x FROM q a JOIN q b ON a.x=b.x ORDER BY a.x DESC LIMIT 2",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a JOIN q b ON a.x=b.x ORDER BY a.x,b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a CROSS JOIN q b ORDER BY a.x,b.x LIMIT 4 OFFSET 1",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<3 ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT b.x,a.x FROM q b LEFT JOIN q a ON a.x=b.x AND a.x<2 ORDER BY b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,count(b.x) FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<3 GROUP BY a.x ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "count(b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "0"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,(SELECT b.x) FROM q a LEFT JOIN q b ON a.x=b.x AND b.x<2 ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "(SELECT b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(SELECT 1 WHERE 0 UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [],
+      []
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(NULL) UNION ALL SELECT x FROM q LIMIT 1) SELECT a.x,b.x FROM q a LEFT JOIN q b ON a.x=b.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": "q",
+        "origin": "x"
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": "q",
+        "origin": "x"
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1),(1) UNION ALL SELECT x+1 FROM q WHERE x<2) SELECT a.x,count(b.x) FROM q a JOIN q b ON a.x=b.x GROUP BY a.x ORDER BY a.x",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "count(b.x)",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<8 ORDER BY 1 DESC LIMIT 3 OFFSET 1) SELECT a.x,b.x FROM q a JOIN q b ON a.x=b.x ORDER BY a.x DESC LIMIT 2",
+    "metadata": [
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      },
+      {
+        "name": "x",
+        "declaredType": null,
+        "database": null,
+        "table": null,
+        "origin": null
+      }
+    ],
+    "runs": [
+      [
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "integer",
+            "value": "4"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "integer",
+            "value": "3"
+          }
+        ]
+      ]
+    ],
+    "accounting": {
+      "plannerCandidates": 0,
+      "plannerPaths": 0,
+      "indexSeeks": 0,
+      "indexNext": 0,
+      "tableSeeks": 0,
+      "tableNext": 0,
+      "residualTests": 0,
+      "sorterRows": 0,
+      "inProbes": 0,
+      "orBranchStarts": 0,
+      "orBranchRoots": [],
+      "orDuplicateSkips": 0
+    },
+    "rowsMatch": true,
+    "metadataMatch": true,
+    "classification": "match"
+  }
+]

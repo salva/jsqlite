@@ -5246,8 +5246,12 @@ masked by prior positioning in the cursor test. The corrected candidate initiali
 both opens, sets empty/exhausted Rewind/Next flags, and preserves handle flags
 across shared clear/sort; VM regressions cover pre-position reads and reset/reopen.
 Author evidence is not independent approval; see LEFT evidence for revision-bound
-checks and exact patch identity. RIGHT/FULL joins, repeated references to one declaration and unrepresented
-joined compound/window inputs remain gaps. Source
+checks and exact patch identity. Repeated outer aliases now share one retained
+recursive producer and independent OpenDup readers through shared WHERE/AggInfo;
+see [bounded source comparison and evidence](../research/recursive-join/repeated-evidence.md).
+RIGHT/FULL joins and unrepresented joined compound/window inputs remain gaps.
+The exact physical INNER recursive join plus row_number window is a matching
+positive control, not a current unsupported prediction. Source
 comparison, exact encoding/reset/metadata observations and residual evidence
 limits are in [recursive join evidence](../research/recursive-join/README.md).
 

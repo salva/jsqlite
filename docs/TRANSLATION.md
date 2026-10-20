@@ -651,8 +651,8 @@ represented flatten/coroutine/materialized/repeated-source routes. Recursive
 `generateWithRecursiveQuery` lowering uses iterative Queue/Current state, setup,
 duplicate tracking, queue ORDER and body LIMIT/OFFSET distinct from outer consumer
 limits. Recursive aggregates and windows are consumers, not permission for
-aggregates/windows in the recursive term. A single recursive SrcItem joined to
-physical tables uses a retained insertion-order ephemeral destination feeding the
+aggregates/windows in the recursive term. A recursive declaration (including repeated outer aliases) joined to
+physical tables or its other aliases uses a retained insertion-order ephemeral destination feeding the
 shared WHERE loops and AggInfo (including GROUP/HAVING); producer queue order,
 deduplication and LIMIT remain separate from consumer controls. This physical-only
 specialization declines outside its admission before resolution or builder mutation,
@@ -666,8 +666,12 @@ from emptiness, Next sets it on exhaustion, and completed integer SeekRowid clea
 it even on a miss (whose caller takes the failure jump). Shared clear/sort invalidates
 positions but preserves each handle's flag; callers rewind before reading.
 [Cursor branch evidence](research/recursive-join/left-evidence.md).
-RIGHT/FULL joins, repeated references to one recursive declaration and joined compound/window shapes
-not represented by another owner remain bounded temporary gaps. Materializing this retained input charges all producer
+Repeated aliases share one producer/storage lifetime and use OpenDup handles with
+independent reader positions and NULL state (select.c CteUse tag-select-0484).
+RIGHT/FULL joins and joined compound/window shapes not represented by another
+owner remain bounded temporary gaps; the represented recursive physical INNER
+join plus row_number window is supported, not a missing-feature prediction.
+[Repeated-reader source comparison and evidence](research/recursive-join/repeated-evidence.md). Materializing this retained input charges all producer
 rows before consumer output; it does not promise streaming latency or planner
 parity. [Source comparison and evidence](research/recursive-join/README.md).
 

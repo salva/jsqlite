@@ -399,7 +399,13 @@ these branches, not general storage/complexity parity.
   follows the right-most recursive arm to Current-table metadata. Tests:
   `recursive-cte-left.test.mjs`, `ephemeral-null-row.test.mjs`,
   `recursive-cte-join.test.mjs` and `cte-admission.test.mjs` (pre-emission
-  specialization decline preserves derived/multiple recursive dispatch); [native/public evidence and boundaries](research/recursive-join/README.md).
+  specialization decline preserves derived/multiple recursive dispatch);
+  `select.c:tag-select-0484` CteUse reuse → `compileRecursiveJoinedSelect` one
+  retained producer plus per-alias OpenDup cursors, shared WHERE/AggInfo consumers.
+  `recursive-cte-repeated.test.mjs` covers INNER/CROSS/LEFT/GROUP, correlation,
+  queue/consumer controls, resets/rebinds and bounds/cancellation;
+  [repeated-reader comparison and typed native/public evidence](research/recursive-join/repeated-evidence.md).
+  [Native/public evidence and boundaries](research/recursive-join/README.md).
   Evidence [[card:card-n]], [[card:card-n-c]], [[card:card-t-d]].
 - `window.c:sqlite3WindowRewrite`, `sqlite3WindowCodeInit`,
   `sqlite3WindowCodeStep`, `windowCacheFrame` →
