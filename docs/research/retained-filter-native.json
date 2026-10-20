@@ -728,6 +728,557 @@
           "message": "no such column: d.missing"
         },
         {
+          "sql": "SELECT d.p FROM(SELECT x,json_extract('bad','$') AS p FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT 0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))d WHERE d.x>0 LIMIT 0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,json_extract('bad','$') AS p FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))d WHERE d.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,CASE WHEN x=3 THEN json_extract('bad','$') ELSE x END AS p FROM t ORDER BY x LIMIT 3)d WHERE d.x>0 LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,CASE WHEN x=3 THEN json_extract('bad','$') ELSE x END AS p FROM t ORDER BY x LIMIT 3)d WHERE d.x>0 ORDER BY d.x LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x DESC LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
           "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)d WHERE json_extract('bad','$')>0 ORDER BY d.x",
           "prepare": 0,
           "metadata": [
@@ -751,6 +1302,320 @@
               "rows": [],
               "end": 1,
               "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)a JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t WHERE x<0 ORDER BY x LIMIT 2)a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE b.x>0 ORDER BY b.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t WHERE x<0 ORDER BY x LIMIT 2)a JOIN(SELECT x FROM u ORDER BY x LIMIT abs(-9223372036854775808))b ON a.x=b.x WHERE a.x>0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x DESC LIMIT 2)d WHERE d.x>0 LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET abs(-9223372036854775808)",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
             }
           ]
         }
@@ -1482,6 +2347,557 @@
           "message": "no such column: d.missing"
         },
         {
+          "sql": "SELECT d.p FROM(SELECT x,json_extract('bad','$') AS p FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT 0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))d WHERE d.x>0 LIMIT 0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,json_extract('bad','$') AS p FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))d WHERE d.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,CASE WHEN x=3 THEN json_extract('bad','$') ELSE x END AS p FROM t ORDER BY x LIMIT 3)d WHERE d.x>0 LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,CASE WHEN x=3 THEN json_extract('bad','$') ELSE x END AS p FROM t ORDER BY x LIMIT 3)d WHERE d.x>0 ORDER BY d.x LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x DESC LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
           "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)d WHERE json_extract('bad','$')>0 ORDER BY d.x",
           "prepare": 0,
           "metadata": [
@@ -1505,6 +2921,320 @@
               "rows": [],
               "end": 1,
               "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)a JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t WHERE x<0 ORDER BY x LIMIT 2)a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE b.x>0 ORDER BY b.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t WHERE x<0 ORDER BY x LIMIT 2)a JOIN(SELECT x FROM u ORDER BY x LIMIT abs(-9223372036854775808))b ON a.x=b.x WHERE a.x>0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x DESC LIMIT 2)d WHERE d.x>0 LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET abs(-9223372036854775808)",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
             }
           ]
         }
@@ -2236,6 +3966,557 @@
           "message": "no such column: d.missing"
         },
         {
+          "sql": "SELECT d.p FROM(SELECT x,json_extract('bad','$') AS p FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT 0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))d WHERE d.x>0 LIMIT 0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,json_extract('bad','$') AS p FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))d WHERE d.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,CASE WHEN x=3 THEN json_extract('bad','$') ELSE x END AS p FROM t ORDER BY x LIMIT 3)d WHERE d.x>0 LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.p FROM(SELECT x,CASE WHEN x=3 THEN json_extract('bad','$') ELSE x END AS p FROM t ORDER BY x LIMIT 3)d WHERE d.x>0 ORDER BY d.x LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "p",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 1,
+              "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x DESC LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT abs(-9223372036854775808))a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1 OFFSET -2",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
           "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)d WHERE json_extract('bad','$')>0 ORDER BY d.x",
           "prepare": 0,
           "metadata": [
@@ -2259,6 +4540,320 @@
               "rows": [],
               "end": 1,
               "message": "malformed JSON"
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)a JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE a.x>0 LIMIT ?1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t WHERE x<0 ORDER BY x LIMIT 2)a FULL JOIN(SELECT x FROM u ORDER BY x LIMIT 2)b ON a.x=b.x WHERE b.x>0 ORDER BY b.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT a.x,b.x FROM(SELECT x FROM t WHERE x<0 ORDER BY x LIMIT 2)a JOIN(SELECT x FROM u ORDER BY x LIMIT abs(-9223372036854775808))b ON a.x=b.x WHERE a.x>0",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x DESC LIMIT 2)d WHERE d.x>0 LIMIT 1",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.x FROM(SELECT x FROM t ORDER BY x LIMIT 2)d WHERE d.x>0 LIMIT ?1 OFFSET abs(-9223372036854775808)",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 2,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": null,
+              "rows": [],
+              "end": 20,
+              "message": "datatype mismatch"
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 0,
+              "rows": [],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
+            },
+            {
+              "binding": 7,
+              "rows": [],
+              "end": 1,
+              "message": "integer overflow"
             }
           ]
         }

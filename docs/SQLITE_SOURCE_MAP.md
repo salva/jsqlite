@@ -245,10 +245,11 @@ claim complete upstream coverage or reproduce execution inventories.
   selectInnerLoop SRT_EphemTab → vdbe.ts compileRetainedFilter:
   resolved transient producer tables, shared-builder ORDER/LIMIT child fill,
   private retained cursor mapping → compileInnerTableSelect WHERE/FULL/order
-  consumer. Single-source uses bounded eager materialization rather than a
-  coroutine (tradeoff in guide). Tests: retained-filter.test.mjs with pinned
-  metadata/typed/reset/error oracle; [evidence](research/retained-filter.md).
-
+  consumer. select.c computeLimitRegisters and wherecode.c coroutine first/next
+  plus where.c materialized Gosub → parent LIMIT before sourceProducers invocation;
+  register-backed Yield rows or callable Once fill and retained FULL replay.
+  Tests: retained-filter.test.mjs with pinned metadata/typed/reset/error oracle;
+  [evidence](research/retained-filter.md), [demand correction](research/retained-filter-demand.md).
 
 - build.c sqlite3SrcListAssignCursors / Parse.nTab; select.c tag-select-0488,
   selectInnerLoop SRT_EphemTab → vdbe.ts compileCteDerivedSources and fallback:

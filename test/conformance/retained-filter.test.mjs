@@ -5,6 +5,15 @@ import {createHash} from 'node:crypto';
 import {open} from '../../src/index.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 const native=JSON.parse(readFileSync(new URL('../../docs/research/retained-filter-native.json',import.meta.url)));
+assert.equal(native.variants.length,3);
+for(const variant of native.variants){
+ assert.equal(variant.cases.length,28,'original membership cases plus F5 and demand controls must remain captured');
+ for(const fragment of ["json_extract('bad',",'LIMIT abs(-9223372036854775808)']){
+  const witness=variant.cases.find(item=>item.sql.includes(fragment)&&item.sql.endsWith('LIMIT 0'));
+  assert.ok(witness,'exact F5 witness retained');assert.equal(witness.prepare,0);
+  assert.ok(witness.runs.every(run=>run.end===101&&run.rows.length===0));
+ }
+}
 for(const variant of native.variants)test(`${variant.encoding}: retained membership precedes outer WHERE and ORDER`,async()=>{
  const bytes=Buffer.from(variant.base64,'base64');assert.equal(createHash('sha256').update(bytes).digest('hex'),variant.sha256);
  const previous=globalThis.fetch;globalThis.fetch=async()=>new Response(bytes);let db,st;

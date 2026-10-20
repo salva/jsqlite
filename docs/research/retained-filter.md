@@ -11,22 +11,23 @@ and parent predicates, not the child.
 
 `vdbe.ts:compileRetainedFilter` binds transient source tables with existing
 `transientSourceTable`/resolution metadata, allocates shared-builder private
-cursors, invokes `compileTableSelect` into an ephemeral destination, and delegates
-parent execution to `compileInnerTableSelect` with retainedCursors/cursorFor.
+cursors, emits `compileTableSelect` behind a coroutine or materialization entry,
+and delegates parent execution to `compileInnerTableSelect` with producer entries,
+retainedCursors/cursorFor and register-backed column locations.
 That prevents an OpenRead of the transient descriptor, preserves resolver cursor
 identity, and reuses existing FULL match/second-pass and ORDER/LIMIT owners.
 No AST evaluator or SQL spelling test is introduced. Eligibility is bounded to
 all-derived noncompound single-table ORDER/LIMIT children and nonaggregate,
 nonwindow, non-DISTINCT parents with WHERE; other shapes keep existing paths.
 
-The single-source implementation deliberately uses the existing retained-cursor
-WHERE interface rather than adding a coroutine-aware WHERE source. Upstream
-usually chooses a coroutine there. This is an engineering integration adaptation,
-not a browser necessity: eager fill increases first-row latency/work and private
-retention and may reach resource limits sooner. Child membership, typed SQL
-values, collation, metadata and ordinary errors are preserved in the finite tests;
-resource accounting stays shared, never bypassed. No general laziness/error-order
-or arbitrary derived-composition equivalence is claimed.
+Producer bodies now follow pinned InitCoroutine or callable Once/Return
+materialization. The ordinary WHERE owner initializes parent LIMIT/OFFSET before
+invoking them, reads coroutine columns from registers, and invokes retained fills
+at scan entry. FULL replay retains its physical cursor and ensures RHS fill even
+when the left input was empty. Child ORDER/top-N can still block before first
+Yield, as native later-child-error controls show. The rejected9f21 eager fill
+is not an accepted adaptation; [F5 decision and evidence](retained-filter-demand.md)
+records the correction and remaining finite-coverage boundary.
 
 ## Native and author evidence
 

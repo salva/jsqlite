@@ -1,0 +1,11 @@
+# Retained filter F5 invocation decision
+
+Pinned select.c tags0482/0488 keep producer bodies behind InitCoroutine or Goto/Once/Return. Parent LIMIT initialization precedes WHERE invocation. Implement genuine single-source coroutine SelectDest with register-backed locations and Yield first/next; repeated/FULL sources get callable Once fills invoked at scan entry. No algorithm substitution or parallel evaluator. Blocking child ORDER/top-N remains compileTableSelect-owned, not made artificially lazy.
+
+Native-first proc-823d1c4f5278 captured23 queries per encoding, two runs per binding; final native-first proc-7bee2bdad18a extends to28 with INNER, initially empty FULL, empty first producer/erroring second, positive early stop and parent OFFSET error controls. All original14 payloads match byte-decoded JSON objects in all3 encodings (proc-28da58ee5d47).
+
+Source integration initially passed21+tsc (proc-21b27ffb95f9). Extending coroutine eligibility exposed a FULL replay regression (proc-7bee2bdad18a:18pass/3fail, original unmatched RHS lost; tsc not reached). The raw AST first-term leftOfRightJoin flag was not the resolved pinned JT_LTORJ fact. Compute eligibility from any RIGHT/FULL join in this bounded FROM list instead; preserve RHS fill when left is empty. proc-02af3ed7a76c then21+tsc; proc-8bb30ad2f97c workspace154+tsc; scoped tree2d837123d2682caff64a24e08a44c92661312e13 exact export proc-c02514552b0b153+tsc. Workspace extra rowid test is not candidate evidence. No failed check relabeled.
+
+F5 reaches DONE; parameter null reaches datatype mismatch before child error; parameter0 suppresses child errors; negative OFFSET behaves as zero. Both later-child-error cases (with and without parent ORDER) fail before any native output because child sorting blocks. These facts guide the producer choice, not a claim of arbitrary demand parity. Preserve original14 cases and resources. Initial proc-665233d8e558 failed JSON decoding from replacement-tool dollar interpolation; corrected literal bytes before successful native capture, not hidden as a SQL failure.
+
+Detailed earlier implementation/evidence remains in retained-filter.md and accepted card status693. Independent l68 rejects9f21; source integration is not a platform rationale for error changes.

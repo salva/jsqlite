@@ -176,13 +176,15 @@ Retained table-backed ORDER/LIMIT FROM sources with an outer WHERE use
 `compileRetainedFilter`: transient producer descriptors feed the existing WHERE
 consumer through retained private cursors, including FULL join match/null-extension
 and parent sorting. Producer LIMIT/OFFSET completes before parent predicates;
-flattenSubquery restrictions 8/9/11/19 remain intact. This bounded route eagerly
-materializes even the single-source case where upstream can choose a coroutine:
-first-row work/latency and private retention differ, while membership, typed values,
-metadata, errors and shared limits remain owned by the translated producers and
-WHERE consumer. It admits noncompound single-table ORDER/LIMIT children, not
-arbitrary derived/CTE shapes. [Source comparison and finite evidence](research/retained-filter.md).
-
+flattenSubquery restrictions 8/9/11/19 remain intact. Producers are emitted behind
+InitCoroutine or callable Once/Return materialization, then invoked at WHERE scan
+entry after parent LIMIT/OFFSET initialization. Register-backed coroutine rows
+feed ordinary predicate/projection bindings; retained cursors own materialized
+FULL replay, including an initially empty left input. Child ORDER/top-N may block
+before its first Yield. This is translated demand control, not an eager-fill
+substitution. It admits noncompound single-table ORDER/LIMIT children, not
+arbitrary derived/CTE shapes. [Source comparison and finite evidence](research/retained-filter.md)
+and [invocation correction](research/retained-filter-demand.md).
 
 ## Read-only metadata PRAGMA (bounded consumers)
 

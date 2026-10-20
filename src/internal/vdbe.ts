@@ -4216,8 +4216,8 @@ function jsonColumnDemand(plan:ReturnType<typeof expandAndResolveSelect>,source:
 }
 
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):NonNullable<Program["whereAccounting"]>;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|NonNullable<Program["whereAccounting"]> {
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):NonNullable<Program["whereAccounting"]>;
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:()=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|NonNullable<Program["whereAccounting"]> {
   // select.c selectInnerLoop: a positioned module row feeds the same
   // destination and LIMIT registers as an ordinary table row. The selected
   // virtual loop owns argv; EList is evaluated only outside SRT_Exists.
@@ -4284,6 +4284,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>cursorFor(source))));
   const moduleRows=new Map(expanded.sources.filter(source=>source.table.kind==='json-module'||source.table.kind==='metadata-module').map(source=>[source,{first:range(source.table.columns.length),rowid:allocate(),cursor:builder.cursor(),columns:jsonColumnDemand(expanded,source)}]));
   const sourceLocation=(source:ResolvedSource,columnIndex:number):ReturnType<ResolvedExpressionBinding['location']>=>{
+    const coroutine=owner?.sourceProducers?.get(source)?.coroutine;
+    if(coroutine)return {kind:'register',register:coroutine.first+columnIndex,phase:'source-row'};
     const row=moduleRows.get(source);
     return row?{kind:'register',register:columnIndex<0?row.rowid:row.first+columnIndex,phase:'source-row'}:{kind:'cursor',...columnAccess(source,columnIndex)};
   };
@@ -4329,6 +4331,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         const index=ref.columnIndex<0||(ref.source.table.kind==='table'&&isIntegerPrimaryKeyAlias(ref.source.table,ref.columnIndex))?-1:ref.columnIndex;
         const c=index<0?'binary':sqliteAsciiFold(ref.source.table.columns[index]!.collation??'binary');
         if(c!=='binary'&&c!=='nocase'&&c!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${c}`,{code:1});
+        const coroutine=owner?.sourceProducers?.get(ref.source)?.coroutine;
+        if(coroutine)return {kind:'register',index:coroutine.first+ref.columnIndex,affinity:index<0?'integer':ref.source.table.columns[index]!.affinity,collation:c};
         const row=moduleRows.get(ref.source);
         if(row)return {kind:'register',index:ref.columnIndex<0?row.rowid:row.first+ref.columnIndex,affinity:index<0?'integer':ref.source.table.columns[index]!.affinity,collation:c};
         return {...node,...columnAccess(ref.source,ref.columnIndex),index,affinity:index<0?'integer':ref.source.table.columns[index]!.affinity,collation:c};
@@ -4562,7 +4566,12 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     return {exit,returnRegister,calls,covering,indexCursor:commonIndexCursor};
   };
   for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){const nullPass=nullPasses.get(level)!;ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!},{code:'Integer',p1:0n,p2:nullPass});}const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;
-  if(selected?.kind==='metadata-module'){
+  const producer=owner?.sourceProducers?.get(source);
+  if(producer?.materialize)ops.push({code:'Gosub',p1:producer.materialize.register,p2:producer.materialize.entry});
+  if(producer?.coroutine){
+    ops.push({code:'InitCoroutine',p1:producer.coroutine.register,p2:0,p3:producer.coroutine.entry});
+    rewinds.push(ops.length);ops.push({code:'Yield',p1:producer.coroutine.register,p2:0});singleRows[level]=false;
+  }else if(selected?.kind==='metadata-module'){
     const row=moduleRows.get(source)!;
     const args=selected.arguments.map(term=>compileExpressionTree(bindResolvedExpression(expressionFromReduction(term.rhs.reduction),term.rhs,cursorFor,true,nestedBinding),ops,allocate,parameters,compileJoinSubquery));
     rewinds.push(ops.length);
@@ -4725,7 +4734,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       }else if(op.code==='Rowid'&&(op.p1??0)===cover.tableCursor)ops[pc]={...op,p1:cover.cursor};
     }
   }
-  advanceAt[level]=ops.length;if(moduleRows.has(loopSources[level]!)){
+  advanceAt[level]=ops.length;const coroutine=owner?.sourceProducers?.get(loopSources[level]!)?.coroutine;
+  if(coroutine)ops.push({code:'Goto',p2:rewinds[level]!});else if(moduleRows.has(loopSources[level]!)){
     const row=moduleRows.get(loopSources[level]!)!;ops.push({code:loopSources[level]!.table.kind==='metadata-module'?'MetadataNext':'JsonTableNext',p1:row.cursor,rowStart:row.first,rowIdentity:row.rowid,p2:starts[level]!});
   }else if(orReturns.has(level))ops.push({code:'Return',p1:orReturns.get(level)!});else if(singleRows[level])ops.push({code:'Goto',p2:0});else {const ordinal=loopOrdinals[level]!,indexCursor=indexCursors.get(ordinal),reverse=!!selectedBySource.get(ordinal)?.capability?.reverse;ops.push(indexCursor===undefined&&!(loopSources[level]!.table.kind==='table'&&physicalTable(loopSources[level]!).withoutRowid)?{code:reverse?'Prev':'Next',p1:cursorFor(loopSources[level]!),p2:starts[level]!}:{code:reverse?'IndexPrev':'IndexNext',p1:indexCursor??cursorFor(loopSources[level]!),p2:starts[level]!});}const restart=inRestarts.get(level);if(restart){
     // where.c:sqlite3WhereEnd unwinds each equality-slot IN from inner to outer.
@@ -4772,6 +4782,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // and re-enters the existing WHERE owner. Null preceding sources remain
     // resolved outer references; no spelling/token reconstruction is involved.
     const original=expanded.sources[loopOrdinals[rightLevel]!]!;
+    const materialize=owner?.sourceProducers?.get(original)?.materialize;
+    if(materialize)ops.push({code:'Gosub',p1:materialize.register,p2:materialize.entry});
     const source:ResolvedSource={...original,on:null,using:null,leftOfRightJoin:false,
       joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}};
     const residual=rightJoinResidual(expanded,loopOrdinals[rightLevel]!).reduce<SelectNode['where']>((where,term)=>andViewPredicates(where,term.expression),null);
@@ -4787,6 +4799,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       ref.source===source?{kind:'cursor',cursor:cursorFor(original)}:nestedBinding.location(ref,depth)};
     compileInnerTableSelect(input,sub,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{
       builder,ops,parameters,destination:{kind:'output'},expressionBinding:binding,
+      ...(owner?.retainedCursors?{retainedCursors:owner.retainedCursors}:{}),
       cursorFor:ref=>ref===source?cursorFor(original):cursorFor(ref),consumeRow:()=>{
         ops.push({code:'Rowid',p1:cursorFor(original),p2:right.key});
         const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0});
@@ -5735,7 +5748,7 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
     const end=ops.length;for(const at of tailEnds)(ops[at] as {p2:number}).p2=end;
 }
 
-// select.c tag-select-0488: complete retained FROM membership before WHERE.
+// select.c tags0482/0488: retained FROM producers invoked by WHERE demand.
 function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
  const sources=select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
  if(!select.where||!sources.length||sources.length!==select.from.items.length||select.hasCompound||select.hasDistinct||select.hasGroupBy||select.hasHaving||selectHasWindow(select)||selectHasAggregate(select))return undefined;
@@ -5747,13 +5760,34 @@ function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:Btr
  try{expanded=expandAndResolveSelect(select,schema,null,builder.cursors,tables);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
  builder.reserveCursorsThrough(Math.max(...expanded.sources.map(source=>source.cursorId)));
  const readers=new Map<ResolvedSource,number>();
+ const sourceProducers=new Map<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>();
  for(const source of sources){
-  const cursor=builder.cursor(),width=tables.get(source.index)!.columns.length;
-  ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:Array.from({length:width},()=>({collation:'binary' as const}))})});
-  compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor}});
-  readers.set(expanded.sources[source.index]!,cursor);
+  const resolved=expanded.sources[source.index]!,cursor=builder.cursor(),width=tables.get(source.index)!.columns.length;
+  readers.set(resolved,cursor);
+  // select.c tag-select-0482: single FROM term can yield directly. The
+  // child sorter, if needed, remains a blocking owner before its first Yield.
+  const item=select.from.items[source.index]!;
+  const coroutine=fromClauseTermCanBeCoroutine({sourceCount:sources.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:!!select.from.items[source.index+1]?.joinFromLeft.cross,leftOfRightJoin:select.from.items.some(item=>item.joinFromLeft.right),updateFrom:false,coroutineOptimization:true,isCte:false,cteMaterialized:false,cteUseCount:1,cteNotMaterialized:false,earlierSubquery:source.index>0,selfJoinView:false});
+  if(coroutine){
+   const register=builder.register(),first=builder.range(width),skip=ops.length;
+   ops.push({code:'InitCoroutine',p1:register,p2:0,p3:skip+1});
+   const entry=ops.length;
+   compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'coroutine',register,first}});
+   ops.push({code:'EndCoroutine',p1:register,p2:0});(ops[skip] as {p2:number}).p2=ops.length;
+   sourceProducers.set(resolved,{coroutine:{register,first,entry}});
+  }else{
+   // tag-select-0488: Once belongs inside the callable fill, not ahead of
+   // the parent's computeLimitRegisters or a preceding empty loop.
+   const register=builder.register(),skip=ops.length;
+   ops.push({code:'Goto',p2:0});const entry=ops.length,once=ops.length;
+   ops.push({code:'Once',p1:builder.register(),p2:0});
+   ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:Array.from({length:width},()=>({collation:'binary' as const}))})});
+   compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor}});
+   (ops[once] as {p2:number}).p2=ops.length;ops.push({code:'Return',p1:register});(ops[skip] as {p2:number}).p2=ops.length;
+   sourceProducers.set(resolved,{materialize:{register,entry}});
+  }
  }
- const whereAccounting=compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,cursorFor:source=>readers.get(source)!,retainedCursors:new Set(readers.values())});
+ const whereAccounting=compileInnerTableSelect(select,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,cursorFor:source=>readers.get(source)!,retainedCursors:new Set(readers.values()),sourceProducers});
  return Object.freeze({ops:owner?ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(expanded.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
 }
 
