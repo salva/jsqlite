@@ -7,7 +7,7 @@ import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 const native=JSON.parse(readFileSync(new URL('../../docs/research/retained-filter-native.json',import.meta.url)));
 assert.equal(native.variants.length,3);
 for(const variant of native.variants){
- assert.equal(variant.cases.length,46,'original membership and F5 cases plus F6 demand and validation controls must remain captured');
+ assert.equal(variant.cases.length,60,'original membership and F5 cases plus F6 demand and validation controls must remain captured');
   const witnesses=variant.cases.filter(item=>item.sql.startsWith("SELECT d.x FROM(SELECT x,json_extract('bad',")&&(item.sql.endsWith(')d WHERE d.x>0')||item.sql.endsWith(')d WHERE d.x>0 LIMIT 1'))&&item.sql.includes('ORDER BY x LIMIT 2'));
  assert.equal(witnesses.length,2,'both exact F6 witnesses retained');
  assert.deepEqual(witnesses.map(item=>item.runs[0].rows.map(row=>row[0].value)),[['1','2'],['1']]);
@@ -24,11 +24,19 @@ for(const variant of native.variants)test(`${variant.encoding}: retained members
  try{
   db=await open('https://fixture.invalid/retained-filter');
   for(const item of variant.cases){
+   // This native control exercises an existing admission boundary, not parity.
+   if(item.sql.includes('JOIN json_each(?)')){assert.throws(()=>db.prepare(item.sql),e=>e.kind==='unsupported'&&e.message==='this derived mixed-module source is not implemented');continue;}
+   if(item.sql.startsWith('WITH c(x)')){assert.throws(()=>db.prepare(item.sql),e=>e.kind==='unsupported'&&e.message==='this derived CTE composition is not implemented');continue;}
    if(item.prepare){assert.throws(()=>db.prepare(item.sql),e=>e.code===item.prepare&&e.message===item.message);continue;}
    st=db.prepare(item.sql).statement;
+   if(item.parameterCount!==undefined){
+    assert.equal(st.parameterCount,item.parameterCount,item.sql);
+    assert.deepEqual(Array.from({length:st.parameterCount},(_,i)=>st.parameterName(i+1)),item.parameterNames,item.sql);
+   }
    assert.deepEqual(Array.from({length:st.columnCount},(_,i)=>st.columnMetadata(i)),item.metadata,item.sql);
    for(const run of item.runs){
-    if(item.sql.includes('?1'))st.bind(1,run.binding===null?null:BigInt(run.binding));
+    if(Array.isArray(run.binding))run.binding.forEach((value,i)=>st.bind(i+1,value===null?null:BigInt(value)));
+    else if(item.sql.includes('?1'))st.bind(1,run.binding===null?null:BigInt(run.binding));
     const rows=[];
     if(run.end!==101){await assert.rejects(st.step(),e=>e.code===run.end&&e.message===run.message);assert.throws(()=>st.reset(),e=>e.code===run.end&&e.message===run.message);}
     else{while(await st.step()==='row')rows.push(Array.from({length:st.columnCount},(_,i)=>({type:st.columnType(i),value:st.column(i)===null?null:String(st.column(i))})));assert.deepEqual(rows,run.rows,item.sql);st.reset();}

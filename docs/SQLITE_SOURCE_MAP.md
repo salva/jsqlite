@@ -251,6 +251,9 @@ claim complete upstream coverage or reproduce execution inventories.
   select.c disableUnusedSubqueryResultColumns/tag0440 → resolved parent column
   uses (including nested scopes), ORDER-result dependencies and slot-preserving
   NULL rewrite before both bodies; original validation/metadata remain intact.
+  parse.y VARIABLE / expr.c sqlite3ExprAssignVarNumber → retainSelectParameters:
+  complete SelectNode.tokens in byte order plus generated reduction carriers,
+  position identity shared by all existing CTE/compound/retained helper callers.
   Tests: retained-filter.test.mjs with pinned metadata/typed/reset/error oracle;
   [evidence](research/retained-filter.md), [demand correction](research/retained-filter-demand.md).
 

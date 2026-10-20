@@ -12,8 +12,37 @@ substitutes NULL only for unused slots before both coroutine and materialized
 compilation. Metadata is computed from the original producer. Original child
 lowering into an unpublished builder preserves prepare validation and unsafe gates;
 its cost is duplicated prepare work, not runtime execution or a parallel evaluator.
-Parameters are retained in source position order before pruning, including unused
-anonymous variables. No platform-based algorithm substitution is claimed.
+Parameters are retained from the complete original SelectNode.tokens carrier in
+byte order before pruning, including ON, function-source arguments, GROUP/HAVING,
+window/VALUES/CTE and nested tokens. Generated expression reductions additionally
+retain their variables. Parameter positions are shared across helper callers, not
+assigned by execution order or an incomplete clause inventory. No platform-based
+algorithm substitution is claimed.
+
+## F7 parameter identity correction
+
+Independent l77 found13e6's parent/child prepass omitted ON: earlier anonymous ON
+? became slot2 after later WHERE ?1 had been preassigned. Pinned parse.y VARIABLE
+calls expr.c sqlite3ExprAssignVarNumber during parsing, before rewrites; anonymous
+increments nVar, ?N reuses/extends it, names reuse their first slot. parse.ts
+selectAction retains the complete original token array even when FROM/result are
+rewritten. The shared helper now consumes this parser-owned lexical identity set,
+then its existing generated reductions, deduplicated/sorted by byte position.
+This fixes the semantic owner for existing helper call sites, without SQL-text
+matching, a bind-count patch, or runtime bypass. No-FROM compound merge and ALL
+callers now preassign the complete compound before lowering LIMIT or either arm;
+the new mixed-parameter compound control exposed their missing prepass. F6 validation and F5 control are
+unchanged. Current capture adds parameter count/names and explicit vector bindings
+only for new object specifications; existing46 cases remain decoded-identical.
+Native-first60x3 captures cover exact F7 count1/four INTEGER pairs, mixed named/numbered/
+anonymous ON/WHERE/projection/ORDER/LIMIT/OFFSET, pruned children/nested sources,
+FULL and scalar nested projection, two reset runs/rebind, invalid ?0 and unused
+unknown-function controls. Existing mixed-derived-module and CTE composition
+probes remain captured as native evidence and public prepare-time unsupported
+boundary assertions, not native-parity credit. Compound and GROUP/HAVING controls
+compare full metadata/typed rows/bind identities. Full finite delta acceptance is still independent;
+this does not establish arbitrary SQLite compatibility. Commands, exact candidate
+and checks are recorded in the card status.
 
 Native-first final capture proc-06f03c0c2544 covers46 cases per encoding: original28
 objects preserved plus18 F6/control cases (both exact witnesses, used output,

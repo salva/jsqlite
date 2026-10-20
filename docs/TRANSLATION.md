@@ -185,7 +185,9 @@ before its first Yield. Before either producer body is lowered, tag0440-style
 column demand keeps parent/nested uses and selected ORDER dependencies, replacing
 unused child result slots with NULL. Original child validation and transient
 metadata precede pruning; DISTINCT/aggregate/window/correlated cases retain their
-source guards. The unpublished validation lowering costs prepare work but adds no
+source guards. Parameter preassignment consumes the complete original parser token
+carrier in byte order, including JOIN ON, source arguments and nested SELECTs,
+before result pruning or execution-order lowering. The unpublished validation lowering costs prepare work but adds no
 runtime evaluator or bytecode to the delivered program. This is translated demand control, not an eager-fill
 substitution. It admits noncompound single-table ORDER/LIMIT children, not
 arbitrary derived/CTE shapes. [Source comparison and finite evidence](research/retained-filter.md)

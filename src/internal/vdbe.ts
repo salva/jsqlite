@@ -2859,12 +2859,14 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(distinctSet&&select.hasOrderBy&&(select.orderBy.length!==1||width!==1))throw new JSQLiteError('unsupported','multi-column compound ORDER BY merge is not implemented',{unsupportedClassification:'temporary'});
       if(!schema||!database)throw new JSQLiteError('unsupported','compound merge requires database context',{unsupportedClassification:'temporary'});
       const mergeBuilder=owner?.builder??new SelectProgramBuilder<Op>(),mergeParameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
+      retainSelectParameters(select,mergeParameters);
       emitScalarCompoundMerge(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,mergeBuilder,mergeParameters,owner?.destination??{kind:'output'});
       if(!owner)mergeBuilder.ops.push({code:'Halt'});
       const names=select.arms[0]!.result.map(expression=>expressionName(expression));
       return Object.freeze({database,maxRows,ops:owner?mergeBuilder.ops:Object.freeze(mergeBuilder.ops),registers:mergeBuilder.registers,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,parameters:Object.freeze(mergeParameters.names.map(name=>Object.freeze({name}))),columns:Object.freeze(names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})))});
     }
     const compoundBuilder=owner?.builder??new SelectProgramBuilder<Op>(),ops=compoundBuilder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
+    retainSelectParameters(select,parameters);
     const limit=owner?.sharedLimit??(owner?.scalarPrepared?undefined:computeLimitRegisters(select,ops,()=>compoundBuilder.register(),parameters)),haltJumps:number[]=[];
     // multiSelect TK_ALL owns the shared LIMIT/OFFSET, not each singleton arm.
     // resolveSelectStep retains pOuterNC across pPrior. Consume those linked
@@ -5197,12 +5199,15 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
 }
 
 function retainSelectParameters(select:SelectNode,parameters:ParameterBuilder,additional:readonly SelectNode[]=[]):void {
-  // expr.c sqlite3ExprAssignVarNumber runs in parse order, before WHERE or
-  // LIMIT lowering order. Retain variable identities from generated reductions;
-  // never number anonymous parameters in execution/code-generation order.
+  // parse.y VARIABLE assigns identity before any SELECT rewrite or codegen.
+  // SelectNode.tokens is the complete original parser token carrier, including
+  // ON, function sources, windows, CTEs and nested SELECTs. Enumerating selected
+  // expression fields loses variables before pruning/reordering can preserve them.
+  // Reductions additionally retain variables in generated result/limit nodes.
   const variables=new Map<number,{text:string;startByte:number}>();
   const retainVariables=(value:LemonValue<SqlToken>):void=>{if(value.kind==='terminal'){if(value.value.kind==='variable')variables.set(value.value.startByte,value.value);}else value.children.forEach(retainVariables);};
   for(const node of [select,...additional]){
+  for(const token of node.tokens)if(token.kind==='variable')variables.set(token.startByte,token);
   for(const arm of node.arms){for(const expression of arm.result)if(expression.reduction)retainVariables(expression.reduction);if(arm.where?.reduction)retainVariables(arm.where.reduction);}
   for(const term of node.orderBy)retainVariables(term.expr.reduction!);
   if(node.limit)retainVariables(node.limit.reduction!);if(node.offset)retainVariables(node.offset.reduction!);
