@@ -19,6 +19,8 @@ remain open and separate. This does not close unrelated audit findings.
 
 ## Metadata caller regression disposition
 
+The generated outer Filter rejection reproduced on d2780fb is repaired for physical-left two-source scalar metadata consumers by using the existing resolved WHERE producer, including selected hidden EQ and generated SELF/storage lowering. Native-first typed/full-metadata tests cover INNER/LEFT positional/hidden arg/schema and error readiness across encodings/two resets. Aggregate consume callbacks retain the legacy generated-binding boundary; no arbitrary composition claim follows. [Current author evidence and failed attempts](../research/card-e-n-pragma-red/GENERATED.md); independent review of this delta remains pending.
+
 Independent l7 rejected exact2b2 for deleted five-family producers/resident binding and ordered mixed callers. The c31 correction restores these alongside genuine declarations and has finite independent acceptance in [[card:card-m-f-l]] status16; l7 remains rejection provenance for exact2b2, not the current disposition. See [restoration evidence](../research/card-m-f-k-production-integration.md#metadata-family-restoration).
 
 ## Scoped reviewer-repair integration

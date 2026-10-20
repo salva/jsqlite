@@ -6695,6 +6695,18 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','window functions are not implemented',{unsupportedClassification:'temporary'});
     return Object.freeze({...compilation.program,database,maxRows});
   }
+  // pragma.c Filter argv is produced by the ordinary resolved WHERE loop.
+  // Use that same owner for two-source metadata consumers: it already owns
+  // selected hidden EQ omission, prefix readiness, generated SELF binding and
+  // LEFT NullRow completion. Do not feed these through the JSON name adapter.
+  if(select.from.items.length===2&&!privateNames.has(select.from.items[0]!.tableName.toLowerCase())&&metadataNames.has(select.from.items[1]!.tableName.toLowerCase())&&!selectHasWindow(select)&&!shared?.consume){
+    if(select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError('unsupported','this mixed metadata composition is not implemented',{unsupportedClassification:'temporary'});
+    const plan=shared?.linkedPlan??resolveModulePlan();
+    if(select.from.items[1]!.joinFromLeft.right||(plan.sources[0]!.table.kind==='table'&&plan.sources[0]!.table.withoutRowid))throw new JSQLiteError('unsupported','this mixed metadata storage/join shape is not implemented',{unsupportedClassification:'temporary'});
+    if(!shared)return compileInnerTableSelect(select,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    const whereAccounting=compileInnerTableSelect(select,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...shared,ops:builder.ops});
+    return Object.freeze({ops:builder.ops,registers:builder.registers,encoding:database.encoding,columns:Object.freeze(plan.result.map(({descriptor:{affinity:_,collation:__,...column}})=>column)),parameters:Object.freeze(shared.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
+  }
   if(select.from.items.length===2&&!privateNames.has(select.from.items[0]!.tableName.toLowerCase())&&privateNames.has(select.from.items[1]!.tableName.toLowerCase())){
     if(select.hasGroupBy||select.hasHaving||(metadataNames.has(select.from.items[1]!.tableName.toLowerCase())&&(select.hasDistinct||select.hasLimit)))throw new JSQLiteError("unsupported","this mixed JSON table composition is not implemented",{unsupportedClassification:"temporary"});
     const metadata=metadataNames.has(select.from.items[1]!.tableName.toLowerCase()),sourceColumns=metadata?[...METADATA_MODULE_COLUMNS[select.from.items[1]!.tableName.toLowerCase()]!,...metadataHiddenColumns(select.from.items[1]!.tableName.toLowerCase())]:JSON_TABLE_COLUMNS;
