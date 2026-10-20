@@ -1,0 +1,4248 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "b3cdc8dc3a9823af3891f854b4be6788b8acb4d18195d5947a58022082b7bdb6",
+  "encodings": [
+    {
+      "encoding": "UTF-8",
+      "fixtureSha256": "ba666849391d559449189fea2be7749529e24c8ba3b0f7df6a54a0aca49bc58f",
+      "cases": [
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixtureSha256": "096a45f30b1b9b43355e0faab17cc21c797576359a6dc05da73177bf90e6fe49",
+      "cases": [
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixtureSha256": "793b4534b5dd4e258c47e8c582a06176d614c3530dd27e571526d621bf278d58",
+      "cases": [
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT * FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION ALL SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION ALL do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x UNION SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of UNION do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "75"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "text",
+                    "utf8Hex": "74"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x INTERSECT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of INTERSECT do not have the same number of result columns"
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT t.x,t.nm,u.x FROM t JOIN u ON t.x=u.x",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "nm",
+              "declaredType": "TEXT",
+              "database": "main",
+              "table": "t",
+              "origin": "nm"
+            },
+            {
+              "name": "x",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "u",
+              "origin": "x"
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 101
+            },
+            {
+              "rows": [],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT d.*,u.x FROM (SELECT x,nm FROM t ORDER BY x DESC LIMIT 2) d JOIN u ON d.x=u.x EXCEPT SELECT u.x FROM u",
+          "prepare": 1,
+          "error": "SELECTs to the left and right of EXCEPT do not have the same number of result columns"
+        }
+      ]
+    }
+  ]
+}

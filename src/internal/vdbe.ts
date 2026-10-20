@@ -4210,6 +4210,12 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
 function jsonColumnDemand(plan:ReturnType<typeof expandAndResolveSelect>,source:ResolvedSource):ReadonlySet<number>{
  const columns=new Set<number>();
  const visit=(scope:ReturnType<typeof expandAndResolveSelect>):void=>{
+  // selectExpander marks colUsed for expanded stars too. These resolved
+  // result columns need not have a lexical columnUses entry.
+  for(const result of scope.result){
+   if(result.source===source&&result.columnIndex!==null&&result.columnIndex>=0)columns.add(result.columnIndex);
+   for(const ref of result.mergedSources??[])if(ref.source===source&&ref.columnIndex>=0)columns.add(ref.columnIndex);
+  }
   for(const use of scope.columnUses)if(use.source===source&&use.columnIndex>=0)columns.add(use.columnIndex);
   for(const child of scope.nested)visit(child);
   for(const arm of scope.compoundArms??[])if(arm!==scope)visit(arm);
@@ -5069,8 +5075,9 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
   if(select.arms.some(arm=>arm.hasDistinct&&arm.origin==='values'))return undefined;
   // multiSelect TK_ALL must reach the installed resolved full-row producer,
   // not the narrower legacy derived adapter. Decide before emitting any arm.
-  if((select.result.length===2||select.result.length===3)&&
-     select.arms.some(arm=>arm.from.derived&&arm.from.items.length>1)&&
+  // sqlite3SelectExpand/resolveSelectStep own width: a raw '*' is one item,
+  // not one result column. Let the resolved owner validate arity and bounds.
+  if(select.arms.some(arm=>arm.from.derived&&arm.from.items.length>1)&&
      select.arms.every(arm=>arm.origin==='select'&&arm.from.items.length>0&&!arm.from.cteDerived?.length&&!arm.hasGroupBy&&!arm.hasHaving&&!selectHasAggregate({...select,...arm} as SelectNode)&&!selectHasWindow({...select,...arm} as SelectNode))&&
      !owner?.linkedPlan&&!owner?.expressionBinding&&!owner?.sharedLimit&&!owner?.scalarPrepared){
     return owner?compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner):compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
@@ -5290,6 +5297,8 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   });
   const operators=select.arms.slice(1).map(arm=>arm.operatorFromPrior!),lastSetArm=operators.reduce((last,op,index)=>op==="union-all"?last:index+1,-1);
   const left=resolved[0]!,width=left.plan.result.length;
+  // resolveSelectStep checks expanded EList arity before multiSelect emits arms.
+  for(const item of resolved)if(item.plan.result.length!==width)throw new JSQLiteError('sqlite',`SELECTs to the left and right of ${item.arm.operatorFromPrior==='union-all'?'UNION ALL':item.arm.operatorFromPrior?.toUpperCase()} do not have the same number of result columns`,{code:1});
   if(resolved.some(item=>item.plan.sources.length>1||item.standalone.from.derived)&&width!==2&&width!==3)throw new JSQLiteError('unsupported','joined compound result width is not implemented',{unsupportedClassification:'temporary'});
   for(const item of resolved){
     const retained=item.standalone.from.derivedSources??(item.standalone.from.derived?[item.standalone.from.derived]:[]);
@@ -5298,7 +5307,6 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
       compileTableSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
     }
   }
-  for(const item of resolved)if(item.plan.result.length!==width)throw new JSQLiteError('sqlite',`SELECTs to the left and right of ${item.arm.operatorFromPrior==='union-all'?'UNION ALL':item.arm.operatorFromPrior?.toUpperCase()} do not have the same number of result columns`,{code:1});
   // Expansion is resolved once, before lowering. The merge consumes these
   // immutable expanded ELists, not raw '*' item counts or expression identity.
   const expandedSelect={...select,result:left.expressions,arms:select.arms.map((arm,index)=>({...arm,result:resolved[index]!.expressions}))};

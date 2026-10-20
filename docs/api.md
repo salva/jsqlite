@@ -141,7 +141,11 @@ implementation, not arbitrary composition or independent compatibility approval.
 Source mapping, native/public tests and outstanding verification are in
 [JOIN/retained evidence](research/join-retained-compound-implementation.md).
 Unordered ALL dispatches bounded retained JOIN arms to the same resolved full-row
-producer before arm emission. Specialized linked scalar/IN/EXISTS retain their
+producer before arm emission, using expanded EList widths (including stars), not
+raw syntax-item counts. Resolved arity is checked before producer lowering;
+resolved result references also preserve demanded retained payloads.
+[Expanded-width source/native/public controls](research/compound-expanded-width-evidence.md).
+Specialized linked scalar/IN/EXISTS retain their
 arity and shape gates; ordered/set table subqueries are not blanket-admitted.
 [Linked contracts and accounting](research/join-retained-compound-contracts-evidence.md)
 records finite native/error/invocation, live-key, rollback and cleanup controls.
