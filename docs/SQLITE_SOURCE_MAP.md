@@ -754,3 +754,9 @@ DATE/provider mappings above use the same combined callers, not a parallel
 execution path. [Combined provenance/validation](research/card-q-a-b-combined-r3.md).
 
 `select.c:selectInnerLoop` nResultCol/nSdst → `compileSimpleTableCompound` resolved expanded width, contiguous row and full-row local DISTINCT ephemeral destination (not compound set accumulation). `multiSelectByMerge` duplicate versus ORDER keys → existing shared merge with full-row callback payload and retained-arm identity. [Tests](../test/conformance/compound-multi-output.test.mjs), [repair evidence](research/multi-output-compound-repair.md).
+
+## Bounded recursive JOIN-arm compounds
+
+Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms and physical arms through the existing full-row compound merge. One lazy Once-guarded retained recursive producer supplies independent OpenDup readers; Queue/Current retains body controls while the compound owner retains outer ORDER/LIMIT, arity and full-row duplicate semantics. Leftmost setup-expression collation is independent of rightmost metadata provenance. Materialization charges the full requested producer before its first row; this is not streaming or native work/allocation parity. Mixed operators, grouped/window/derived arms and additional recursive declarations remain temporary gaps in this route; RIGHT/FULL and physical producer-term joins remain outside this slice.
+
+Pinned `select.c:multiSelect/multiSelectByMerge`, CteUse tag-select-0484 and `selectAddColumnTypeAndCollation` map to `vdbe.ts:compileRecursiveCompoundSelect/compileSimpleTableCompound/prepareRecursiveSource` and `select-compiler.ts` dispatch. `test/conformance/recursive-cte-compound.test.mjs` and [source comparison and finite native/public evidence](research/recursive-join/compound-evidence.md) cover this boundary, without additional upstream assertion credit.

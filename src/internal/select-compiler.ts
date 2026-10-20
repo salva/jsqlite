@@ -8,7 +8,7 @@ import type { SchemaGraph } from "./schema.ts";
 import type { BtreeDatabase } from "./btree.ts";
 import type { Program } from "./vdbe.ts";
 import { SelectProgramBuilder, emitSelectDestination, type SelectDest } from "./select-program.ts";
-import { compileAggregateSelect, compileCteUnionAll, compileOrderedCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveJoinedSelect, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
+import { compileRecursiveCompoundSelect, compileAggregateSelect, compileCteUnionAll, compileOrderedCteUnionAll, compileMultipleRecursiveCtes, compileRecursiveJoinedSelect, compileRecursiveAggregateSelect, compileRecursiveCteSelect, compileRecursiveWindowSelect, compileScalarSelect, compileTableSelect, selectHasAggregate, selectHasWindow } from "./vdbe.ts";
 
 /**
  * Production SELECT program entry. The graph has already passed public parse,
@@ -36,6 +36,8 @@ function compileSelectInner(
   reprepare?:ReprepareContext,
 ): Program {
   if (recursive) {
+    const compound=compileRecursiveCompoundSelect(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    if(compound)return compound;
     // Specialized recursive consumers retain their current admission. A
     // selected compiler error is terminal; only undefined declines the branch.
     {

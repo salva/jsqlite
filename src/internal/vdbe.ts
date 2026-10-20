@@ -2679,7 +2679,12 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
 // This is NameContext column metadata only, never a synthetic OpenRead producer.
 function prepareRecursiveSource(select:SelectNode,owner:NonNullable<SelectNode['with']>['ctes'][number],schema:SchemaGraph):{transient:SchemaGraph;expanded:ReturnType<typeof expandAndResolveSelect>} {
  const names=owner.columns??owner.select.arms[0]!.result.map(expressionName);
- const columns=names.map(name=>Object.freeze({szEst:0,name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
+ const anchor=owner.select.arms[0]!;
+ let anchorPlan:ReturnType<typeof expandAndResolveSelect>;
+ try{anchorPlan=expandAndResolveSelect({...owner.select,...anchor,hasCompound:false,arms:[{...anchor,operatorFromPrior:null,prior:null,next:null}]},schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+ // select.c selectAddColumnTypeAndCollation: leftmost setup collation is
+ // independent of columnTypeImpl's rightmost metadata provenance.
+ const columns=names.map((name,index)=>Object.freeze({szEst:0,name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:anchor.result[index]?.reduction?resolvedExpressionCollation(anchor.result[index]!.reduction!,anchorPlan)??null:null,generatedStorage:null,checks:Object.freeze([])}));
  const table:TableNode=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:"table",name:owner.name,tableName:owner.name,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
  // columnTypeImpl descends through the right-most compound arm. Its
  // recursive Current source is a CTE table without a schema, not a fake
@@ -2692,6 +2697,14 @@ function prepareRecursiveSource(select:SelectNode,owner:NonNullable<SelectNode['
 
 /** select.c tag-select-0482: a recursive SrcItem that is not the sole input
  * is retained as a materialized producer; WHERE/AggInfo own its consumers. */
+export function compileRecursiveCompoundSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program|undefined {
+ const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
+ if(!owner||!select.hasCompound||select.arms.some(arm=>arm.origin!=='select'||!arm.from.items.length||arm.from.derived||arm.from.cteDerived?.length||arm.hasGroupBy||arm.hasHaving||arm.from.items.some(item=>item.joinFromLeft.right||item.databaseName!==null||!sqliteIdentifierEqual(item.tableName,owner.name)&&!schema.findTable(item.tableName)))||selectHasAggregate(select)||selectHasWindow(select))return undefined;
+ const operators=select.arms.slice(1).map(arm=>arm.operatorFromPrior);
+ if(!operators.every(op=>op===operators[0])||!operators.every(op=>op==='union'||op==='union-all'))return undefined;
+ return compileSimpleTableCompound(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,undefined,owner);
+}
+
 export function compileRecursiveJoinedSelect(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,shared:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|undefined {
  const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
  if(!owner||select.from.items.length<2)return undefined;
@@ -5271,9 +5284,10 @@ function resolveCompoundMergeOrder(select:SelectNode,collations:readonly Builtin
  });
 }
 
+function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:undefined,recursiveOwner:NonNullable<SelectNode['with']>['ctes'][number]):Program;
 function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
 function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}): {columns:Program['columns']};
-function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']} {
+function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest},recursiveOwner?:NonNullable<SelectNode['with']>['ctes'][number]):Program|{columns:Program['columns']} {
   // select.c:sqlite3Select owns GROUP/HAVING in AggInfo, never the raw
   // multiSelect table scan. SelectArm currently lacks a GROUP expression list;
   // preserve the flags and reject before emitting any parent instructions.
@@ -5287,7 +5301,7 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
       hasCompound:false,hasOrderBy:false,hasLimit:false,orderBy:[],limit:null,offset:null,
       arms:[{...arm,operatorFromPrior:null,prior:null,next:null}]};
     let plan:ReturnType<typeof expandAndResolveSelect>;
-    try{plan=resolveTransientArm(standalone,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
+    try{plan=recursiveOwner?prepareRecursiveSource(standalone,recursiveOwner,schema).expanded:resolveTransientArm(standalone,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1});throw error;}
     const table=plan.sources[0]!.table;
     if(plan.sources.some(source=>source.table.kind!=='table'||source.table.withoutRowid||source.table.columns.some(c=>c.generatedExpr)))throw new JSQLiteError('unsupported','this table storage shape is not implemented',{unsupportedClassification:'temporary'});
     if(plan.nested.length||selectHasAggregate(standalone)||standalone.windowDefinitions.length||standalone.from.cteDerived?.length)throw new JSQLiteError('unsupported','complex compound table arms are not implemented',{unsupportedClassification:'temporary'});
@@ -5299,7 +5313,7 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   const left=resolved[0]!,width=left.plan.result.length;
   // resolveSelectStep checks expanded EList arity before multiSelect emits arms.
   for(const item of resolved)if(item.plan.result.length!==width)throw new JSQLiteError('sqlite',`SELECTs to the left and right of ${item.arm.operatorFromPrior==='union-all'?'UNION ALL':item.arm.operatorFromPrior?.toUpperCase()} do not have the same number of result columns`,{code:1});
-  if(resolved.some(item=>item.plan.sources.length>1||item.standalone.from.derived)&&width!==2&&width!==3)throw new JSQLiteError('unsupported','joined compound result width is not implemented',{unsupportedClassification:'temporary'});
+  if(!recursiveOwner&&resolved.some(item=>item.plan.sources.length>1||item.standalone.from.derived)&&width!==2&&width!==3)throw new JSQLiteError('unsupported','joined compound result width is not implemented',{unsupportedClassification:'temporary'});
   for(const item of resolved){
     const retained=item.standalone.from.derivedSources??(item.standalone.from.derived?[item.standalone.from.derived]:[]);
     for(const {select:child} of retained){
@@ -5347,6 +5361,8 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   // destination in the enclosing program, never a relocated child Program.
   const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
   retainSelectParameters(select,parameters);
+  if(recursiveOwner)builder.reserveCursorsThrough(Math.max(...resolved.flatMap(item=>item.plan.sources.map(source=>source.cursorId))));
+  const recursiveInput=recursiveOwner?{cursor:builder.cursor(),once:builder.register()}:undefined;
   const row=builder.range(width),keys=orderTerms.length?builder.range(orderTerms.length):0;
   const limit=computeLimitRegisters(select,ops,()=>builder.register(),parameters);
   const setCursor=builder.cursor(),auxCursor=builder.cursor(),sorterCursor=builder.cursor();
@@ -5356,6 +5372,26 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
   const haltJumps:number[]=[],emitResult=()=>{let skip:number|undefined;if(limit?.offset!==undefined){skip=ops.length;ops.push({code:"IfPos",p1:limit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:"output"},row,width);if(limit){haltJumps.push(ops.length);ops.push({code:"DecrJumpZero",p1:limit.count,p2:0});}return skip;};
   const emitOrdered=()=>{for(let index=0;index<orderTerms.length;index++)ops.push({code:"Copy",p1:row+orderTerms[index]!.resultIndex,p2:keys+index});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart:keys,keyCount:orderTerms.length,payload:row,payloadCount:width,...(limit?{topN:limit.capacity}:{})});};
   const scan=(item:typeof resolved[number],destination:"result"|"order"|"set"|"aux-set"|"delete"|((first:number,count:number)=>void))=>{
+    if(recursiveOwner&&recursiveInput){
+      // select.c tag-select-0484: one lazy CteUse, independent readers per arm.
+      const refs=item.plan.sources.filter(source=>sqliteIdentifierEqual(source.table.name,recursiveOwner.name));
+      const readers=new Map<ResolvedSource,number>();
+      if(refs.length){
+        const once=ops.length;ops.push({code:'Once',p1:recursiveInput.once,p2:0});
+        const columns=refs[0]!.table.columns;
+        ops.push({code:'OpenEphemeral',p1:recursiveInput.cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:columns.length,keyFieldCount:columns.length,terms:columns.map(()=>({collation:'binary' as const}))})});
+        compileRecursiveCteSelect(item.standalone,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true,{builder,parameters,destination:{kind:'ephemeral',cursor:recursiveInput.cursor}});
+        (ops[once] as {p2:number}).p2=ops.length;
+        for(const source of refs){const cursor=builder.cursor();readers.set(source,cursor);ops.push({code:'OpenDup',p1:cursor,p2:recursiveInput.cursor});}
+      }
+      compileInnerTableSelect(item.standalone,item.plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'output'},cursorFor:source=>readers.get(source)??source.cursorId,retainedCursors:new Set(readers.values()),projectedRow:(first,count)=>{
+        if(typeof destination==='function'){destination(first,count);return;}
+        for(let i=0;i<count;i++)ops.push({code:'Copy',p1:first+i,p2:row+i});
+        if(destination!=='result')throw new JSQLiteError('internal','unexpected recursive compound destination');
+        const skip=emitResult();if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;
+      }});
+      return;
+    }
     if(item.plan.sources.length>1||item.standalone.from.derived){
       compileResolvedTableProducer(item.standalone,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'output'},plan:item.plan,projectedRow:(first,count)=>{
         if(typeof destination==='function'){destination(first,count);return;}

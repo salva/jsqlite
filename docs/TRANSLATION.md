@@ -719,6 +719,12 @@ join plus row_number window is supported, not a missing-feature prediction.
 rows before consumer output; it does not promise streaming latency or planner
 parity. [Source comparison and evidence](research/recursive-join/README.md).
 
+## Bounded recursive JOIN-arm compounds
+
+Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms and physical arms through the existing full-row compound merge. One lazy Once-guarded retained recursive producer supplies independent OpenDup readers; Queue/Current retains body controls while the compound owner retains outer ORDER/LIMIT, arity and full-row duplicate semantics. Leftmost setup-expression collation is independent of rightmost metadata provenance. Materialization charges the full requested producer before its first row; this is not streaming or native work/allocation parity. Mixed operators, grouped/window/derived arms and additional recursive declarations remain temporary gaps in this route; RIGHT/FULL and physical producer-term joins remain outside this slice.
+
+`test/conformance/recursive-cte-compound.test.mjs` and [source comparison and finite native/public evidence](research/recursive-join/compound-evidence.md) cover this boundary, without additional upstream assertion credit.
+
 ## Windows and private storage
 
 Current registered bounded frame paths retain pending input/end-peer ownership,
