@@ -1060,9 +1060,10 @@ JSONB table-function tranche. Source-derived representation, JSON5 canonicalizat
 subtype handoff and resource/lifecycle tests are now present. The recursive
 producer translates depth-first traversal and JSONB-offset id/parent shaping, with
 pinned scalar-root `json_tree.fullkey`, parameter/reset, hidden-input,
-JSONB-container, ORDER/LIMIT/OFFSET, and JSON-to-JSON/physical-left correlation and grouped aggregate/HAVING public evidence. RIGHT/FULL mixed joins, reverse correlation, and advanced aggregate modifiers,
-and the full virtual-table/path corpus remain gaps; this revision does not award
-them credit.
+JSONB-container, ORDER/LIMIT/OFFSET, and JSON-to-JSON/physical-left correlation and grouped aggregate/HAVING public evidence. Mixed physical/JSON RIGHT/FULL now has finite common-owner execution evidence
+([scope and remaining gaps](../research/recursive-join/json-right-full-evidence.md)),
+not general virtual-table or correlation parity. Reverse correlation, advanced
+aggregate modifiers and the full virtual-table/path corpus remain gaps.
 
 ### Revision 2026-09-21 — JSON scalar finding
 

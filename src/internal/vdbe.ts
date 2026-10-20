@@ -32,6 +32,7 @@ import { sqliteAsciiFold, sqliteIdentifierEqual } from "./sqlite-case.ts";
 import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
+import {jsonWhereLoops} from './where-json-loops.ts';
 import {branchConsumedTerms, analyzeWhere, btreeLoops, orRuntimeArmClause, wherePathSolver, type WhereLoop, type WhereClause, rightJoinResidual, planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
@@ -4393,9 +4394,20 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   whereAccounting=Object.freeze({plannerCandidates:multiWhere.plannerCandidates,plannerPaths:multiWhere.plannerPaths});
   const multiOrderConsumed=rightLevels.length===0&&!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
-  const sorterCursor=owner?owner.builder.cursor():expanded.sources.length,distinctCursor=owner?owner.builder.cursor():sorterCursor+1,rightMatchCursor=owner?owner.builder.cursor():distinctCursor+1;
+  const sorterCursor=builder.cursor(),distinctCursor=builder.cursor(),rightMatchCursor=builder.cursor();
   const selectedBySource=new Map(multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
-  for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=owner?owner.builder.cursor():rightMatchCursor+rightLevels.length+ordinal;indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
+  // The established RIGHT fallback has no global WherePath. Still obtain the
+  // module's BestIndex template with the established source-order prefix.
+  // Table-function arguments are linked hidden ON constraints; do not assume
+  // RIGHT implies forbidden lateral input (native accepts represented cases).
+  if(rightLevels.length)expanded.sources.forEach((source,ordinal)=>{
+    if(source.table.kind!=='json-module')return;
+    const prefix=(1n<<BigInt(ordinal))-1n;
+    const loop=jsonWhereLoops(expanded,source,owner?.expressionBinding?.positionedSources??new Set(),prefix)[0];
+    if(!loop)throw new JSQLiteError('unsupported','RIGHT JSON argument dependencies are not implemented',{unsupportedClassification:'temporary'});
+    selectedBySource.set(ordinal,loop);
+  });
+  for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=builder.cursor();indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
   const orderTerms=(multiOrderConsumed?[]:select.orderBy).map((term,index)=>{let tree=expressionFromReduction(term.expr.reduction!),identity=tree;while(identity.kind==='collate')identity=identity.value;let resultIndex=-1;if(identity.kind==='literal'&&typeof identity.value==='bigint'){if(identity.value<1n||identity.value>BigInt(expanded.result.length)){const n=index+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new JSQLiteError('sqlite',`${n}${suffix} ORDER BY term out of range - should be between 1 and ${expanded.result.length}`,{code:1});}resultIndex=Number(identity.value-1n);}else if(identity.kind==='column'&&!identity.name.includes('.'))resultIndex=expanded.result.findIndex(result=>sqliteIdentifierEqual(result.name,sqlName(identity.name)));return{tree:resultIndex<0?resolveTree(tree,term.expr.reduction as Reduction):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};});
   if(owner)owner.builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>cursorFor(source))));
 
@@ -4411,7 +4423,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const primary=source.table.kind==='table'&&source.table.withoutRowid?primaryFor(source):null;
     const count=primary?.keyInfo.keyFieldCount??1;
     const key=allocate();for(let i=1;i<count;i++)allocate();
-    const state={matchCursor:index===0?rightMatchCursor:owner?builder.cursor():rightMatchCursor+index,
+    const state={matchCursor:index===0?rightMatchCursor:builder.cursor(),
       key,count,primary,record:allocate(),returnRegister:allocate(),body:{entry:-1,continue:-1,break:-1}};
     const info=primary?case5KeyInfo(primary):new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:'binary'}]});
     ops.push({code:'Null',p2:state.returnRegister},{code:'OpenEphemeral',p1:state.matchCursor,keyInfo:info,...(primary?{p4KeyInfo:info}:{})});
@@ -4699,7 +4711,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     loopEnds.push({at,level});
   }
   positionedSources.add(source);
-  const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});const right=rightStates.get(level);if(right){if(right.primary)emitPrimaryKeyRead(ops,right.primary,right.key,column=>columnAccess(source,source.table.columns.indexOf(column)));else ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:right.count,jump:0});if(right.primary)ops.push({code:'MakeRecord',p1:right.key,p2:right.count,p3:right.record},{code:'IdxInsert',p1:right.matchCursor,p2:right.record,keyStart:right.key,keyCount:right.count});else ops.push({code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}bodies[level]=ops.length;if(isLeft||right)codeOuterConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
+  const onReady=source.on?.reduction?multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual).every(term=>(term.prereqAll&~(readyMask|(1n<<BigInt(ordinal))))===0n):true;const on=onReady?compilePredicate(source.on):undefined;if(on!==undefined)jumps.push({at:on,level});if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});const right=rightStates.get(level);if(right){if(right.primary)emitPrimaryKeyRead(ops,right.primary,right.key,column=>columnAccess(source,source.table.columns.indexOf(column)));else if(moduleRows.has(source))ops.push({code:'Copy',p1:moduleRows.get(source)!.rowid,p2:right.key});else ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:right.count,jump:0});if(right.primary)ops.push({code:'MakeRecord',p1:right.key,p2:right.count,p3:right.record},{code:'IdxInsert',p1:right.matchCursor,p2:right.record,keyStart:right.key,keyCount:right.count});else ops.push({code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}bodies[level]=ops.length;if(isLeft||right)codeOuterConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
   const joinedBodyStart=ops.length;
   // Delayed inner-join ON clauses can reference a source positioned later in
   // the chosen path. Their residual is evaluated only at the complete row.
@@ -4794,7 +4806,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // same interior continuation (including downstream joins and destinations).
     for(let level=0;level<rightLevel;level++){
       const ordinal=loopOrdinals[level]!;
-      ops.push({code:'NullRow',p1:cursorFor(expanded.sources[ordinal]!)});
+      const prefix=expanded.sources[ordinal]!,row=moduleRows.get(prefix);
+      if(row){
+        ops.push({code:'Null',p2:row.rowid});
+        for(let column=0;column<prefix.table.columns.length;column++)ops.push({code:'Null',p2:row.first+column});
+      }else ops.push({code:'NullRow',p1:cursorFor(prefix)});
       const indexCursor=indexCursors.get(ordinal);
       if(indexCursor!==undefined)ops.push({code:'NullRow',p1:indexCursor});
     }
@@ -4807,6 +4823,26 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // and re-enters the existing WHERE owner. Null preceding sources remain
     // resolved outer references; no spelling/token reconstruction is involved.
     const original=expanded.sources[loopOrdinals[rightLevel]!]!;
+    const moduleRow=moduleRows.get(original);
+    if(moduleRow&&original.table.kind==='json-module'){
+      // wherecode.c copies the RHS with jointype=0 and scans it again. Filter
+      // owns reset/parse lifetime; Rowid is the module traversal identity on
+      // both scans. Reuse the original producer locations for the interior.
+      const selected=selectedBySource.get(loopOrdinals[rightLevel]!);
+      if(selected?.kind!=='json-module')throw new JSQLiteError('internal','RIGHT JSON loop lost selected arguments');
+      const args=selected.arguments.map(term=>compileExpressionTree(bindResolvedExpression(expressionFromReduction(term.rhs.reduction),term.rhs,cursorFor,true,nestedBinding),ops,allocate,parameters,compileJoinSubquery));
+      const rewind=ops.length;
+      ops.push({code:'JsonTableRewind',p1:moduleRow.cursor,...(args[0]===undefined?{}:{input:args[0]}),...(args[1]===undefined?{}:{root:args[1]}),recursive:original.table.name.endsWith('tree'),binaryContainers:original.table.name.startsWith('jsonb_'),rowStart:moduleRow.first,columns:moduleRow.columns,rowIdentity:moduleRow.rowid,p2:0});
+      const loop=ops.length;
+      ops.push({code:'Copy',p1:moduleRow.rowid,p2:right.key});
+      const found=ops.length;
+      ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:1,jump:0},{code:'Gosub',p1:right.returnRegister,p2:right.body.entry});
+      (ops[found] as {jump:number}).jump=ops.length;
+      ops.push({code:'JsonTableNext',p1:moduleRow.cursor,rowStart:moduleRow.first,rowIdentity:moduleRow.rowid,p2:loop});
+      (ops[rewind] as {p2:number}).p2=ops.length;
+      ops.push({code:'JsonTableClose',p1:moduleRow.cursor});
+      continue;
+    }
     const materialize=owner?.sourceProducers?.get(original)?.materialize;
     if(materialize)ops.push({code:'Gosub',p1:materialize.register,p2:materialize.entry});
     const source:ResolvedSource={...original,on:null,using:null,leftOfRightJoin:false,
@@ -6632,6 +6668,14 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // ordinary expression VM, then xFilter-shaped state is owned by the statement.
   const jsonNames=new Set(["json_each","json_tree","jsonb_each","jsonb_tree"]);
   const resolveModulePlan=()=>{try{return expandAndResolveSelect(select,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}};
+  // RIGHT completion uses the shared per-WhereLevel owner, not the legacy
+  // two-source LEFT adapter. Module rowid remains a register, never a B-tree.
+  if(select.from.items.some(item=>jsonNames.has(item.tableName.toLowerCase()))&&select.from.items.some(item=>item.joinFromLeft.right)){
+    const plan=shared?.linkedPlan??resolveModulePlan();
+    if(!shared)return compileInnerTableSelect(select,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    const whereAccounting=compileInnerTableSelect(select,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{...shared,ops:shared.builder.ops});
+    return Object.freeze({ops:shared.builder.ops,registers:shared.builder.registers,encoding:database.encoding,columns:Object.freeze(plan.result.map(({descriptor:{affinity:_,collation:__,...column}})=>column)),parameters:Object.freeze(shared.parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,whereAccounting});
+  }
   // select.c: SF_Aggregate owns the entire result expression, not just
   // a root aggregate. Keep linked module identity through AggInfo input.
   if(schema&&select.from.items.length===1&&jsonNames.has(select.from.items[0]!.tableName.toLowerCase())&&!selectHasWindow(select)&&(selectHasAggregate(select)||select.hasGroupBy||select.hasHaving)){

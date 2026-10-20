@@ -378,7 +378,13 @@ Evidence: [[card:card-k]], [[card:card-s]],
 [card-s status](record:///status.md?card=card-s), prior map advanced-index/selected
 WHERE sections, [mutable audit tail](reviews/translation-fidelity-2026-09-14.md).
 
-Current boundaries: per-barrier RIGHT/FULL state; selected expression/partial/covering/
+Current boundaries: JSON `json.c:jsonEachFilter/Next/Rowid` and
+`wherecode.c:2738–2958` → `vdbe.ts:compileInnerTableSelect` module rowIdentity,
+register-prefix nulling and common-interior unmatched Filter replay;
+`json-right-full.test.mjs` tests both physical/module directions, independent
+aliases, duplicates, metadata and reset against pinned native output. Reparse
+tradeoff and finite coverage: [JSON evidence](research/recursive-join/json-right-full-evidence.md).
+Per-barrier RIGHT/FULL state; selected expression/partial/covering/
 WITHOUT ROWID paths, not optimizer completeness. Genuine IPK/rowid proof and
 complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
 sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit

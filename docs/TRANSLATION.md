@@ -141,6 +141,16 @@ The mixed physical/module producer resolves WHERE/ON against both declarations b
 
 ### Joined expression destination and mixed row identity
 
+Mixed physical/JSON RIGHT/FULL uses the common per-barrier match/interior/drain
+owner. Module rowIdentity, not visible key/id/value, supplies membership; prefix
+NULL extension clears module registers. Unmatched JSON Filter reopens the same
+module traversal over immutable input. Reparse instead of native parse reuse is
+an existing cursor-representation work/latency tradeoff, not platform necessity
+or allocation parity. Shared readiness, LTORJ, residuals, lazy Column/hidden demand
+and SelectDest remain authoritative. Finite native typed/metadata/reset evidence
+and unresolved phase/composition obligations:
+[JSON join evidence](research/recursive-join/json-right-full-evidence.md).
+
 Joined no-source and admitted UNION ALL EXISTS children validate result expressions at prepare, but emit presence rather than result-value operations. WHERE precedes OFFSET; normalized LIMIT/Once and shared compound counters retain source-order early exit. Scalar Mem destinations still evaluate their projection (`select.c:selectInnerLoop`, SRT_Exists and `multiSelect` TK_ALL). Mixed JSON/physical metadata maps negative physical indexes through the declared IPK before implicit rowid, keeps module rowid in its independent register including LEFT null-extension, and gives COLLATE expression-span/alias names with NULL type/origins. This is not general virtual-table planner parity. [Integration inventory and evidence](research/card-m-f-k-production-integration.md#reviewer-repair-integration).
 
 

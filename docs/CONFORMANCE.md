@@ -330,6 +330,15 @@ and successful later connection admission. These are no-credit resource/lifecycl
 companions: they do not change the relational 18-case accounting or the compound
 gate's 22 declared/attempted/passed/credited cases.
 
+### Mixed JSON RIGHT/FULL bounded evidence
+
+`json-right-full.test.mjs` compares 390 pinned native SQL/encoding pairs via public
+typed cells, five metadata fields and two reset passes. All four JSON modules,
+TEXT/JSONB, both physical/module directions, duplicates, empty/NULL, ON/WHERE,
+independent aliases and bounded correlated arguments are represented. Entry
+budget failures, reset/rebind and post-unmatched cancellation are separate tests,
+not exact internal phase-failure proof. See [source, commands and remaining gaps](research/recursive-join/json-right-full-evidence.md).
+
 ### Historical RIGHT/FULL bounded gate (2026-09-17; superseded below)
 
 `test/conformance/multisource-right-full.test.mjs` compares 7/13 RIGHT/FULL-bearing
