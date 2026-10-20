@@ -5,6 +5,10 @@ import {open} from '../../src/index.ts';
 const prefix='WITH RECURSIVE q(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) ';
 const arm='SELECT q.x FROM q JOIN t ON t.x=q.x';
 const cases=[
+ // Arm DISTINCT owns projected values before the enclosing ALL LIMIT/OFFSET.
+ // Duplicate source rows must not consume OFFSET or leak into the result.
+ ['WITH RECURSIVE q(x) AS(VALUES(1),(1),(2),(2),(3) UNION ALL SELECT x FROM q LIMIT 5) SELECT DISTINCT q.x%2 FROM q JOIN t ON t.x=q.x UNION ALL SELECT x FROM u WHERE 0 LIMIT 1 OFFSET 1',[[0n]]],
+ ['SELECT DISTINCT x%2 FROM t UNION ALL SELECT x FROM u WHERE 0 LIMIT 1 OFFSET 1',[[0n]]],
  [prefix+arm+' UNION SELECT x FROM u ORDER BY 1',[[1n],[2n],[3n],[4n]]],
  [prefix+arm+' UNION ALL SELECT x FROM u ORDER BY 1',[[1n],[2n],[2n],[3n],[3n],[4n]]],
  [prefix+arm+' UNION ALL SELECT x FROM u',[[1n],[2n],[3n],[2n],[3n],[4n]]],

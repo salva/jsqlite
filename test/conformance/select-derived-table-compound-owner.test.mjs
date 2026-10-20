@@ -155,8 +155,15 @@ test('aggregate ALL HAVING preserves semantic arm identity and destination owner
 
 test('physical compound DISTINCT filters each arm before destination and limits',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- const begin=source.indexOf('  const scan=(item:typeof resolved[number]',source.indexOf('function compileSimpleTableCompound('));
- const branch=source.slice(begin,source.indexOf('  if(select.hasOrderBy)',begin));
+ const scan=source.indexOf('  const scan=(item:typeof resolved[number]',source.indexOf('function compileSimpleTableCompound('));
+ assert.ok(scan>=0);
+ // Recursive and joined producers delegate projection/DISTINCT to their
+ // own scan owners. Inspect only the ordinary physical scan here, not an
+ // earlier delegated callback's emitResult in the same enclosing function.
+ const begin=source.indexOf("if(item.table.kind!=='table')",scan);
+ const end=source.indexOf('  if(select.hasOrderBy)',begin);
+ assert.ok(begin>scan&&end>begin);
+ const branch=source.slice(begin,end);
  assert.match(branch,/item.arm.hasDistinct\?builder.cursor\(\):undefined/);
  // DISTINCT compares resolved projected values, not the source column when
  // the projection carries COLLATE or is an expression.
