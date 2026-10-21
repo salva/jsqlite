@@ -80,6 +80,16 @@ export function stat4SkipScanRange(input:Stat4SkipScanInput):Stat4SkipScanResult
   size(node);const release=probe.reserve?.(bytes);if(release)releases.push(release);
   return stat4ValueFromExpr(node,affinity,probe.keyInfo.encoding,()=>{probe.parameterSensitive=true},probe.check,probe.reprepare);
  };
+ const compare=(bound:Mem):number=>{
+  // compareMem may transcode to the collation encoding (and NOCASE/RTRIM
+  // consumes UTF8). Charge BOTH operands on every comparison, not just the
+  // sample decode: a long constant can otherwise repeat unmetered O(n) work.
+  const bytes=bound.diagnostic().byteLength+value.diagnostic().byteLength;
+  probe.check(1);
+  for(let at=0;at<bytes;at+=4096)probe.check(Math.min(4096,bytes-at));
+  const release=probe.reserve?.(64+bytes*8);
+  try{return compareMem(bound,value,probe.keyInfo.terms[column]!.collation)}finally{release?.()}
+ };
  try{
   if(lower){p1=extract(lower);nLower=0;}
   if(upper){p2=extract(upper);nUpper=p2?0:samples.length;}
@@ -90,8 +100,8 @@ export function stat4SkipScanRange(input:Stat4SkipScanInput):Stat4SkipScanResult
     // Release preceding field before replacement; pVal object identity stays.
     value.setNull();sampleRelease();sampleRelease=()=>{};
     sampleRelease=stat4Column(sample,column,probe.keyInfo.encoding,value,probe.check,probe.reserve);
-    if(p1){probe.check(1);if(compareMem(p1,value,probe.keyInfo.terms[column]!.collation)>=0)nLower++;}
-    if(p2){probe.check(1);if(compareMem(p2,value,probe.keyInfo.terms[column]!.collation)>=0)nUpper++;}
+    if(p1&&compare(p1)>=0)nLower++;
+    if(p2&&compare(p2)>=0)nUpper++;
    }
    const nDiff=Math.max(1,nUpper-nLower);
    if(nDiff!==1||!upper||!lower){adjust=sqliteLogEst(BigInt(samples.length))-sqliteLogEst(BigInt(nDiff));done=true;}

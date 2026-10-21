@@ -19,6 +19,43 @@ for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: scalar 
  const unknown={kind:'reduction',signature:'expr ::= unsupported',children:[]};
  assert.equal(stat4SkipScanRange({...options,lower:unknown}).done,false);probe.release();
 });
+test('comparison work charges repeated long bound against short samples before synchronous collation',()=>{
+ let units=0,held=0;const probe=new Stat4Probe(info,n=>{units+=n},bytes=>{held+=bytes;return()=>{held-=bytes}});
+ const baseline=held,text='a'.repeat(9000);
+ const bound={kind:'reduction',signature:'term ::= STRING',children:[{kind:'terminal',value:{kind:'string',text:"'"+text+"'"}}]};
+ const sample=packed(3,8,15,97);
+ const run=count=>{units=0;stat4SkipScanRange({probe,samples:Array(count).fill(sample),column:1,affinity:'text',lower:bound});assert.equal(held,baseline);return units};
+ const once=run(1),twice=run(2);assert.ok(twice-once>=9000,'each scalar comparison must charge bound text as well as sample payload');
+ probe.release();assert.equal(held,0);
+});
+test('actual pinned native-loop done/LogEst outputs for absent, unknown, NULL and clamped ranges',()=>{
+ const probe=new Stat4Probe(info),samples=[1,2,3,4].map(x=>packed(3,8,1,x));
+ const node=token=>token==='-'?undefined:token==='?'?{kind:'reduction',signature:'expr ::= unsupported',children:[]}:token==='NULL'?{kind:'reduction',signature:'term ::= NULL',children:[{kind:'terminal',value:{kind:'keyword',text:'NULL'}}]}:expr(token);
+ for(const [lower,upper,done,adjust] of [['2','-',true,4],['-','2',true,4],['2','3',false,0],['1','4',true,4],['?','2',true,10],['2','?',true,10],['NULL','-',true,-3],['-','-',false,0],['9','0',false,0]]){
+  const result=stat4SkipScanRange({probe,samples,column:1,affinity:'integer',lower:node(lower),upper:node(upper)});
+  assert.equal(result.done,done,`${lower}/${upper}`);assert.equal(result.adjust,adjust,`${lower}/${upper}`);
+ }
+ probe.release();
+});
+test('long scalar payload check/allocation failures keep prior value and release actual byte reservations',()=>{
+ const header=[5,8,129,140,93]; // serial18013: TEXT9000
+ const sample=packed(...header,...Array(9000).fill(97)),m=new Mem();m.setInt64(7n);
+ const primary=new Error('payload-primary');let held=0,calls=0,fail=Infinity;
+ const check=()=>{if(++calls===fail)throw primary},reserve=bytes=>{held+=bytes;return()=>{held-=bytes}};
+ let release=stat4Column(sample,1,'utf-8',m,check,reserve);const frontiers=calls;
+ assert.equal(m.textBytes().length,9000);m.setNull();release();assert.equal(held,0);
+ for(let at=1;at<=frontiers;at++){calls=0;fail=at;m.setInt64(7n);assert.throws(()=>stat4Column(sample,1,'utf-8',m,check,reserve),e=>e===primary);assert.equal(m.integerValue(),7n);assert.equal(held,0);}
+ fail=Infinity;assert.throws(()=>stat4Column(sample,1,'utf-8',m,check,()=>{throw primary}),e=>e===primary);assert.equal(m.integerValue(),7n);
+ release=stat4Column(sample,1,'utf-8',m,check,reserve);m.release();release();assert.equal(held,0);
+});
+test('each bound/sample/comparison reservation frontier releases all previously acquired scratch',()=>{
+ let held=0,calls=0,fail=Infinity;const primary=new Error('reserve-primary');
+ const probe=new Stat4Probe(info,()=>{},bytes=>{if(++calls===fail)throw primary;held+=bytes;return()=>{held-=bytes}});
+ const baseline=held,options={probe,samples:[packed(3,8,1,1),packed(3,8,1,2)],column:1,affinity:'integer',lower:expr('1'),upper:expr('4')};
+ calls=0;stat4SkipScanRange(options);const count=calls;assert.ok(count>=8);assert.equal(held,baseline);
+ for(let at=1;at<=count;at++){calls=0;fail=at;assert.throws(()=>stat4SkipScanRange(options),e=>e===primary);assert.equal(held,baseline);}
+ fail=Infinity;stat4SkipScanRange(options);probe.release();assert.equal(held,0);
+});
 const packed=(...bytes)=>({p:Uint8Array.from([...bytes,...Array(8).fill(0)]),n:bytes.length});
 const info=new KeyInfo({encoding:'utf-8',totalFieldCount:2,keyFieldCount:2,terms:[{}, {desc:true}]});
 const expr=text=>({kind:'reduction',signature:'term ::= INTEGER',children:[{kind:'terminal',value:{kind:'integer',text}}]});
