@@ -1,5 +1,6 @@
 // SQLite 3.53.4 vdbemem.c:sqlite3Stat4Column and
 // where.c:whereRangeSkipScanEst. Scalar samples are NOT unpacked index keys.
+import {stat4RecordBytes} from './stat4-record.ts';
 import {decodeVarint,type DatabaseEncoding,RecordFormatError} from './record.ts';
 import {Mem,type MemAffinity} from './mem.ts';
 import {ComparisonError,compareMem} from './comparison.ts';
@@ -19,7 +20,7 @@ const corrupt=():never=>{throw new ComparisonError('corrupt','invalid STAT4 samp
  * reserve covers the copied field until the caller releases the scratch Mem. */
 export function stat4Column(sample:Stat4ScalarSample,iCol:number,encoding:DatabaseEncoding,destination:Mem,
  check:(units:number)=>void=()=>{},reserve?:(bytes:number)=>()=>void):()=>void {
- const {p,n}=sample;
+ const p=stat4RecordBytes(sample),n=sample.n;
  if(!Number.isInteger(iCol)||iCol<=0||!Number.isSafeInteger(n)||n<0||p.length<n+8)
   throw new ComparisonError('internal','invalid STAT4 scalar column request');
  const varint=(offset:number):{value:number;length:number}=>{

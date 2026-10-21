@@ -492,7 +492,14 @@ WHERE evidence, without general optimizer or plan-identity credit.
 ### Optional STAT4 loading and selectivity consumers
 
 Immutable schema loading retains represented sqlite_stat4 samples and selected
-bounded costing consumers. Reprepare expiry uses the native low-slot/shared-high
+bounded costing consumers. Schema-owned padded records are acquired once;
+internal scalar/probe readers borrow their identity through a module-private
+WeakMap, while ordinary sample.p readers still receive defensive copies. This
+is a TypeScript encapsulation adaptation to native IndexSample.p, not a new
+algorithm or public budget: checked field/transcode reservations remain at their
+existing consumers, with no per-read full-record clone. Loader-to-both-reader
+allocation-order and retry evidence: [sample ownership](research/card-s-h/SAMPLE_OWNERSHIP.md).
+Reprepare expiry uses the native low-slot/shared-high
 mask shape and preserves bindings on failure/reset. Vectors/function/subquery
 probes and general skipscan/range selectivity coverage remain gaps; finite sample
 costing is not arbitrary native plan parity. [Consumer review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)

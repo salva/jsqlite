@@ -1,3 +1,4 @@
+import {stat4RecordBytes} from './stat4-record.ts';
 import type {ReprepareContext} from './reprepare.ts';
 // vdbemem.c:valueFromExpr/sqlite3Stat4ProbeSetValue/ProbeFree.
 // Extract only represented literal productions. NOTFOUND is distinct from NULL;
@@ -94,6 +95,6 @@ export class Stat4Probe extends UnpackedRecordKey {
   const previous=this.nField,valid=this.nRecValid;this.nField=n;
   try{return body()}finally{this.nField=previous;this.nRecValid=valid}
  }
- compare(sample:{readonly p:Uint8Array;readonly n:number}):-1|0|1{return compareStat4RecordKey(sample.p,sample.n,this,this.keyInfo,()=>this.check(1))}
+ compare(sample:{readonly p:Uint8Array;readonly n:number}):-1|0|1{return compareStat4RecordKey(stat4RecordBytes(sample),sample.n,this,this.keyInfo,()=>this.check(1))}
 }
 export function createStat4Probe(info:KeyInfo,check:(units:number)=>void=()=>{}):Stat4Probe{return new Stat4Probe(info,check)}

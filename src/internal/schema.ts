@@ -1,3 +1,4 @@
+import { ownStat4Record } from './stat4-record.ts';
 import { resolvedGeneratedExpressionCarrier, NameResolutionError, type ResolvedSource } from "./resolve.ts";
 import { btreeFromConnection, BtreeCursorStateError, BtreeFormatError } from "./btree.ts";
 import { decodeRecord, RecordFormatError, type DatabaseEncoding, type RawRecordValue } from "./record.ts";
@@ -343,8 +344,8 @@ export function loadStat4Samples<T extends object>(
   charge(BigInt(n) + 8n);
   const p = new Uint8Array(n + 8);
   for (let at = 0; at < n; at += 4096) { const end = Math.min(n, at + 4096); check("copy", end - at); p.set(row.bytes.subarray(at, end), at); }
-  // Published consumers receive a copy, never a mutable alias to owned bytes.
-  const sample = { get p(): Uint8Array { return p.slice(); }, n, anEq, anLt, anDLt };
+  // Public readers copy; trusted readers borrow the charged native-like identity.
+  const sample = ownStat4Record({ get p(): Uint8Array { return p.slice(); }, n, anEq, anLt, anDLt }, p);
   state.samples.push(sample); state.nSample++;
  }
  check("finalize"); average(previous);
