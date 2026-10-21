@@ -5038,7 +5038,9 @@ analysis and whole-loop reconstruction. Invalid-prefix scalar ranges also consum
 `whereRangeSkipScanEst` through `stat4-skipscan.ts`, with native scalar sample
 extraction/counting and close-bound fallback; general sample/cost parity remains
 unclaimed. Canonical QNUMBER semantic production supplies both probes and ordinary
-VM lowering ([numeric evidence](../research/card-s-h/NUMERIC_PRODUCTION.md)). Connection-owned probe reservations now
+VM lowering and canonical numeric structural identity (including matching generated
+production identity after dequote, without altering LR trace/goto or relaxing
+resolver equality; [numeric evidence](../research/card-s-h/NUMERIC_PRODUCTION.md)). Connection-owned probe reservations now
 cover all-field metadata/Mem and conservative extraction/value high-water capacity,
 with all-slot release. Finite AddAll stop controls now independently compare
 native success/no-path error outcomes; empty frontiers retain SQLITE_ERROR rather

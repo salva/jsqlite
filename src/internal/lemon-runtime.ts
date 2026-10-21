@@ -46,6 +46,7 @@ export function lemonParse<T = unknown>(
   limits: LemonLimits = { maxWorkUnits: 10_000_000, maxParserDepth: 2500, maxExpressionDepth: 1000 },
   reductionAction?: LemonReductionAction<T>,
   stopAfterStatement = false,
+  canonicalizeReduction?: (value: Extract<LemonValue<T>, {kind:"reduction"}>) => Extract<LemonValue<T>, {kind:"reduction"}>,
 ): LemonTrace<T> {
   const t = lemonTables;
   const stack: Entry<T>[] = [{ state: 0 }];
@@ -125,13 +126,15 @@ export function lemonParse<T = unknown>(
         throw new RangeError("SQL expression exceeds maxExpressionDepth");
       }
       const semantic = reductionAction?.(signature, children);
-      const value: LemonValue<T> = {
-        kind: "reduction",
+      const reduction = {
+        kind: "reduction" as const,
         rule,
         signature,
         children,
         ...(semantic === undefined ? {} : { semantic }),
       };
+      // Semantic opcode normalization never changes the LR rule/goto or trace.
+      const value: LemonValue<T> = canonicalizeReduction?.(reduction) ?? reduction;
       if(stopAfterStatement && signature === "cmdx ::= cmd" && lookahead === tokenIds.SEMI) {
         return {accepted:true,reductions,value,statementEndInput:input};
       }

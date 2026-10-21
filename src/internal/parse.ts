@@ -1,5 +1,5 @@
 import { encodeSql, tokenize, type SqlToken } from "./tokenize.ts";
-import { lemonTables, tokenIds } from "../generated/parser-tables.ts";
+import { lemonTables, tokenIds, productions } from "../generated/parser-tables.ts";
 import { keywordTable } from "../generated/keyword-table.ts";
 import { lemonParse, type LemonTrace, type LemonValue } from "./lemon-runtime.ts";
 
@@ -373,6 +373,17 @@ function deepFreeze<T>(value:T):T {
  while(stack.length){const node=stack.pop();if(!node||typeof node!=="object"||seen.has(node))continue;seen.add(node);stack.push(...Object.values(node));Object.freeze(node);}
  return value;
 }
+const numericProductions=new Map(productions.filter(p=>p.signature==='term ::= INTEGER'||p.signature==='term ::= NULL|FLOAT|BLOB').map(p=>[p.signature,p]));
+function canonicalNumericReduction(node:Extract<LemonValue<SqlToken>,{kind:'reduction'}>):Extract<LemonValue<SqlToken>,{kind:'reduction'}>{
+ if(node.signature!=='term ::= QNUMBER')return node;
+ const child=node.children[0];
+ if(child?.kind!=='terminal')throw new SqlParseError('missing numeric token');
+ // util.c sqlite3DequoteNumber changes Expr.op as well as the token. Publish
+ // the generated ordinary numeric production, keeping the actual LR trace raw.
+ const signature=child.value.kind==='integer'?'term ::= INTEGER':'term ::= NULL|FLOAT|BLOB';
+ const production=numericProductions.get(signature)!;
+ return {...node,rule:production.id,signature};
+}
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[],sqlBytes:Uint8Array):unknown{
  // parse.y term ::= QNUMBER / util.c sqlite3DequoteNumber. Replace the
  // popped semantic terminal, not the lexical token; byte spans remain raw.
@@ -442,4 +453,4 @@ function productionAction(signature:string,children:readonly LemonValue<SqlToken
 }
 function action(root:LemonValue<SqlToken>,tokens:readonly SqlToken[]):ParsedStatement{const cmd=find(root,s=>s.startsWith("cmd ::="));if(cmd?.kind==="reduction"&&cmd.semantic)return cmd.semantic as ParsedStatement;throw new SqlParseError(`near "${tokens[0]!.text}": syntax error`);}
 export interface ParseLimits{readonly maxSqlBytes?:number;readonly maxWorkUnits?:number;readonly maxParserDepth?:number;readonly maxExpressionDepth?:number}
-export function parseSql(sql:string,limits:number|ParseLimits=16*1024*1024):ParseResult{const options=typeof limits==="number"?{maxSqlBytes:limits}:limits;const maxSqlBytes=options.maxSqlBytes??16*1024*1024,maxWorkUnits=options.maxWorkUnits??10_000_000,maxParserDepth=options.maxParserDepth??2500,maxExpressionDepth=options.maxExpressionDepth??1000;let bytes:Uint8Array;try{bytes=encodeSql(sql);}catch(e){throw new SqlParseError((e as Error).message);}if(bytes.length>maxSqlBytes)throw new RangeError("SQL exceeds maxSqlBytes");const sig=tokenize(bytes).filter(t=>t.kind!=="space"&&t.kind!=="comment"&&t.kind!=="eof");if(!sig.length)return{statement:null,tailOffset:bytes.length,tailCodeUnit:sql.length,lemon:null};const illegal=sig.find(t=>t.kind==="illegal");if(illegal)throw new SqlParseError(`unrecognized token: "${illegal.text}"`);const tokens=sig,ids=contextualTerminals(tokens);if(ids.some(x=>x===undefined))throw new SqlParseError(`unrecognized token: "${tokens[ids.findIndex(x=>x===undefined)]!.text}"`);const sentinel:SqlToken={kind:"punct",startByte:bytes.length,endByte:bytes.length,text:";"},lemon=lemonParse([...ids as number[],tokenIds.SEMI,0],[...tokens,sentinel],{maxWorkUnits,maxParserDepth,maxExpressionDepth},(signature,children)=>productionAction(signature,children,bytes),true);const semi=tokens[lemon.statementEndInput??tokens.length];if(!lemon.accepted||!lemon.value){const at=lemon.errorInput??tokens.length,token=tokens[at];throw new SqlParseError(token?`near "${token.text}": syntax error`:"incomplete input");}const statement=action(lemon.value,tokens);const tailOffset=semi?.endByte??bytes.length;return{statement,tailOffset,tailCodeUnit:byteToCodeUnit(sql,tailOffset),lemon};}
+export function parseSql(sql:string,limits:number|ParseLimits=16*1024*1024):ParseResult{const options=typeof limits==="number"?{maxSqlBytes:limits}:limits;const maxSqlBytes=options.maxSqlBytes??16*1024*1024,maxWorkUnits=options.maxWorkUnits??10_000_000,maxParserDepth=options.maxParserDepth??2500,maxExpressionDepth=options.maxExpressionDepth??1000;let bytes:Uint8Array;try{bytes=encodeSql(sql);}catch(e){throw new SqlParseError((e as Error).message);}if(bytes.length>maxSqlBytes)throw new RangeError("SQL exceeds maxSqlBytes");const sig=tokenize(bytes).filter(t=>t.kind!=="space"&&t.kind!=="comment"&&t.kind!=="eof");if(!sig.length)return{statement:null,tailOffset:bytes.length,tailCodeUnit:sql.length,lemon:null};const illegal=sig.find(t=>t.kind==="illegal");if(illegal)throw new SqlParseError(`unrecognized token: "${illegal.text}"`);const tokens=sig,ids=contextualTerminals(tokens);if(ids.some(x=>x===undefined))throw new SqlParseError(`unrecognized token: "${tokens[ids.findIndex(x=>x===undefined)]!.text}"`);const sentinel:SqlToken={kind:"punct",startByte:bytes.length,endByte:bytes.length,text:";"},lemon=lemonParse([...ids as number[],tokenIds.SEMI,0],[...tokens,sentinel],{maxWorkUnits,maxParserDepth,maxExpressionDepth},(signature,children)=>productionAction(signature,children,bytes),true,canonicalNumericReduction);const semi=tokens[lemon.statementEndInput??tokens.length];if(!lemon.accepted||!lemon.value){const at=lemon.errorInput??tokens.length,token=tokens[at];throw new SqlParseError(token?`near "${token.text}": syntax error`:"incomplete input");}const statement=action(lemon.value,tokens);const tailOffset=semi?.endByte??bytes.length;return{statement,tailOffset,tailCodeUnit:byteToCodeUnit(sql,tailOffset),lemon};}

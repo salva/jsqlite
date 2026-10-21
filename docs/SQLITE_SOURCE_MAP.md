@@ -7,7 +7,15 @@
 separator neighbors and replace the reduction-owned semantic terminal, retaining
 raw lexical bytes/spans. Both `stat4ValueFromExpr` and VDBE
 `expressionFromReduction` consume the same normalized INTEGER/FLOAT leaf;
-strings are not normalized. [Evidence and bounded tests](research/card-s-h/NUMERIC_PRODUCTION.md).
+strings are not normalized. `sqlite3DequoteNumber` opcode update →
+`parse.ts:canonicalNumericReduction` via Lemon's post-action publication callback:
+only QNUMBER publishes its generated INTEGER/FLOAT rule/signature while LR goto
+and trace retain the actual rule. `expr.c:sqlite3ExprCompare` numeric semantic
+identity → existing `resolve.ts:expressionStructurallyEqual`, now consuming the
+canonical production without equality relaxation. `test/parser/numeric-identity.test.mjs`
+and mandatory `resolver.test.mjs` cover separator/plain identity, REAL/token/unary
+nonidentity and raw spans/trace; pinned public prepare controls are retained in
+`numeric-identity-native.jsonl`. [Evidence and bounded tests](research/card-s-h/NUMERIC_PRODUCTION.md).
 
 ### RIGHT/FULL WITHOUT ROWID identity
 

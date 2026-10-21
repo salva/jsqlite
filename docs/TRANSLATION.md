@@ -494,7 +494,11 @@ WHERE evidence, without general optimizer or plan-identity credit.
 Numeric SQL tokens with separators pass through the source QNUMBER semantic
 production before probe extraction and ordinary VDBE lowering. The parser validates
 separator neighbors and retains raw lexical spans for names/errors while both
-consumers see one normalized INTEGER/FLOAT terminal. This is the pinned
+consumers see one normalized INTEGER/FLOAT terminal and its matching generated
+semantic production. Lemon retains the actual QNUMBER parse trace/goto; a
+parser-owned publication callback canonicalizes only that numeric reduction's
+rule/signature, so structural resolver identity sees the same expression as the
+plain spelling without relaxing other equality boundaries. This is the pinned
 `sqlite3DequoteNumber` path, not string/affinity conversion or an alternate numeric
 evaluator. [Bounded numeric evidence](research/card-s-h/NUMERIC_PRODUCTION.md).
 
