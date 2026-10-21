@@ -46,7 +46,7 @@ test('compiled skipped cursors against native-first companions',{
  // never treat absent nSkip as a selected one-key prefix.
  for(const v of capture.variants??[])for(const c of v.cases??[])if(c.nSkip===undefined&&c.eqp)c.nSkip=Math.max(0,...c.eqp.flat().map(x=>(String(x).match(/ANY\(/g)??[]).length));
  const originalTranche=!!capture.source;
- if(originalTranche)capture.variants=capture.variants.filter(v=>v.control==='stat1').map(v=>({encoding:v.encoding,tail:'18',fixture:'fixtures/'+v.fixture.path,sha256:v.fixture.sha256,cases:v.cases.filter(c=>c.prepareRc===0&&c.plans?.length&&c.runs?.length).map(c=>({id:c.id,sql:c.sql,columns:c.columns,runs:c.runs,rows:c.runs[0].rows,eqp:c.plans[0].eqp.map(row=>row.filter(x=>x.type==='text').map(x=>Buffer.from(x.utf8Hex,'hex').toString('utf8'))),nSkip:Math.max(...c.plans[0].eqp.map(row=>row.filter(x=>x.type==='text').map(x=>(Buffer.from(x.utf8Hex,'hex').toString('utf8').match(/ANY\(/g)??[]).length)).flat())}))}));
+ if(originalTranche)capture.variants=capture.variants.filter(v=>process.env.SKIPSCAN_ALL_VARIANTS==='1'||v.control==='stat1').map(v=>({encoding:v.encoding,control:v.control,tail:'18',fixture:'fixtures/'+v.fixture.path,sha256:v.fixture.sha256,cases:v.cases.map(c=>({id:c.id,sql:c.sql,prepareRc:c.prepareRc,columns:c.columns,runs:c.runs,rows:c.runs[0]?.rows,eqp:(c.plans[0]?.eqp??[]).map(row=>row.filter(x=>x.type==='text').map(x=>Buffer.from(x.utf8Hex,'hex').toString('utf8'))),nSkip:Math.max(0,...(c.plans[0]?.eqp??[]).map(row=>row.filter(x=>x.type==='text').map(x=>(Buffer.from(x.utf8Hex,'hex').toString('utf8').match(/ANY\(/g)??[]).length)).flat())}))}));
  const root=path.join(work,'compiled-prefix-public'),generation='native-prefix',dir=path.join(root,'generations',generation);
  fs.mkdirSync(dir,{recursive:true});
  const variants=capture.variants.filter(v=>process.env.SKIPSCAN_ALL_VARIANTS==='1'||v.tail==='18');
@@ -60,6 +60,7 @@ test('compiled skipped cursors against native-first companions',{
  try{for(const [i,v] of variants.entries()){
   const db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/prefix-${i}`));
   try{for(const c of v.cases.filter(c=>process.env.SKIPSCAN_ALL_VARIANTS==='1'||['stat1-companions/native.json','in-tail-native.json','lowmul-native.json','joined-lowmul-native.json','transitive-native.json'].includes(process.env.SKIPSCAN_CAPTURE)||c.eqp.flat().some(x=>JSON.stringify(x).includes('ANY(')))){
+   if(c.prepareRc){assert.throws(()=>db.prepare(c.sql),e=>e.code===c.prepareRc);console.log('compiled-prepare-error',v.encoding,v.control,c.id);continue;}
    if(process.env.SKIPSCAN_CAPTURE==='desc-recursive-native.json'){
     const controller=new AbortController();controller.abort('construction regression');
     await assert.rejects(async()=>db.prepare(c.sql,{signal:controller.signal}),e=>e.kind==='cancelled');
