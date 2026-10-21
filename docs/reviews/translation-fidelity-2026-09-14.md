@@ -10,6 +10,10 @@ codeAllEqualityTerms slot-order correction now guards nullable equality before
 later RHS construction in ordinary/join/recursive-OR lowering; native-backed
 ordinary/LEFT NULL-prefix controls cover bypass with zero private capacity.
 Other LEFT/OR/resource transitions remain bounded by the linked evidence.
+SELECT-IN seek/end-prefix affinity now follows codeAllEqualityTerms BLOB
+suppression; linked SRT_Set owns coercion. All-encoding ordinary/join/recursive
+joined-OR companions observe actual prefix consumers and compare native typed
+multisets, rather than claiming ownership from equivalent rows alone.
 [Source mapping, evidence and remaining limits](../research/selected-select-in-delivery.md).
 Author verification is not independent acceptance; historical findings below
 retain their revision applicability.

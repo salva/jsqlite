@@ -4597,7 +4597,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:physical.keyInfo,fieldOrdinal:ordinal(admission),reverse:reverse!==!!physical.fields[ordinal(admission)]?.descending}});
           inTargets.set(admission,target);
         }
-        const keys=admissions.map(admission=>inTargets.get(admission)??key(admission.term)),affinities=admissions.map(admission=>admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
+        const keys=admissions.map(admission=>inTargets.get(admission)??key(admission.term)),affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
         if(start&&!start.term.virtualNull){guards.push(ops.length);ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
         rewind=ops.length;
         if(admissions.length||cap!.nSkip)prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],physical.keyInfo,reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!cap!.inSeekScan,rowLogEst:cap!.index!.rowLogEst[0]??99,hasRange:!!(cap!.lower||cap!.upper)});
@@ -4711,7 +4711,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // wherecode.c Case 4: nullable pRangeStart exits to addrNxt before
       // affinity or seek. This is the next IN value (or outer loop), not Halt.
       if(start&&!start.term.virtualNull){startNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
-      const affinities=admissions.map(admission=>admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
+      // codeAllEqualityTerms: SRT_Set already applied SELECT-IN affinity.
+      // Seek and equality-prefix termination share this no-op slot vector.
+      const affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
       const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
       rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);
     }else ops.push(indexCursor===undefined&&!(source.table.kind==='table'&&source.table.withoutRowid)?{code:capability?.reverse?'Last':'Rewind',p1:scanCursor,p2:0}:{code:capability?.reverse?'IndexLast':'IndexRewind',p1:scanCursor,p2:0});
@@ -7558,7 +7560,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // before applying affinity or seeking. Equality IS NULL is not a range
     // start: its NULL key must remain searchable.
     if(start&&!start.term.virtualNull){startNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[keys.length-1]!,p2:0});}
-    const affinities=admissions.map(a=>a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);prefixLoop=emitPrefixSeek(ops,prefixEntry,positionCursor,[...skippedKeys,...keys],[...skippedAffinities,...affinities],selectedPhysical.keyInfo,selectedIndexReverse,!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),{enabled:selectedInSeekScan,rowLogEst:selectedPhysical.index.rowLogEst[0]??99,hasRange:!!(selectedIndexLower||selectedIndexUpper)});rewindIndex=prefixLoop.seek;
+    const affinities=admissions.map(a=>a.term.inSelectRhs?"blob" as const:a.comparison.kind==="comparison"?a.comparison.affinity:"blob" as const);prefixLoop=emitPrefixSeek(ops,prefixEntry,positionCursor,[...skippedKeys,...keys],[...skippedAffinities,...affinities],selectedPhysical.keyInfo,selectedIndexReverse,!!start&&(start.bound==="lower-exclusive"||start.bound==="upper-exclusive"),{enabled:selectedInSeekScan,rowLogEst:selectedPhysical.index.rowLogEst[0]??99,hasRange:!!(selectedIndexLower||selectedIndexUpper)});rewindIndex=prefixLoop.seek;
   }else {
     // wherecode.c Case 4 aStartOp: an unconstrained reverse index loop
     // positions with OP_Last, paired with OP_Prev in sqlite3WhereEnd.

@@ -44,8 +44,9 @@ choice; physical DESC RHS requires the remaining direct-index reuse branch, not
 an ORDER BY fixture or helper-only reversal claim. Selected LHS direction remains
 independent. Suspended movement cancellation/deadline and zero-private admission
 pass in the peer-authored lifecycle test (workspace-only, not this delivery).
-Recursive joined OR, other LEFT transitions, selected malformed/private-page
-failure and measured final ledger cleanup still need targeted SQL evidence.
+Recursive joined OR now has the finite selected affinity witness below; other
+LEFT transitions, selected malformed/private-page failure and measured final
+ledger cleanup still need targeted SQL evidence.
 Vectors/correlation/direct RHS-index reuse remain implementation gaps, not scope
 exclusions. Historical root planner262/263 is not reproduced on the candidate
 (g38:302/302); 58.302s near-timeout risk and original full serial gates remain.
@@ -58,8 +59,8 @@ and immediately emits its NULL break before codeEqualityTerm for later slots.
 All three selected caller paths now do likewise, instead of hoisting all IN
 construction before ordinary equality expressions. Existing level break and LEFT
 nullPass continuation targets remain unchanged. No opcode/algorithm substitution.
-Seek-affinity reconciliation identified in status45 remains separate work, not a
-claim repaired by ordering.
+Seek-affinity reconciliation identified in status45 is handled separately below,
+not by ordering.
 
 Native FIRST extension: 21 cases x3 encodings, JSON SHA256
 `f5b9a01399776522a609143317f045aab256e06a5e2745b30822e2f92221be72`.
@@ -83,3 +84,34 @@ loop/producer/linked/VM, selected-index controls and planner analysis:
 `work:///cards/card-s-c-d-e/processes/proc-8129c12dc1ea/stdout.log`.
 This is author affected-path verification, not full gates or independent approval.
 Earlier source rationale/commands/hypotheses remain in accepted per-card status42/45.
+
+## SELECT-IN affinity ownership repair
+
+Pinned wherecode.c:968–976 sets SELECT-IN equality-slot zAff to BLOB: the RHS
+producer has already applied comparison affinity. TS compileSelectedInRhs computes
+that affinity from original semantic fields and emitSelectedInRhs hands it to
+SRT_Set. select-program.ts emitSelectDestination applies Affinity before
+MakeRecord/IdxInsert. Previously all three caller affinity vectors reapplied the
+comparison affinity at IndexSeekPrefix and IndexPrefixEnd; now SELECT-IN slots
+use BLOB in both consumers. Ordinary equality/range/list-IN affinities remain
+unchanged. No producer coercion, KeyInfo or record-order algorithm is replaced.
+
+Native FIRST extension24 cases x3 encodings SHA256
+`0cf5011e956601da198390ea9146b701ba4f4eec103637e42c41da2744a147bb`.
+New forced ordinary, joined and recursive joined-OR SQL companions compare native
+typed row multisets (SQL specifies no ordering) and repeat after reset. They
+observe real seek/end Mem.applyAffinity calls without replacing execution. Both
+consumers must execute; ordinary/join SELECT-IN calls must all be BLOB, OR must
+include BLOB alongside ordinary numeric-affinity branch calls. Positive inProbes
+prevents scan-equivalent credit. Fixed source-derived frame discovery excludes
+the one-line prefix-end consumer when locating seek, and fails closed if owning
+calls move structurally. Temporary prototype observation is restored in finally.
+
+Parent e9b73154 git-archive baseline with same test/artifact fails0/3 (`proc-e5a2ab739e57`)
+on observed INTEGER duplicate affinity. Repaired focused3/3 (`proc-c8806a5ac75b`).
+Initial test-frame discovery matched two lines and failed before execution
+(`proc-ca3187c54ad8`); corrected observation boundary only. Initial forced OR on
+one index produced scan access (inProbes0), correctly rejected3/3
+(`proc-bdc811cbfcdd`). Use unforced multi-index a-IN OR b=3 to exercise the actual
+recursive caller, not relax the selected-access assertion. Native artifacts were
+recaptured before TS verification. No raw capture or production instrumentation.

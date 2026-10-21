@@ -456,13 +456,18 @@ movement and Column dispatch precedes persistent dispatch, publishing jumps only
 after success. Equality slots are produced and NULL-guarded in index order,
 before later IN construction/positioning, following codeAllEqualityTerms; LEFT
 null-extension bypasses RHS movement through its production nullPass guard.
+SELECT-IN comparison affinity belongs to SRT_Set production: seek and equality
+prefix-end slots use BLOB/no-op affinity, as in codeAllEqualityTerms. Range,
+ordinary equality and list-IN slots retain their own comparison affinity.
 List-IN register iteration is retained.
 
 Bounded native/public evidence covers forced/unforced scalar and range, two-slot,
 INNER/LEFT/OR compositions, metadata, parameter clear/rebind and between-row
-cancellation/reset/retry across three encodings. Physical DESC, recursive joined
-OR, LEFT early bypass, selected malformed-page/private-failure cleanup and prefix
-earlyout need dedicated evidence. Vectors/correlation and direct RHS-index reuse
+cancellation/reset/retry across three encodings. NULL-prefix early bypass has
+native-backed ordinary/LEFT evidence. Physical DESC LHS and reverse coverage,
+selected malformed-page/private-failure cleanup and prefix earlyout still need
+dedicated evidence. Recursive joined OR has a selected affinity/typed-row witness,
+not exhaustive composition coverage. Vectors/correlation and direct RHS-index reuse
 remain implementation gaps, not product exclusions. See
 [scoped evidence and limitations](research/selected-select-in-delivery.md).
 

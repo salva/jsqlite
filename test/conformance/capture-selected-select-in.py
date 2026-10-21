@@ -44,6 +44,9 @@ def program(db,sql,params):
  return [{'addr':int(r[0]['value']),'opcode':m.text(r[1]),'p1':int(r[2]['value']),'p2':int(r[3]['value']),'p3':int(r[4]['value']),'p4':None if r[5]['type']=='null' else m.text(r[5]),'p5':int(r[6]['value'])} for r in rows]
 
 cases={
+ 'affinity-forced':("SELECT id FROM t INDEXED BY t_ab WHERE a IN(SELECT CAST(v AS TEXT) FROM rhs)",[]),
+ 'affinity-joined':("SELECT x.id,y.id FROM t x INDEXED BY t_ab JOIN t y ON y.id=x.id WHERE x.a IN(SELECT CAST(v AS TEXT) FROM rhs)",[]),
+ 'affinity-joined-or':("SELECT x.id,y.id FROM t x JOIN t y ON y.id=x.id WHERE x.a IN(SELECT CAST(v AS TEXT) FROM rhs) OR x.b=3",[]),
  'left-null-prefix':("SELECT x.v,y.id FROM rhs x LEFT JOIN t y INDEXED BY t_ab ON y.a=?1 AND y.b IN(SELECT v FROM rhs)",[None]),
  'null-prefix':("SELECT id FROM t INDEXED BY t_ab WHERE a=?1 AND b IN(SELECT v FROM rhs)",[None]),
  'join':("SELECT x.id,y.id FROM t x JOIN t y ON y.id=x.id WHERE x.a IN(SELECT v FROM rhs) ORDER BY x.id",[]),
