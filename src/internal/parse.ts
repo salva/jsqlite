@@ -79,7 +79,7 @@ export class SqlUnsupportedError extends Error{}
 const tokenKindNames:Partial<Record<SqlToken["kind"],keyof typeof tokenIds>>={id:"ID",integer:"INTEGER",float:"FLOAT",string:"STRING",blob:"BLOB",variable:"VARIABLE"};
 const punctuationNames:Readonly<Record<string,keyof typeof tokenIds>>={";":"SEMI","(":"LP",")":"RP",",":"COMMA","=":"EQ","==":"EQ","!=":"NE","<>":"NE",">":"GT","<=":"LE","<":"LT",">=":"GE","+":"PLUS","-":"MINUS","*":"STAR","/":"SLASH","%":"REM","||":"CONCAT","->":"PTR","->>":"PTR","&":"BITAND","|":"BITOR","~":"BITNOT","<<":"LSHIFT",">>":"RSHIFT",".":"DOT"};
 function byteToCodeUnit(sql:string,byte:number){let b=0,i=0;for(const s of sql){if(b===byte)return i;b+=new TextEncoder().encode(s).length;i+=s.length;}if(b===byte)return i;throw Error("token ended inside UTF-8 scalar");}
-function terminal(t:SqlToken):number|undefined{if(t.kind==="keyword"){const name=keywordTable.get(t.text.toUpperCase())as keyof typeof tokenIds|undefined;return name===undefined?undefined:tokenIds[name];}const name=tokenKindNames[t.kind]??punctuationNames[t.text];return name===undefined?undefined:tokenIds[name];}
+function terminal(t:SqlToken):number|undefined{if((t.kind==="integer"||t.kind==="float")&&t.text.includes("_"))return tokenIds.QNUMBER;if(t.kind==="keyword"){const name=keywordTable.get(t.text.toUpperCase())as keyof typeof tokenIds|undefined;return name===undefined?undefined:tokenIds[name];}const name=tokenKindNames[t.kind]??punctuationNames[t.text];return name===undefined?undefined:tokenIds[name];}
 /** Port of tokenize.c getToken()/analyze{Window,Over,Filter}Keyword(). */
 function contextualTerminals(tokens:readonly SqlToken[]):readonly (number|undefined)[]{
  const raw=tokens.map(terminal),id=tokenIds.ID;
@@ -374,6 +374,17 @@ function deepFreeze<T>(value:T):T {
  return value;
 }
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[],sqlBytes:Uint8Array):unknown{
+ // parse.y term ::= QNUMBER / util.c sqlite3DequoteNumber. Replace the
+ // popped semantic terminal, not the lexical token; byte spans remain raw.
+ if(signature==="term ::= QNUMBER"){
+  const child=children[0];
+  if(child?.kind!=="terminal")throw new SqlParseError("missing numeric token");
+  const token=child.value,hex=/^0x/i.test(token.text);
+  const digit=hex?/^[0-9a-f]$/i:/^[0-9]$/;
+  for(let i=0;i<token.text.length;i++)if(token.text[i]==="_"&&(!digit.test(token.text[i-1]??"")||!digit.test(token.text[i+1]??"")))throw new SqlParseError(`unrecognized token: "${token.text}"`);
+  const text=token.text.replaceAll("_","");
+  (children as LemonValue<SqlToken>[])[0]={...child,value:Object.freeze({...token,text,kind:!hex&&/[.eE]/.test(text)?"float":"integer"})};
+ }
  const root:LemonValue<SqlToken>={kind:"reduction",rule:-1,signature,children};
  // parse.y allocates Window while reducing frame_opt/window, before resolver
  // callbacks or containing SELECT/DDL construction. Validate inline and named

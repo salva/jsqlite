@@ -1,0 +1,25 @@
+{"sha256": "6c413f86bee2b4da475bf2be0a8751d53d6c3a97c52f913a049f4ff4428b00b9", "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "100", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "1_00", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "10.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "1_0.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "1e1_0", "count": 0, "typedRowsSHA256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "-1_00", "count": 2858, "typedRowsSHA256": "b1aa1ca5400c6293a712c3b375466f6dbc4159a8cdd8a4e6170e93341295949c"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "+1_0.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-16be.db", "literal": "0x6_4", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "100", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "1_00", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "10.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "1_0.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "1e1_0", "count": 0, "typedRowsSHA256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "-1_00", "count": 2858, "typedRowsSHA256": "b1aa1ca5400c6293a712c3b375466f6dbc4159a8cdd8a4e6170e93341295949c"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "+1_0.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-16le.db", "literal": "0x6_4", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-8.db", "literal": "100", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-8.db", "literal": "1_00", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}
+{"fixture": "skiprange-UTF-8.db", "literal": "10.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-8.db", "literal": "1_0.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-8.db", "literal": "1e1_0", "count": 0, "typedRowsSHA256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"}
+{"fixture": "skiprange-UTF-8.db", "literal": "-1_00", "count": 2858, "typedRowsSHA256": "b1aa1ca5400c6293a712c3b375466f6dbc4159a8cdd8a4e6170e93341295949c"}
+{"fixture": "skiprange-UTF-8.db", "literal": "+1_0.0", "count": 28, "typedRowsSHA256": "c9df28cab411b0f47ca0fefec329b47e33f8b5bd11dc871df5211ce4ced113e7"}
+{"fixture": "skiprange-UTF-8.db", "literal": "0x6_4", "count": 15, "typedRowsSHA256": "b012e129dc8cccc206a334927ae215cc41e3428f224b600e401ddee0628ced4e"}

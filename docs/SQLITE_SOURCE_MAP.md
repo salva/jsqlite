@@ -1,5 +1,14 @@
 # SQLite source map
 
+### SQL numeric semantic production
+
+`tokenize.c:CC_DIGIT` QNUMBER dispatch, `parse.y:term ::= QNUMBER`,
+`util.c:sqlite3DequoteNumber` → `parse.ts:terminal/productionAction` validate
+separator neighbors and replace the reduction-owned semantic terminal, retaining
+raw lexical bytes/spans. Both `stat4ValueFromExpr` and VDBE
+`expressionFromReduction` consume the same normalized INTEGER/FLOAT leaf;
+strings are not normalized. [Evidence and bounded tests](research/card-s-h/NUMERIC_PRODUCTION.md).
+
 ### RIGHT/FULL WITHOUT ROWID identity
 
 `where.c:7393–7425` per-level nKeyCol/KeyInfo match store and disabling

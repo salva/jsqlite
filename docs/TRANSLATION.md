@@ -491,6 +491,13 @@ WHERE evidence, without general optimizer or plan-identity credit.
 
 ### Optional STAT4 loading and selectivity consumers
 
+Numeric SQL tokens with separators pass through the source QNUMBER semantic
+production before probe extraction and ordinary VDBE lowering. The parser validates
+separator neighbors and retains raw lexical spans for names/errors while both
+consumers see one normalized INTEGER/FLOAT terminal. This is the pinned
+`sqlite3DequoteNumber` path, not string/affinity conversion or an alternate numeric
+evaluator. [Bounded numeric evidence](research/card-s-h/NUMERIC_PRODUCTION.md).
+
 Immutable schema loading retains represented sqlite_stat4 samples and selected
 bounded costing consumers. Schema-owned padded records are acquired once;
 internal scalar/probe readers borrow their identity through a module-private
