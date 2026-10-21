@@ -12,6 +12,8 @@ sqls=[
  ('metadata-group','SELECT name,count(*) AS n FROM pragma_table_info(\'Album\') GROUP BY name ORDER BY name'),
  ('recursive-right','WITH RECURSIVE q(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM q WHERE x<3) SELECT q.x,a.AlbumId FROM q RIGHT JOIN Album a ON a.AlbumId=q.x WHERE a.AlbumId<=3 ORDER BY a.AlbumId'),
  ('json-right',"SELECT a.AlbumId,j.value FROM Album a RIGHT JOIN json_each('[1,2,9999]') j ON a.AlbumId=j.value ORDER BY j.key"),
+ ('metadata-aggregate-join',"SELECT a.AlbumId,count(p.cid) AS n FROM Album a LEFT JOIN pragma_table_info('Album') p ON p.cid>=0 WHERE a.AlbumId<=3 GROUP BY a.AlbumId ORDER BY a.AlbumId"),
+ ('metadata-window-join',"SELECT a.AlbumId,p.name,row_number() OVER (ORDER BY a.AlbumId) AS rn FROM Album a JOIN pragma_table_info('Album') p ON p.cid=0 WHERE a.AlbumId<=3 ORDER BY a.AlbumId"),
 ]
 def cell(x):
  k=x['type'];v=None if k=='null' else struct.unpack('>d',bytes.fromhex(x['ieee754be']))[0] if k=='real' else bytes.fromhex(x['utf8Hex']).decode() if k=='text' else x.get('value',x.get('hex'))
@@ -30,4 +32,4 @@ try:
   finally:assert lib.sqlite3_finalize(st)==0
 finally:assert lib.sqlite3_close(db)==0
 out={'sourceId':pin['sqliteSourceId'],'fixtureSha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'librarySha256':hashlib.sha256(pathlib.Path(args.library).read_bytes()).hexdigest(),'resetRuns':2,'cases':cases}
-(ROOT/'test/browser/public-beta-native.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');print('Captured three beta controls with two native reset runs each')
+(ROOT/'test/browser/public-beta-native.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n');print(f'Captured {len(cases)} beta controls with two native reset runs each')

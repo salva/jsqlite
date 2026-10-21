@@ -1,0 +1,13 @@
+import { Mem } from "./mem.js";
+import type { DatabaseEncoding } from "./record.js";
+export declare const SQLITE_VERSION = "3.53.4";
+export declare const SQLITE_SOURCE_ID = "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc";
+export declare const SQLITE_COMPILE_OPTIONS: readonly string[];
+export declare function scalarText(value: string): Mem;
+export declare function asText(value: Mem, encoding: DatabaseEncoding): string;
+export declare function asUtf8(value: Mem): Uint8Array;
+export declare function utf8Length(value: string): number;
+export declare function decodeUnistr(value: string, maxBytes?: number, checkpoint?: (characters: number) => void): string;
+export declare function quoteValue(value: Mem, maxBytes?: number): string;
+export declare function firstCodePoint(value: Mem): number | null;
+export declare function secureRandom(length: number, checkpoint?: () => void): Uint8Array;
