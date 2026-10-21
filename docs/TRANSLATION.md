@@ -464,9 +464,15 @@ List-IN register iteration is retained.
 Bounded native/public evidence covers forced/unforced scalar and range, two-slot,
 INNER/LEFT/OR compositions, metadata, parameter clear/rebind and between-row
 cancellation/reset/retry across three encodings. NULL-prefix early bypass has
-native-backed ordinary/LEFT evidence. Physical DESC LHS and reverse coverage,
-selected malformed-page/private-failure cleanup and prefix earlyout still need
-dedicated evidence. Recursive joined OR has a selected affinity/typed-row witness,
+native-backed ordinary/LEFT evidence. Non-SeekScan SELECT-IN slots after an
+equality prefix now translate codeINTerm/WhereEnd SeekHit/IfNoHope: cursor-owned
+hit depth is clamped at slot entry, raised by successful equality-prefix checks,
+and tested before movement using a partial-key B-tree lookup. NULL skips this
+check; LEFT null-extension skips both check and movement. Public native-backed
+absent/present/empty/NULL, joined/LEFT, reverse and two-slot controls cover this
+branch. List-IN register iteration is unchanged (its earlyout remains a gap).
+Physical DESC LHS coverage and selected malformed-page/private-failure cleanup
+still need dedicated evidence. Recursive joined OR has a selected affinity/typed-row witness,
 not exhaustive composition coverage. Vectors/correlation and direct RHS-index reuse
 remain implementation gaps, not product exclusions. See
 [scoped evidence and limitations](research/selected-select-in-delivery.md).

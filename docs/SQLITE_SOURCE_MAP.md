@@ -16,7 +16,12 @@ native program ordering and zero-private admission witness.
 `selected-select-in-affinity.test.mjs` maps codeAllEqualityTerms SELECT-IN BLOB
 seek/end affinity ownership through ordinary, joined and recursive joined-OR
 public execution; linked SRT_Set producer owns the coercion. Linked producer/VM and private cursor controls
-accompany it. [Evidence/boundaries](research/selected-select-in-delivery.md).
+accompany it. `vdbe.c:SeekHit/IfNoHope/NotFound` → physical `IndexCursor.seekHit`,
+`prefixExists`, selected caller `IndexSeekHit/IndexIfNoHope` and equality-prefix
+success publication; `selected-select-in-earlyout.test.mjs` and pinned capture
+`capture-select-in-earlyout.py` cover non-SeekScan SELECT-IN prefix earlyout,
+NULL/empty/LEFT and reset/repeat boundaries. List-IN earlyout is not mapped yet.
+[Evidence/boundaries](research/selected-select-in-delivery.md).
 
 ### SQL numeric semantic production
 

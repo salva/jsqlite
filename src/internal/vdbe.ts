@@ -228,6 +228,8 @@ type Op =
   | { readonly code: "IndexLast"; readonly p1: number; readonly p2: number }
   | { readonly code:"InListValue";readonly values:readonly number[];readonly indexRegister:number;readonly target:number;readonly p2:number;readonly setKey?:{readonly affinity:MemAffinity;readonly keyInfo:KeyInfo;readonly fieldOrdinal?:number;readonly reverse?:boolean} }
   | { readonly code:"IndexSeekPrefix";readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo;readonly reverse:boolean;readonly strict?:boolean;readonly seekScan?:Readonly<{steps:number;hasRange:boolean}>;readonly p2:number }
+  | { readonly code:'IndexSeekHit';readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo }
+  | { readonly code:'IndexIfNoHope';readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo;readonly p2:number }
   | { readonly code:"IndexPrefixEnd";readonly p1:number;readonly keys:readonly number[];readonly affinities:readonly MemAffinity[];readonly keyInfo:KeyInfo;readonly p2:number }
   | { readonly code:"IndexRangeEnd";readonly p1:number;readonly field:number;readonly key:number;readonly affinity:MemAffinity;readonly collation:BuiltinCollation;readonly operator:"lt"|"le"|"gt"|"ge";readonly p2:number }
   | { readonly code: "DeferredSeek"; readonly p1: number; readonly p2: number }
@@ -257,7 +259,7 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
     case "SorterNext":case "EphemeralRewind":case "EphemeralNext":
     case "IfNotZero":case "IfPos":case "DecrJumpZero":case "Rewind":case "Last":
     case "SeekRowid":case "SeekRowidRange":case "RowidUpperBound":case "RowidLowerBound":
-    case "IndexRewind":case "IndexLast":case "InListValue":case "IndexSeekPrefix":case "IndexPrefixEnd":
+    case "IndexRewind":case "IndexLast":case "InListValue":case "IndexIfNoHope":case "IndexSeekPrefix":case "IndexPrefixEnd":
     case "IndexRangeEnd":case "IsNull":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
       return {...original,p2:target(original.p2)} as Op;
     case "CompareJump":
@@ -4586,7 +4588,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           }
           if(admission.term.inSelectRhs){
             const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-            const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending);
+            const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending,false,0,cap!.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
             iterators.push(loop.start);inTargets.set(admission,target);continue;
           }
           const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
@@ -4691,7 +4693,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         }
         if(admission.term.inSelectRhs){
           const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-          const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending);
+          const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending,false,0,capability.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
           iterators.push(loop.start);inTargets.set(admission,target);continue;
         }
         const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
@@ -5028,9 +5030,16 @@ function emitInAdvance(ops:Op[],iterator:number,nullPass?:number):void {
  if(op?.code!=='IndexRewind'&&op?.code!=='IndexLast')throw new Error('IN restart lost cursor owner');
  const guard=ops[iterator+2];
  if(guard?.code!=='IsNull')throw new Error('IN restart lost NULL guard');
- (guard as {p2:number}).p2=ops.length;
- // LEFT null-extension does not advance a bypassed RHS cursor.
- if(nullPass!==undefined)ops.push({code:'IfPos',p1:nullPass,p2:ops.length+2,p3:0});
+ const hit=ops[iterator+3];
+ const early=hit?.code==='IndexSeekHit'?hit:undefined;
+ // NULL skips IfNoHope: the affinity/prefix state has not been established.
+ // LEFT null-extension bypasses both the prefix check and RHS movement.
+ if(nullPass!==undefined)ops.push({code:'IfPos',p1:nullPass,p2:ops.length+(early?3:2),p3:0});
+ (guard as {p2:number}).p2=ops.length+(early?1:0);
+ if(early){
+  const {code:_,...prefix}=early;
+  ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});
+ }
  ops.push({code:op.code==='IndexLast'?'IndexPrev':'IndexNext',p1:op.p1,p2:iterator+1});
 }
 
@@ -7540,7 +7549,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         }
         if(admission.term.inSelectRhs){
           const set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-          const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending);
+          const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending,false,0,selectedInSeekScan?undefined:{p1:positionCursor,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>targets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:selectedPhysical.keyInfo});
           inIterators.push(loop.start);targets.set(admission,target);continue;
         }
         const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register();
@@ -9793,6 +9802,29 @@ export class VdbeStatement implements Statement {
             }
             break;
           }
+          case 'IndexSeekHit': {
+            const cursor=this.#indexCursors.get(op.p1);
+            if(!cursor)throw new JSQLiteError('internal','SeekHit on unopened index');
+            cursor.seekHit=Math.min(cursor.seekHit,op.keys.length);
+            break;
+          }
+          case 'IndexIfNoHope': {
+            const cursor=this.#indexCursors.get(op.p1);
+            if(!cursor)throw new JSQLiteError('internal','IfNoHope on unopened index');
+            if(cursor.seekHit>=op.keys.length)break;
+            const values:Mem[]=[];
+            try{
+              for(let i=0;i<op.keys.length;i++){
+                const value=new Mem();values.push(value);value.copyFrom(this.#registers[op.keys[i]!]!);
+                value.applyAffinity(op.affinities[i]!,this.#program.encoding);
+              }
+              this.#privateAccounting={...this.#privateAccounting,indexSeeks:this.#privateAccounting.indexSeeks+1};
+              if(values.some(value=>value.initialStorageClass==='null')||!cursor.prefixExists(values,op.keyInfo))this.#pc=op.p2;
+              else cursor.seekHit=op.keys.length;
+              this.#records.delete(op.p1);this.#recordRowids.delete(op.p1);
+            }finally{for(const value of values)value.release();}
+            break;
+          }
           case "IndexSeekPrefix": {
             const cursor=this.#indexCursors.get(op.p1);
             if(!cursor)throw new JSQLiteError("internal","seek on unopened index cursor");
@@ -9823,7 +9855,7 @@ export class VdbeStatement implements Statement {
             } finally {for(const value of values)value.release();}
             break;
           }
-          case "IndexPrefixEnd": {const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.values[i];if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}if(!matches)this.#pc=op.p2;break;}
+          case "IndexPrefixEnd": {const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.values[i];if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}if(!matches)this.#pc=op.p2;else {const cursor=this.#indexCursors.get(op.p1);if(cursor)cursor.seekHit=Math.max(cursor.seekHit,op.keys.length);}break;}
           case "IndexRangeEnd": {const record=this.#records.get(op.p1),raw=record?.values[op.field],key=this.#registers[op.key]!;if(!raw){this.#pc=op.p2;break;}const current=memFromRawRecord(raw,this.#borrow),bound=new Mem();bound.copyFrom(key);bound.applyAffinity(op.affinity,this.#program.encoding);try{const comparison=compareMem(current,bound,op.collation),passes=op.operator==="lt"?comparison<0:op.operator==="le"?comparison<=0:op.operator==="gt"?comparison>0:comparison>=0;if(!passes)this.#pc=op.p2;}finally{current.release();bound.release();}break;}
           case "DeferredSeek": {const index=this.#records.get(op.p1),raw=index?.values.at(-1);if(raw?.storageClass!=="integer")throw new JSQLiteError("internal","index rowid tail is not integer");this.#deferredRowids.set(op.p2,raw.value);this.#records.delete(op.p2);this.#recordRowids.set(op.p2,raw.value);break;}
           case "DeferredIndexSeek": {this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const record=this.#records.get(op.p1),cursor=this.#indexCursors.get(op.p2);if(!record||!cursor)throw new JSQLiteError("internal","deferred index seek on unopened cursor");const values=op.primaryKeyFields.map(ordinal=>{const raw=record.values[ordinal];if(raw===undefined)throw new BtreeFormatError("secondary key is missing a primary-key field");return memFromRawRecord(raw,this.#borrow)});const key=new UnpackedRecordKey(values,0,"seek",op.physical.keyInfo);try{if(!cursor.seek(payload=>compareRecordKey(payload,key,op.physical.keyInfo),"ge"))throw new BtreeFormatError("secondary key does not reference a primary row");this.#loadIndexRecord(op.p2);}finally{key.release();}break;}

@@ -3,7 +3,7 @@ import type {PrivateKeyVmCursor} from './private-key-vm.ts';
 import type {PrivateStateControl} from './private-state.ts';
 import type {InLoopOp} from './where-in-loop.ts';
 
-type CursorOp=Exclude<InLoopOp,{readonly code:'IsNull'}>;
+type CursorOp=Exclude<InLoopOp,{readonly code:'IsNull'|'IndexSeekHit'|'IndexIfNoHope'}>;
 export interface PrivateInDispatchResult {
  readonly handled:boolean;
  readonly jump:number|null;

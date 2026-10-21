@@ -1,5 +1,40 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Prefix earlyout repair on c6bc5e2d parent
+
+Pinned wherecode.c:codeINTerm clamps seekHit to iEq only for non-SeekScan
+non-leading slots; where.c:WhereEnd emits IfNoHope before movement, retargeting
+NULL past the check and LEFT bypass past check plus movement. vdbe.c:SeekHit,
+IfNoHope/NotFound and successful equality-prefix positioning own hit depth and
+prefix-existence testing. TS physical IndexCursor retains hit depth; the selected
+ordinary/join/recursive-OR callers carry original preceding registers/affinities
+and KeyInfo into the shared movement emission. The prefix lookup uses existing
+partial UnpackedRecordKey(default_rc0) B-tree descent, releasing cells and
+invalidating position after the test, not a scan/evaluator substitution. A found
+prefix raises hit depth; full equality-prefix success raises it to nEq. List-IN
+register earlyout remains unimplemented; no direct RHS-index reuse expansion.
+
+Native-FIRST generator `capture-select-in-earlyout.py` checks pinned source/version
+and captures 9 cases × 3 encodings without ANALYZE (avoids SeekScan). Capture SHA256
+`a5d680022c0e53edabf79f628117eda89125f190942c6a5a949ffc6eb2075d2e`.
+Public earlyout test compares native rows, selected two-field native program,
+positive probes, absent-prefix probe1, successful-prefix probe3, NULL/empty0,
+LEFT and joined, reverse and two-slot reset/repeat. Native program justifies
+probe bounds; native probe counts are not directly instrumented. Same durable
+regression on archived c6bc5e2d fails3/3 (`proc-38d01bf638be`, actual3 vs expected1).
+Author repair passes3/3 (`proc-a27d4f455ae9`). Original red fixture/query also passes
+with probe1 and two index seeks (full seek + no-hope prefix lookup), after typecheck
+(`proc-7b61cc00da7c`). Initial typechecks caught broadened dispatch union and wrong
+Mem accessor; corrected types/accessor, no runtime hypothesis suppressed.
+
+Final affected suite `proc-aa1291010077` passes311/311, zero skips,16.695s,
+followed by chained typecheck, build, package smoke and scoped diff-check exit0.
+Package SHA256 `57173a6493c4962b60875b728e092911cbd72ba22f283e9125f08af044dd7f4a`;
+browser smoke is isolated browser-global VM, not GUI. This includes helper
+continuation alignment and found-prefix hit-depth correction.
+Full serial80/file60/batch600 gates and independent review
+are not established by focused checks.
+
 Author integration against mapped beta3 `494ace2f5a48b3ebee160b9d3b1712e65bea03b9`.
 Immutable historical `14d15a3f1d6d69ea9ed88d7a44a01ca412acbd96` evidence was not
 run on that mapping. Integration retained mapped Expression/JSON, aggregate,

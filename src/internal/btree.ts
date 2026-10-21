@@ -427,6 +427,16 @@ export class TableScanCursor {
   }
 }
 export class IndexCursor extends CursorBase<IndexEntry> {
+  // vdbe.c OP_SeekHit / OP_IfNoHope: physical cursor-owned state.
+  seekHit = 0;
+  prefixExists(values: readonly Mem[], keyInfo: KeyInfo): boolean {
+    const key = new UnpackedRecordKey(values, 0, "seek", keyInfo);
+    try { return this.seek(payload => compareRecordKey(payload, key, keyInfo), "ge"); }
+    catch(error){
+      if(error instanceof ComparisonError && error.reason === "corrupt")corrupt(error.message);
+      throw error;
+    } finally { key.release(); this.clearPosition(); }
+  }
   readonly #root: number;
   #indexPosition: IndexPosition | null = null;
   constructor(database: BtreeDatabase, root: number) { super(database, () => []); this.#root = root; }
