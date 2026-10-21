@@ -1,31 +1,41 @@
 # Public beta.3 publication
 
-Owner-authorized release,2026-10-22. Accepted local beta.3 source14d15a3f1d6d69ea9ed88d7a44a01ca412acbd96;
-public source snapshot2872bd2317a21a2fb56676eaa06e770f7337e64a, on existing public
-beta.2 history. No live development-history rewrite, active checkout/index/ref
-movement, stop/restart/resume, service/model/config change or beta.4 adoption.
+Owner-authorized release,2026-10-22. Accepted local beta.3 source14d15a3f1d6d69ea9ed88d7a44a01ca412acbd96
+maps to repaired494ace2f5a48b3ebee160b9d3b1712e65bea03b9; final public release
+5cf7de2f585a0365f046d662923b883b45f6547f merges repaired history with existing
+public beta.2 history. No published history was rewritten; no service restart,
+model/config change or unfinished beta.4 adoption.
 
-GitHub rejected a107.5MiB historical research JSON blob. Public snapshot stores
-that capture and its58.2MiB companion losslessly compressed, with original/gzip
-hashes and restoration commands in release-source docs. No research evidence is
-deleted. Original accepted development source and a prerequisite-labelled Git
-bundle preserve exact original source and post-beta.2 commit history as release
-assets, instead of pretending GitHub accepted the original branch. Existing named
-development branches were normally pushed/verified without force. The rejected
-accepted-source branch was not retried unchanged.
+GitHub rejected a107.5MiB historical research JSON blob. An independent snapshot
+attempt was prepared but never published. Owner requested a durable history
+repair instead and explicitly authorized coordinated pause/rewrite/resume.
+Supported pause settled with zero processes;227MiB Git backup and fully verified
+127079339-byte source/work archive preserve8720 entries and all unfinished work.
+Only nine unpublished capture-bearing commits were rewritten; author/committer/
+timestamps/messages and all tree paths except eight evidence/test-loader/generator
+paths match exactly. Old→new map accompanies the release. Dirty shared HEAD/index
+and unrelated bytes/modes/symlinks/missing states preserved; ordinary clean
+integration worktree HEAD/ownREALindex reconciled. No reset/GC/forcepush occurred.
 
-Public source tree compares exactly to metadata-prepared accepted source outside
-six disclosed evidence/publication paths; all engine/tests/API/build inputs equal.
-Initial snapshot staging omitted untracked new files; complete tree proof caught
-it, inventory was completed and reauthenticated before any public push/tag.
+The regression capture drops61MB→5.5MB by losslessly sharing10 typed rowsets,
+preserving all102 query/profile/encoding captures and original assertion coverage.
+Search113MB→33KB retains29 plan differences, setup/counters/counts/equality hashes.
+Both pinned STAT4/noSTAT4 generators freshly reproduce exact committed outputs,
+writing full raw outputs only under disposable card work. Loader full-shape equality
+and corruption-negative checks pass. Original raw captures/history remain externally
+backed up, not compressed wholesale into public Git. CAPTURES.md records policy.
+Snapshot-attempt staging omission was caught/corrected before publication; that
+abandoned source is not this final release lineage.
 
 Versioned tarSHA09e3d7b7b164319f7978b6a78cb529584ea6a32722e6276f45b5425b8c90dbda.
 All104 dist JS/declarations equal accepted local6ad2e431 tar byte-for-byte. Package
-checks passed both metadata-prepared and final public-snapshot source; reproduced
+checks passed both metadata-prepared and final repaired release source; reproduced
 tar bytes match exactly. Runtime closure52 modules, GPL legal notices included,
 private:true retained to prevent accidental npm registry publication. Accepted
 485/8707pass5skip/809companion results remain exact prior-source evidence, not a
-new publication-wide suite rerun or full SQLite/index parity claim.
+new publication-wide suite rerun or full SQLite/index parity claim. Root accepted
+briefv6 records evidence applicability without rewriting historical records;
+one supported resume_runtime continued SAME active card/servicePID466750.
 
 Site pins public source and exact tar hash; previous versioned beta1/beta2/alpha
 and cached content-addressed engines/workers preserved. Main60-second watchdog

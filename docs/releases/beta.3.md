@@ -66,20 +66,20 @@ The public playground keeps its60-second watchdog and1000-row cap. Publication
 receipts retain exact artifact hashes, commands, outcomes and applicability.
 Beta.3 is an accepted milestone, not whole-project completion.
 
-## Public source snapshot
+## Reproducible development evidence
 
-GitHub rejects a historical107.5MiB research JSON blob in the development chain.
-This public tag therefore records a release snapshot on prior public history,
-not rewritten development history. Runtime, tests and other source equal the
-prepared accepted release; two development-only research captures are stored as
-lossless `.json.gz`. They are not runtime/package inputs. Before replaying the
-original research test that reads the large capture, restore both files with:
+With explicit owner authorization, nine unpublished development commits were
+rewritten to remove oversized, duplicated research output. Original accepted
+source14d15a3f maps to494ace2f5a48b3ebee160b9d3b1712e65bea03b9. Runtime/API/build
+and all other source inputs are unchanged; the package reproduces the original
+accepted artifact byte-for-byte. Published history/releases were not rewritten.
 
-```sh
-gzip -dk docs/research/card-s-h/skiprange-native.json.gz
-gzip -dk docs/research/card-s-h/skiprange-search.json.gz
-```
-
-`beta.3-source-export.json` records original/compressed byte hashes and provenance.
-The release also supplies the original development source archive, including
-uncompressed research captures, for exact historical input reproduction.
+The native regression fixture losslessly shares ten repeated typed rowsets;
+all102 query/profile/encoding captures reconstruct identically with hash checks.
+The exploratory search retains all29 plan differences, setup/work counters,
+row counts and typed-result hashes. Pinned generators freshly reproduced both
+committed compact outputs, writing full raw captures only to disposable card
+work. See [capture policy and regeneration](../research/card-s-h/CAPTURES.md).
+Original captures/Git state remain in the verified operator backup; historical
+accepted evidence retains original source-era hash identities. This is evidence
+storage repair, not new engine behavior or a claim that old tests ran on new hashes.
