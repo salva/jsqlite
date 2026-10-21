@@ -65,3 +65,21 @@ native/WASM/query-server evaluator is shipped. See exact-version [API](../api.md
 The public playground keeps its60-second watchdog and1000-row cap. Publication
 receipts retain exact artifact hashes, commands, outcomes and applicability.
 Beta.3 is an accepted milestone, not whole-project completion.
+
+## Public source snapshot
+
+GitHub rejects a historical107.5MiB research JSON blob in the development chain.
+This public tag therefore records a release snapshot on prior public history,
+not rewritten development history. Runtime, tests and other source equal the
+prepared accepted release; two development-only research captures are stored as
+lossless `.json.gz`. They are not runtime/package inputs. Before replaying the
+original research test that reads the large capture, restore both files with:
+
+```sh
+gzip -dk docs/research/card-s-h/skiprange-native.json.gz
+gzip -dk docs/research/card-s-h/skiprange-search.json.gz
+```
+
+`beta.3-source-export.json` records original/compressed byte hashes and provenance.
+The release also supplies the original development source archive, including
+uncompressed research captures, for exact historical input reproduction.

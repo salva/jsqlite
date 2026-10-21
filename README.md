@@ -13,7 +13,7 @@ https://salva.github.io/jsqlite/.
 
 **Current public beta: [0.0.0-beta.3](https://github.com/salva/jsqlite/releases/tag/v0.0.0-beta.3).**
 Its pinned engine comes from accepted local beta `14d15a3f`, packaged at
-`6b2ca0a618af858930a02c2dcef13e1aaa9b60ee`, not moving development HEAD.
+`2872bd2317a21a2fb56676eaa06e770f7337e64a`, not moving development HEAD.
 See [beta scope, installation, validation and limitations](docs/releases/beta.3.md).
 The source tree below on `public-site` retains earlier development history; use
 the beta.3 tag for that release's engine/API source. Historical local-only
