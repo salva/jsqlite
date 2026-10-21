@@ -629,6 +629,14 @@ Represented REAL generated values report REAL including integral values after co
 Represented stat1 positional skip-scan is supported through the existing ordinary, joined and recursive-OR callers, including represented LEFT ON-OR. This is a bounded access-path contract, not general optimizer equivalence: RIGHT/FULL skipscan, general STAT4 sample-parity, transformed EXISTS producer admission, vectors/subquery-IN and arbitrary cross-feature composition are not established by this slice. There is no public planner, ordering, timing or work-count guarantee. Internal selection and strict-prefix evidence is retained in [source mapping](SQLITE_SOURCE_MAP.md#linked-notnull-range-owner) and [owner research](research/card-s-g/IMPLEMENTATION.md); callers must continue to use explicit ORDER BY for ordered results.
 
 
+## Joined metadata Window input
+
+Resident physical/metadata joins can feed the shared Window producer, including
+representative LEFT empty inputs, hidden arguments, generated outer columns and
+filter-before-window. Incompatible Window groups preserve per-peer result values.
+This bounded route does not promise arbitrary module planning or change execution
+limits. [Finite native/source and lifecycle evidence](research/joined-metadata-window/README.md).
+
 ## Direct JSON Window input
 
 Single-source JSON each/tree Window inputs now consume the original shared WHERE

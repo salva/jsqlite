@@ -1,3 +1,12 @@
+## Joined metadata Window correction — author evidence
+
+Joined metadata input now enters the existing WHERE/Window producer instead of
+legacy scalar projection. Cumulative peer and generic RANGE schedules are disjoint,
+matching windowAggFinal's once-per-peer value publication; rank callbacks are
+unchanged. [Native/source/control evidence](../research/joined-metadata-window/README.md)
+covers a finite all-encoding slice, not independent acceptance or root gate closure.
+Historical absence predictions below remain revision-bound.
+
 ## Metadata cursor identity — finite independent acceptance
 
 Physical/JSON Window inputs now enter the shared Window rewrite before scalar

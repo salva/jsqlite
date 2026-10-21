@@ -789,6 +789,16 @@ retained RHS uses `private-state.ts:rowid` insertion sequence+1 at both sites.
 Drain carries retainedCursors/cursorFor; preceding handles receive NullRow.
 [Native/public metadata, duplicate and alias discriminators](research/recursive-join/right-full-evidence.md).
 
+## Joined metadata Window input
+
+`window.c:sqlite3WindowRewrite/CodeStep`, `windowAggFinal/windowCodeOp` and
+`pragma.c:pragmaVtabFilter/Next` map to `vdbe.ts:compileTableSelectProducer`,
+`compileWindowSelectLowering` original-input WHERE coroutine and disjoint
+cumulative-peer/generic-RANGE drains. Genuine metadata source identity is carried
+by sourceRow registers, not physical Rowid. Tests: `joined-metadata-window.test.mjs`
+and `joined-metadata-window-controls.test.mjs`; [source comparison/native evidence](research/joined-metadata-window/README.md).
+No additional upstream assertion credit or general module planner closure.
+
 ## Bounded recursive JOIN-arm compounds
 
 Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms and physical arms through the existing full-row compound merge. One lazy Once-guarded retained recursive producer supplies independent OpenDup readers; Queue/Current retains body controls while the compound owner retains outer ORDER/LIMIT, arity and full-row duplicate semantics. Leftmost setup-expression collation is independent of rightmost metadata provenance. Materialization charges the full requested producer before its first row; this is not streaming or native work/allocation parity. Mixed operators, grouped/window/derived arms and additional recursive declarations remain temporary gaps in this route; RIGHT/FULL and physical producer-term joins remain outside this slice.

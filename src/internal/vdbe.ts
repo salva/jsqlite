@@ -900,7 +900,9 @@ export function compileWindowSelectLowering(
     const sourceFollowingPeer=(layer.windows[0]!.window.frame.end.kind==='following'||sourceUnboundedEndPeer)&&pendingCurrentPeerLayer(layer);
     const sourceSlidingPeer=layer.windows[0]!.window.frame.type==='groups'&&(layer.windows[0]!.window.frame.start.kind==='preceding'||((layer.windows[0]!.window.frame.start.kind==='current'||sourceFollowingStartPeer)&&sourceFollowingPeer))&&(pendingCurrentPeerLayer(layer)||pendingPriorPeerLayer(layer));
     const sourcePriorPeer=pendingPriorPeerLayer(layer),sourceCurrentPeer=pendingCurrentPeerLayer(layer)||sourcePriorPeer;
-    const orderedRangePrecedingCurrent=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&(win.window.orderBy.length===1||pendingCurrentPeerLayer(layer))&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&f.exclusion===null;});
+    // Cumulative RANGE/GROUPS owns peer snapshots. Do not also select the
+    // generic per-row RANGE drain: repeated xValue clears rank's pending value.
+    const orderedRangePrecedingCurrent=!orderedCumulativePeerGroups&&layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;return f.type==="range"&&(win.window.orderBy.length===1||pendingCurrentPeerLayer(layer))&&(f.start.kind==="unbounded"||f.start.kind==="current"||((f.start.kind==="preceding"||f.start.kind==="following")&&!!f.start.expr?.reduction))&&(f.end.kind==="current"||f.end.kind==="unbounded"||(f.end.kind==="following"&&!!f.end.expr?.reduction))&&f.exclusion===null;});
     const sourceRangeFollowing=orderedRangePrecedingCurrent&&layer.windows.every(win=>win.window.frame.end.kind==='following'&&(win.window.frame.start.kind==='preceding'||win.window.frame.start.kind==='current'||win.window.frame.start.kind==='unbounded')&&['sum','total','avg','count','min','max','group_concat','string_agg'].includes(win.window.functionName));
     const orderedAdjacentGroups=layer.windows.length>0&&layer.windows.every(win=>{const f=win.window.frame;if(f.type!=="groups"||win.window.orderBy.length===0||f.start.kind!=="preceding"||!f.start.expr?.reduction||(f.exclusion!==null&&f.exclusion!=="group"))return false;if(f.exclusion==="group"&&windowConstantInteger(expressionFromReduction(f.start.expr.reduction))===1)return false;return f.end.kind==="current"||(f.end.kind==="following"&&!!f.end.expr?.reduction);});
     const followingState=setup.find(item=>item.compatibleGroup===layer.compatibleGroup);
@@ -6689,7 +6691,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const metadataNames=new Set(Object.keys(METADATA_MODULE_COLUMNS)),privateNames=new Set([...jsonNames,...metadataNames]);
   // WindowRewrite owns the outer ORDER/LIMIT. Keep the genuine module SrcItem
   // on its shared WHERE coroutine instead of the scalar-only module shortcut.
-  if(selectHasWindow(select)&&(select.from.items.some(item=>jsonNames.has(item.tableName.toLowerCase()))||(select.from.items.length===1&&privateNames.has(select.from.items[0]!.tableName.toLowerCase())))){
+  if(selectHasWindow(select)&&select.from.items.some(item=>privateNames.has(item.tableName.toLowerCase()))){
     const resolved=expandAndResolveSelect(select,schema);
     const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,shared);
     if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','window functions are not implemented',{unsupportedClassification:'temporary'});

@@ -113,10 +113,13 @@ hidden EQ, empty LEFT null-extension and Result0 joins. Linked column expression
 retain their resolved source owner through singleton rebinding: parent columns
 keep their positioned location while local module columns become payload registers
 (`resolve.c:lookupName` NameContext walk). Correlated outer-rowid aggregate
-predicates and the positive former-boundary controls now pass. Single resident
+predicates and the positive former-boundary controls now pass. Single and joined resident
 metadata window inputs use the existing WHERE coroutine/sourceRow handoff;
 window buffer bindings copy the module's real identity register, not a B-tree
-Rowid or JSON payload. Aggregate enrollment uses the same real declarations
+Rowid or JSON payload. Cumulative RANGE/GROUPS selects the peer-owned drain,
+not the overlapping per-row RANGE drain: xValue runs once per peer and the
+result register survives each peer's Return/Yield. [Bounded native/source evidence](research/joined-metadata-window/README.md).
+Aggregate enrollment uses the same real declarations
 for all seven families, including zero-hidden-column database_list. The finite
 15-path identity producer/caller delta at `404b6d00` (tree `f2bdce253622`)
 has independent acceptance in [[card:card-e-l]]
