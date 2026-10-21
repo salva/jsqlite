@@ -508,8 +508,10 @@ existing consumers, with no per-read full-record clone. Loader-to-both-reader
 allocation-order and retry evidence: [sample ownership](research/card-s-h/SAMPLE_OWNERSHIP.md).
 Reprepare expiry uses the native low-slot/shared-high
 mask shape and preserves bindings on failure/reset. Vectors/function/subquery
-probes and general skipscan/range selectivity coverage remain gaps; finite sample
-costing is not arbitrary native plan parity. [Consumer review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
+probes and general native cost/plan parity remain gaps. The represented
+invalid-prefix scalar range path now uses native `whereRangeSkipScanEst` sample
+counts through `stat4-skipscan.ts`, including close-bound fallback, not a general
+histogram or a guarantee for every skipscan refinement. [Consumer review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
 and [reprepare evidence](research/card-h-b-reprepare/README.md).
 
 ## ORDER, DISTINCT, compounds and VALUES

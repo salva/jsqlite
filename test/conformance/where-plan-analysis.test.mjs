@@ -384,13 +384,13 @@ test('necessary combines reject non-WO_SINGLE overlapping operands within AND ar
  }
 });
 test('necessary combine integer identity follows EP_IntValue boundary, not all int64 values',()=>{
- for(const [rhs1,rhs2,expected] of [['5','0x5',true],['2147483648','0x80000000',false],['1_000','1000',false]]){
+ for(const [rhs1,rhs2,expected] of [['5','0x5',true],['2147483648','0x80000000',false],['1_000','1000',true]]){
   const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs1} OR a<${rhs2}`,schema())).clause;
   assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${rhs1}/${rhs2}`);
  }
 });
 test('necessary integer proof uses GetInt32 hex prefix and sign-bit branches',()=>{
- for(const [rhs1,rhs2,expected] of [['0x1_0','1',true],['0x000000005','5',true],['0x80000000','2147483648',false]]){
+ for(const [rhs1,rhs2,expected] of [['0x1_0','1',false],['0x1_0','16',true],['0x000000005','5',true],['0x80000000','2147483648',false]]){
   const c=analyzeWhere(resolve(`SELECT id FROM t WHERE a=${rhs1} OR a<${rhs2}`,schema())).clause;
   assert.equal(c.terms.some(t=>t.virtual&&t.operator==='le'),expected,`${rhs1}/${rhs2}`);
  }

@@ -5034,7 +5034,11 @@ independently of its `SQLITE_ENABLE_STAT4` sample-loading branch. The schema
 owner now loads Index-owned optional raw samples/counts through the STAT4 loader.
 Current consumers cost represented literal equality/IS/NULL, contiguous known
 prefixes, literal-list IN and ordinary scalar ranges with shared hot-term
-analysis and whole-loop reconstruction. Connection-owned probe reservations now
+analysis and whole-loop reconstruction. Invalid-prefix scalar ranges also consume
+`whereRangeSkipScanEst` through `stat4-skipscan.ts`, with native scalar sample
+extraction/counting and close-bound fallback; general sample/cost parity remains
+unclaimed. Canonical QNUMBER semantic production supplies both probes and ordinary
+VM lowering ([numeric evidence](../research/card-s-h/NUMERIC_PRODUCTION.md)). Connection-owned probe reservations now
 cover all-field metadata/Mem and conservative extraction/value high-water capacity,
 with all-slot release. Finite AddAll stop controls now independently compare
 native success/no-path error outcomes; empty frontiers retain SQLITE_ERROR rather

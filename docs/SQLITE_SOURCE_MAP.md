@@ -713,7 +713,9 @@ optimizer or STAT4 sample parity.
 | `where.c:whereKeyStats` (1718), equality/IN/range estimators | `stat4-estimate.ts:whereKeyStats` virtual-prefix search; `where-plan.ts:sampleEquality`, `sampleRange` consume contiguous prefix/literal equality, IS/NULL, literal-list IN and scalar range/DESC estimates | `stat4-keystats.test.mjs`, `docs/research/card-s-h/public-first.test.mjs`; [integrated evidence](research/card-s-h/main-integration/) |
 | `where.c:sqlite3WhereBegin` second pass (7086–7106), HIGHTRUTH/HEURTRUTH | `where-plan.ts:WhereTruthState`, `buildAll` reconstruct whole loop groups with restored construction budget and progress checks; probe callers restore prefix state on failure | `docs/research/card-s-h/caller-first.test.mjs`, `stat4-schema-lifecycle.test.mjs`; same integrated evidence |
 
-These are bounded delivered consumers, not independent histograms or arbitrary native plan/cost parity. Wider vector/function/subquery probes and general STAT4 skipscan sample-range refinements remain gaps. Parameter-sensitive reprepare is separately mapped in the current guide; this sample slice alone does not certify general reprepare parity.
+| `where.c:whereRangeSkipScanEst`, `vdbemem.c:sqlite3Stat4Column` | `stat4-skipscan.ts:stat4Column/stat4SkipScanRange` scalar sample extraction/count loop; `where-plan.ts:indexLoopEstimate` invalid-prefix branch consumes adjustment or close-bound fallback | `docs/research/card-s-h/skiprange-*.test.mjs`, `numeric-production.test.mjs`; [useful native/profile evidence](research/card-s-h/skiprange-native.json) |
+
+These are bounded delivered consumers, not independent histograms or arbitrary native plan/cost parity. Wider vector/function/subquery probes and remaining STAT4 skipscan sample-range refinements remain gaps. Parameter-sensitive reprepare is separately mapped in the current guide; this sample slice alone does not certify general reprepare parity.
 
 ## Right-nested correlated membership residual
 

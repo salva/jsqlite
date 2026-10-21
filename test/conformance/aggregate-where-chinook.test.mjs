@@ -30,7 +30,10 @@ test('aggregate join producer consumes shared WHERE candidates before grouping',
  assert.ok(accounting.plannerCandidates>0,'aggregate source must consume shared WHERE candidates');
  assert.ok(accounting.plannerPaths>0,'aggregate source must consume shared WHERE path solver');
  assert.ok(accounting.indexSeeks+accounting.tableSeeks>0,'selected source access must seek rather than Cartesian scans');
- assert.deepEqual(accounting,{plannerCandidates:4,plannerPaths:2,indexSeeks:0,indexNext:0,tableSeeks:3503,tableNext:3503,residualTests:7006,sorterRows:222,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0},'phase-linked selected producer accounting');
+ // Native searches IFK_TrackAlbumId then Album by rowid. There are 204
+ // matching Track rows: one range seek, 204 advances, and deferred Track plus
+ // Album rowid seeks per row (not the superseded 3503-row full scan).
+ assert.deepEqual(accounting,{plannerCandidates:4,plannerPaths:2,indexSeeks:1,indexNext:204,tableSeeks:408,tableNext:0,residualTests:408,sorterRows:222,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0},'phase-linked selected producer accounting');
  assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i)),[
  {name:'album',declaredType:'NVARCHAR(160)',database:'main',table:'Album',origin:'Title'},
  ...['tracks','total_minutes','average_price','tracks_over_5_minutes'].map(name=>({name,declaredType:null,database:null,table:null,origin:null}))]);

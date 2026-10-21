@@ -869,7 +869,12 @@ Focused315 and independent d22 checks are finite selected evidence, not an origi
 ### Bounded STAT4 consumer verification
 
 Loading and bounded equality/prefix/literal-IN/scalar-range/HIGHTRUTH consumers
-are delivered. The [mapped consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
+are delivered, including invalid-prefix scalar range sample counts and close-bound
+fallback through `stat4-skipscan.ts`. `skiprange-*.test.mjs` in the same research
+family adds all-encoding selected execution, malformed/scalar extraction and
+midloop failure/retry controls; `numeric-production.test.mjs` checks the canonical
+numeric semantic producer shared by costing and VM lowering. These are finite
+assertions, not general optimizer or parameter-plan parity. The [mapped consuming review](research/card-s-h/d-diagnosis/MAPPED_REVIEW.md)
 connects producers, caller restoration, cleanup and finite independent committed
 evidence. Exact selected Index/PhysicalIndex controls complement public typed
 rows/metadata/reset/error and qualitative cursor-work assertions; observed schema
