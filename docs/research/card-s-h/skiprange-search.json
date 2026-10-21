@@ -1,0 +1,907 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "fixtures": 12,
+  "queriesPerFixture": 7,
+  "differences": [
+    {
+      "hot": 0,
+      "prefixes": 2,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 60307
+        },
+        "rowCount": 100,
+        "typedRowsSha256": "7a5ef13d6740c93769b32673b00a8f757301c0ec312e13f69578adaca281ad71"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 622
+        },
+        "rowCount": 100,
+        "typedRowsSha256": "7a5ef13d6740c93769b32673b00a8f757301c0ec312e13f69578adaca281ad71"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 2,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b<100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119704
+        },
+        "rowCount": 19899,
+        "typedRowsSha256": "1177f08f9e325115f79f4b08d2d2bea0d15a1bc7bd838d34da7b1605f3ed8431"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 119419
+        },
+        "rowCount": 19899,
+        "typedRowsSha256": "1177f08f9e325115f79f4b08d2d2bea0d15a1bc7bd838d34da7b1605f3ed8431"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 2,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b<1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119407
+        },
+        "rowCount": 19800,
+        "typedRowsSha256": "b26204e5eae22ba5d0ba46f9f8afd767dc283542cc37db9cdd0ee8d74dfc9f8a"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 118825
+        },
+        "rowCount": 19800,
+        "typedRowsSha256": "b26204e5eae22ba5d0ba46f9f8afd767dc283542cc37db9cdd0ee8d74dfc9f8a"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 2,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>199 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 31
+        },
+        "rowCount": 1,
+        "typedRowsSha256": "b6a99eadb57727525e0ba9ceaf6308f3a7f7326dcc6bc42109def8c1e8a279d8"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14302
+        },
+        "rowCount": 1,
+        "typedRowsSha256": "b6a99eadb57727525e0ba9ceaf6308f3a7f7326dcc6bc42109def8c1e8a279d8"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 2,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>=1000 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 23
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14299
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 20,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b<100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119704
+        },
+        "rowCount": 19899,
+        "typedRowsSha256": "1177f08f9e325115f79f4b08d2d2bea0d15a1bc7bd838d34da7b1605f3ed8431"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 119563
+        },
+        "rowCount": 19899,
+        "typedRowsSha256": "1177f08f9e325115f79f4b08d2d2bea0d15a1bc7bd838d34da7b1605f3ed8431"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 20,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b<1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119407
+        },
+        "rowCount": 19800,
+        "typedRowsSha256": "b26204e5eae22ba5d0ba46f9f8afd767dc283542cc37db9cdd0ee8d74dfc9f8a"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 118969
+        },
+        "rowCount": 19800,
+        "typedRowsSha256": "b26204e5eae22ba5d0ba46f9f8afd767dc283542cc37db9cdd0ee8d74dfc9f8a"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 20,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>100 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 694
+        },
+        "rowCount": 15,
+        "typedRowsSha256": "dcef5997300e1e8af68a30b3f177496187f1b46ed5ed40817ccc1181e453a82d"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14344
+        },
+        "rowCount": 15,
+        "typedRowsSha256": "dcef5997300e1e8af68a30b3f177496187f1b46ed5ed40817ccc1181e453a82d"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 20,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>199 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 157
+        },
+        "rowCount": 1,
+        "typedRowsSha256": "b6a99eadb57727525e0ba9ceaf6308f3a7f7326dcc6bc42109def8c1e8a279d8"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14302
+        },
+        "rowCount": 1,
+        "typedRowsSha256": "b6a99eadb57727525e0ba9ceaf6308f3a7f7326dcc6bc42109def8c1e8a279d8"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 20,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>=1000 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 149
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14299
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 100,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b<100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119704
+        },
+        "rowCount": 19899,
+        "typedRowsSha256": "1177f08f9e325115f79f4b08d2d2bea0d15a1bc7bd838d34da7b1605f3ed8431"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 120203
+        },
+        "rowCount": 19899,
+        "typedRowsSha256": "1177f08f9e325115f79f4b08d2d2bea0d15a1bc7bd838d34da7b1605f3ed8431"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 100,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b<1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119407
+        },
+        "rowCount": 19800,
+        "typedRowsSha256": "b26204e5eae22ba5d0ba46f9f8afd767dc283542cc37db9cdd0ee8d74dfc9f8a"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 119609
+        },
+        "rowCount": 19800,
+        "typedRowsSha256": "b26204e5eae22ba5d0ba46f9f8afd767dc283542cc37db9cdd0ee8d74dfc9f8a"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 100,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>100 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 1254
+        },
+        "rowCount": 15,
+        "typedRowsSha256": "dcef5997300e1e8af68a30b3f177496187f1b46ed5ed40817ccc1181e453a82d"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14344
+        },
+        "rowCount": 15,
+        "typedRowsSha256": "dcef5997300e1e8af68a30b3f177496187f1b46ed5ed40817ccc1181e453a82d"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 100,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>199 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 717
+        },
+        "rowCount": 1,
+        "typedRowsSha256": "b6a99eadb57727525e0ba9ceaf6308f3a7f7326dcc6bc42109def8c1e8a279d8"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14302
+        },
+        "rowCount": 1,
+        "typedRowsSha256": "b6a99eadb57727525e0ba9ceaf6308f3a7f7326dcc6bc42109def8c1e8a279d8"
+      }
+    },
+    {
+      "hot": 0,
+      "prefixes": 100,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>=1000 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 0 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 709
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14299
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 2,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119707
+        },
+        "rowCount": 19900,
+        "typedRowsSha256": "a576c068aa8eca2534e370693271224ccb8b6fcca3f769b2a0b45d673ab641ed"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 119422
+        },
+        "rowCount": 19900,
+        "typedRowsSha256": "a576c068aa8eca2534e370693271224ccb8b6fcca3f769b2a0b45d673ab641ed"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 2,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>199",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119410
+        },
+        "rowCount": 19801,
+        "typedRowsSha256": "0f59ae559db9f88afa5120d8a028f46666be6ade48d17b2e10c3b0ba33eb4031"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 118828
+        },
+        "rowCount": 19801,
+        "typedRowsSha256": "0f59ae559db9f88afa5120d8a028f46666be6ade48d17b2e10c3b0ba33eb4031"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 2,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b<1 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 26
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14299
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 2,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>=1000 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%2,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 107510
+        },
+        "rowCount": 2829,
+        "typedRowsSha256": "7523a5600c29eff1aca6f46d0cd71c83c0f596e558c302c92c77b1a487780827"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 22786
+        },
+        "rowCount": 2829,
+        "typedRowsSha256": "7523a5600c29eff1aca6f46d0cd71c83c0f596e558c302c92c77b1a487780827"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 20,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119707
+        },
+        "rowCount": 19900,
+        "typedRowsSha256": "a576c068aa8eca2534e370693271224ccb8b6fcca3f769b2a0b45d673ab641ed"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 119548
+        },
+        "rowCount": 19900,
+        "typedRowsSha256": "a576c068aa8eca2534e370693271224ccb8b6fcca3f769b2a0b45d673ab641ed"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 20,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>199",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119410
+        },
+        "rowCount": 19801,
+        "typedRowsSha256": "0f59ae559db9f88afa5120d8a028f46666be6ade48d17b2e10c3b0ba33eb4031"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 118954
+        },
+        "rowCount": 19801,
+        "typedRowsSha256": "0f59ae559db9f88afa5120d8a028f46666be6ade48d17b2e10c3b0ba33eb4031"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 20,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b<100 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 707
+        },
+        "rowCount": 14,
+        "typedRowsSha256": "6f2bd83bf485d2bf8a1063fd0ae69e74b2e96826a41e259a9e4af9155746a0f1"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14341
+        },
+        "rowCount": 14,
+        "typedRowsSha256": "6f2bd83bf485d2bf8a1063fd0ae69e74b2e96826a41e259a9e4af9155746a0f1"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 20,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b<1 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 170
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14299
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 20,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>=1000 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%20,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 107636
+        },
+        "rowCount": 2829,
+        "typedRowsSha256": "7523a5600c29eff1aca6f46d0cd71c83c0f596e558c302c92c77b1a487780827"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 22786
+        },
+        "rowCount": 2829,
+        "typedRowsSha256": "7523a5600c29eff1aca6f46d0cd71c83c0f596e558c302c92c77b1a487780827"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 100,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>100",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119707
+        },
+        "rowCount": 19900,
+        "typedRowsSha256": "a576c068aa8eca2534e370693271224ccb8b6fcca3f769b2a0b45d673ab641ed"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 120108
+        },
+        "rowCount": 19900,
+        "typedRowsSha256": "a576c068aa8eca2534e370693271224ccb8b6fcca3f769b2a0b45d673ab641ed"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 100,
+      "competitor": false,
+      "sql": "SELECT id,p FROM t WHERE b>199",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SCAN t"
+        ],
+        "work": {
+          "fullscanSteps": 19999,
+          "sortOperations": 0,
+          "vmSteps": 119410
+        },
+        "rowCount": 19801,
+        "typedRowsSha256": "0f59ae559db9f88afa5120d8a028f46666be6ade48d17b2e10c3b0ba33eb4031"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 119514
+        },
+        "rowCount": 19801,
+        "typedRowsSha256": "0f59ae559db9f88afa5120d8a028f46666be6ade48d17b2e10c3b0ba33eb4031"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 100,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b<100 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 1347
+        },
+        "rowCount": 14,
+        "typedRowsSha256": "6f2bd83bf485d2bf8a1063fd0ae69e74b2e96826a41e259a9e4af9155746a0f1"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14341
+        },
+        "rowCount": 14,
+        "typedRowsSha256": "6f2bd83bf485d2bf8a1063fd0ae69e74b2e96826a41e259a9e4af9155746a0f1"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 100,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b<1 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b<?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 810
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 14299
+        },
+        "rowCount": 0,
+        "typedRowsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "hot": 1000,
+      "prefixes": 100,
+      "competitor": true,
+      "sql": "SELECT id,p FROM t WHERE b>=1000 AND c=1",
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INTEGER,b INTEGER,c INTEGER,p TEXT);CREATE INDEX ab ON t(a,b);CREATE INDEX ci ON t(c);WITH RECURSIVE x(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM x WHERE i<20000) INSERT INTO t SELECT i,i%100,CASE WHEN i<=19800 THEN 1000 ELSE i-19800 END,i%7,'payload-'||i FROM x;ANALYZE;",
+      "stat4": {
+        "eqp": [
+          "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 108196
+        },
+        "rowCount": 2829,
+        "typedRowsSha256": "7523a5600c29eff1aca6f46d0cd71c83c0f596e558c302c92c77b1a487780827"
+      },
+      "control": {
+        "eqp": [
+          "SEARCH t USING INDEX ci (c=?)"
+        ],
+        "work": {
+          "fullscanSteps": 0,
+          "sortOperations": 0,
+          "vmSteps": 22786
+        },
+        "rowCount": 2829,
+        "typedRowsSha256": "7523a5600c29eff1aca6f46d0cd71c83c0f596e558c302c92c77b1a487780827"
+      }
+    }
+  ],
+  "captureFormat": "skiprange-search-summary-v1"
+}

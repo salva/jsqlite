@@ -1,0 +1,1478 @@
+[
+  {
+    "encoding": "UTF-8",
+    "sql": "SELECT id,p FROM t WHERE b>? AND c=1",
+    "metadata": [
+      {
+        "name": "id",
+        "decltype": "INTEGER",
+        "database_name": "main",
+        "table_name": "t",
+        "origin_name": "id"
+      },
+      {
+        "name": "p",
+        "decltype": "TEXT",
+        "database_name": "main",
+        "table_name": "t",
+        "origin_name": "p"
+      }
+    ],
+    "bindings": [
+      {
+        "value": 100,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19902"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393032"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19923"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393233"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19944"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393434"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19965"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393635"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19986"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393836"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19909"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393039"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19930"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393330"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19951"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393531"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19972"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393732"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19993"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393933"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19916"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393136"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19937"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393337"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19958"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393538"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19979"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393739"
+            }
+          ]
+        ]
+      },
+      {
+        "value": null,
+        "rows": []
+      },
+      {
+        "value": 199,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ]
+        ]
+      },
+      {
+        "value": 0,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "19804"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383034"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19811"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383131"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19818"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383138"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19825"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383235"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19832"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383332"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19839"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383339"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19846"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383436"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19853"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383533"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19860"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383630"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19867"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383637"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19874"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383734"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19881"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383831"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19888"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383838"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19895"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383935"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19902"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393032"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19909"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393039"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19916"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393136"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19923"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393233"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19930"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393330"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19937"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393337"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19944"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393434"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19951"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393531"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19958"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393538"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19965"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393635"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19972"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393732"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19979"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393739"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19986"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393836"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19993"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393933"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ]
+        ]
+      }
+    ],
+    "invalidPrepareRc": 1
+  },
+  {
+    "encoding": "UTF-16le",
+    "sql": "SELECT id,p FROM t WHERE b>? AND c=1",
+    "metadata": [
+      {
+        "name": "id",
+        "decltype": "INTEGER",
+        "database_name": "main",
+        "table_name": "t",
+        "origin_name": "id"
+      },
+      {
+        "name": "p",
+        "decltype": "TEXT",
+        "database_name": "main",
+        "table_name": "t",
+        "origin_name": "p"
+      }
+    ],
+    "bindings": [
+      {
+        "value": 100,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19902"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393032"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19923"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393233"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19944"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393434"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19965"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393635"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19986"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393836"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19909"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393039"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19930"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393330"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19951"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393531"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19972"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393732"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19993"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393933"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19916"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393136"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19937"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393337"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19958"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393538"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19979"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393739"
+            }
+          ]
+        ]
+      },
+      {
+        "value": null,
+        "rows": []
+      },
+      {
+        "value": 199,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ]
+        ]
+      },
+      {
+        "value": 0,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "19804"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383034"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19811"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383131"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19818"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383138"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19825"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383235"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19832"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383332"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19839"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383339"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19846"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383436"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19853"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383533"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19860"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383630"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19867"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383637"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19874"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383734"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19881"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383831"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19888"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383838"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19895"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383935"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19902"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393032"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19909"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393039"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19916"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393136"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19923"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393233"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19930"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393330"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19937"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393337"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19944"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393434"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19951"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393531"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19958"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393538"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19965"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393635"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19972"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393732"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19979"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393739"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19986"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393836"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19993"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393933"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ]
+        ]
+      }
+    ],
+    "invalidPrepareRc": 1
+  },
+  {
+    "encoding": "UTF-16be",
+    "sql": "SELECT id,p FROM t WHERE b>? AND c=1",
+    "metadata": [
+      {
+        "name": "id",
+        "decltype": "INTEGER",
+        "database_name": "main",
+        "table_name": "t",
+        "origin_name": "id"
+      },
+      {
+        "name": "p",
+        "decltype": "TEXT",
+        "database_name": "main",
+        "table_name": "t",
+        "origin_name": "p"
+      }
+    ],
+    "bindings": [
+      {
+        "value": 100,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19902"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393032"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19923"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393233"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19944"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393434"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19965"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393635"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19986"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393836"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19909"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393039"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19930"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393330"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19951"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393531"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19972"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393732"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19993"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393933"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19916"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393136"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19937"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393337"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19958"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393538"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19979"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393739"
+            }
+          ]
+        ]
+      },
+      {
+        "value": null,
+        "rows": []
+      },
+      {
+        "value": 199,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ]
+        ]
+      },
+      {
+        "value": 0,
+        "rows": [
+          [
+            {
+              "type": "integer",
+              "value": "19804"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383034"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19811"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383131"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19818"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383138"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19825"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383235"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19832"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383332"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19839"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383339"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19846"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383436"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19853"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383533"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19860"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383630"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19867"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383637"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19874"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383734"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19881"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383831"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19888"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383838"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19895"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139383935"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19902"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393032"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19909"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393039"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19916"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393136"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19923"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393233"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19930"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393330"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19937"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393337"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19944"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393434"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19951"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393531"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19958"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393538"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19965"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393635"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19972"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393732"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19979"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393739"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19986"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393836"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "19993"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3139393933"
+            }
+          ],
+          [
+            {
+              "type": "integer",
+              "value": "20000"
+            },
+            {
+              "type": "text",
+              "utf8Hex": "7061796c6f61642d3230303030"
+            }
+          ]
+        ]
+      }
+    ],
+    "invalidPrepareRc": 1
+  }
+]

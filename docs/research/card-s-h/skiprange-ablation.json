@@ -1,0 +1,1973 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "runs": [
+    {
+      "encoding": "UTF-8",
+      "keepSamples": "all",
+      "eqp": [
+        "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 694
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "keepSamples": "ab",
+      "eqp": [
+        "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 694
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "keepSamples": "ci",
+      "eqp": [
+        "SEARCH t USING INDEX ci (c=?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 14344
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-8",
+      "keepSamples": "none",
+      "eqp": [
+        "SEARCH t USING INDEX ci (c=?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 14344
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "keepSamples": "all",
+      "eqp": [
+        "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 694
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "keepSamples": "ab",
+      "eqp": [
+        "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 694
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "keepSamples": "ci",
+      "eqp": [
+        "SEARCH t USING INDEX ci (c=?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 14344
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "keepSamples": "none",
+      "eqp": [
+        "SEARCH t USING INDEX ci (c=?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 14344
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "keepSamples": "all",
+      "eqp": [
+        "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 694
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "keepSamples": "ab",
+      "eqp": [
+        "SEARCH t USING INDEX ab (ANY(a) AND b>?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 694
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "keepSamples": "ci",
+      "eqp": [
+        "SEARCH t USING INDEX ci (c=?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 14344
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "keepSamples": "none",
+      "eqp": [
+        "SEARCH t USING INDEX ci (c=?)"
+      ],
+      "work": {
+        "fullscanSteps": 0,
+        "sortOperations": 0,
+        "vmSteps": 14344
+      },
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "19902"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393032"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19909"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393039"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19916"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393136"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19923"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393233"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19930"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393330"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19937"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393337"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19944"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393434"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19951"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393531"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19958"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393538"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19965"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393635"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19972"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393732"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19979"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393739"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19986"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393836"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "19993"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3139393933"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "20000"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "7061796c6f61642d3230303030"
+          }
+        ]
+      ]
+    }
+  ]
+}

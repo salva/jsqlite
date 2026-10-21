@@ -15,6 +15,7 @@ import type {ColumnNode,IndexNode,PhysicalIndexField,PhysicalIndex} from "./sche
 import {statisticsForIndex,sqliteLogEst,integerPrimaryKeyColumn} from "./schema.ts";
 import {Stat4Probe} from "./stat4-probe.ts";
 import {whereKeyStats} from "./stat4-estimate.ts";
+import {stat4SkipScanRange} from "./stat4-skipscan.ts";
 import type {BuiltinCollation,KeyTerm} from "./comparison.ts";
 
 export type SourceMask=bigint;
@@ -573,8 +574,7 @@ function logEstToInt(n:bigint):bigint {
  if(n>60n)return (1n<<63n)-1n;
  return n>=3n?(x+8n)<<(n-3n):(x+8n)>>(3n-n);
 }
-/** whereRangeScanEst: ordinary scalar bounds only; unknown/skipped prefixes
- * retain stat1. Vector and skipscan sample refinement remain untranslated. */
+/** whereRangeScanEst's known-prefix scalar KeyStats branch. */
 function sampleRange(index:IndexNode,probe:Stat4Probe,cap:BtreeCapability,rows:bigint):bigint {
  if(!cap.lower&&!cap.upper)return rows;
  const valid=probe.nRecValid,active=probe.nField;
@@ -624,7 +624,18 @@ function indexLoopEstimate(index:IndexNode,cap:BtreeCapability,source:ResolvedSo
  // where.c:whereRangeScanEst/whereRangeAdjust: each bound reduces by 20,
  // paired default bounds subtract another 20, clamp to 10 and at most
  // saved_nOut minus the number of bounds. Not a 10/20 total reduction.
- rows=probe&&index.stat4?.nSample&&cap.nEq<index.stat4.nSampleCol&&probe.nRecValid===cap.nEq&&cap.nSkip===0?sampleRange(index,probe,cap,rows):rangeRows(rows,!!cap.lower,!!cap.upper,!!cap.lower?.term.virtualNull);
+ if(probe&&index.stat4?.nSample&&cap.nEq<index.stat4.nSampleCol&&(cap.lower||cap.upper)){
+  if(probe.nRecValid===cap.nEq)rows=sampleRange(index,probe,cap,rows);
+  else{
+   // whereRangeScanEst: invalid prefix uses scalar sample counts, not
+   // KeyStats. A paired one-sample interval deliberately retains fallback.
+   const lower=cap.lower?sampleOperand(cap.lower):undefined,upper=cap.upper?sampleOperand(cap.upper):undefined;
+   const estimate=stat4SkipScanRange({probe,samples:index.stat4.samples,column:cap.nEq,
+    affinity:cap.physicalIndex!.fields[cap.nEq]!.column?.affinity??"blob",
+    ...(lower?{lower}:{}),...(upper?{upper}:{})});
+   rows=estimate.done?rows-BigInt(estimate.adjust):rangeRows(rows,!!cap.lower,!!cap.upper,!!cap.lower?.term.virtualNull);
+  }
+ }else rows=rangeRows(rows,!!cap.lower,!!cap.upper,!!cap.lower?.term.virtualNull);
  const ratio=15n*BigInt(index.szIdxRow)/BigInt(index.table.szTabRow);
  const idx=cap.constrainedFields===0?rows+1n+ratio:logEstAdd(logSize,rows+1n+ratio);
  let lookup=rows+16n;
@@ -1166,6 +1177,17 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   if(!left&&originalRight&&op&&op!=="in"){orientation="right";op=reverseOperator(op);leftNode=originalRightNode;rightNode=originalLeftNode;left=originalRight;}
   const rightUse=rhsPrereq(resolved,node,orientation,op),leftUse=prereq(resolved,leftNode);const isLeft=origin.kind==="join-on"&&origin.join==="left",mayDrive=op!==null&&!!left&&(rightUse&leftUse)===0n&&!(rightUse&sourceBit(left.sourceOrdinal))&&!(isLeft&&left.sourceOrdinal<origin.rightSource),coll=op==="is-null"?null:effectiveCollation(originalLeftNode,originalRightNode,resolved),parentId=drafts.length;
   const parent:Draft={node,origin,operator:op,left,rightNode,orientation,prereqAll:all,prereqRight:rightUse,collation:coll,parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive,mayOmitResidual:!isLeft}};drafts.push(parent);
+  // whereexpr.c1290: AND-owned BETWEEN creates ordered GE/LE children.
+  // Keep the parent residual; virtual children own only access constraints.
+  if(split==="and"&&node.signature==="expr ::= expr between_op expr AND expr"&&!node.children.some(c=>c.kind==="reduction"&&c.signature==="between_op ::= NOT BETWEEN")&&children.length===3){
+   for(const [i,operator] of (["ge","le"] as const).entries()){
+    const rhs=children[i+1]!,seed=asExpr(node).tokens[0]!;
+    const range:ExprReduction={kind:"reduction",rule:0,signature:"expr ::= expr LT|GT|GE|LE expr",children:[originalLeftNode,{kind:"terminal",tokenId:0,value:{...seed,kind:"punct",text:i===0?">=":"<="}},rhs]};
+    const childId=drafts.length,use=prereq(resolved,rhs);
+    parent.childIds.push(childId);
+    drafts.push({node:range,origin:{kind:"derived",parentTerm:parentId,reason:"range"},operator,left:originalLeft,rightNode:rhs,orientation:"left",prereqAll:prereq(resolved,range),prereqRight:use,collation:effectiveCollation(originalLeftNode,rhs,resolved),parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:!!originalLeft&&(use&leftUse)===0n&&!(isLeft&&originalLeft.sourceOrdinal<origin.rightSource),mayOmitResidual:!isLeft}});
+   }
+  }
   // whereexpr.c1331: linked x>NULL virtual range, not SQL x>NULL.
   const notNull=expressionStructuralIdentity(asExpr(node)).startsWith("notnull(");
   if(notNull&&originalLeft&&originalLeft.columnIndex>=0&&originalLeft.column&&(originalLeft.source.table.kind!=='table'||!isIntegerPrimaryKeyAlias(originalLeft.source.table,originalLeft.column))&&!isLeft){

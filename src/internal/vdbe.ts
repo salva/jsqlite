@@ -7413,6 +7413,9 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   const ops=builder.ops;
   const producerExit=builder.label(),scanNext=builder.label();
   const parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()};
+  // Parse.nVar is established before access-path pruning. A range parameter
+  // emitted as both seek input and residual retains one original slot.
+  retainSelectParameters(select,parameters);
   const limit=computeLimitRegisters(select,ops,()=>builder.register(),parameters);
   const sorterCursor=builder.cursor(),distinctCursor=builder.cursor(),keyInfo=orderTerms.length===0?null:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.expression),desc:term.descending,nullsLarge:term.nullsLarge}))});
   const accessCursor=selectedOr?builder.cursor():selectedPhysical&&selectedNeedsTableLookup?3:0;
