@@ -20,7 +20,9 @@ accompany it. `vdbe.c:SeekHit/IfNoHope/NotFound` → physical `IndexCursor.seekH
 `prefixExists`, selected caller `IndexSeekHit/IndexIfNoHope` and equality-prefix
 success publication; `selected-select-in-earlyout.test.mjs` and pinned capture
 `capture-select-in-earlyout.py` cover non-SeekScan SELECT-IN prefix earlyout,
-NULL/empty/LEFT and reset/repeat boundaries. List-IN earlyout is not mapped yet.
+NULL/empty/LEFT and reset/repeat boundaries. Selected list-IN uses the same
+cursor hit/prefix owner after its fused non-NULL value producer; the same capture
+and test cover absent/present/NULL/empty/join/LEFT/reverse/two-slot and mixed slots.
 [Evidence/boundaries](research/selected-select-in-delivery.md).
 
 ### SQL numeric semantic production

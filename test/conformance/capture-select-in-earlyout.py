@@ -9,6 +9,17 @@ d=m.load(lib);manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_t
 assert d.sqlite3_sourceid().decode()==manifest['sqliteSourceId']
 assert d.sqlite3_libversion().decode()==manifest['version']
 cases={
+ 'list-absent':('SELECT id FROM t INDEXED BY t_ab WHERE a=999 AND b IN(1,2,3)',[]),
+ 'list-present':('SELECT id FROM t INDEXED BY t_ab WHERE a=1 AND b IN(1,2,3,2,NULL)',[]),
+ 'list-null':('SELECT id FROM t INDEXED BY t_ab WHERE a=?1 AND b IN(1,2,3)',[None]),
+ 'list-empty':('SELECT id FROM t INDEXED BY t_ab WHERE a=999 AND b IN()',[]),
+ 'list-left-null':('SELECT x.v,y.id FROM rhs x LEFT JOIN t y INDEXED BY t_ab ON y.a=?1 AND y.b IN(1,2,3)',[None]),
+ 'list-null-rhs':('SELECT id FROM t INDEXED BY t_ab WHERE a=999 AND b IN(NULL,NULL)',[]),
+ 'list-joined':('SELECT x.id,y.id FROM t x INDEXED BY t_ab JOIN t y ON y.id=x.id WHERE x.a=999 AND x.b IN(1,2,3)',[]),
+ 'list-left':('SELECT x.v,y.id FROM rhs x LEFT JOIN t y INDEXED BY t_ab ON y.a=999 AND y.b IN(1,2,3)',[]),
+ 'list-reverse':('SELECT id FROM t INDEXED BY t_ab WHERE a=1 AND b IN(1,2,3) ORDER BY a DESC,b DESC',[]),
+ 'list-two-slot':('SELECT id FROM t INDEXED BY t_ab WHERE a IN(1,2,3) AND b IN(1,2,3)',[]),
+ 'list-mixed':('SELECT id FROM t INDEXED BY t_ab WHERE a IN(SELECT v FROM rhs) AND b IN(1,2,3)',[]),
  'absent':('SELECT id FROM t INDEXED BY t_ab WHERE a=999 AND b IN(SELECT v FROM rhs)',[]),
  'present':('SELECT id FROM t INDEXED BY t_ab WHERE a=1 AND b IN(SELECT v FROM rhs)',[]),
  'null':('SELECT id FROM t INDEXED BY t_ab WHERE a=?1 AND b IN(SELECT v FROM rhs)',[None]),

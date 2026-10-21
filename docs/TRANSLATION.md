@@ -470,7 +470,8 @@ hit depth is clamped at slot entry, raised by successful equality-prefix checks,
 and tested before movement using a partial-key B-tree lookup. NULL skips this
 check; LEFT null-extension skips both check and movement. Public native-backed
 absent/present/empty/NULL, joined/LEFT, reverse and two-slot controls cover this
-branch. List-IN register iteration is unchanged (its earlyout remains a gap).
+branch. Selected list-IN slots now share this prefix earlyout at the fused
+non-NULL list-value boundary, retaining existing ordered-register production.
 Physical DESC LHS coverage and selected malformed-page/private-failure cleanup
 still need dedicated evidence. Recursive joined OR has a selected affinity/typed-row witness,
 not exhaustive composition coverage. Vectors/correlation and direct RHS-index reuse

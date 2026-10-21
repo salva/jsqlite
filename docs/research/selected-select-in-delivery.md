@@ -1,5 +1,38 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## List-IN prefix earlyout repair on 892b4ff3 parent
+
+The accepted native-FIRST red (status54, proc-c98eac536ba3) has identical empty
+rows but three TS probes instead of the one implied by native SeekHit/IfNoHope.
+All three selected caller paths now emit the same physical prefix carrier after
+InListValue; emitInAdvance checks it before advancing that slot. NULL list items
+are already removed by the fused producer, so no branch may check uncoerced NULL;
+LEFT null-extension bypasses check and movement. SeekScan and leading slots do
+not acquire prefix checks. Existing list production/reset, affinity and dedup
+are unchanged. This repairs missing native continuation machinery, not the
+separate ordered-register list-set adaptation: upstream uses an ephemeral Btree,
+TS uses bounded ordered insertion (quadratic construction), with existing limits.
+There is no browser necessity claim for that retained algorithm; replacing it is
+outside this continuation repair and remains a fidelity limitation.
+
+Expanded capture20 ×3 encodings SHA256
+`13ec94e7fdf3f44da5cdfaec4bb21d5082fb1dd2d00b5890fdc854ae62e84a14`,
+includes original literal-list reproducer, present/duplicates/NULL, empty, NULL
+prefix/LEFT, INNER/LEFT, reverse, two-slot and mixed SELECT/list. Tests retain
+native typed rows, reset/repeat and exact probe bounds (absent1, present3,
+NULL/empty0, joined1, LEFT5); native program rather than direct native counters
+justifies work assertions. `proc-f2b044f1daf9` capture + focused3/3 pass.
+Same durable test/capture on archived892b4ff3 fails0/3, actual3 vs1
+(`proc-0343a71c90e0`). Initial18-case capture/typecheck/focused3/3 passed
+(`proc-2282bea3b0aa`); final20-case capture adds empty and LEFT NULL controls.
+No source hypothesis failed; apply_patch refused an edit and exact edit was used.
+These checks are author evidence, not independent acceptance or full serial gates.
+Final affected run `proc-c66a5e4db305`:311/311,zero skips,41.180s, followed by
+chained typecheck/build/package/diff-check exit0. Package SHA256
+`10ab3e704732af3935eb127f10544d402c9a4af6c2cf98ed1d5d082cb254a836`;
+browser check is isolated browser-global VM, not GUI. Peer g lifecycle test
+included without promotion/authorship claim; full80-file gates remain outstanding.
+
 ## Prefix earlyout repair on c6bc5e2d parent
 
 Pinned wherecode.c:codeINTerm clamps seekHit to iEq only for non-SeekScan

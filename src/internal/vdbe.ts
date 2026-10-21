@@ -4597,6 +4597,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           const indexRegister=allocate(),target=allocate();
           ops.push({code:'Integer',p1:0n,p2:indexRegister});iterators.push(ops.length);
           ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:physical.keyInfo,fieldOrdinal:ordinal(admission),reverse:reverse!==!!physical.fields[ordinal(admission)]?.descending}});
+          if(!cap!.inSeekScan&&ordinal(admission)>0)ops.push({code:'IndexSeekHit',p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
           inTargets.set(admission,target);
         }
         const keys=admissions.map(admission=>inTargets.get(admission)??key(admission.term)),affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
@@ -4703,6 +4704,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         ops.push({code:'Integer',p1:0n,p2:indexRegister});
         const iterator=ops.length;
         ops.push({code:'InListValue',values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob',keyInfo:capability.physicalIndex!.keyInfo,fieldOrdinal:ordinal(admission),reverse:capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending}});
+        if(!capability.inSeekScan&&ordinal(admission)>0)ops.push({code:'IndexSeekHit',p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
         iterators.push(iterator);
         inTargets.set(admission,target);
       }
@@ -5026,7 +5028,15 @@ function emitWrPrimaryPosition(ops:Op[],secondary:PhysicalIndex,primary:Physical
 
 function emitInAdvance(ops:Op[],iterator:number,nullPass?:number):void {
  const op=ops[iterator];
- if(op?.code==='InListValue'){ops.push({code:'Goto',p2:iterator});return;}
+ if(op?.code==='InListValue'){
+  // The fused list producer publishes only non-NULL keys; its following
+  // SeekHit retains codeINTerm's post-Column/IsNull prefix-depth boundary.
+  const hit=ops[iterator+1];
+  const early=hit?.code==='IndexSeekHit'?hit:undefined;
+  if(nullPass!==undefined)ops.push({code:'IfPos',p1:nullPass,p2:ops.length+(early?3:2),p3:0});
+  if(early){const {code:_,...prefix}=early;ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});}
+  ops.push({code:'Goto',p2:iterator});return;
+ }
  if(op?.code!=='IndexRewind'&&op?.code!=='IndexLast')throw new Error('IN restart lost cursor owner');
  const guard=ops[iterator+2];
  if(guard?.code!=='IsNull')throw new Error('IN restart lost NULL guard');
@@ -7556,6 +7566,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         ops.push({code:"Integer",p1:0n,p2:indexRegister});
         const iterator=ops.length;
         ops.push({code:"InListValue",values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==="comparison"?admission.comparison.affinity:"blob",keyInfo:selectedPhysical.keyInfo,fieldOrdinal:ordinal(admission),reverse:selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending}});
+        if(!selectedInSeekScan&&ordinal(admission)>0)ops.push({code:'IndexSeekHit',p1:positionCursor,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>targets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:selectedPhysical.keyInfo});
         inIterators.push(iterator);
         targets.set(admission,target);
       }

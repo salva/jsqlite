@@ -16,8 +16,10 @@ joined-OR companions observe actual prefix consumers and compare native typed
 multisets, rather than claiming ownership from equivalent rows alone.
 Non-SeekScan SELECT-IN prefix earlyout now has cursor-owned SeekHit/IfNoHope
 translation and native-backed absent/present/NULL/empty/LEFT/reset controls.
-List-IN earlyout, physical DESC LHS and broader resource/malformed transitions
-remain gaps; reverse coverage is bounded by the new public companion.
+Selected list-IN prefix earlyout now shares that cursor owner after its fused
+non-NULL ordered-list producer, with native-backed absent/present/NULL/empty,
+join/LEFT/reverse/two-slot and mixed-slot controls. Physical DESC LHS and broader
+resource/malformed transitions remain gaps; reverse coverage is bounded by the new public companion.
 [Source mapping, evidence and remaining limits](../research/selected-select-in-delivery.md).
 Author verification is not independent acceptance; historical findings below
 retain their revision applicability.

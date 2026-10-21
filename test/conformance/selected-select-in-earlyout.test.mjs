@@ -8,7 +8,7 @@ const directory=process.env.SELECT_IN_EARLYOUT_DIR;
 assert.ok(directory,'SELECT_IN_EARLYOUT_DIR required');
 const capture=JSON.parse(fs.readFileSync(path.join(directory,'native.json')));
 assert.equal(capture.sourceId,JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url))).sqliteSourceId);
-const expectedProbes={absent:1,present:3,null:0,empty:0,'null-rhs':0,joined:1,left:5,reverse:3};
+const expectedProbes={'list-absent':1,'list-present':3,'list-null':0,'list-empty':0,'list-left-null':0,'list-null-rhs':0,'list-joined':1,'list-left':5,'list-reverse':3,absent:1,present:3,null:0,empty:0,'null-rhs':0,joined:1,left:5,reverse:3};
 for(const variant of capture.variants)test(`${variant.encoding}: selected IN prefix earlyout`,async()=>{
  const bytes=fs.readFileSync(path.join(directory,variant.fixture));
  assert.equal((await import('node:crypto')).createHash('sha256').update(bytes).digest('hex'),variant.sha256);
@@ -17,7 +17,7 @@ for(const variant of capture.variants)test(`${variant.encoding}: selected IN pre
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
   for(const [name,oracle] of Object.entries(variant.cases)){
-   if(name==='absent'){
+   if(name==='absent'||name==='list-absent'){
     assert.ok(oracle.eqp.some(line=>line.includes('a=? AND b=?')));
     assert.ok(oracle.program.some(op=>op.opcode==='IfNoHope'));
     assert.ok(!oracle.program.some(op=>op.opcode==='SeekScan'));
