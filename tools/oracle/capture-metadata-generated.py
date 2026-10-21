@@ -34,6 +34,17 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
     f'SELECT t.id,p.name FROM outer_t t {join} pragma_{mod}(t.s,\'absent\') p ON p.cid=0',
     f'SELECT t.id,t.s AS stored,t.v AS virt,p.name FROM outer_t AS t {join} pragma_{mod}(t.v) AS p ON p.cid=0 ORDER BY stored,t.id',
    ]
+ if '--aggregate' in sys.argv:
+  queries=[]
+  for mod in ['table_info','table_xinfo']:
+   for join in ['JOIN','LEFT JOIN']:
+    for col in ['base','v','s','chain']:
+     source=f'outer_t t {join} pragma_{mod}(t.{col},t.sc) p ON p.cid=0'
+     queries += [f'SELECT count(*),sum(p.cid) FROM outer_t t {join} pragma_{mod}(t.{col}) p ON p.cid=0']
+     queries += [f'SELECT count(*) AS n,sum(p.cid) AS total FROM {source}',f'SELECT t.id,count(p.name) AS n,sum(p.cid) AS total FROM {source} GROUP BY t.id HAVING count(*)>0 ORDER BY t.id']
+    queries += [f'SELECT count(*),sum(p.cid) FROM outer_t t {join} pragma_{mod}(t.v) p ON p.cid=0 AND t.v IS NOT NULL WHERE t.s IS NOT NULL',f"SELECT count(*) FROM outer_t t {join} pragma_{mod}(t.v,'absent') p ON p.cid=0"]
+    queries += [f'SELECT count(*),sum(p.cid) FROM empty_outer t {join} pragma_{mod}(t.v) p ON p.cid=0', f'SELECT count(*),sum(p.cid) FROM outer_t t {join} pragma_{mod} p ON p.arg=t.v AND p.schema=t.sc AND p.cid=0 WHERE t.s IS NOT NULL',f"SELECT count(*) FROM outer_t t {join} pragma_{mod}(t.v,'absent') p ON p.cid=0 WHERE t.id<0",f'SELECT count(*),sum(p.rowid) FROM outer_t t {join} pragma_{mod}(t.v) p ON p.cid=0']
+  queries += ['SELECT t.id,(SELECT count(*) FROM pragma_table_info(t.v)) AS n FROM outer_t t ORDER BY t.id']
  cases=[]
  for sql in queries:
   st=P();rc=L.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None);assert rc==0,(sql,text(L.sqlite3_errmsg(db)))

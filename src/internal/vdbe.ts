@@ -8303,12 +8303,16 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   const names=declaration.columns.map(column=>column.name);
   const builder=parent?.builder??new SelectProgramBuilder<Op>(),parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},first=builder.range((physical?physical.columns.length+1:0)+names.length+1);
   builder.reserveCursorsThrough(1);
-  const quote=(name:string)=>'"'+name.replaceAll('"','""')+'"';
-  const projection=[...(physical?.columns.map(column=>`${quote(physicalItem!.alias??physicalItem!.tableName)}.${quote(column.name)}`)??[]),...(physical?[`${quote(physicalItem!.alias??physicalItem!.tableName)}.rowid`]:[]),...names.map(name=>`${quote(item.alias??item.tableName)}.${quote(name)}`),`${quote(item.alias??item.tableName)}.rowid`];
-  const parsed=parseSql(`SELECT ${projection.join(',')}`).statement;
-  if(!parsed||parsed.kind!=='select')throw new JSQLiteError('internal','metadata aggregate payload projection missing');
-  const producer={...select,result:parsed.result,where:select.where,groupBy:[],orderBy:[],having:null,limit:null,offset:null,hasGroupBy:false,hasOrderBy:false,hasHaving:false,hasLimit:false,hasDistinct:false} as SelectNode;
-  const input={first,rowIdentities:true,emit:(consume:()=>void)=>{compileTableSelectProducer(producer,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,linkedPlan,...(parent?.expressionBinding?{expressionBinding:parent.expressionBinding}:{}),destination:{kind:'output'},consume:(row,count)=>{for(let i=0;i<count;i++)builder.ops.push({code:'Copy',p1:row+i,p2:first+i});consume();}});}};
+  // select.c updateAccumulator consumes the positioned WHERE row. Enroll
+  // genuine source payloads directly, as the mixed JSON AggInfo caller does;
+  // never reparse a projection or lower execution-only source-row as scalar SQL.
+  const producer:SelectNode={...select,result:[],groupBy:[],orderBy:[],having:null,limit:null,offset:null,hasGroupBy:false,hasOrderBy:false,hasHaving:false,hasLimit:false,hasDistinct:false};
+  const producerPlan={...linkedPlan,source:producer,result:[]};
+  const input={first,rowIdentities:true,emit:(consume:()=>void)=>{compileInnerTableSelect(producer,producerPlan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{
+   builder,ops:builder.ops,parameters,destination:{kind:'output'},
+   ...(parent?.expressionBinding?{expressionBinding:parent.expressionBinding}:{}),
+   sourceRow:(source,row,rowid)=>{let base=first;for(const prior of linkedPlan.sources){if(prior===source)break;base+=prior.table.columns.length+1;}for(let i=0;i<source.table.columns.length;i++)builder.ops.push({code:'Copy',p1:row+i,p2:base+i});builder.ops.push({code:'Copy',p1:rowid,p2:base+source.table.columns.length});},consumeRow:consume
+  });}};
   // The scan owns WHERE: hidden EQ initializes Filter, then its residual
   // runs once before AggInfo input. Do not erase initialization or evaluate
   // the original predicate again in the aggregate consumer (BestIndex omit).
