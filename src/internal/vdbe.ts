@@ -4578,7 +4578,12 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         // codeEqualityTerm: owned IN RHS iterators reset per invocation;
         // WhereEnd restarts inner values before advancing outer values.
         const inTargets=new Map<typeof admissions[number],number>();
-        for(const admission of admissions.filter(item=>item.operator==='in')){
+        for(const admission of admissions){
+          if(admission.operator!=='in'){
+            const target=key(admission.term);inTargets.set(admission,target);
+            if(admission.operator==='eq'){equalityGuards.push(ops.length);ops.push({code:'IsNull',p1:target,p2:0});}
+            continue;
+          }
           if(admission.term.inSelectRhs){
             const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
             const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending);
@@ -4593,7 +4598,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           inTargets.set(admission,target);
         }
         const keys=admissions.map(admission=>inTargets.get(admission)??key(admission.term)),affinities=admissions.map(admission=>admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
-        admissions.forEach((admission,i)=>{if(admission.operator==='eq'||admission===start&&!admission.term.virtualNull){(admission===start?guards:equalityGuards).push(ops.length);ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
+        if(start&&!start.term.virtualNull){guards.push(ops.length);ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
         rewind=ops.length;
         if(admissions.length||cap!.nSkip)prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],physical.keyInfo,reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!cap!.inSeekScan,rowLogEst:cap!.index!.rowLogEst[0]??99,hasRange:!!(cap!.lower||cap!.upper)});
         else ops.push({code:reverse?'IndexLast':'IndexRewind',p1:indexCursor!,p2:0});
@@ -4676,7 +4681,14 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const ordinal=(admission:IndexConstraintAdmission)=>capability.nSkip+admissions.indexOf(admission);
       const inTargets=new Map<typeof admissions[number],number>();
       const iterators:number[]=[];
-      for(const admission of inAdmissions){
+      for(const admission of admissions){
+        if(admission.operator!=='in'){
+          const target=compileExpressionTree(bound(admission.term),ops,allocate,parameters,compileJoinSubquery);
+          inTargets.set(admission,target);
+          // codeAllEqualityTerms: break before constructing a later IN RHS.
+          if(admission.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:target,p2:0});}
+          continue;
+        }
         if(admission.term.inSelectRhs){
           const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
           const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending);
@@ -4696,7 +4708,6 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(bound(admission.term),ops,allocate,parameters,compileJoinSubquery));
       // codeAllEqualityTerms: '=' NULL exits this level, not the next IN
       // value. IS/IS NULL retain searchable NULL keys; IN skips NULL itself.
-      equalities.forEach((admission,i)=>{if(admission.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[i]!,p2:0});}});
       // wherecode.c Case 4: nullable pRangeStart exits to addrNxt before
       // affinity or seek. This is the next IN value (or outer loop), not Halt.
       if(start&&!start.term.virtualNull){startNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys[keys.length-1]!,p2:0});}
@@ -7517,8 +7528,14 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       // where.c:sqlite3WhereEnd advances IN cursors inside-out, resetting
       // each inner cursor on a new outer RHS value.
       const targets=new Map<typeof admissions[number],number>();
-      for(const admission of inAdmissions){
+      for(const admission of admissions){
         const target=builder.register();
+        if(admission.operator!=="in"){
+          const value=compileExpressionTree(boundRhs(admission.term),ops,()=>builder.register(),parameters);
+          targets.set(admission,value);
+          if(admission.operator==="eq"){equalityNullGuards.push(ops.length);ops.push({code:"IsNull",p1:value,p2:0});}
+          continue;
+        }
         if(admission.term.inSelectRhs){
           const set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
           const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending);
@@ -7536,7 +7553,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // wherecode.c:codeAllEqualityTerms (976–980): nullable equality RHS
     // breaks the whole level before affinity/seek, unlike range addrNxt.
     // Conservatively guard all eq RHS; nonnullable RHS makes this a no-op.
-    selectedEqualities.forEach((admission,i)=>{if(admission.operator==="eq"){equalityNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[i]!,p2:0});}});
+    if(!inAdmissions.length)selectedEqualities.forEach((admission,i)=>{if(admission.operator==="eq"){equalityNullGuards.push(ops.length);ops.push({code:"IsNull",p1:keys[i]!,p2:0});}});
     // wherecode.c Case 4 emits OP_IsNull on the nullable range start RHS
     // before applying affinity or seeking. Equality IS NULL is not a range
     // start: its NULL key must remain searchable.

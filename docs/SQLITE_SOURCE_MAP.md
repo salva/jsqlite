@@ -10,7 +10,9 @@ linked producer, KeyInfo/affinity, Once and original parameter ownership.
 skip NULL and unwind RHS slots inside-out. `vdbe.c` endpoint/movement/Column →
 `private-in-dispatch.ts`, `private-key-vm.ts`; `btree.c` reverse traversal →
 `private-blobkey-pages.ts`. Public chosen/executed native comparisons:
-`selected-select-in-red.test.mjs`; linked producer/VM and private cursor controls
+`selected-select-in-red.test.mjs`; `selected-select-in-null-prefix.test.mjs`
+maps codeAllEqualityTerms slot-order/early-NULL bypass (ordinary and LEFT), with
+native program ordering and zero-private admission witness. Linked producer/VM and private cursor controls
 accompany it. [Evidence/boundaries](research/selected-select-in-delivery.md).
 
 ### SQL numeric semantic production

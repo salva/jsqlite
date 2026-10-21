@@ -6,6 +6,10 @@ public companions compare native typed rows/metadata and actual seeks/probes for
 scalar/range/two-slot/INNER/LEFT/OR, original parameters and cancellation/reset.
 This corrects missing selected scalar caller predictions for measured branches,
 not vector/correlated/direct-index reuse or every LEFT/OR/resource transition.
+codeAllEqualityTerms slot-order correction now guards nullable equality before
+later RHS construction in ordinary/join/recursive-OR lowering; native-backed
+ordinary/LEFT NULL-prefix controls cover bypass with zero private capacity.
+Other LEFT/OR/resource transitions remain bounded by the linked evidence.
 [Source mapping, evidence and remaining limits](../research/selected-select-in-delivery.md).
 Author verification is not independent acceptance; historical findings below
 retain their revision applicability.

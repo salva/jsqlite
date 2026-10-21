@@ -453,7 +453,10 @@ and positions/copies/skips NULL before selected LHS prefix/range seeks. Ordinary
 joined and recursive-OR slot callers share inside-out RHS advancement; seek/end
 failure advances rather than rewinding the innermost slot. Private endpoint,
 movement and Column dispatch precedes persistent dispatch, publishing jumps only
-after success. List-IN register iteration is retained.
+after success. Equality slots are produced and NULL-guarded in index order,
+before later IN construction/positioning, following codeAllEqualityTerms; LEFT
+null-extension bypasses RHS movement through its production nullPass guard.
+List-IN register iteration is retained.
 
 Bounded native/public evidence covers forced/unforced scalar and range, two-slot,
 INNER/LEFT/OR compositions, metadata, parameter clear/rebind and between-row

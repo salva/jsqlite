@@ -39,12 +39,47 @@ Package test PASS: 55 runtime modules /112 files; tar SHA256
 Browser evidence is isolated browser-global VM smoke, not GUI-browser execution.
 Full output: `work:///cards/card-s-c-d-e/processes/proc-57186ea7735a/stdout.log`.
 
-Current limits: physical DESC, recursive joined OR, LEFT early bypass/nullRow,
-async-midmovement interruption, selected corrupt-page/private-failure cleanup,
-zero final private budget and prefix earlyout still need targeted SQL evidence.
+Current branch boundary: FIRST uses a fresh ASC ephemeral UNIQUE RHS, a native
+choice; physical DESC RHS requires the remaining direct-index reuse branch, not
+an ORDER BY fixture or helper-only reversal claim. Selected LHS direction remains
+independent. Suspended movement cancellation/deadline and zero-private admission
+pass in the peer-authored lifecycle test (workspace-only, not this delivery).
+Recursive joined OR, other LEFT transitions, selected malformed/private-page
+failure and measured final ledger cleanup still need targeted SQL evidence.
 Vectors/correlation/direct RHS-index reuse remain implementation gaps, not scope
-exclusions. Descending ORDER BY is not proof of physical DESC traversal.
-Historical planner 262/263 red and 58.302s near-timeout risk are unresolved;
-selected tests do not imply whole planner compatibility or independent approval.
-Original nonauthor acceptance remains necessary. Detailed retained commands and
-prior hypotheses are in [[card:card-s-c-d-e]] accepted status v42.
+exclusions. Historical root planner262/263 is not reproduced on the candidate
+(g38:302/302); 58.302s near-timeout risk and original full serial gates remain.
+Original nonauthor acceptance remains necessary.
+
+## Slot-order early NULL repair
+
+Pinned wherecode.c codeAllEqualityTerms (949–990) produces each equality slot
+and immediately emits its NULL break before codeEqualityTerm for later slots.
+All three selected caller paths now do likewise, instead of hoisting all IN
+construction before ordinary equality expressions. Existing level break and LEFT
+nullPass continuation targets remain unchanged. No opcode/algorithm substitution.
+Seek-affinity reconciliation identified in status45 remains separate work, not a
+claim repaired by ordering.
+
+Native FIRST extension: 21 cases x3 encodings, JSON SHA256
+`f5b9a01399776522a609143317f045aab256e06a5e2745b30822e2f92221be72`.
+New null-prefix and left-null-prefix companions compare native typed rows,
+native IsNull-before-OpenEphemeral ordering and repeated execution at
+maxPrivateBytes0; no RHS construction can be hidden by a passing row comparison.
+Generator/library/source checks remain the same. Raw artifacts remain disposable.
+Baseline16be1d49 extracted with git archive into card work storage fails3/3
+(`proc-036dd01e8f24`), private admission before equality bypass; repaired input
+passes3/3 plus tsc (`proc-a226f20edabb`). The initial LEFT witness using outer
+WHERE x.v IS NULL failed3/3 (`proc-5db4d517f4ff`); logging isolated the failure to
+LEFT (`proc-b81ca0e5fcf4`). That query also evaluates non-NULL outer rows before
+the outer WHERE residual, so zero capacity was not an isolated bypass witness.
+Use a constant NULL parameter in the ON equality to isolate the transition; the
+original native left composition remains in the preserved public reproducer.
+This does not settle general outer-WHERE pushdown/LEFT ordering.
+
+Affected serial nine-file run including public red/lifecycle/null-prefix,
+loop/producer/linked/VM, selected-index controls and planner analysis:
+305/305, zero skips,33.982s, exit0 (`proc-8129c12dc1ea`). Full output:
+`work:///cards/card-s-c-d-e/processes/proc-8129c12dc1ea/stdout.log`.
+This is author affected-path verification, not full gates or independent approval.
+Earlier source rationale/commands/hypotheses remain in accepted per-card status42/45.
