@@ -1,0 +1,137 @@
+import { JSQLiteError } from "../index.js";
+// vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn permits an escaped target
+// only when its consecutive Return chain reaches the owning return register.
+// TS has no Noop/Explain opcodes. This is verification, not target rewriting.
+export function reachesOwningReturn(ops, target, returnRegister) {
+    if (!Number.isSafeInteger(target) || target < 0)
+        return false;
+    for (let at = target; at < ops.length; at++) {
+        const op = ops[at];
+        if (op.code !== "Return")
+            return false;
+        if (op.p1 === returnRegister)
+            return true;
+    }
+    return false;
+}
+export class SelectProgramBuilder {
+    ops = [];
+    /** where.c shared construction frontier, including selected arm replanning. */
+    wherePlanBudget;
+    constructor(progressCheck, reprepare) { this.wherePlanBudget = { remaining: 20000n, progressCheck, ...(reprepare ? { reprepare } : {}) }; }
+    registers = 0;
+    cursors = 0;
+    labels = new Map();
+    pending = [];
+    nextLabel = 0;
+    validations = [];
+    // Validate only settled addresses, including late enclosing-owner labels.
+    validateResolved(validate) { this.validations.push(validate); }
+    register() { return ++this.registers; }
+    range(count) { if (!Number.isSafeInteger(count) || count < 1)
+        throw new RangeError("invalid register range"); const first = this.registers + 1; this.registers += count; return first; }
+    cursor() { return this.cursors++; }
+    // Reserve fixed cursor ranges of producers not yet migrated to nTab ownership.
+    reserveCursorsThrough(last) { if (!Number.isSafeInteger(last) || last < 0)
+        throw new RangeError("invalid cursor"); this.cursors = Math.max(this.cursors, last + 1); }
+    label() { return ++this.nextLabel; }
+    mark(label) { if (this.labels.has(label))
+        throw new Error("duplicate label"); this.labels.set(label, this.ops.length); }
+    emit(op) { return this.ops.push(op) - 1; }
+    jump(label, op, resolve) { this.pending.push({ at: this.emit(op), label, resolve }); }
+    // Resolve one closed producer boundary without publishing/freezing the
+    // enclosing Vdbe (RIGHT interior validation consumes numeric targets).
+    resolveLabel(label) {
+        const pc = this.labels.get(label);
+        if (pc === undefined)
+            throw new Error("unresolved SELECT label");
+        this.pending = this.pending.filter(entry => { if (entry.label !== label)
+            return true; this.ops[entry.at] = entry.resolve(this.ops[entry.at], pc); return false; });
+    }
+    finish() { for (const { at, label, resolve } of this.pending) {
+        const pc = this.labels.get(label);
+        if (pc === undefined)
+            throw new Error("unresolved SELECT label");
+        this.ops[at] = resolve(this.ops[at], pc);
+    } for (const validate of this.validations)
+        validate(this.ops); return Object.freeze(this.ops); }
+}
+export function emitSelectDestination(ops, dest, first, count) {
+    // Validate the destination before emitting even its first affinity opcode.
+    // select.c SRT_Set requires nResultCol affinities; SRT_Mem copies one
+    // contiguous nResultCol range. Invalid construction is an internal typed
+    // error, not a partially published program or a public RangeError.
+    const invalid = (message) => { throw new JSQLiteError('internal', message); };
+    if (!Number.isSafeInteger(count) || count < 1)
+        invalid("invalid SELECT destination count");
+    if (dest.kind === "mem" || dest.kind === "set") {
+        const width = dest.width ?? 1;
+        if (!Number.isSafeInteger(width) || width < 1)
+            invalid("invalid SELECT destination width");
+        if (count !== width)
+            invalid("SELECT destination width mismatch");
+        if (dest.kind === "set" && dest.packedRegister !== undefined && (!Number.isSafeInteger(dest.packedRegister) || dest.packedRegister < 1 || (dest.packedRegister >= first && dest.packedRegister < first + count)))
+            invalid("invalid SELECT packed record register");
+        if (dest.kind === "set" && dest.affinities && (dest.affinities.length !== width || dest.affinities.some(affinity => !['blob', 'text', 'numeric', 'integer', 'real', 'flexnum'].includes(affinity))))
+            invalid("invalid SELECT destination affinity vector");
+    }
+    if (dest.kind === "coroutine") {
+        for (let i = 0; i < count; i++)
+            ops.push({ code: "Copy", p1: first + i, p2: dest.first + i });
+        ops.push({ code: "Yield", p1: dest.register, p2: 0 });
+    }
+    else if (dest.kind === "ephemeral")
+        ops.push({ code: "IdxInsert", p1: dest.cursor, keyStart: first, keyCount: count });
+    else if (dest.kind === "output")
+        ops.push({ code: "ResultRow", p1: first, p2: count });
+    else if (dest.kind === "sorter")
+        ops.push({ code: "SorterInsert", p1: dest.cursor, keyStart: first, keyCount: dest.keyCount ?? count, payload: first, payloadCount: count });
+    else if (dest.kind === "aggregate-expression") {
+        // select.c:sqlite3Select applies outer WHERE before updateAccumulator;
+        // the aggregate FILTER is a separate, later gate for this function.
+        const where = dest.emitWhere?.(first, count);
+        const reject = where === undefined ? -1 : ops.push({ code: "IfNot", p1: where, p2: 0 }) - 1;
+        const filter = dest.emitFilter?.(first, count);
+        const skip = filter === undefined ? -1 : ops.push({ code: "IfNot", p1: filter, p2: 0 }) - 1;
+        const keys = dest.order?.emitKeys(first, count);
+        if (keys)
+            keys.forEach((key, index) => ops.push({ code: "Copy", p1: key, p2: dest.order.keyStart + index }));
+        const arguments_ = dest.emitArgument?.(first, count) ?? [];
+        const argument = arguments_[0];
+        const duplicate = argument === undefined || dest.distinctCursor === undefined ? -1 : ops.push({ code: "Found", p1: dest.distinctCursor, keyStart: argument, keyCount: 1, jump: 0 }) - 1;
+        if (duplicate >= 0)
+            ops.push({ code: "IdxInsert", p1: dest.distinctCursor, keyStart: argument, keyCount: 1 });
+        if (dest.order) {
+            arguments_.forEach((value, index) => ops.push({ code: "Copy", p1: value, p2: dest.order.payload + index }));
+            ops.push({ code: "SorterInsert", p1: dest.order.cursor, keyStart: dest.order.keyStart, keyCount: keys.length, payload: dest.order.payload, payloadCount: arguments_.length });
+        }
+        else
+            ops.push({ code: "AggStep", name: dest.name, args: [...arguments_], p2: dest.register, collation: dest.collation });
+        if (duplicate >= 0)
+            ops[duplicate].jump = ops.length;
+        if (skip >= 0)
+            ops[skip].p2 = ops.length;
+        if (reject >= 0)
+            ops[reject].p2 = ops.length;
+    }
+    else if (dest.kind === "set") {
+        if (dest.affinities)
+            for (let i = 0; i < count; i++)
+                ops.push({ code: "Affinity", p1: first + i, affinity: dest.affinities[i] });
+        if (dest.packedRegister !== undefined) {
+            ops.push({ code: "MakeRecord", p1: first, p2: count, p3: dest.packedRegister });
+            ops.push({ code: "IdxInsert", p1: dest.cursor, p2: dest.packedRegister, keyStart: first, keyCount: count, consumeRecord: true });
+        }
+        else
+            ops.push({ code: "IdxInsert", p1: dest.cursor, keyStart: first, keyCount: count });
+    }
+    else if (dest.kind === "exists")
+        ops.push({ code: "Integer", p1: 1n, p2: dest.register });
+    else {
+        for (let i = 0; i < count; i++)
+            if (first + i !== dest.register + i)
+                ops.push({ code: "Copy", p1: first + i, p2: dest.register + i });
+        if (dest.found !== undefined)
+            ops.push({ code: "Integer", p1: 1n, p2: dest.found });
+    }
+}

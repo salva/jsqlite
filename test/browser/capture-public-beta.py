@@ -14,6 +14,7 @@ sqls=[
  ('json-right',"SELECT a.AlbumId,j.value FROM Album a RIGHT JOIN json_each('[1,2,9999]') j ON a.AlbumId=j.value ORDER BY j.key"),
  ('metadata-aggregate-join',"SELECT a.AlbumId,count(p.cid) AS n FROM Album a LEFT JOIN pragma_table_info('Album') p ON p.cid>=0 WHERE a.AlbumId<=3 GROUP BY a.AlbumId ORDER BY a.AlbumId"),
  ('metadata-window-join',"SELECT a.AlbumId,p.name,row_number() OVER (ORDER BY a.AlbumId) AS rn FROM Album a JOIN pragma_table_info('Album') p ON p.cid=0 WHERE a.AlbumId<=3 ORDER BY a.AlbumId"),
+ ('numeric-separator-production',"SELECT 1_000 AS i, 1_2.5 AS r, 0x1_0 AS h"),
 ]
 def cell(x):
  k=x['type'];v=None if k=='null' else struct.unpack('>d',bytes.fromhex(x['ieee754be']))[0] if k=='real' else bytes.fromhex(x['utf8Hex']).decode() if k=='text' else x.get('value',x.get('hex'))

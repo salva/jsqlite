@@ -216,6 +216,31 @@
           }
         ]
       ]
+    },
+    {
+      "id": "numeric-separator-production",
+      "sql": "SELECT 1_000 AS i, 1_2.5 AS r, 0x1_0 AS h",
+      "columns": [
+        "i",
+        "r",
+        "h"
+      ],
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1000"
+          },
+          {
+            "type": "real",
+            "value": 12.5
+          },
+          {
+            "type": "integer",
+            "value": "16"
+          }
+        ]
+      ]
     }
   ]
 }
