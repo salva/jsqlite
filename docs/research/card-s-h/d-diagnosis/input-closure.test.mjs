@@ -12,7 +12,7 @@ function verify(read){
 }
 const read=path=>fs.readFileSync(new URL(path,root));
 test('finite STAT4 runtime, source-based tests and acquired native inputs match explicit closure hashes',()=>{
- assert.equal(manifest.runtimeCommit,'393febafce7ce639bf280665a7c428ab360528f5');
+ assert.equal(manifest.runtimeCommit,'40ab4992141e757c229e7d6d31403487757256f9');
  const paths=Object.keys(manifest.sha256);
  for(const category of ['src/','test/conformance/stat4-','docs/research/card-s-h/'])assert.ok(paths.some(p=>p.startsWith(category)));
  for(const encoding of ['UTF-8','UTF-16le','UTF-16be'])assert.ok(paths.includes(`docs/research/card-s-h/${encoding}.db`));
