@@ -1,3 +1,15 @@
+## Selected scalar SELECT-IN — scoped author integration
+
+Selected scalar uncorrelated SELECT-IN now enters the original linked SRT_Set
+producer and private UNIQUE cursor before chosen LHS seeks. Bounded all-encoding
+public companions compare native typed rows/metadata and actual seeks/probes for
+scalar/range/two-slot/INNER/LEFT/OR, original parameters and cancellation/reset.
+This corrects missing selected scalar caller predictions for measured branches,
+not vector/correlated/direct-index reuse or every LEFT/OR/resource transition.
+[Source mapping, evidence and remaining limits](../research/selected-select-in-delivery.md).
+Author verification is not independent acceptance; historical findings below
+retain their revision applicability.
+
 ## Joined metadata Window correction — author evidence
 
 Joined metadata input now enters the existing WHERE/Window producer instead of

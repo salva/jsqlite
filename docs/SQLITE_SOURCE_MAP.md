@@ -1,5 +1,18 @@
 # SQLite source map
 
+### Selected scalar SELECT-IN LOOP
+
+`expr.c:sqlite3CodeRhsOfIN` / `select.c:SRT_Set` →
+`vdbe.ts:compileWideSubquery/compileSelectedInRhs`, `where-in-producer.ts` retain
+linked producer, KeyInfo/affinity, Once and original parameter ownership.
+`wherecode.c:codeINTerm` / `where.c:sqlite3WhereEnd` → `where-in-loop.ts`,
+`vdbe.ts:emitInAdvance` and selected ordinary/join/OR callers position, copy,
+skip NULL and unwind RHS slots inside-out. `vdbe.c` endpoint/movement/Column →
+`private-in-dispatch.ts`, `private-key-vm.ts`; `btree.c` reverse traversal →
+`private-blobkey-pages.ts`. Public chosen/executed native comparisons:
+`selected-select-in-red.test.mjs`; linked producer/VM and private cursor controls
+accompany it. [Evidence/boundaries](research/selected-select-in-delivery.md).
+
 ### SQL numeric semantic production
 
 `tokenize.c:CC_DIGIT` QNUMBER dispatch, `parse.y:term ::= QNUMBER`,

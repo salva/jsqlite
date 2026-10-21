@@ -1,0 +1,91 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseSql} from '../../src/internal/parse.ts';
+import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
+import {analyzeWhere} from '../../src/internal/where-plan.ts';
+import {emitSelectedInRhs} from '../../src/internal/where-in-producer.ts';
+import {compileScalarSelect,VdbeStatement} from '../../src/internal/vdbe.ts';
+import {SelectProgramBuilder,emitSelectDestination} from '../../src/internal/select-program.ts';
+import {KeyInfo} from '../../src/internal/comparison.ts';
+import {beginInLoop,finishInLoops} from '../../src/internal/where-in-loop.ts';
+function rhs(sql){
+ const resolved=expandAndResolveSelect(parseSql(sql).statement,{objects:[]});
+ const carrier=analyzeWhere(resolved).clause.terms.find(t=>t.inSelectRhs)?.inSelectRhs;
+ assert.ok(carrier);return carrier;
+}
+for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: selected RHS construction shares destination and exact linked identity, no membership tail`,()=>{
+ const carrier=rhs('SELECT ?3 WHERE 1 IN (SELECT ?2 WHERE ?1)');
+ const builder=new SelectProgramBuilder();builder.reserveCursorsThrough(40);builder.range(20);
+ const info=new KeyInfo({encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:'nocase'}]});
+ let calls=0;
+ const set=emitSelectedInRhs(builder,carrier,info,'numeric',(resolved,destination)=>{
+  calls++;assert.equal(resolved,carrier.resolved);assert.equal(resolved.source,carrier.select);
+  assert.equal(destination.cursor,41);assert.equal(destination.packedRegister,22);
+  // This witness stands in for child row production, not RHS execution. The
+  // real SRT_Set emitter below owns affinity, MakeRecord and unique insertion.
+  emitSelectDestination(builder.ops,destination,10,1);
+ });
+ assert.equal(calls,1);assert.equal(set.rhs,carrier);assert.equal(set.keyInfo,info);
+ assert.equal(set.cursor,41);assert.equal(set.onceRegister,21);assert.equal(builder.cursors,42);assert.equal(builder.registers,22);
+ assert.deepEqual(builder.ops.map(op=>op.code),['Once','OpenEphemeral','Affinity','MakeRecord','IdxInsert']);
+ assert.equal(builder.ops[0].p2,5);assert.equal(builder.ops[1].p4KeyInfo,info);
+ assert.equal(builder.ops[4].p1,set.cursor);assert.equal(builder.ops[4].consumeRecord,true);
+ assert.deepEqual(carrier.parameterOccurrences.map(t=>t.text),['?2','?1']);
+ assert.ok(Object.isFrozen(set));assert.ok(Object.isFrozen(set.destination.affinities));
+ const loop=beginInLoop(builder.ops,set.cursor,23,false);
+ const exit=builder.ops.length+1;finishInLoops(builder.ops,[loop],exit);
+ assert.equal(builder.ops[0].p2,loop.start,'Once resumes at positioning, not past it');
+ assert.equal(builder.ops[loop.start].p1,set.cursor);
+ assert.equal(builder.finish().some(op=>op.code==='InSet'),false,'selected LOOP cannot execute a membership tail');
+});
+test('unsupported RHS fails before allocation/publication; child compile error remains primary',()=>{
+ const scalar=rhs('SELECT 1 WHERE 1 IN (SELECT ?1)');
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ for(const changed of [{scalar:false},{correlated:true},{prereq:1n}]){
+  const builder=new SelectProgramBuilder();
+  assert.throws(()=>emitSelectedInRhs(builder,{...scalar,...changed},info,'blob',()=>assert.fail('child must not compile')),/scalar uncorrelated/);
+  assert.equal(builder.cursors,0);assert.equal(builder.registers,0);assert.deepEqual(builder.ops,[]);
+ }
+ const primary=new Error('child SELECT compile failure'),builder=new SelectProgramBuilder();
+ assert.throws(()=>emitSelectedInRhs(builder,scalar,info,'blob',()=>{throw primary}),e=>e===primary);
+ // Failed prepare discards its builder, not a usable partially compiled set.
+ assert.equal(builder.ops.length,2);
+});
+for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: original linked scalar SELECT compiler feeds LOOP destination with retained parameter slots and LIMIT`,async()=>{
+ const carrier=rhs('SELECT ? WHERE 1 IN (SELECT ? WHERE ? LIMIT ?)');
+ const builder=new SelectProgramBuilder();
+ const tokens=carrier.parameterOccurrences;
+ // Enclosing prepare has already assigned the outer anonymous occurrence to
+ // slot1. Use its real positional map so child lowering must not renumber.
+ const parameters={maximum:4,names:[null,null,null,null],named:new Map(),positions:new Map(tokens.map((token,index)=>[token.startByte,index+2]))};
+ const info=new KeyInfo({encoding,totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ const limits={maxEntries:100,maxKeyBytes:10000,maxBytes:1000000};
+ const set=emitSelectedInRhs(builder,carrier,info,'numeric',(resolved,destination)=>{
+  compileScalarSelect(resolved.source,encoding,100000,100000,limits,undefined,undefined,100,{
+   builder,parameters,destination,linkedPlan:resolved,
+   emitRow:(first,count)=>emitSelectDestination(builder.ops,destination,first,count),
+  });
+ });
+ const ops=builder.ops;
+ assert.deepEqual(ops.filter(op=>op.code==='Variable').map(op=>op.p1).sort(),[2,3,4]);
+ assert.equal(parameters.maximum,4);assert.equal(parameters.positions.size,3);
+ assert.equal(ops.filter(op=>op.code==='IdxInsert').length,1);
+ assert.equal(ops.find(op=>op.code==='IdxInsert').p1,set.cursor);
+ assert.equal(ops.filter(op=>op.code==='MakeRecord').length,1);
+ assert.equal(ops[0].p2,ops.length);
+ assert.ok(ops.some(op=>op.code==='IfNot'),'child WHERE/LIMIT controls are retained');
+ assert.equal(ops.some(op=>op.code==='ResultRow'||op.code==='InSet'),false);
+ // Execute the actual compiled child (including anonymous slots/WHERE/LIMIT)
+ // through existing VDBE membership, independently of missing LOOP dispatch.
+ const key=builder.register(),found=builder.register();
+ ops.push({code:'Variable',p1:2,p2:key},{code:'Integer',p1:0n,p2:found});
+ const check=ops.length;ops.push({code:'Found',p1:set.cursor,keyStart:key,keyCount:1,jump:check+2},{code:'Goto',p2:check+3},{code:'Integer',p1:1n,p2:found},{code:'ResultRow',p1:found,p2:1},{code:'Halt'});
+ const statement=new VdbeStatement({encoding,registers:builder.registers,parameters:parameters.names.map(name=>({name})),columns:[{name:'found'}],maxWorkUnits:100000,maxResultBytes:100000,privateStateLimits:limits,ops:builder.finish()},()=>{},()=>()=>{},()=>{});
+ try{
+  for(const [value,where,limit,expected] of [[7n,1n,1n,1n],[9n,0n,1n,0n],[8n,1n,0n,0n],[11n,1n,1n,1n]]){
+   statement.bind(2,value);statement.bind(3,where);statement.bind(4,limit);
+   assert.equal(await statement.step(),'row');assert.equal(statement.column(0),expected);
+   await statement.reset();
+  }
+ }finally{await statement.finalize()}
+});

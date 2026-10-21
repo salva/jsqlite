@@ -1636,6 +1636,41 @@ export class PrivateBlobkeyCursor {
     }catch(error){this.#state="INVALID";this.#releasePath();throw error}
     finally{this.#token=null;ops.end(t)}
   }
+  // btree.c:btreeLast/moveToRightmost and btreePrevious. Interior index
+  // dividers are records: ascending from child slot zero skips that parent.
+  async #rightmost(control:PrivateStateControl):Promise<void>{
+    while(!this.#current!.page.leaf)await this.#scanChild(this.#current!.page.nCell,control);
+    this.#index=this.#current!.page.nCell-1;
+  }
+  async last(control:PrivateStateControl):Promise<boolean>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{
+      await control.checkpoint(1);this.#root();
+      if(this.#state==="INVALID")return false;
+      await this.#rightmost(control);return true;
+    }catch(error){this.#state="INVALID";this.#releasePath();throw error}
+    finally{this.#token=null;ops.end(t)}
+  }
+  async previous(control:PrivateStateControl):Promise<boolean>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    if(this.#state==="FAULT")throw this.#error;
+    if(this.#state==="REQUIRESEEK")await this.restoreCursorPosition(control);
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{
+      await control.checkpoint(1);this.#overflowValid=false;
+      if(this.#state==="INVALID")return false;
+      if(this.#state==="SKIPNEXT"){this.#state="VALID";if(this.#skipNext<0)return true;}
+      if(!this.#current!.page.leaf){await this.#scanChild(this.#index,control);await this.#rightmost(control);return true;}
+      while(this.#index===0){
+        if(!this.#parents.length){this.#state="INVALID";return false;}
+        this.#current!.release();const parent=this.#parents.pop()!;
+        this.#current=parent.lease;this.#index=parent.slot;
+      }
+      this.#index--;return true;
+    }catch(error){this.#state="INVALID";this.#releasePath();throw error}
+    finally{this.#token=null;ops.end(t)}
+  }
   /** accessPayload snapshot: callback cannot retain a page borrow across moves.
    * Scratch is charged until the consumer returns, including awaited work. */
   async withPayload<T>(control:PrivateStateControl,consume:(bytes:Uint8Array)=>Promise<T>|T):Promise<T>{
@@ -1649,7 +1684,12 @@ export class PrivateBlobkeyCursor {
       if(cell.nPayload>this.#limits.maxKeyBytes)throw new PrivateStateLimitError("private payload exceeds byte limit");
       this.#arena.allocationCheckpoint(page.pgno);this.#arena.reserveScratch(cell.nPayload+64);charge=cell.nPayload+64;
       const bytes=new Uint8Array(cell.nPayload);
-      await control.checkpoint(cell.nLocal);bytes.set(page.bytes.subarray(cell.payloadOffset,cell.payloadOffset+cell.nLocal));
+      // The positioned page lease outlives this operation. Do not mint a
+      // borrowed subview here: its capability charge would remain on that
+      // lease after the payload callback, growing on every OP_Column. Indexed
+      // reads copy the already-admitted local extent without a new capability.
+      await control.checkpoint(cell.nLocal);
+      for(let i=0;i<cell.nLocal;i++)bytes[i]=page.bytes[cell.payloadOffset+i]!;
       let written=cell.nLocal,next=cell.overflowOffset===null?0:get4(page.bytes,cell.overflowOffset);
       while(written<cell.nPayload){
         await control.checkpoint(0);const lease=ops.raw(t,next);

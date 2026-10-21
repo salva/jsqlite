@@ -1,6 +1,10 @@
 import {metadataColumnDeclaredType,metadataSource,metadataHiddenColumns,METADATA_MODULE_COLUMNS,type MetadataValue} from './pragma.ts';
 import {chooseJsonTableIndex,jsonTableConstraints,planJsonTableConstraints} from './json-table-plan.ts';
 import {PrivateKeyVmCursor} from './private-key-vm.ts';
+import {beginInLoop} from './where-in-loop.ts';
+import {dispatchPrivateInCursor} from './private-in-dispatch.ts';
+import {emitSelectedInRhs} from './where-in-producer.ts';
+import type {SelectInLoopRhs} from './where-plan.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
 import {StorageLimitError} from './storage.ts';
@@ -229,7 +233,7 @@ type Op =
   | { readonly code: "DeferredSeek"; readonly p1: number; readonly p2: number }
   | { readonly code: "DeferredIndexSeek"; readonly p1:number; readonly p2:number; readonly primaryKeyFields:readonly number[]; readonly physical:PhysicalIndex }
   | { readonly code: "NullRow"; readonly p1: number }
-  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity }
+  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity; readonly inProbe?:boolean }
   | { readonly code: "RealAffinity"; readonly p1: number }
   | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
@@ -4063,9 +4067,15 @@ function resolvedResultKeyTerms(plan:ReturnType<typeof expandAndResolveSelect>):
  });
 }
 
+function subquerySemanticField(item:ExprNode,linked:ReturnType<typeof expandAndResolveSelect>|undefined,index:number):Expression {
+ if(linked){const column=resolvedResultColumn(linked.result[index]!);const node=item.reduction;const affinity=node?resolvedExpressionAffinity(node,linked):linked.result[index]!.columnIndex===-1?'integer':column?.affinity,collation=node?resolvedExpressionCollation(node,linked):column?.collation;const field:Expression={kind:'register',index:0,...(affinity?{affinity}:{}),...(collation?{collation:sqliteAsciiFold(collation) as BuiltinCollation}:{})};const explicit=node?explicitCollation(expressionFromReduction(node)):undefined;return explicit?{kind:'collate',value:field,collation:explicit}:field;}
+ if(!item.reduction)throw new JSQLiteError('unsupported','SELECT field semantics require linked result',{unsupportedClassification:'temporary'});
+ return expressionFromReduction(item.reduction);
+}
+
 // Expected-width SRT_Set/SRT_Mem consumer. Child SELECT still owns row
 // production, WHERE, ordering, and limits on the enclosing Parse builder.
-function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeof expandAndResolveSelect>|undefined,builder:SelectProgramBuilder<Op>,ops:Op[],parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},binding?:ResolvedExpressionBinding,compileLeft?:(expression:SubqueryExpression)=>number):number {
+function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeof expandAndResolveSelect>|undefined,builder:SelectProgramBuilder<Op>,ops:Op[],parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},binding?:ResolvedExpressionBinding,compileLeft?:(expression:SubqueryExpression)=>number,selectedDestination?:Extract<SelectDest,{kind:'set'}>):number {
  const linkedPlan=expression.resolved??plan;
  plan=linkedPlan;
  // Table compound producers require arm composition; a single table loop
@@ -4077,19 +4087,15 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
  if(!isExists&&selected.result.length!==width)throw new JSQLiteError('sqlite',`sub-select returns ${selected.result.length} columns - expected ${width}`,{code:1});
  if(!plan&&!expression.select.hasValues&&expression.select.from.items.length)throw new JSQLiteError('internal','wide SELECT lost linked plan');
  const leftSelect=isIn&&expression.left.kind==='scalar-subquery'&&!expression.left.exists?expression.left:undefined;
- const semanticField=(item:ExprNode,linked:ReturnType<typeof expandAndResolveSelect>|undefined,index:number):Expression=>{
-  if(linked){const column=resolvedResultColumn(linked.result[index]!);const node=item.reduction;const affinity=node?resolvedExpressionAffinity(node,linked):linked.result[index]!.columnIndex===-1?'integer':column?.affinity,collation=node?resolvedExpressionCollation(node,linked):column?.collation;const field:Expression={kind:'register',index:0,...(affinity?{affinity}:{}),...(collation?{collation:sqliteAsciiFold(collation) as BuiltinCollation}:{})};const explicit=node?explicitCollation(expressionFromReduction(node)):undefined;return explicit?{kind:'collate',value:field,collation:explicit}:field;}
-  if(!item.reduction)throw new JSQLiteError('unsupported','SELECT field semantics require linked result',{unsupportedClassification:'temporary'});
-  return expressionFromReduction(item.reduction);
- };
+ const semanticField=subquerySemanticField;
  const fields=isIn&&expression.left.kind==='vector'?expression.left.fields:leftSelect?(leftSelect.resolved?.result.map(item=>item.expression)??leftSelect.select.result).map((item,i)=>semanticField(item,leftSelect.resolved,i)):isIn?[expression.left]:[],right=(expression.select.hasValues?expression.select.arms.at(-1)?.valuesRows?.at(-1)??selected.result:selected.result).map((item,i)=>semanticField(item,plan,i));
  const affinities=fields.map((field,i)=>comparisonAffinity(expressionAffinity(field),right[i]?expressionAffinity(right[i]!):undefined));
- const result=builder.range(isIn||isExists?1:width),cursor=isIn?builder.cursor():-1,once=plan?.correlated?undefined:builder.register(),onceAt=once===undefined?-1:ops.length;
+ const result=selectedDestination?0:builder.range(isIn||isExists?1:width),cursor=selectedDestination?.cursor??(isIn?builder.cursor():-1),once=selectedDestination||plan?.correlated?undefined:builder.register(),onceAt=once===undefined?-1:ops.length;
  if(once!==undefined)ops.push({code:'Once',p1:once,p2:0});
- if(isIn){const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,right[i]??field)}))});ops.push({code:'OpenEphemeral',p1:cursor,keyInfo:info,p4KeyInfo:info});}
- else if(isExists)ops.push({code:'Integer',p1:0n,p2:result});
- else for(let i=0;i<width;i++)ops.push({code:'Null',p2:result+i});
- const dest:SelectDest=isIn?{kind:'set',cursor,width,affinities,packedRegister:builder.register()}:isExists?{kind:'exists',register:result}:{kind:'mem',register:result,width};
+ if(isIn&&!selectedDestination){const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:width,keyFieldCount:width,terms:fields.map((field,i)=>({collation:binaryCollation(field,right[i]??field)}))});ops.push({code:'OpenEphemeral',p1:cursor,keyInfo:info,p4KeyInfo:info});}
+ else if(!selectedDestination&&isExists)ops.push({code:'Integer',p1:0n,p2:result});
+ else if(!selectedDestination&&!isIn)for(let i=0;i<width;i++)ops.push({code:'Null',p2:result+i});
+ const dest:SelectDest=selectedDestination??(isIn?{kind:'set',cursor,width,affinities,packedRegister:builder.register()}:isExists?{kind:'exists',register:result}:{kind:'mem',register:result,width});
  const local=new Map(plan?.sources.map(ref=>[ref,builder.cursor()])??[]),cursorFor=(ref:ResolvedSource)=>local.get(ref)??ref.cursorId;
  const childBinding:ResolvedExpressionBinding|undefined=binding?{policy:binding.policy,positionedSources:binding.positionedSources??new Set(),location:ref=>local.has(ref.source)?{kind:'cursor',cursor:cursorFor(ref.source)}:binding.location(ref,0)}:undefined;
  const owner={builder,ops,parameters,destination:dest,cursorFor,...(childBinding?{expressionBinding:childBinding}:{})};
@@ -4129,8 +4135,24 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
  else compileInnerTableSelect(child,plan!,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,preparedOwner);
  if(preparedLimit)(ops[preparedLimit.ifZero] as {p2:number}).p2=ops.length;
  if(onceAt>=0)(ops[onceAt] as {p2:number}).p2=ops.length;
+ if(selectedDestination)return 0; // caller owns LOOP consumption, never a membership tail
  if(isIn){const leftFirst=leftSelect?compileLeft?compileLeft(leftSelect):compileWideSubquery(leftSelect,undefined,builder,ops,parameters,environment,binding):undefined;const key=builder.range(width);fields.forEach((field,i)=>{const value=leftFirst===undefined?compileExpressionTree(field,ops,()=>builder.register(),parameters):leftFirst+i;ops.push({code:'Copy',p1:value,p2:key+i});});ops.push({code:'InSet',p1:cursor,key,output:result,affinity:'blob',affinities,count:width,negated:expression.negated});}
  return result;
+}
+
+// expr.c sqlite3CodeRhsOfIN delegates production to the original linked
+// SELECT compiler, with SRT_Set but without a membership consumer.
+export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits}) {
+ const node=rhs.expression.reduction!;
+ const expression=bindResolvedExpression(expressionFromReduction(node),resolvedExpressionCarrier(outer,node as Reduction),source=>source.cursorId,true);
+ if(expression.kind!=='in-subquery'||expression.negated)throw new JSQLiteError('internal','selected RHS lost IN expression');
+ const left=expression.left,result=rhs.resolved.result[0]!;
+ const right=subquerySemanticField(result.expression,rhs.resolved,0);
+ const affinity=comparisonAffinity(expressionAffinity(left),expressionAffinity(right));
+ const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:binaryCollation(left,right)}]});
+ return emitSelectedInRhs(builder,rhs,info,affinity,(resolved,destination)=>{
+  compileWideSubquery(expression,resolved,builder,builder.ops,parameters,environment,undefined,undefined,destination);
+ });
 }
 
 function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,inputEnvironment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding,schema?:SchemaGraph):(expression:SubqueryExpression)=>number {
@@ -4557,6 +4579,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         // WhereEnd restarts inner values before advancing outer values.
         const inTargets=new Map<typeof admissions[number],number>();
         for(const admission of admissions.filter(item=>item.operator==='in')){
+          if(admission.term.inSelectRhs){
+            const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+            const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending);
+            iterators.push(loop.start);inTargets.set(admission,target);continue;
+          }
           const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
           if(tree.kind!=='in-list'||tree.negated)throw new JSQLiteError('internal','joined OR IN lost value list');
           const values=tree.values.map(value=>compileExpressionTree(value,ops,allocate,parameters,compileJoinSubquery));
@@ -4591,7 +4618,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const advance=ops.length;
       for(let i=iterators.length-1;i>=0;i--){
         if(i<iterators.length-1)(ops[iterators[i+1]!] as {p2:number}).p2=ops.length;
-        ops.push({code:'Goto',p2:iterators[i]!});
+        emitInAdvance(ops,iterators[i]!);
       }
       if(prefixLoop?.restart!==null&&prefixLoop?.restart!==undefined)finishPrefixLoop(ops,prefixLoop,ops.length+1);
       const exit=ops.length;
@@ -4650,6 +4677,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const inTargets=new Map<typeof admissions[number],number>();
       const iterators:number[]=[];
       for(const admission of inAdmissions){
+        if(admission.term.inSelectRhs){
+          const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+          const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending);
+          iterators.push(loop.start);inTargets.set(admission,target);continue;
+        }
         const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
         if(tree.kind!=='in-list'||tree.negated)throw new JSQLiteError('internal','selected IN lost value list');
         const values=tree.values.map(value=>compileExpressionTree(value,ops,allocate,parameters,compileJoinSubquery));
@@ -4782,7 +4814,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const iterator=restart.iterators[i]!;
       if(i===restart.iterators.length-1)restart.advance=ops.length;
       if(i<restart.iterators.length-1)(ops[restart.iterators[i+1]!] as {p2:number}).p2=ops.length;
-      ops.push({code:'Goto',p2:iterator});
+      emitInAdvance(ops,iterator,nullPasses.get(level));
     }
   }const prefixLoop=prefixLoops.get(level);if(prefixLoop?.restart!==null&&prefixLoop?.restart!==undefined)ops.push({code:"Goto",p2:prefixLoop.restart});
   const match=leftMatches[level];if(match!==undefined){
@@ -4977,6 +5009,18 @@ function emitWrPrimaryPosition(ops:Op[],secondary:PhysicalIndex,primary:Physical
   const at=ops.length;ops.push({code:'NotFound',p1:tableCursor,keyStart:keys[0]!,keyCount:keys.length,jump:0});return at;
 }
 
+function emitInAdvance(ops:Op[],iterator:number,nullPass?:number):void {
+ const op=ops[iterator];
+ if(op?.code==='InListValue'){ops.push({code:'Goto',p2:iterator});return;}
+ if(op?.code!=='IndexRewind'&&op?.code!=='IndexLast')throw new Error('IN restart lost cursor owner');
+ const guard=ops[iterator+2];
+ if(guard?.code!=='IsNull')throw new Error('IN restart lost NULL guard');
+ (guard as {p2:number}).p2=ops.length;
+ // LEFT null-extension does not advance a bypassed RHS cursor.
+ if(nullPass!==undefined)ops.push({code:'IfPos',p1:nullPass,p2:ops.length+2,p3:0});
+ ops.push({code:op.code==='IndexLast'?'IndexPrev':'IndexNext',p1:op.p1,p2:iterator+1});
+}
+
 interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[]; readonly prefixLoop?:PrefixLoop; readonly primaryMiss?:number }
 /** Bounded first-plan translation seam for sqlite3WhereBegin/wherecode.c. */
 function sqlite3WhereBegin(ops: Op[], rootPage: number): FullScanPlan {
@@ -4989,18 +5033,18 @@ function sqlite3WhereEnd(ops: Op[], plan: FullScanPlan, continueAt: number): voi
   if(!plan.singleRow)ops.push(plan.indexCursor===undefined?(plan.reverse?{code:"Prev",p2:continueAt}:{code:"Next",p2:continueAt}):(plan.reverse?{code:"IndexPrev",p1:plan.indexCursor,p2:continueAt}:{code:"IndexNext",p1:plan.indexCursor,p2:continueAt}));
   // where.c:sqlite3WhereEnd unwinds aInLoop inside-out. On outer
   // advancement execution falls through the next inner slot's Integer reset.
+  let inAdvance:number|undefined;
   for(let i=iterators.length-1;i>=0;i--){
-    const iterator=ops[iterators[i]!];
-    if(iterator?.code!=="InListValue")throw new Error("IN restart target is not an iterator");
+    inAdvance??=ops.length;
     if(i<iterators.length-1)(ops[iterators[i+1]!] as {p2:number}).p2=ops.length;
-    ops.push({code:"Goto",p2:iterators[i]!});
+    emitInAdvance(ops,iterators[i]!);
   }
   if(plan.prefixLoop?.restart!==null&&plan.prefixLoop?.restart!==undefined)finishPrefixLoop(ops,plan.prefixLoop,ops.length+1);
   const scanExit=ops.length;
   const prefixExit=plan.prefixLoop?.restart??scanExit;
   // Scan exhaustion falls through to the SELECT-owned drain/exit.
   if(iterators.length)(ops[iterators[0]!] as {p2:number}).p2=prefixExit;
-  const exit=iterators.at(-1)??prefixExit;
+  const exit=inAdvance??prefixExit;
   if(ops[plan.rewindIndex]?.code!=="Goto")(ops[plan.rewindIndex] as {p2:number}).p2=exit;
   for(const at of plan.equalityNullGuards??[])(ops[at] as {p2:number}).p2=scanExit;
   for(const at of plan.startNullGuards??[])(ops[at] as {p2:number}).p2=exit;
@@ -7474,7 +7518,13 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       // each inner cursor on a new outer RHS value.
       const targets=new Map<typeof admissions[number],number>();
       for(const admission of inAdmissions){
-        const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register(),target=builder.register();
+        const target=builder.register();
+        if(admission.term.inSelectRhs){
+          const set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+          const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending);
+          inIterators.push(loop.start);targets.set(admission,target);continue;
+        }
+        const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register();
         ops.push({code:"Integer",p1:0n,p2:indexRegister});
         const iterator=ops.length;
         ops.push({code:"InListValue",values,indexRegister,target,p2:0,setKey:{affinity:admission.comparison.kind==="comparison"?admission.comparison.affinity:"blob",keyInfo:selectedPhysical.keyInfo,fieldOrdinal:ordinal(admission),reverse:selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending}});
@@ -9349,6 +9399,18 @@ export class VdbeStatement implements Statement {
         this.#checkControl(options, limit, started);
         if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.checkpoint(); this.#state = "running"; this.#checkControl(options, limit, started); }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
+        // vdbe.c shares Btree positioning between ephemeral IN sets and
+        // persistent indices. Await private movement before publishing jumps.
+        if((op.code==='IndexRewind'||op.code==='IndexLast'||op.code==='IndexNext'||op.code==='IndexPrev'||op.code==='Column')&&this.#privateKeys.has(op.code==='Column'?(op.p3??0):op.p1)){
+          const cursorOp=op.code==='Column'?{...op,p3:op.p3??0}:op;
+          const result=await dispatchPrivateInCursor(cursorOp,this.#privateKeys,this.#registers,this.#privateControl(options,limit,started));
+          if(result.handled){
+            if(op.code==='Column'&&op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}
+            if(op.code==='Column'&&op.inProbe&&this.#registers[op.p2]!.initialStorageClass!=='null')this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1};
+            if(result.jump!==null)this.#pc=result.jump;
+            continue;
+          }
+        }
         switch (op.code) {
           case "OpenRead": {const cursor=op.p2??0;this.#cursorRoots.set(cursor,op.p1);this.#cursors.set(cursor,this.#program.database!.tableScanCursor(op.p1));break;}
           case "OpenIndex":

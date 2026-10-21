@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor,PRIVATE_CURSOR_CHARGE,PRIVATE_ARENA_CHARGE,PRIVATE_LEASE_CHARGE,PRIVATE_SUBVIEW_CHARGE,PRIVATE_ITERATOR_CHARGE, PRIVATE_ITERATOR_RESULT_CHARGE} from '../../src/internal/private-blobkey-pages.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 import {KeyInfo,UnpackedRecordKey} from '../../src/internal/comparison.ts';
+import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
 import {Mem} from '../../src/internal/mem.ts';
 const control={async checkpoint(){}};
 const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
@@ -15,6 +16,58 @@ function fixture(values,children=null){const b=new Uint8Array(4096);b[0]=childre
 function key(n,rc=0){const m=new Mem();m.setInt64(BigInt(n));return new UnpackedRecordKey([m],rc,'seek',info)}
 async function seek(c,n,rc=0,ctl=control){const k=key(n,rc);try{const result=await c.indexMoveto(k,ctl);return {...result,eqSeen:k.eqSeen}}finally{k.release()}}
 async function open(hook=()=>{}){const budget=new PrivateStateByteBudget(100000),arena=await PrivateBlobkeyPages.open(budget,control,hook,limits);return {arena,budget,cursor:new PrivateBlobkeyCursor(arena,info,limits)}}
+test('VM LOOP cursor reverses the same page-owned set, then rewinds after EOF and interruption',async()=>{
+ const {arena,cursor:c,budget}=await open();
+ arena.installPage(2,fixture([20],[3,4]));arena.installPage(3,fixture([5,10]));arena.installPage(4,fixture([25,30]));
+ const vm=new PrivateKeyVmCursor(arena,c,info),seen=[];
+ try{
+  assert.equal(await vm.last(control),true);assert.equal(vm.nullRow,false);
+  do{seen.push(await c.withPayload(control,bytes=>bytes.at(-1)))}while(await vm.previous(control));
+  assert.deepEqual(seen,[30,25,20,10,5]);assert.equal(vm.nullRow,true);
+  assert.equal(await vm.previous(control),false);
+  assert.equal(await vm.first(control),true);assert.equal(vm.nullRow,false);
+  assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),5);
+  assert.equal(await vm.next(control),true);assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),10);
+  const primary=new Error('VM reverse interruption');vm.cacheStale=false;
+  await assert.rejects(vm.previous({async checkpoint(){throw primary}}),error=>error===primary);
+  assert.equal(vm.cacheStale,true);assert.equal(vm.nullRow,false,'next_tail retains nullRow on rc error');
+  assert.equal(await vm.last(control),true);assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),30);
+ }finally{vm.close();arena.close()}
+ assert.equal(budget.usedBytes,0);
+});
+test('LOOP RHS reverse traversal visits interior dividers and restores fresh positioning',async()=>{
+ const {arena,cursor:c,budget}=await open();
+ arena.installPage(2,fixture([20],[3,4]));arena.installPage(3,fixture([5,10]));arena.installPage(4,fixture([25,30]));
+ const seen=[];
+ assert.equal(await c.last(control),true);
+ do {seen.push(await c.withPayload(control,bytes=>bytes.at(-1)))} while(await c.previous(control));
+ assert.deepEqual(seen,[30,25,20,10,5]);
+ assert.equal(await c.previous(control),false);
+ assert.equal(await c.first(control),true);
+ assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),5);
+ assert.equal(await c.next(control),true);
+ assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),10);
+ assert.equal(await c.last(control),true);
+ assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),30);
+ c.close();arena.close();assert.equal(budget.usedBytes,0);
+});
+test('reverse endpoint empty and checkpoint failure release position before retry',async()=>{
+ const empty=await open();
+ assert.equal(await empty.cursor.last(control),false);assert.equal(await empty.cursor.previous(control),false);
+ empty.cursor.close();empty.arena.close();assert.equal(empty.budget.usedBytes,0);
+ const {arena,cursor:c,budget}=await open();
+ arena.installPage(2,fixture([20],[3,4]));arena.installPage(3,fixture([10]));arena.installPage(4,fixture([30]));
+ const primary=new Error('reverse checkpoint');let calls=0;
+ await assert.rejects(c.last({async checkpoint(){if(++calls===2)throw primary}}),error=>error===primary);
+ assert.equal(await c.last(control),true);
+ assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),30);
+ await assert.rejects(c.previous({async checkpoint(){throw primary}}),error=>error===primary);
+ assert.equal(await c.previous(control),false);
+ assert.equal(await c.last(control),true);
+ assert.equal(await c.previous(control),true);
+ assert.equal(await c.withPayload(control,bytes=>bytes.at(-1)),20);
+ c.close();arena.close();assert.equal(budget.usedBytes,0);
+});
 test('empty signed success and leaf signed current-vs-target, not GE/LE',async()=>{
  const {arena,cursor:c}=await open();assert.deepEqual(await seek(c,1),{res:-1,state:'INVALID',page:2,index:0,epoch:0,eqSeen:false});c.close();
  arena.installPage(2,fixture([10,20,30]));const d=new PrivateBlobkeyCursor(arena,info,limits);
@@ -357,10 +410,10 @@ test('scan payload overflow owns snapshot through callback and preserves cancell
  assert.equal(await c.first(control),true);const base=budget.usedBytes;
  let held;
  await c.withPayload(control,bytes=>{assert.equal(bytes.length,2000);assert.equal(bytes[1999],7);held=budget.usedBytes;});
- assert.ok(held>base);const after=budget.usedBytes;assert.equal(after,base+64); // retained raw access metadata
+ assert.ok(held>base);const after=budget.usedBytes;assert.equal(after,base); // no local subview capability survives callback
  enabled=true;
  await assert.rejects(c.withPayload({async checkpoint(units){if(units===1511)throw primary}},()=>{}),e=>e===primary);
- assert.equal(arena.referenceCount(3),0);assert.equal(budget.usedBytes,after+64); // second raw descriptor retained until arena close
+ assert.equal(arena.referenceCount(3),0);assert.equal(budget.usedBytes,after); // failed snapshot releases all operation-local capabilities
  enabled=false;assert.equal(await c.next(control),false);c.close();arena.close();assert.equal(budget.usedBytes,0);
 });
 

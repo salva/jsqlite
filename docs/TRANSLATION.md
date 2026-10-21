@@ -447,6 +447,22 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 
 ## WHERE, joins and physical indexes
 
+Selected scalar uncorrelated SELECT-IN retains the linked resolved SELECT and
+original parameters, produces native-shaped SRT_Set into a UNIQUE private Btree,
+and positions/copies/skips NULL before selected LHS prefix/range seeks. Ordinary,
+joined and recursive-OR slot callers share inside-out RHS advancement; seek/end
+failure advances rather than rewinding the innermost slot. Private endpoint,
+movement and Column dispatch precedes persistent dispatch, publishing jumps only
+after success. List-IN register iteration is retained.
+
+Bounded native/public evidence covers forced/unforced scalar and range, two-slot,
+INNER/LEFT/OR compositions, metadata, parameter clear/rebind and between-row
+cancellation/reset/retry across three encodings. Physical DESC, recursive joined
+OR, LEFT early bypass, selected malformed-page/private-failure cleanup and prefix
+earlyout need dedicated evidence. Vectors/correlation and direct RHS-index reuse
+remain implementation gaps, not product exclusions. See
+[scoped evidence and limitations](research/selected-select-in-delivery.md).
+
 ON hit/match recording precedes ready non-ON WHERE constraints and downstream
 positioning, including null/unmatched continuations. Nested SELECT dependencies
 retain enclosing-source readiness. Selected rowid OR uses source-owned arms and

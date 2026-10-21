@@ -23,7 +23,22 @@ export type LogicalEstimate=bigint;
 export type WhereOperator="eq"|"is"|"is-null"|"in"|"lt"|"le"|"gt"|"ge";
 export type TermOrigin={readonly kind:"where"}|{readonly kind:"join-on";readonly rightSource:number;readonly join:"inner"|"left"|"right"|"full"}|{readonly kind:"using";readonly rightSource:number;readonly name:string}|{readonly kind:"derived";readonly parentTerm:number;readonly reason:"commuted"|"transitive"|"range"};
 export interface ColumnBinding {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly column:ColumnNode|null;readonly columnIndex:number;readonly rowid:boolean}
-export interface WhereTerm {readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
+export interface SelectInLoopRhs {
+ readonly kind:"select";
+ readonly demand:"loop";
+ readonly select:SelectNode;
+ readonly resolved:ResolvedSelect;
+ readonly expression:ExprNode;
+ // Parse/ParameterBuilder owns slot assignment. Preserve original occurrences,
+ // including startByte, instead of assigning fresh slots during WHERE lowering.
+ readonly parameterOccurrences:readonly SqlToken[];
+ readonly prereq:SourceMask;
+ readonly scalar:boolean;
+ readonly correlated:boolean;
+ readonly unique:true;
+ readonly skipNull:true;
+}
+export interface WhereTerm {readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
 export type WhereTermInfo={readonly kind:"or";readonly parentTerm:WhereTerm;readonly clause:WhereClause;readonly indexable:SourceMask}|{readonly kind:"and";readonly clause:WhereClause};
 export interface WhereClause {readonly split:"and"|"or";readonly terms:readonly WhereTerm[];readonly outer:WhereClause|null}
 export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:ColumnNode["affinity"];readonly collation:BuiltinCollation}|{readonly kind:"is-null"};
@@ -532,6 +547,10 @@ function rangeRows(rows:bigint,lower:boolean,upper:boolean,virtualLower=false):b
 /** Literal scalar IN list cardinality, where.c:3360. Count immediate
  * semantic list entries, not nested expression commas or distinct values. */
 function literalInLogEst(term:WhereTerm):bigint {
+ // where.c:3334: SELECT RHS uses the native 25-row tuning estimate, not
+ // result execution or a fabricated expression list. Scalar first branch;
+ // vector repeated-term multiplicity is not admitted by this carrier yet.
+ if(term.inSelectRhs)return 46n;
  const root=term.expression.reduction;
  const list=root?.kind==="reduction"?root.children.find(c=>c.kind==="reduction"&&c.signature.startsWith("exprlist ::=")):undefined;
  const n=list?.kind==="reduction"?directExprReductions(list).length:0;
@@ -861,6 +880,25 @@ function indexedBinding(resolved:ResolvedSelect,node:ExprReduction):ColumnBindin
  }
  return null;
 }
+function selectInLoopRhs(resolved:ResolvedSelect,node:ExprReduction,prereqRight:SourceMask):SelectInLoopRhs|undefined {
+ if(node.signature!=="expr ::= expr in_op LP select RP"||node.children.some(child=>child.kind==='reduction'&&child.signature==='in_op ::= NOT IN'))return undefined;
+ const reduction=node.children.find((child):child is ExprReduction=>child.kind==='reduction'&&child.signature.startsWith('select ::='));
+ const select=reduction?.semantic as SelectNode|undefined;
+ if(!select)return undefined;
+ const find=(owner:ResolvedSelect):ResolvedSelect|undefined=>{
+  if(owner.source===select)return owner;
+  for(const child of owner.nested){const found=find(child);if(found)return found;}
+  for(const arm of owner.compoundArms??[]){const found=find(arm);if(found)return found;}
+  return undefined;
+ };
+ const plan=find(resolved);
+ if(!plan)throw new Error('IN SELECT lost its resolved identity');
+ const expression=asExpr(node),lhs=exprChildren(node)[0];
+ return freeze({kind:'select',demand:'loop',select,resolved:plan,expression,
+  parameterOccurrences:Object.freeze(asExpr(reduction!).tokens.filter(token=>token.kind==='variable')),
+  prereq:prereqRight,scalar:plan.result.length===1&&lhs?.signature!=="expr ::= LP nexprlist COMMA expr RP",
+  correlated:plan.correlated,unique:true,skipNull:true});
+}
 function rhsPrereq(resolved:ResolvedSelect,node:ExprReduction,orientation:"left"|"right",operator:WhereOperator|null):SourceMask {
  const children=exprChildren(node);
  if(operator!=="in")return operator==="is-null"?0n:children[orientation==="left"?1:0]?prereq(resolved,children[orientation==="left"?1:0]!):0n;
@@ -1149,7 +1187,7 @@ function producesEmptyInTruth(node:ExprReduction):boolean {
  const unsafe=(v:LemonValue<SqlToken>):boolean=>parseHasFunc(v)||carriesSelect(v);
  return !unsafe(lhs);
 }
-function comparisonOperator(node:ExprReduction,resolved:ResolvedSelect):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"||node.signature==="expr ::= expr IS NOT DISTINCT FROM expr"){const rhs=exprChildren(node)[1];
+function comparisonOperator(node:ExprReduction,resolved:ResolvedSelect):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP select RP"){const rhs=selectInLoopRhs(resolved,node,rhsPrereq(resolved,node,'left','in'));return rhs?.scalar&&!rhs.correlated&&rhs.prereq===0n?'in':null;}if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"||node.signature==="expr ::= expr IS NOT DISTINCT FROM expr"){const rhs=exprChildren(node)[1];
  // resolve.c TK_IS resolves a skipped ID/TRUEFALSE RHS to TK_TRUTH.
  if(rhs){const truth=skipCollateAndLikely(rhs,resolved),tokens=asExpr(truth).tokens;
   if(producesEmptyInTruth(truth)||truth.signature==="expr ::= ID|INDEXED|JOIN_KW"&&tokens.length===1&&/^(true|false)$/i.test(tokens[0]!.text)&&!binding(resolved,truth))return null;
@@ -1212,7 +1250,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
  const outerOn=(draft:Draft):boolean=>draft.parentId!==null?outerOn(drafts[draft.parentId]!):draft.origin.kind==="join-on"&&draft.origin.join==="left";
  const joinOwner=(draft:Draft):number|null=>draft.parentId!==null?joinOwner(drafts[draft.parentId]!):draft.origin.kind==="join-on"?draft.origin.rightSource:null;
- const terms:WhereTerm[]=ordered.map((draft,id)=>({id,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
+ const terms:WhereTerm[]=ordered.map((draft,id)=>({id,inSelectRhs:draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined,expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  const clause:WhereClause={split,terms,outer};
  const combined:WhereTerm[]=[];
  let orIndexable=(1n<<BigInt(resolved.sources.length))-1n;
