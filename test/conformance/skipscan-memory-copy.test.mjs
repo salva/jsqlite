@@ -30,11 +30,18 @@ test('selected skip scan sorter memory failure/reset and connection recovery', {
   try{return await insertOriginal.call(this,key,payload,{checkpoint:async units=>{checks++;if(checks===3){assert.equal(this.first(),true,'growth reached actual cursor');assert.ok(activeBudget.usedBytes>0,'actual shared bytes reserved before abort');controller.abort();}await control.checkpoint(units);}});}
   catch(e){assert.equal(checks,3);assert.equal(this.first(),false,'failed growth removed before VDBE halt');assert.equal(activeBudget.usedBytes,0,'rollback releases shared reservation before halt');rollbacks++;throw e;}
  };
- const timerOriginal=globalThis.setTimeout;let deadlineInject=false,insideDeadlineSort=false,delayedYields=0;
- globalThis.setTimeout=function(fn,ms,...args){if(insideDeadlineSort&&deadlineInject){deadlineInject=false;delayedYields++;return timerOriginal(fn,1100,...args);}return timerOriginal(fn,ms,...args);};
+ let deadlineInject=false,delayedYields=0;
  const sortOriginal=SorterCursor.prototype.sort;let mergeInject=null,mergeFailures=0;
  SorterCursor.prototype.sort=async function(control){
-  if(deadlineInject){insideDeadlineSort=true;try{return await sortOriginal.call(this,control);}finally{insideDeadlineSort=false;}}
+  if(deadlineInject){
+   deadlineInject=false;let charges=0;
+   // Admission may suppress host transport for this small merge. Delay a real
+   // awaited merge checkpoint instead of assuming it chooses a timer task.
+   return sortOriginal.call(this,{checkpoint:async units=>{
+    await control.checkpoint(units);
+    if(++charges===5){assert.ok(activeBudget.usedBytes>0,'merge owns entries at awaited checkpoint');await new Promise(resolve=>setTimeout(resolve,1100));delayedYields++;}
+   }});
+  }
   if(!mergeInject)return sortOriginal.call(this,control);
   const controller=mergeInject;mergeInject=null;let charges=0;const reserved=activeBudget.usedBytes;assert.ok(reserved>0);
   try{return await sortOriginal.call(this,{checkpoint:async units=>{charges++;if(charges===5)controller.abort();await control.checkpoint(units);}});}
@@ -50,7 +57,7 @@ test('selected skip scan sorter memory failure/reset and connection recovery', {
   const good=await openFixture(request(`good-${i}`)),c=v.cases.find(c=>c.sql.includes('COLLATE NOCASE')),statement=good.prepare(c.sql).statement;
   try{for(let run=0;run<2;run++){const controller=new AbortController();mergeInject=controller;calls=[];await assert.rejects(statement.step({signal:controller.signal}),e=>e.kind==='cancelled');assert.ok(calls.some(([d,n])=>d==='gt'&&n===1));assert.equal(activeBudget.usedBytes,0,'halt releases retained merge entries');assert.throws(()=>statement.reset(),e=>e.kind==='cancelled');const rows=[];while(await statement.step()==='row')rows.push([cell(statement.columnInteger(0)),cell(statement.columnInteger(1))]);assert.deepEqual(rows,c.rows);assert.ok(statement.privateAccounting().sorterRows>0);statement.reset();}}finally{statement.finalize();good.close();}
  }assert.equal(mergeFailures,6);
- for(const [i,v] of variants.entries()){const good=await openFixture(request(`good-${i}`)),c=v.cases.find(c=>c.sql.includes('COLLATE NOCASE')),statement=good.prepare(c.sql).statement;try{deadlineInject=true;calls=[];await assert.rejects(statement.step({timeoutMs:1000}),e=>e.kind==='timeout');assert.equal(deadlineInject,false,'real production merge timer yield delayed');assert.ok(calls.some(([d,n])=>d==='gt'&&n===1));assert.equal(activeBudget.usedBytes,0);assert.throws(()=>statement.reset(),e=>e.kind==='timeout');const rows=[];while(await statement.step()==='row')rows.push([cell(statement.columnInteger(0)),cell(statement.columnInteger(1))]);assert.deepEqual(rows,c.rows);}finally{statement.finalize();good.close();}}assert.equal(delayedYields,3);
+ for(const [i,v] of variants.entries()){const good=await openFixture(request(`good-${i}`)),c=v.cases.find(c=>c.sql.includes('COLLATE NOCASE')),statement=good.prepare(c.sql).statement;try{const before=delayedYields;deadlineInject=true;calls=[];await assert.rejects(statement.step({timeoutMs:1000}),e=>e.kind==='timeout');assert.equal(delayedYields,before+1,'actual awaited merge checkpoint delay completed');assert.equal(deadlineInject,false,'real awaited merge checkpoint reached');assert.ok(calls.some(([d,n])=>d==='gt'&&n===1));assert.equal(activeBudget.usedBytes,0);assert.throws(()=>statement.reset(),e=>e.kind==='timeout');const rows=[];while(await statement.step()==='row')rows.push([cell(statement.columnInteger(0)),cell(statement.columnInteger(1))]);assert.deepEqual(rows,c.rows);}finally{statement.finalize();good.close();}}assert.equal(delayedYields,3);
  for(const [i,v] of variants.entries())for(const limits of [{maxPrivateBytes:128},{maxPrivateEntries:1},{maxPrivateKeyBytes:1}]){
   const good=await openFixture(request(`good-${i}`),{limits});
   const c=v.cases.find(c=>c.sql.includes('COLLATE NOCASE'));assert.ok(c);
@@ -66,5 +73,5 @@ test('selected skip scan sorter memory failure/reset and connection recovery', {
   const plain=v.cases.find(c=>c.sql==='SELECT a,b FROM t INDEXED BY ab WHERE b=7 ORDER BY a');assert.ok(plain);
   const recovered=good.prepare(plain.sql).statement;
   try{calls=[];const rows=[];while(await recovered.step()==='row')rows.push([cell(recovered.columnInteger(0)),cell(recovered.columnInteger(1))]);assert.deepEqual(rows,plain.rows);assert.ok(calls.some(([d,n])=>d==='gt'&&n===1));}finally{recovered.finalize();good.close();}
- }}finally{globalThis.setTimeout=timerOriginal;SorterCursor.prototype.sort=sortOriginal;PrivateStateByteBudget.prototype.reserve=reserveOriginal;SorterCursor.prototype.insert=insertOriginal;IndexCursor.prototype.seekKey=original;await new Promise(resolve=>bridge.server.close(resolve));}
+ }}finally{SorterCursor.prototype.sort=sortOriginal;PrivateStateByteBudget.prototype.reserve=reserveOriginal;SorterCursor.prototype.insert=insertOriginal;IndexCursor.prototype.seekKey=original;await new Promise(resolve=>bridge.server.close(resolve));}
 });
