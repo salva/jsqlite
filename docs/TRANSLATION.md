@@ -521,6 +521,11 @@ not established. [Retained reprepare evidence](research/card-h-b-reprepare/READM
 
 `whereexpr.c`, `where.c`, `wherecode.c` produce terms, candidate loops, paths and
 loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
+Joined WHERE residuals are emitted at their ready loop frontier, not deferred
+wholesale to the innermost row. Existing LEFT match/null-extension and RIGHT
+subroutine placement and LTORJ deferral remain authoritative. Correlated RHS
+production still rebuilds at each required invocation; no cross-invocation cache
+or residual deletion is used. [Frontier repair evidence and limits](record:///status.md?card=card-s-c-d-e).
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
 LogEst estimates retain dependency and join-barrier ownership. Output adjustment
 reads the current syntactic RHS directly from the parser carrier (the analogue

@@ -37,6 +37,10 @@ export function registerCorrelatedInWork(encoding){
     }else{
      assert.equal(work.indexSeeks,0);assert.equal(work.inProbes,0);
      assert.ok(work.tableNext>=40000,JSON.stringify(work));
+     // wherecode.c ripe-term frontier: o.k<=2 must reject the other 18
+     // outer rows before entering t. Includes real RHS Btree scan work;
+     // retain the original lower bound and selected/scan ratio checks.
+     assert.ok(work.tableNext<=120020,`outer WHERE frontier: ${JSON.stringify(work)}`);
     }
     await st.reset();
    }

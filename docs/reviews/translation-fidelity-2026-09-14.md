@@ -1,3 +1,15 @@
+## Joined WHERE frontier repair (author evidence, independent acceptance open)
+
+The caller previously invoked ready WHERE emission only for LEFT/RIGHT levels;
+ordinary levels deferred uncoded terms to the final joined body. Pinned
+wherecode.c tests ripe terms at each level. The caller now uses the same ready
+frontier at ordinary levels, retaining outer-join placement and LTORJ deferral.
+The original 20k correlated scan test now also bounds outer-rejected scan work;
+RHS rebuilding/residual semantics and workload/time ceilings are unchanged.
+This is a measured work reduction, not attribution of W170's unmarked timeout
+phase or a full integration reliability claim.
+[Current author evidence, failures and acceptance gaps](record:///status.md?card=card-s-c-d-e).
+
 ## Retained FROM coroutine prefix correction
 
 The beta4 source.index>0 caller prediction was incorrect: select.c:7290–7295
