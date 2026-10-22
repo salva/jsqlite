@@ -38,7 +38,7 @@ export interface SelectInLoopRhs {
  readonly unique:true;
  readonly skipNull:true;
 }
-export interface WhereTerm {readonly inField?:number|undefined;readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
+export interface WhereTerm {readonly variableSelect?:boolean;readonly inField?:number|undefined;readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
 export type WhereTermInfo={readonly kind:"or";readonly parentTerm:WhereTerm;readonly clause:WhereClause;readonly indexable:SourceMask}|{readonly kind:"and";readonly clause:WhereClause};
 export interface WhereClause {readonly split:"and"|"or";readonly terms:readonly WhereTerm[];readonly outer:WhereClause|null}
 export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:ColumnNode["affinity"];readonly collation:BuiltinCollation}|{readonly kind:"is-null"};
@@ -909,6 +909,34 @@ function rhsPrereq(resolved:ResolvedSelect,node:ExprReduction,orientation:"left"
  // except the LHS so a dependency in any list member cannot disappear.
  const lhs=children[0];let mask=0n;for(const child of node.children)if(child.kind==="reduction"&&child!==lhs)mask|=prereq(resolved,child);return mask;
 }
+// whereexpr.c ExprUsageFull's bVarSelect is independent of the source mask.
+export function termHasCorrelatedSelect(resolved:ResolvedSelect,node:ExprReduction):boolean {
+ const plans=new Map<SelectNode,ResolvedSelect>();
+ const remember=(plan:ResolvedSelect):void=>{plans.set(plan.source,plan);for(const child of plan.nested)remember(child);for(const arm of plan.compoundArms??[])remember(arm);};
+ remember(resolved);
+ const visit=(tree:ExprReduction):boolean=>{
+  const plan=plans.get(tree.semantic as SelectNode);
+  if(plan&&plan!==resolved&&plan.correlated)return true;
+  const alias=resolved.aliasUses?.get(tree);
+  return !!alias&&visit(alias)||tree.children.some(child=>child.kind==='reduction'&&visit(child));
+ };
+ return visit(node);
+}
+// expr.c sqlite3ExprCoveredByIndex/exprIdxCover: only this cursor's columns
+// matter, and the expression walker does not descend into SELECTs.
+export function termCoveredByIndex(resolved:ResolvedSelect,node:ExprReduction,source:ResolvedSource,physical:PhysicalIndex):boolean {
+ const visit=(tree:ExprReduction):boolean=>{
+  if(tree.signature.startsWith('select ::='))return true;
+  const alias=resolved.aliasUses?.get(tree);if(alias)return visit(alias);
+  for(const use of resolved.columnUses)if(use.expression===tree)for(const ref of use.mergedSources??[use]){
+   if(ref.source!==source)continue;
+   const column=source.table.columns[ref.columnIndex];
+   if(!physical.fields.some(field=>fieldMatchesColumn(physical,field,column??null)))return false;
+  }
+  return tree.children.every(child=>child.kind!=='reduction'||visit(child));
+ };
+ return visit(node);
+}
 function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
  // whereexpr.c:ExprUsageFull/exprSelectUsage uses the enclosing MaskSet:
  // child-local cursor identities have no bit there. Correlated carriers live
@@ -1268,7 +1296,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
  const outerOn=(draft:Draft):boolean=>draft.parentId!==null?outerOn(drafts[draft.parentId]!):draft.origin.kind==="join-on"&&draft.origin.join==="left";
  const joinOwner=(draft:Draft):number|null=>draft.parentId!==null?joinOwner(drafts[draft.parentId]!):draft.origin.kind==="join-on"?draft.origin.rightSource:null;
- const terms:WhereTerm[]=ordered.map((draft,id)=>({id,inField:draft.inField,inSelectRhs:draft.inRhs??(draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined),expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,draft.inRhs?.resolved??resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
+ const terms:WhereTerm[]=ordered.map((draft,id)=>({variableSelect:termHasCorrelatedSelect(resolved,draft.node),id,inField:draft.inField,inSelectRhs:draft.inRhs??(draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined),expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,draft.inRhs?.resolved??resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  const clause:WhereClause={split,terms,outer};
  const combined:WhereTerm[]=[];
  let orIndexable=(1n<<BigInt(resolved.sources.length))-1n;

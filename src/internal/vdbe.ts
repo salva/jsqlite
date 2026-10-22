@@ -38,7 +38,7 @@ import type { LemonValue } from "./lemon-runtime.ts";
 import type { SqlToken } from "./tokenize.ts";
 import { tokenIds } from "../generated/parser-tables.ts";
 import {jsonWhereLoops} from './where-json-loops.ts';
-import {branchConsumedTerms, analyzeWhere, btreeLoops, orRuntimeArmClause, wherePathSolver, type WhereLoop, type WhereClause, rightJoinResidual, planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
+import {termCoveredByIndex, branchConsumedTerms, analyzeWhere, btreeLoops, orRuntimeArmClause, wherePathSolver, type WhereLoop, type WhereClause, rightJoinResidual, planWhere, resolvedWhereOrder, ROWID_NEEDED, WherePlanningUnsupportedError, expressionStructuralIdentity, type IndexConstraintAdmission, type WhereTerm } from "./where-plan.ts";
 import { builtinFunction, builtinFunctionAccepts } from "./functions.ts";
 import { SQLITE_COMPILE_OPTIONS, SQLITE_SOURCE_ID, SQLITE_VERSION, asText, asUtf8, decodeUnistr, firstCodePoint, quoteValue, scalarText, secureRandom, utf8Length } from "./ordinary-scalars.ts";
 import {sqliteFormat,sqliteRound} from "./printf.ts";
@@ -4540,9 +4540,18 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // term until the innermost row repeats scans and correlated RHS production.
   // Preserve the existing outer-join placement below and LTORJ deferral here.
   const codeReadyConstraints=(level:number,ready:bigint):void=>{
-    if(loopSources[level]!.leftOfRightJoin)return;
-    for(const term of whereTerms){
+    const source=loopSources[level]!;
+    if(source.leftOfRightJoin)return;
+    // Ordinary wherecode.c loop: covered restrictions, then noncorrelated,
+    // then TERM_VARSELECT. LEFT-hit/RIGHT-subroutine WHERE is a separate
+    // single-pass phase after match publication, not this ordinary schedule.
+    const outerPhase=source.joinFromLeft.left||source.joinFromLeft.right;
+    const selected=selectedBySource.get(loopOrdinals[level]!),physical=selected?.kind==='index'?selected.capability?.physicalIndex:undefined;
+    const first=outerPhase?3:physical?1:2;
+    for(let pass=first;pass<=3;pass++)for(const term of whereTerms){
       if(termIsCoded(term)||(term.prereqAll&~ready)!==0n)continue;
+      if(pass===1&&physical&&!termCoveredByIndex(expanded,term.expression.reduction as Reduction,source,physical))continue;
+      if(pass<3&&term.variableSelect)continue;
       const at=compilePredicate(term.expression);
       if(at!==undefined){jumps.push({at,level});codedWhere.add(term.id);}
     }

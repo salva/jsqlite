@@ -4,6 +4,11 @@ The caller previously invoked ready WHERE emission only for LEFT/RIGHT levels;
 ordinary levels deferred uncoded terms to the final joined body. Pinned
 wherecode.c tests ripe terms at each level. The caller now uses the same ready
 frontier at ordinary levels, retaining outer-join placement and LTORJ deferral.
+G67-1 independently found that the initial single-pass frontier violated native
+error order. The current correction retains a semantic correlated-select flag
+and translates ordinary covered/noncorrelated/correlated passes; the separate
+LEFT-hit/RIGHT-subroutine WHERE phases remain single-pass. Native/public
+three-encoding error, reversal and reset controls cover the reproduced boundary.
 The original 20k correlated scan test now also bounds outer-rejected scan work;
 RHS rebuilding/residual semantics and workload/time ceilings are unchanged.
 This is a measured work reduction, not attribution of W170's unmarked timeout

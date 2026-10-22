@@ -23,6 +23,30 @@ export function registerCorrelatedInWork(encoding){
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),{limits:{maxWorkUnits:1000000000}});
   const works={};
+  // G67-1: native wherecode.c rejects the ready false restriction before
+  // TERM_VARSELECT, regardless of conjunct order. Keep the actual 20k DB.
+  const correlated='(SELECT abs(-9223372036854775808) FROM rhs WHERE rhs.k=o.k)=1';
+  for(const access of ['NOT INDEXED','INDEXED BY t_ab'])for(const condition of [
+   `${correlated} AND o.k<0`,`o.k<0 AND ${correlated}`,
+  ]){
+   st=db.prepare(`SELECT o.k,t.id FROM outer_t o CROSS JOIN t ${access} WHERE ${condition}`).statement;
+   for(let run=0;run<2;run++){
+    assert.equal(st.columnCount,2);
+    assert.deepEqual([0,1].map(index=>st.columnMetadata(index).name),['k','id']);
+    assert.equal(await st.step(),'done');
+    assert.equal(privateAccounting(st).tableSeeks,0);
+    await st.reset();
+   }
+   st.finalize();st=undefined;
+  }
+  // A ripe true restriction must not suppress the error; reset reports the
+  // prior failure, then a fresh execution must still fail (no cached result).
+  st=db.prepare(`SELECT o.k,t.id FROM outer_t o CROSS JOIN t NOT INDEXED WHERE ${correlated} AND o.k<=2`).statement;
+  for(let run=0;run<2;run++){
+   await assert.rejects(st.step(),error=>error.kind==='sqlite'&&error.message==='integer overflow');
+   assert.throws(()=>st.reset(),error=>error.kind==='sqlite'&&error.message==='integer overflow');
+  }
+  st.finalize();st=undefined;
   for(const c of variant.cases){
    st=db.prepare(c.sql).statement;
    for(let run=0;run<2;run++){

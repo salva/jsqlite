@@ -23,6 +23,24 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   rows,_=o.query(d,db,q);ops,_=o.query(d,db,'EXPLAIN '+q);assert len(rows)==2
   if name=='selected':assert any(bytes.fromhex(r[1].get('utf8Hex','')).decode()=='SeekGE' for r in ops)
   cases.append(dict(name=name,sql=q,rows=rows,ops=ops))
- assert cases[0]['rows']==cases[1]['rows'];assert d.sqlite3_close(db)==0
- variants.append(dict(encoding=enc,fixture=p.name,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),cases=cases))
+ assert cases[0]['rows']==cases[1]['rows']
+ # wherecode.c covered/noncorrelated/TERM_VARSELECT order is observable.
+ correlated='(SELECT abs(-9223372036854775808) FROM rhs WHERE rhs.k=o.k)=1'
+ ordering=[]
+ for access in ['NOT INDEXED','INDEXED BY t_ab']:
+  for condition in [correlated+' AND o.k<0','o.k<0 AND '+correlated]:
+   q=f'SELECT o.k,t.id FROM outer_t o CROSS JOIN t {access} WHERE {condition}'
+   rows,_=o.query(d,db,q);assert rows==[]
+   ops,_=o.query(d,db,'EXPLAIN '+q)
+   ordering.append(dict(sql=q,rows=rows,ops=ops))
+ # Check the positive/error control directly so the oracle helper does not
+ # leak a statement when sqlite3_step fails. Reset returns the previous error.
+ q=f'SELECT o.k,t.id FROM outer_t o CROSS JOIN t NOT INDEXED WHERE {correlated} AND o.k<=2'
+ st=C.c_void_p();assert d.sqlite3_prepare_v2(db,q.encode(),-1,C.byref(st),None)==0
+ for run in range(2):
+  assert d.sqlite3_step(st)==1
+  assert d.sqlite3_reset(st)==1
+ assert d.sqlite3_finalize(st)==0
+ assert d.sqlite3_close(db)==0
+ variants.append(dict(encoding=enc,fixture=p.name,sha256=hashlib.sha256(p.read_bytes()).hexdigest(),cases=cases,ordering=ordering))
 (root/'native.json').write_text(json.dumps(dict(sourceid=pin['sqliteSourceId'],version=pin['version'],variants=variants)))

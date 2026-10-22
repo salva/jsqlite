@@ -522,8 +522,12 @@ not established. [Retained reprepare evidence](research/card-h-b-reprepare/READM
 `whereexpr.c`, `where.c`, `wherecode.c` produce terms, candidate loops, paths and
 loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
 Joined WHERE residuals are emitted at their ready loop frontier, not deferred
-wholesale to the innermost row. Existing LEFT match/null-extension and RIGHT
-subroutine placement and LTORJ deferral remain authoritative. Correlated RHS
+wholesale to the innermost row. Ordinary levels translate the pinned covered,
+noncorrelated, then correlated-subquery passes: `WhereTerm.variableSelect`
+retains resolver correlation independently of readiness masks, and coverage
+walks this cursor's columns without entering SELECTs. This preserves rejection
+and error order, not just scan cost. Existing LEFT match/null-extension and RIGHT
+subroutine single-pass placement and LTORJ deferral remain authoritative. Correlated RHS
 production still rebuilds at each required invocation; no cross-invocation cache
 or residual deletion is used. [Frontier repair evidence and limits](record:///status.md?card=card-s-c-d-e).
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and

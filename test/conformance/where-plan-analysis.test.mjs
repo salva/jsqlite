@@ -8,6 +8,21 @@ const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:t
 // Synthetic schema carries build.c/schema.ts default estimates, not ad-hoc planner costs.
 // sqlite3DefaultRowEst: nRowLogEst=200, equality prefixes33/32; row widths use szEst.
 function schema(encoding='utf-8',withoutRowid=false,aNotNull=false){const id=col('id','INTEGER',{primaryKeyPosition:1}),a=col('a','TEXT',{collation:'NOCASE',notNull:aNotNull}),b=col('b','REAL'),blob=col('blob','BLOB');const t={nRowLogEst:200,hasStat1:false,integerPrimaryKey:withoutRowid?null:id,szTabRow:sqliteLogEst(BigInt(([id,a,b,blob].reduce((n,c)=>n+c.szEst,0)+(withoutRowid?0:1))*4)),kind:'table',name:'t',tableName:'t',rootPage:2,sql:'',columns:Object.freeze([id,a,b,blob]),indexes:[],withoutRowid,primaryKey:Object.freeze([id]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])};const i={rowLogEst:Object.freeze([200,33,32]),szIdxRow:sqliteLogEst(BigInt((a.szEst+b.szEst+id.szEst)*4)),hasStat1:false,unordered:false,noSkipScan:false,kind:'index',name:'i_ab',tableName:'t',rootPage:3,sql:'',table:t,terms:Object.freeze([{column:a,expression:null,expressionSql:null,descending:false,collation:'NOCASE',nulls:null},{column:b,expression:null,expressionSql:null,descending:true,collation:null,nulls:null}].map(Object.freeze)),unique:false,origin:'create',physical:null};i.physical=physicalIndex(i,encoding);const iblob={...i,rowLogEst:Object.freeze([200,33]),szIdxRow:sqliteLogEst(BigInt((blob.szEst+id.szEst)*4)),name:'i_blob',rootPage:4,terms:Object.freeze([Object.freeze({column:blob,expression:null,expressionSql:null,descending:false,collation:null,nulls:null})]),physical:null};iblob.physical=physicalIndex(iblob,encoding);t.indexes.push(i,iblob);Object.freeze(t.indexes);return {tables:new Map([['t',t]]),t,i,iblob,id,a,b,blob};}
+test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);
+  const plan=resolve('SELECT o.id,u.id FROM t o CROSS JOIN t u WHERE (SELECT x.a FROM t x WHERE x.id=o.id)=1 AND o.a IS NOT NULL AND o.blob IS NOT NULL',s);
+  const terms=analyzeWhere(plan).clause.terms.filter(term=>!term.virtual);
+  assert.deepEqual(terms.map(term=>term.variableSelect),[true,false,false]);
+  assert.deepEqual(terms.map(term=>wherePlanning.termCoveredByIndex(plan,term.expression.reduction,plan.sources[0],s.i.physical)),[true,true,false]);
+  const uncorrelated=resolve('SELECT o.id,u.id FROM t o CROSS JOIN t u WHERE (SELECT x.a FROM t x WHERE x.id=1)=1',s);
+  assert.equal(analyzeWhere(uncorrelated).clause.terms[0].variableSelect,false);
+  const alias=resolve('SELECT (SELECT x.a FROM t x WHERE x.id=o.id) AS v FROM t o CROSS JOIN t u WHERE v=1',s);
+  assert.equal(analyzeWhere(alias).clause.terms[0].variableSelect,true);
+  const rowid=resolve('SELECT o.id,u.id FROM t o CROSS JOIN t u WHERE o.id>0',s);
+  assert.equal(wherePlanning.termCoveredByIndex(rowid,analyzeWhere(rowid).clause.terms[0].expression.reduction,rowid.sources[0],s.i.physical),true);
+ }
+});
 const resolve=(sql,s)=>expandAndResolveSelect(parseSql(sql).statement,s);
 test('nested compound substitution visits every resolved arm without capturing local aliases',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){

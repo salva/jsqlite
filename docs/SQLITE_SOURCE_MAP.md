@@ -4,11 +4,18 @@
 
 `wherecode.c:sqlite3WhereCodeOneLoopStart` ripe base-term loop and
 `code_outer_join_constraints` → `vdbe.ts:codeReadyConstraints`: emit uncoded
-WHERE terms at each ready ordinary loop, retaining LTORJ deferral and existing
-LEFT-hit/RIGHT-subroutine placement. This avoids entering inner scans for
+WHERE terms at each ready ordinary loop in covered/noncorrelated/correlated
+passes. `whereexpr.c:ExprUsageFull`/TERM_VARSELECT →
+`where-plan.ts:termHasCorrelatedSelect`/`WhereTerm.variableSelect`;
+`expr.c:sqlite3ExprCoveredByIndex` → `termCoveredByIndex` (cursor-owned column
+walk, no SELECT descent). LTORJ deferral and distinct single-pass
+LEFT-hit/RIGHT-subroutine placement remain. This avoids entering inner scans for
 rejected outer rows; it does not cache correlated RHS sets or omit their residual.
 `correlated-in-work-cases.mjs` asserts all three encodings, both executions,
-typed native rows, selected access and the outer-frontier scan-work upper bound.
+typed native rows, selected access and the outer-frontier scan-work upper bound,
+plus correlated-error/reversed-AND empty-success controls, metadata and reset/retry.
+`capture-correlated-in-work.py` retains pinned native ordering EXPLAIN and checks
+positive error/reset without leaking native statements.
 [Author evidence and remaining gates](record:///status.md?card=card-s-c-d-e).
 
 ### Selected SELECT-IN LOOP
