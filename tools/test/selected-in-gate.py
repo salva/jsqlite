@@ -12,7 +12,7 @@ EXTRA_FILES = [
     'selected-in-r1-matrix.test.mjs', 'selected-correlated-in-lifecycle.test.mjs',
     'correlated-in-corruption.test.mjs', 'derived-selected-in.test.mjs',
     'correlated-in-work.test.mjs', 'correlated-in-work-utf16le.test.mjs',
-    'correlated-in-work-utf16be.test.mjs',
+    'correlated-in-work-utf16be.test.mjs', 'retained-limit-selected-in.test.mjs',
 ]
 
 
@@ -31,6 +31,7 @@ def fixture_environment(root, work):
         'SELECT_IN_R1_MATRIX_DIR': 'r1-red-matrix',
         'CORRELATED_IN_CORRUPTION_DIR': 'correlated-corruption',
         'DERIVED_SELECTED_IN_DIR': 'derived-nested-current',
+        'RETAINED_LIMIT_SELECTED_IN_DIR': 'retained-limit-native',
         'CORRELATED_IN_WORK_DIR': 'correlated-work',
     }.items()} | {'SELECT_IN_PERSISTENT_CORRUPTION_DIR': str(work / 'persistent-corruption')}
 

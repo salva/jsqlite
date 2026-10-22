@@ -12,21 +12,23 @@ Current applicable branch ledger:
 
 - `codeINTerm` → ordinary/joined/OR selected callers: scalar/vector,
   partial/permuted/repeated-column fallback receipts and typed reset/residual
-  tests apply. More-than-two selected-slot restart coverage is not established;
-  selected caller owner still owes that branch evidence.
+  tests apply. Independent G54 disposable probes additionally cover >2 slots
+  and repeated LHS fields on the same production hashes (G56 reconciliation);
+  they are not promoted persistent regressions.
 - `whereexpr.c` prerequisites → `codeSelectedTerms` and joined ready masks:
   virtual/non-ready terms cannot be marked coded; RHS admissions require every
   prereqRight ready. Planner and correlated public tests apply. Complete
   non-ready competing-candidate/dominance coverage remains with WHERE caller owner.
 - `substExpr/substSelect` source transfer → `spliceResolvedFirstSource`:
   ordinary physical producer, nested compound outer dependency and local shadow
-  tests apply. Expanded joined stars are fenced, unlike native expanded EList
-  transfer: mandatory expansion/flattening implementation gap, not browser necessity.
-- restriction4/tags0482/0488 → resolved producer: joined retained DISTINCT over
-  one physical child reuses coroutine or Once/Gosub materialization. Broader
-  retained/order/compound and repeated-view lifetimes require SELECT destination
-  owner assessment of existing routes; neither DISTINCT erasure nor retention
-  bypass is justified by this finite witness.
+  tests apply. Expanded joined stars remain fenced from flattening but G54's
+  native/public retained-route probe succeeds; this fence alone is not proof
+  of an observable gap. Preserve that destination route.
+- restrictions4/8/9/11/19 and tags0482/0488 → resolved producer: bounded joined
+  retained DISTINCT or ORDER/LIMIT over one physical child reuses coroutine or
+  Once/Gosub materialization. G56's concrete limited-child rejection is repaired
+  at caller admission; broader compound/repeated-view lifetimes remain individually
+  assessed obligations, not a blanket DISTINCT-only exclusion.
 - LEFT match/null-row/residual branches → joined caller: R1 matrix, corruption
   and lifecycle cover ON versus WHERE, OR, empty, retries and accounting refunds;
   nested LEFT/OR and every error timing are not exhaustively established.
@@ -40,6 +42,40 @@ exclusion or independent approval. G52 capture/matrix authorship remains with
 Earlier sections retain revision-bound evidence and failed hypotheses, not
 competing current contracts. Commit/type/package/stability receipts are retained
 in the current card status and its accepted history.
+
+## Retained ORDER/LIMIT caller repair
+
+G56 independently captured the unchanged fixture/native-positive query at
+`record:///status.md?card=card-s-c-d-g&v=56`; receipt SHA256
+`9190e64cdd31a96b141c2fc8a5e30c698abea0279b2edd022e12befc0dd40344`.
+Parent fc5783c0 rejected all three encodings in public prepare (Executor
+proc-79a33da91b80). Pinned select.c4343ff restrictions8/9,11,19 retain the
+ordered limited child; tags0482/0488 then select coroutine/materialization,
+not query rejection. `compileDerivedProducer` incorrectly enrolled only DISTINCT.
+The correction admits bounded ORDER/LIMIT children through that same resolved
+producer. No flatten restriction, traversal, destination, VM or scheduler changes.
+Child sorting/LIMIT registers remain inside the producer, physical siblings and
+ready outer bindings remain in the parent WHERE owner. This is a caller correction,
+not an exceptional algorithm substitution or general retained-query guarantee.
+
+Original immutable native receipt passes3/3 with unchanged harness in
+proc-363de4b7d991; tsc passes. New `--retained-limit` native capture and mandatory
+`retained-limit-selected-in.test.mjs` extend the same fixture with CROSS, LEFT ON,
+LEFT WHERE, OR and clear/rebind runs. Native results, all five metadata fields,
+typed rows, positive selected work and reset remain checked. LIMIT changes LEFT
+unmatched counts: initial capture copied base cardinality and failed
+proc-724a2b0fd9d5; corrected capture obtains native rows. Initial reused harness
+then hardcoded two unmatched rows (proc-0ec53cce00b7); it now compares native
+unmatched count, retaining the original receipt's two-row requirement. Corrected
+four-case matrix passed3/3 (proc-d6f4a1408a37); rebind extension validated with the
+final gate. Original fixture/receipt is unchanged.
+
+First combined gate proc-0f51dfa232dc passes117/117, type/build/package and gate
+unit2/2, no input drift; original107 prefix plus ten mandatory extras under
+serial1/batch80/file60/batch600. This precedes the final rebind capture extension;
+final exact-input verification and attributable commit are recorded in card status.
+Whole R1 still requires independent adjudication and finite remaining ledger
+reconciliation, not exhaustive error timing or blanket retained exclusions.
 
 ## Useful20k same-work organization
 

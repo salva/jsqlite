@@ -30,9 +30,12 @@ all nested arm/semantic/reduction carriers; source-free compound IN uses the
 existing shared SRT_Set producer. The unchanged three-encoding witness passes,
 as do ordinary/retained controls; this is finite author evidence, not independent
 acceptance. [Nested evidence](../research/selected-select-in-delivery.md#nested-compound-substitution).
-Joined retained DISTINCT over one physical
-producer now enters the existing resolved coroutine/materialization owner and
-passes the same typed public witness. Stars and broader retained,
+Joined retained DISTINCT or ORDER/LIMIT over one physical
+producer enters the existing resolved coroutine/materialization owner, retaining
+child ordering and row limits before parent join/correlation. The original G56
+three-encoding native-positive witness now passes author execution; independent
+acceptance remains pending. [Retained-limit evidence](../research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
+Stars and broader retained,
 prerequisite/resource branches remain open. This is not whole R1 acceptance. See [current evidence](../research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 
 Selected scalar uncorrelated SELECT-IN now chooses eligible base-table ROWID or

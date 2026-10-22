@@ -6109,11 +6109,13 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
 
 function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;scalarRetained?:boolean;emitRow?:(first:number,count:number)=>void}):Program|undefined {
  const retained=select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
- // select.c restriction (4) retains DISTINCT; tags0482/0488 install its
- // producer alongside physical siblings in the caller's resolved WhereInfo.
+ // select.c restrictions (4), (8)/(9), (11), (19) retain DISTINCT and
+ // ORDER/LIMIT children. Retention is not rejection: tags0482/0488 install
+ // their producer alongside physical siblings in the caller's WhereInfo.
+ // Child ORDER/LIMIT stays in its own destination before any parent predicate.
  if(!owner?.scalarRetained&&select.from.items.length>1&&retained.length&&
     !select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!selectHasAggregate(select)&&!selectHasWindow(select)&&
-    retained.every(({select:child})=>child.hasDistinct&&!child.hasCompound&&!child.hasGroupBy&&!child.hasHaving&&!selectHasAggregate(child)&&!selectHasWindow(child)&&child.from.items.length===1&&!child.from.derived&&!child.from.cteDerived?.length))
+    retained.every(({select:child})=>(child.hasDistinct||child.hasOrderBy||child.hasLimit)&&!child.hasCompound&&!child.hasGroupBy&&!child.hasHaving&&!selectHasAggregate(child)&&!selectHasWindow(child)&&child.from.items.length===1&&!child.from.derived&&!child.from.cteDerived?.length))
    return compileResolvedTableProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
   if(owner?.scalarRetained){
     const child=select.from.derived?.select;

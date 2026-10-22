@@ -694,10 +694,12 @@ semantic/reduction carriers (native `substSelect(...,1)`), without capturing
 local aliases. Source-free compound IN dependencies enter the existing shared
 SRT_Set producer rather than the scalar SRT_Mem fallback; flattening eligibility
 and retained/window owners are unchanged. [Nested evidence](research/selected-select-in-delivery.md#nested-compound-substitution).
-Joined retained
-DISTINCT producers over one physical source now use the existing resolved
-producer route: native coroutine eligibility selects yielding versus callable
-Once materialization while physical siblings retain their resolved identities.
+Joined retained DISTINCT and ORDER/LIMIT producers over one physical source use
+the existing resolved producer route: native coroutine eligibility selects yielding
+versus callable Once materialization while physical siblings retain their identities.
+Child ordering and row limits finish in that destination before parent predicates
+or correlated selected-IN probes; flattening restrictions remain intact.
+[Retained-limit source comparison and finite evidence](research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
 Expanded stars, broader derived prerequisite composition, resource bounds and
 whole-goal coverage remain open obligations, not exclusions. Current evidence: [finite composition and faults](research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 This is not vector index-strategy completeness. See `expr.c:sqlite3ExprVectorSize`,

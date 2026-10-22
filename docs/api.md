@@ -547,8 +547,9 @@ names for unaliased direct columns before flattening; explicit AS takes priority
 A first ordinary derived source with one physical producer can also retain later
 joined caller sources through resolved-identity substitution. This bounded route
 does not extend joined-star or window admission. Separately, joined retained
-DISTINCT over one physical producer uses the existing resolved
-coroutine/materialization route; broader retained derived shapes remain
+DISTINCT or ORDER/LIMIT over one physical producer uses the existing resolved
+coroutine/materialization route, completing the child's order and row limit
+before the parent join/filter; broader retained derived shapes remain
 unsupported rather than flattened.
 An ordered physical-derived filter outside the represented producer route still
 fails with typed temporary unsupported, including repeated RIGHT/FULL producers.

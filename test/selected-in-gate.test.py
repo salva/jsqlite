@@ -14,6 +14,8 @@ class SelectedInGate(unittest.TestCase):
         self.assertEqual(env['SELECT_IN_NATIVE_DIR'], '/captures/select-in-affinity-native')
         self.assertEqual(env['SELECT_IN_PERSISTENT_CORRUPTION_DIR'], '/run/persistent-corruption')
         self.assertNotEqual(env['SELECT_IN_PERSISTENT_CORRUPTION_DIR'], env['SELECT_IN_CORRUPTION_DIR'])
+        self.assertEqual(env['RETAINED_LIMIT_SELECTED_IN_DIR'], '/captures/retained-limit-native')
+        self.assertIn('retained-limit-selected-in.test.mjs', gate.EXTRA_FILES)
         self.assertEqual(env['SELECT_IN_VECTOR_DIR'], '/captures/vector-red')
         self.assertEqual(env['SELECT_IN_VECTOR_PREFIX_DIR'], '/captures/vector-prefix-red')
 

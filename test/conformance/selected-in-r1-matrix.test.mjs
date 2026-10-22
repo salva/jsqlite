@@ -33,7 +33,7 @@ for(const variant of capture.variants)test(`${variant.encoding}: R1 correlated t
     const work=privateAccounting(st);
     if(c.name==='empty'||run.bindings?.includes(null))assert.equal(work.indexSeeks,0,c.name);
     else assert.ok(work.indexSeeks>0&&work.inProbes>0,c.name+JSON.stringify(work));
-    if(c.name==='left-on')assert.equal(rows.filter(row=>row[1]===null).length,2,'NULL-key and empty RHS must each null-extend');
+    if(c.name==='left-on')assert.equal(rows.filter(row=>row[1]===null).length,run.rows.filter(row=>row[1].type==='null').length,'native unmatched rows must null-extend');
     if(c.name==='left-where')assert.equal(rows.filter(row=>row[1]===null).length,0,'WHERE removes unmatched rows after extension');
     if(c.name==='or')assert.ok(work.orBranchStarts>=2,'real selected OR caller');
     await st.reset();

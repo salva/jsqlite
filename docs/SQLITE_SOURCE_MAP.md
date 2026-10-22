@@ -2,13 +2,16 @@
 
 ### Selected SELECT-IN LOOP
 
-`select.c:flattenSubquery` restriction4 and tags0482/0488 →
-`vdbe.ts:compileDerivedProducer` routes joined retained DISTINCT physical
-producers to `compileResolvedTableProducer`, preserving transient descriptors,
-resolved physical siblings and coroutine versus callable Once materialization.
-`capture-derived-selected-in.py --distinct` + `derived-selected-in.test.mjs`
-reuse attributed g52 typed/metadata/selected-work/reset assertions across encodings.
-Evidence and bounded remaining branches: [delivery research](research/selected-select-in-delivery.md#retained-distinct-caller-repair).
+`select.c:flattenSubquery` restrictions4/8/9/11/19 and tags0482/0488 →
+`vdbe.ts:compileDerivedProducer` routes bounded joined retained DISTINCT or
+ORDER/LIMIT physical producers to `compileResolvedTableProducer`, preserving
+transient descriptors, physical siblings, child ORDER/LIMIT before parent filters
+and coroutine versus callable Once materialization.
+`capture-derived-selected-in.py --distinct/--retained-limit` +
+`derived-selected-in.test.mjs`/`retained-limit-selected-in.test.mjs` reuse attributed
+g52 typed/metadata/selected-work/reset assertions across encodings.
+Evidence: [retained DISTINCT](research/selected-select-in-delivery.md#retained-distinct-caller-repair),
+[retained ORDER/LIMIT](research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
 
 `whereexpr.c:exprAnalyze` TERM_SLICE/iField → `where-plan.ts:analyzeClause`
 retains original vector IN identity, per-field resolved affinity/collation and
