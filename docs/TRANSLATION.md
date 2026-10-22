@@ -525,7 +525,11 @@ Joined WHERE residuals are emitted at their ready loop frontier, not deferred
 wholesale to the innermost row. Ordinary levels translate the pinned covered,
 noncorrelated, then correlated-subquery passes: `WhereTerm.variableSelect`
 retains resolver correlation independently of readiness masks, and coverage
-walks this cursor's columns without entering SELECTs. This preserves rejection
+walks this cursor's columns without entering SELECTs. Actual column consumption
+substitutes available selected physical fields (including rowid tails) on both
+covering and non-covering loops, leaving missing fields on the table cursor with
+its pending seek. Semantic affinity/collation stay with the resolved column;
+RIGHT shared-drain reads retain their primary-reader contract. This preserves rejection
 and error order, not just scan cost. Existing LEFT match/null-extension and RIGHT
 subroutine single-pass placement and LTORJ deferral remain authoritative. Correlated RHS
 production still rebuilds at each required invocation; no cross-invocation cache

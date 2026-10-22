@@ -4370,10 +4370,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const ordinal=expanded.sources.indexOf(source),selected=selectedBySource.get(ordinal),physical=selected?.capability?.physicalIndex,indexCursor=indexCursors.get(ordinal);
     // where.c clears WHERE_IDX_ONLY for a RIGHT RHS: the shared interior
     // must read one primary reader in both the selected and fresh-drain scans.
-    if(indexCursor!==undefined&&physical&&!source.joinFromLeft.right&&(source.table.kind==='table'&&source.table.withoutRowid)&&(selected?.capability?.covering||physical.index.origin==='primary-key')){
-      const at=physical.fields.findIndex(field=>field.column===source.table.columns[columnIndex]||(field.role==='rowid-tail'&&(columnIndex<0||isIntegerPrimaryKeyAlias(source.table,columnIndex))));
-      if(at<0)throw new JSQLiteError('unsupported','covering column layout is not represented',{unsupportedClassification:'temporary'});
-      return {cursor:indexCursor,physicalColumnIndex:at};
+    // where.c substitutes each available field even on non-covering loops.
+    // Missing fields retain the table reader and its pending DeferredSeek.
+    if(indexCursor!==undefined&&physical&&!source.joinFromLeft.right){
+      const at=physical.fields.findIndex(field=>(columnIndex>=0&&field.column===source.table.columns[columnIndex])||(field.role==='rowid-tail'&&(columnIndex<0||isIntegerPrimaryKeyAlias(source.table,columnIndex))));
+      if(at>=0)return {cursor:indexCursor,physicalColumnIndex:at};
     }
     if((source.table.kind==='table'&&source.table.withoutRowid)){
       const at=primaryFor(source).fields.findIndex(field=>field.column===source.table.columns[columnIndex]);

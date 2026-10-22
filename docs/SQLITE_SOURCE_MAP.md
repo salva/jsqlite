@@ -8,7 +8,14 @@ WHERE terms at each ready ordinary loop in covered/noncorrelated/correlated
 passes. `whereexpr.c:ExprUsageFull`/TERM_VARSELECT →
 `where-plan.ts:termHasCorrelatedSelect`/`WhereTerm.variableSelect`;
 `expr.c:sqlite3ExprCoveredByIndex` → `termCoveredByIndex` (cursor-owned column
-walk, no SELECT descent). LTORJ deferral and distinct single-pass
+walk, no SELECT descent). `where.c:7800–7833` selected OP_Column substitution
+→ `vdbe.ts:columnAccess`: available physical fields/rowid tails use the selected
+cursor even on non-covering rowid loops; missing columns retain deferred table
+lookup. RIGHT shared-drain primary-reader identity remains unchanged.
+`capture-covered-deferred.py` / `covered-deferred.test.mjs` compare native/public
+false-covered, rowid-tail, uncovered overflow and table-root off-path corruption,
+three encodings, metadata, access counts and two executions/reset/retry.
+LTORJ deferral and distinct single-pass
 LEFT-hit/RIGHT-subroutine placement remain. This avoids entering inner scans for
 rejected outer rows; it does not cache correlated RHS sets or omit their residual.
 `correlated-in-work-cases.mjs` asserts all three encodings, both executions,

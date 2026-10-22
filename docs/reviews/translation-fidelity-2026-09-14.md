@@ -9,6 +9,14 @@ error order. The current correction retains a semantic correlated-select flag
 and translates ordinary covered/noncorrelated/correlated passes; the separate
 LEFT-hit/RIGHT-subroutine WHERE phases remain single-pass. Native/public
 three-encoding error, reversal and reset controls cover the reproduced boundary.
+G68-1 then exposed a consumer gap: rowid-table covered columns still forced table
+lookup. The consumer now substitutes each available selected physical field,
+including rowid tails, even on non-covering loops; absent fields retain deferred
+table fallback. RIGHT shared-drain primary-reader identity is unchanged.
+Native/public covered rejection, uncovered error and off-path corrupt-table
+controls are retained in `covered-deferred.test.mjs` with pinned capture, three
+encodings and two executions/reset. This is author evidence, not independent
+acceptance of the combined delta.
 The original 20k correlated scan test now also bounds outer-rejected scan work;
 RHS rebuilding/residual semantics and workload/time ceilings are unchanged.
 This is a measured work reduction, not attribution of W170's unmarked timeout
