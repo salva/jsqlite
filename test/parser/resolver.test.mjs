@@ -2,11 +2,29 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {parseSql,SqlParseError} from '../../src/internal/parse.ts';
-import {expandAndResolveSelect,NameResolutionError} from '../../src/internal/resolve.ts';
+import {expandAndResolveSelect,NameResolutionError,resolvedProducerProjection,resolvedExpressionCarrier} from '../../src/internal/resolve.ts';
 const column=(name,declaredType=null,affinity='blob',collation=null)=>Object.freeze({name,declaredType,affinity,collation});
 const table=(name,columns,primaryKey=[])=>{columns=Object.freeze(columns);return Object.freeze({kind:'table',name,tableName:name,rootPage:2,sql:'',columns,indexes:Object.freeze([]),withoutRowid:false,primaryKey:Object.freeze(primaryKey.map(i=>columns[i])),storageKey:Object.freeze([])})};
 const schema={tables:new Map([['a',table('a',[column('x','INTEGER','integer'),column('same','TEXT','text','NOCASE')])],['b',table('b',[column('x','REAL','real'),column('y','TEXT','text'),column('same','TEXT','text')])],['t1',table('t1',[column('a','INTEGER','integer'),column('b','INTEGER','integer')])],['t2',table('t2',[column('x','INTEGER','integer'),column('y','INTEGER','integer')])],['booleans',table('booleans',[column('true'),column('false')])],['quoted',table('quoted',[column('foo'),column('x')])],['ident',table('ident',[column('x"y'),column('x`y'),column('x y'),column('Ä'),column('É'),column('z')])]])};
 const resolve=sql=>expandAndResolveSelect(parseSql(sql).statement,schema);
+test('selected projection preserves removed ORDER/GROUP expressions and remaps repeated slots',()=>{
+ for(const sql of ['SELECT x AS chosen,y FROM t2 GROUP BY 2 ORDER BY chosen,2','SELECT x AS chosen,y FROM t2 UNION ALL SELECT a,b FROM t1 ORDER BY 1,2']){
+  const root=resolve(sql);
+  for(const plan of [root,...(root.compoundArms??[])]){
+   const selected=[1,0,1];
+   const source={...plan.source,result:selected.map(i=>plan.result[i].expression)};
+   const projected=resolvedProducerProjection(plan,source,selected);
+   assert.deepEqual(projected.orderResultColumns,plan.orderResultColumns.map(i=>i===null?null:selected.indexOf(i)));
+   const partial=resolvedProducerProjection(plan,{...source,result:[plan.result[0].expression]},[0]);
+   for(const [index,original] of plan.orderResultColumns.entries())if(original!==null){
+    assert.equal(partial.orderResultColumns[index],original===0?0:null);
+    assert.equal(resolvedExpressionCarrier(partial,plan.source.orderBy[index].expr.reduction).reduction,plan.result[original].expression.reduction);
+   }
+   for(const group of plan.source.groupBy)assert.equal(resolvedExpressionCarrier(partial,group.reduction).reduction,resolvedExpressionCarrier(plan,group.reduction).reduction);
+  }
+ }
+});
+
 test('linked NameContext preserves shadowing, ambiguity, correlation depth, and unique cursors',()=>{
  const lexical=resolve('SELECT o.a,(SELECT count(*) FROM t1 WHERE a=o.a) FROM t1 o');
  assert.equal(lexical.correlated,false);assert.equal(lexical.nested.length,1);assert.equal(lexical.nested[0].correlated,true);assert.deepEqual(lexical.nested[0].sources.map(source=>source.cursorId),[1]);

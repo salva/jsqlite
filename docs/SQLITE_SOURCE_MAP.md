@@ -23,7 +23,14 @@ retained destinations and selected correlated consumers. [Source/control evidenc
 retains original vector IN identity, per-field resolved affinity/collation and
 parent residual ownership. `wherecode.c:removeUnindexableInClauseTerms` →
 `vdbe.ts:compileSelectedInRhs` projects/reorders actual linked SELECT results in
-selected slot order before comparison/KeyInfo/storage selection. Reduced UNIQUE
+selected slot order before comparison/KeyInfo/storage selection.
+`adjustOrderByCol` → `resolve.ts:resolvedProducerProjection` remaps retained
+ORDER slots and preserves removed resolved expressions; GROUP bindings retain
+original expression identity, including applicable linked arms.
+`compileInnerTableSelect` consumes resolved ORDER slots without ordinal rebinding.
+Native/public partial/permuted ordinal/alias LIMIT and GROUP coverage plus resolver
+repeated-slot/arm checks: [projection evidence](research/selected-select-in-delivery.md#r14-result-reference-repair).
+Reduced UNIQUE
 SRT_Set prevents duplicate partial-prefix probes. Ordinary/INNER/LEFT callers
 consume the resulting field map. OR uses the existing AND-owned arm analysis;
 `where.c:whereLoopAddOr` retains INDEXED BY for recursive candidates, and

@@ -1,6 +1,6 @@
 ## Selected SELECT-IN — scoped author integration
 
-Current uncommitted vector increment replaces the scalar-only prediction for
+Committed vector lowering replaces the scalar-only prediction for
 selected partial/permuted vector prefixes: field children retain original RHS identity,
 grouped callers project slot-ordered linked results before KeyInfo/construction,
 and all NULL guards share advancement. Three-encoding native-first complete,
@@ -28,19 +28,26 @@ public selected-IN witness passes. The independently reproduced G-R1-NESTED
 substitution failure is repaired by collecting resolved compound arms and mapping
 all nested arm/semantic/reduction carriers; source-free compound IN uses the
 existing shared SRT_Set producer. The unchanged three-encoding witness passes,
-as do ordinary/retained controls; this is finite author evidence, not independent
-acceptance. [Nested evidence](../research/selected-select-in-delivery.md#nested-compound-substitution).
+as do ordinary/retained controls. G60 independently reconciles the finite nested,
+retained and resource ledger on 70d045af; it does not cover R14's newly reproduced
+ORDER projection branch. [Nested evidence](../research/selected-select-in-delivery.md#nested-compound-substitution).
 Joined retained DISTINCT, ORDER/LIMIT or GROUP/HAVING/aggregate over one physical
 producer enters the existing resolved coroutine/materialization owner, retaining
 child ordering and row limits before parent join/correlation. The original G56
-three-encoding native-positive witness now passes author execution; independent
-acceptance remains pending. GROUP classification dispatches validation and both
+three-encoding native-positive witness passes author execution and G60 finite
+independent adjudication. GROUP classification dispatches validation and both
 retained destinations to the existing aggregate owner; G58's unchanged grouped
 witness passes author verification, without relaxing flattening fences.
 [Grouped evidence](../research/selected-select-in-delivery.md#retained-group-caller-repair).
 [Retained-limit evidence](../research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
-Stars and broader retained,
-prerequisite/resource branches remain open. This is not whole R1 acceptance. See [current evidence](../research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
+R14 identified stale ORDER result positions after reduced projection. The owning
+resolved projection now remaps retained slots and preserves removed expressions;
+linked table ORDER lowering no longer reinterprets ordinals against reduced width.
+GROUP bindings retain original resolved identity. Focused unchanged native witnesses
+pass author checks; independent R14 acceptance remains required.
+[Projection evidence](../research/selected-select-in-delivery.md#r14-result-reference-repair).
+Broader arbitrary retained, prerequisite/resource and plan-parity branches remain
+outside that finite closure. This is not whole R1 acceptance. See [current evidence](../research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 
 Selected scalar uncorrelated SELECT-IN now chooses eligible base-table ROWID or
 compatible single-column UNIQUE physical RHS reuse, otherwise entering the original

@@ -304,7 +304,7 @@ function result(expression:ExprNode,resolved:ResolvedColumnRef|null,name:string,
 // window.c selectWindowRewriteExprCb changes the producer projection, not
 // just pEList's spellings. Retain lexical bindings but rebuild each generated
 // result carrier from its expression identity (including lifted correlations).
-export function resolvedProducerProjection(plan:ResolvedSelect,select:SelectNode):ResolvedSelect {
+export function resolvedProducerProjection(plan:ResolvedSelect,select:SelectNode,selectedFields?:readonly number[]):ResolvedSelect {
  const projection=select.result.map(expression=>{
   const use=plan.columnUses.find(use=>use.expression===expression.reduction&&use.selectDepth===0);
   const existing=plan.result.find(item=>item.expression.reduction===expression.reduction);
@@ -315,6 +315,24 @@ export function resolvedProducerProjection(plan:ResolvedSelect,select:SelectNode
   if(ref||!expression.reduction)return generated;
   return Object.freeze({...generated,descriptor:Object.freeze({...generated.descriptor,...resolvedExpressionMetadata(expression.reduction,plan),affinity:resolvedExpressionAffinity(expression.reduction,plan)??null,collation:resolvedExpressionCollation(expression.reduction,plan)??'binary'})});
  });
+ // wherecode.c adjustOrderByCol/removeUnindexableInClauseTerms: references
+ // belong to the original resolved tuple, not the reduced width. Retained
+ // references use the first projected slot; removed ones retain their resolved
+ // expression. GROUP ordinals/aliases already use aliasUses, not result slots.
+ if(selectedFields){
+  const aliasUses=new Map(plan.aliasUses);
+  const orderResultColumns=plan.orderResultColumns.map((original,index)=>{
+   if(original===null)return null;
+   let expression=plan.source.orderBy[index]!.expr.reduction;
+   const selected=plan.result[original]!.expression.reduction;
+   // COLLATE is owned by the clause, not by the result reference underneath.
+   while(expression?.kind==='reduction'&&(expression.signature==='expr ::= LP expr RP'||expression.signature.startsWith('expr ::= expr COLLATE ')))expression=expression.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+   if(expression?.kind==='reduction'&&selected?.kind==='reduction'&&expression!==selected)aliasUses.set(expression,selected);
+   const projected=selectedFields.indexOf(original);
+   return projected<0?null:projected;
+  });
+  return Object.freeze({...plan,source:select,result:Object.freeze(projection),aliasUses,orderResultColumns:Object.freeze(orderResultColumns)});
+ }
  return Object.freeze({...plan,source:select,result:Object.freeze(projection)});
 }
 // expr.c sqlite3ExprVectorSize: SELECT width or ordered TK_VECTOR fields.

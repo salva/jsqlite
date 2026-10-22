@@ -2033,7 +2033,8 @@ function infixFunctionChild(signature:string,index:number):number {
 }
 function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarrier,cursorFor:(source:ResolvedSource)=>number,preserveScalarLeaves=false,binding?:ResolvedExpressionBinding,generatedBusy=new Map<ResolvedSource,Set<number>>()):Expression {
       // An alias carrier owns the substituted result reduction, not the ID.
-      if(value.kind==='column'&&!carrier.column&&carrier.reduction.signature!=='expr ::= ID')value=expressionFromReduction(carrier.reduction as Reduction);
+      if(carrier.sourceReduction!==carrier.reduction)value=expressionFromReduction(carrier.reduction as Reduction);
+      else if(value.kind==='column'&&!carrier.column&&carrier.reduction.signature!=='expr ::= ID')value=expressionFromReduction(carrier.reduction as Reduction);
       const children=carrier.children;
       if((value.kind==='scalar-subquery'||value.kind==='in-subquery')&&carrier.select)value={...value,select:carrier.select.source,resolved:carrier.select};
       const child=(index:number):ResolvedExpressionCarrier=>{const found=children[index];if(!found)throw new JSQLiteError('internal','resolved joined scalar expression child lost identity');return found;};
@@ -4155,7 +4156,7 @@ export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof
  // BEFORE FindInIndex/KeyInfo/SRT_Set. Full tuple uniqueness is insufficient.
  const project=(plan:ReturnType<typeof expandAndResolveSelect>):ReturnType<typeof expandAndResolveSelect>=>{
   const source={...plan.source,result:projection.map(i=>plan.result[i]!.expression),arms:plan.source.arms.map(arm=>({...arm,result:projection.map(i=>arm.result[i]!)}))};
-  return {...resolvedProducerProjection(plan,source),...(plan.compoundArms?{compoundArms:plan.compoundArms.map(project)}:{})};
+  return {...resolvedProducerProjection(plan,source,projection),...(plan.compoundArms?{compoundArms:plan.compoundArms.map(project)}:{})};
  };
  const resolved=project(rhs.resolved),fields=projection.map(i=>originalFields[i]!);
  const expression={...original,select:resolved.source,resolved,left:fields.length===1?fields[0]!:{kind:'vector' as const,fields}};
@@ -4452,7 +4453,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     selectedBySource.set(ordinal,loop);
   });
   for(const [ordinal,loop] of selectedBySource){const physical=loop.capability?.physicalIndex;if(loop.kind==='index'&&physical){const cursor=builder.cursor();indexCursors.set(ordinal,cursor);ops.push({code:'OpenIndex',p1:physical.index.rootPage,p2:cursor,physical});}}
-  const orderTerms=(multiOrderConsumed?[]:select.orderBy).map((term,index)=>{let tree=expressionFromReduction(term.expr.reduction!),identity=tree;while(identity.kind==='collate')identity=identity.value;let resultIndex=-1;if(identity.kind==='literal'&&typeof identity.value==='bigint'){if(identity.value<1n||identity.value>BigInt(expanded.result.length)){const n=index+1,suffix=n%100>=11&&n%100<=13?'th':n%10===1?'st':n%10===2?'nd':n%10===3?'rd':'th';throw new JSQLiteError('sqlite',`${n}${suffix} ORDER BY term out of range - should be between 1 and ${expanded.result.length}`,{code:1});}resultIndex=Number(identity.value-1n);}else if(identity.kind==='column'&&!identity.name.includes('.'))resultIndex=expanded.result.findIndex(result=>sqliteIdentifierEqual(result.name,sqlName(identity.name)));return{tree:resultIndex<0?resolveTree(tree,term.expr.reduction as Reduction):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};});
+  // Resolved result references are authoritative after projection. A null slot
+  // means evaluate the linked expression, not reinterpret its ordinal spelling.
+  const orderTerms=(multiOrderConsumed?[]:select.orderBy).map((term,index)=>{
+    const resultIndex=expanded.orderResultColumns[index]??-1;
+    const tree=expressionFromReduction(term.expr.reduction!);
+    return {tree:resultIndex<0?resolveTree(tree,term.expr.reduction as Reduction):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};
+  });
   if(owner)owner.builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>cursorFor(source))));
 
   if(orderTerms.length)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:term.resultIndex>=0?sqliteAsciiFold(expanded.result[term.resultIndex]!.descriptor.collation) as BuiltinCollation:collation(term.tree),desc:term.descending,nullsLarge:term.nullsLarge}))})});

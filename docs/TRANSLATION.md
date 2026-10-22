@@ -666,7 +666,13 @@ Committed vectors preserve field width, typed comparison/NULL ownership and
 multi-column IN destinations; scalar consumers remain width one. Selected
 uncorrelated SELECT-IN now has identity-bearing field children and grouped RHS
 cursor iteration with selected-slot projection/reordering before RHS KeyInfo and
-construction (wherecode.c removeUnindexableInClauseTerms). Physical UNIQUE RHS
+construction (wherecode.c removeUnindexableInClauseTerms). Reduced ORDER result
+references remap to selected slots; removed references retain original resolved
+expressions, including clause COLLATE. GROUP ordinal/alias bindings retain their
+original expression identity on every linked arm. The table sorter consumes
+resolved references rather than rebinding raw ordinals to reduced width.
+[Projection evidence](research/selected-select-in-delivery.md#r14-result-reference-repair).
+Physical UNIQUE RHS
 mapping or shared UNIQUE SRT_Set deduplicates the projected keys, including partial
 vector prefixes; the full tuple remains residual. OR arms reuse AND-owned field
 analysis, preserving parent identity, and INDEXED BY constrains each recursive

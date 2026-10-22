@@ -1,5 +1,38 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## R14 result-reference repair
+
+Review14's source-derived witnesses were independently captured then executed on
+70d045af: partial ORDER BY2 LIMIT1 rejected at prepare; permuted ORDER BY1 LIMIT1
+returned empty instead of INTEGER(9,1), across UTF8/16le/16be. Original receipt
+`work:///cards/card-s-c-d-e/r14-projection-red/native.json`, SHA256
+ff3ec068b2f4c84b4782f2cbd2fddf29633c37cc396b1b006bed3a8c1b68fe1a.
+Exact SQL, failed commands, selected-work/reset observation and prior provenance
+are in `record:///status.md?card=card-s-c-d-e&v=118`.
+
+Pinned wherecode.c525–644 maps retained iOrderByCol to first projected position,
+clears removed references, and applies adjustment to ORDER/GROUP per arm. The
+original predicate remains residual. TS GROUP already substitutes ordinal/alias
+via resolved aliasUses, so its identity remains valid independent of width.
+The repair gives resolvedProducerProjection an explicit selected-field map,
+remaps ORDER slots and retains original linked expressions for removed references,
+preserving clause COLLATE. All applicable compound plans use the same operation.
+Table ORDER consumes resolved slots rather than raw spelling; the shared binder
+honors substituted reductions for ordinal literals as well as aliases. No second
+sorter, evaluator, flattening rule or algorithm substitution is introduced.
+
+First slot-remapping attempt removed the prepare error but still returned empty
+(proc-d7715bc64415,0/3): shared binder substituted aliases only for column-shaped
+inputs, leaving an ordinal as literal2. Correcting that semantic owner makes both
+unchanged original receipts pass3/3 (proc-5e96a005fc44); its subsequent typecheck
+failed on an insufficient reduction type guard, corrected explicitly.
+Native capture extends the existing mandatory vector suite with separate opposing
+order fixtures, preserving its original tables and assertions: partial/permuted
+ordinal/alias LIMIT plus GROUP ordinal sibling. Resolver tests cover removed,
+retained, repeated slots and compound-arm carriers. These are author tests, not
+independent acceptance. Current command/results and final delivery identity live
+in the current card status; prior stable118 is not R14 validation.
+
 ## Retained GROUP caller repair
 
 G58 independently found a native-positive retained `(SELECT k FROM outer_t
