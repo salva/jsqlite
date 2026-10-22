@@ -656,7 +656,12 @@ Negative controls establish base-only execution, so they do not earn positive
 selected-access credit even though their rows and counters pass. Review-derived
 NULL/rebind and corruption probes reinforce the boundary, but are not frozen
 native recaptures or extra credit. This bounded selected-access eligibility does
-not establish general optimizer parity or credit joined selected-IN (still gated).
+not establish general optimizer parity or add joined selected-IN credit. Admitted
+joined selected-IN now executes through the shared selected-loop/producer path;
+its separate native/public and lifecycle evidence is mapped in
+[the translation guide](TRANSLATION.md) and
+[the delivery evidence](research/selected-select-in-delivery.md), outside this
+frozen 30-pair denominator.
 The frozen `partial-implied` access label is `deferred-unused`, not `covering`:
 pinned SQLite emits lazy `OP_DeferredSeek`, but no table record is read and the
 observable `tableSeeks`/`tableNext` contract remains exactly zero.
