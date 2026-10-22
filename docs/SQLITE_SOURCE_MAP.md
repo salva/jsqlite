@@ -2,6 +2,14 @@
 
 ### Selected SELECT-IN LOOP
 
+`select.c:flattenSubquery` restriction4 and tags0482/0488 →
+`vdbe.ts:compileDerivedProducer` routes joined retained DISTINCT physical
+producers to `compileResolvedTableProducer`, preserving transient descriptors,
+resolved physical siblings and coroutine versus callable Once materialization.
+`capture-derived-selected-in.py --distinct` + `derived-selected-in.test.mjs`
+reuse attributed g52 typed/metadata/selected-work/reset assertions across encodings.
+Evidence and bounded remaining branches: [delivery research](research/selected-select-in-delivery.md#retained-distinct-caller-repair).
+
 `whereexpr.c:exprAnalyze` TERM_SLICE/iField → `where-plan.ts:analyzeClause`
 retains original vector IN identity, per-field resolved affinity/collation and
 parent residual ownership. `wherecode.c:removeUnindexableInClauseTerms` →
@@ -23,8 +31,37 @@ parent identity and public all-encoding/reset controls: `where-in-producer.test.
 Once-free `emitSelectedInRhs` at the ready outer level, and reentrant
 OpenEphemeral release. `selected-correlated-in.test.mjs` with
 `capture-selected-correlated-in.py` covers the original three-encoding
-CROSS JOIN equality-prefix/range/reset witness. [Finite evidence and remaining
-composition/lifecycle gaps](research/selected-select-in-delivery.md#correlated-selected-frontier).
+CROSS JOIN equality-prefix/range/reset witness. `selected-in-r1-matrix.test.mjs`
+adds finite typed LEFT/OR/empty/rebind composition; `selected-correlated-in-lifecycle.test.mjs`
+checks awaited movement and live-owner rebuild failure/retry with terminal
+owned-byte-accounting refunds (`vdbeaux.c:sqlite3VdbeHalt/closeAllCursors`). `capture-correlated-in-work.py` and
+`correlated-in-work.test.mjs` contrast actual selected and scan work at 20k LHS
+cardinality with bounded correlated residual invocations. Shared
+`correlated-in-work-cases.mjs` retains all workload/assertions; mandatory wrappers
+`correlated-in-work.test.mjs`, `correlated-in-work-utf16le.test.mjs` and
+`correlated-in-work-utf16be.test.mjs` run every encoding serially under separate
+file60 boundaries, not fewer cases or a larger limit. [Organization evidence](research/selected-select-in-delivery.md#useful20k-same-work-organization). [Finite evidence and
+remaining gaps](research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
+`capture-correlated-in-corruption.py` / `correlated-in-corruption.test.mjs`
+map `btree.c:decodeFlags/btreeInitPage/moveToRoot` and VDBE halt cleanup to
+native-first correlated selected-root faults, reset/retry, byte-accounting
+refunds and NOT INDEXED off-path controls under CROSS/LEFT ON/LEFT WHERE/OR.
+`select.c:substExpr/substSelect`3782–3934 and source transfer4614–4681
+→ `select-substitute.ts` resolved-identity traversal/qualification/splice,
+consumed by `vdbe.ts:flattenOrdinaryDerived` using `resolveTransientArm`.
+The bounded first ordinary source/one physical producer preserves later caller
+sources, nested bindings and public names. Nested compound dependencies collect
+resolved `compoundArms` and map all arm ELists/FROM/WHERE/GROUP/HAVING plus shared
+ORDER and expression SELECT semantic/reduction carriers, preserving local owners.
+`select.c:selectInnerLoop SRT_Set/multiSelect` → `vdbe.ts:resolvedScalarSubqueryEmitter`
+source-free compound IN admission → existing `compileWideSubquery`/shared compound
+destination (not scalar SRT_Mem). Both parent/child windows and retained
+DISTINCT/order/limit owners are fenced; expanded joined stars remain a gap.
+`capture-derived-selected-in.py` / `derived-selected-in.test.mjs` cover the
+three-encoding native-positive selected witness; structural identity/shadowing
+controls live in `where-plan-analysis.test.mjs`, including correlated later-arm
+and local-shadow ownership; `capture-derived-selected-in.py --nested` reuses the
+public matrix with native-first nested UNION ALL dependencies. [Nested evidence](research/selected-select-in-delivery.md#nested-compound-substitution). [Evidence](research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 Pinned independent receipts: `capture-selected-vector-in.py` (full EXPLAIN, typed
 id rows, five metadata fields; all three encodings).
 

@@ -674,9 +674,32 @@ scalar/vector RHS sets rebuild at the chosen ready outer invocation, using the
 original linked SELECT and caller source locations; EP_VarSelect suppresses Once.
 Vector field children retain RHS prerequisite masks and cannot drive their own
 dependency source. OpenEphemeral releases its previous private tree on reentry.
-Parent tuple residuals and LEFT/ON fences remain conservative. Broader derived,
-LEFT/OR correlated compositions and lifecycle coverage remain unverified, not
-exclusions. Current finite evidence: [correlated frontier](research/selected-select-in-delivery.md#correlated-selected-frontier).
+Parent tuple residuals and LEFT/ON fences remain conservative. Finite typed
+LEFT ON/WHERE, OR, empty/rebind and awaited-movement interruption/retry now have
+three-encoding witnesses including live-owner rebuild interruption/retry and
+terminal owned-byte-accounting refunds; a bounded 20k-LHS selected/scan work contrast also
+has native-first tests organized into three mandatory per-encoding files sharing
+one unchanged workload/assertion body, with serial file60 passes. This is test
+organization, not a runtime speedup; aggregate batch limits and historical timing
+risk remain applicable ([evidence](research/selected-select-in-delivery.md#useful20k-same-work-organization)). Native-first selected-root
+corruption witnesses now cover correlated CROSS/LEFT ON/LEFT WHERE/OR, saved
+errors, reset/retry, owned-byte refunds and unaffected NOT INDEXED controls.
+The bounded ordinary first-source derived route with one physical producer
+resolves transient descriptors before source-identity substitution, qualifies
+moved producer expressions without capturing nested local names, and retains
+later caller SrcItems/join flags. The existing selected-IN native/public witness
+covers typed rows, metadata and reset/rebind across encodings. Substitution
+collects resolved compound-arm bindings and traverses every nested arm and its
+semantic/reduction carriers (native `substSelect(...,1)`), without capturing
+local aliases. Source-free compound IN dependencies enter the existing shared
+SRT_Set producer rather than the scalar SRT_Mem fallback; flattening eligibility
+and retained/window owners are unchanged. [Nested evidence](research/selected-select-in-delivery.md#nested-compound-substitution).
+Joined retained
+DISTINCT producers over one physical source now use the existing resolved
+producer route: native coroutine eligibility selects yielding versus callable
+Once materialization while physical siblings retain their resolved identities.
+Expanded stars, broader derived prerequisite composition, resource bounds and
+whole-goal coverage remain open obligations, not exclusions. Current evidence: [finite composition and faults](research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 This is not vector index-strategy completeness. See `expr.c:sqlite3ExprVectorSize`,
 `sqlite3ExprCodeIN` and the [vector review](research/card-i-c-row-vector-review.md).
 Generated dependency BUSY ownership flows through CASE/BETWEEN/IN-list and

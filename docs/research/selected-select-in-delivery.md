@@ -1,5 +1,380 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Combined caller candidate: finite R1 handoff
+
+Candidate promotion is not whole-R1 acceptance. Native `substSelect` visits
+EList/GROUP/ORDER/HAVING/WHERE, nested sources and all pPrior arms. The immutable
+`select-substitute.ts` maps semantic and reduction carriers before re-resolution;
+generated private aliases adapt native cursor identity, not lookup semantics.
+Eligibility remains in `vdbe.ts:flattenOrdinaryDerived`.
+
+Current applicable branch ledger:
+
+- `codeINTerm` → ordinary/joined/OR selected callers: scalar/vector,
+  partial/permuted/repeated-column fallback receipts and typed reset/residual
+  tests apply. More-than-two selected-slot restart coverage is not established;
+  selected caller owner still owes that branch evidence.
+- `whereexpr.c` prerequisites → `codeSelectedTerms` and joined ready masks:
+  virtual/non-ready terms cannot be marked coded; RHS admissions require every
+  prereqRight ready. Planner and correlated public tests apply. Complete
+  non-ready competing-candidate/dominance coverage remains with WHERE caller owner.
+- `substExpr/substSelect` source transfer → `spliceResolvedFirstSource`:
+  ordinary physical producer, nested compound outer dependency and local shadow
+  tests apply. Expanded joined stars are fenced, unlike native expanded EList
+  transfer: mandatory expansion/flattening implementation gap, not browser necessity.
+- restriction4/tags0482/0488 → resolved producer: joined retained DISTINCT over
+  one physical child reuses coroutine or Once/Gosub materialization. Broader
+  retained/order/compound and repeated-view lifetimes require SELECT destination
+  owner assessment of existing routes; neither DISTINCT erasure nor retention
+  bypass is justified by this finite witness.
+- LEFT match/null-row/residual branches → joined caller: R1 matrix, corruption
+  and lifecycle cover ON versus WHERE, OR, empty, retries and accounting refunds;
+  nested LEFT/OR and every error timing are not exhaustively established.
+- GROUP/HAVING/shared ORDER traversal → substitution: structural tests apply;
+  public derived tests cover ORDER and metadata, not general aggregate projection
+  admission. Specialized SELECT producer coverage remains mandatory.
+
+This is an explicit remaining-owner handoff through [[card:card-s-c-d]], not an
+exclusion or independent approval. G52 capture/matrix authorship remains with
+[[card:card-s-c-d-g]]; Executor checks assess its tests and the author repair.
+Earlier sections retain revision-bound evidence and failed hypotheses, not
+competing current contracts. Commit/type/package/stability receipts are retained
+in the current card status and its accepted history.
+
+## Useful20k same-work organization
+
+Accepted E status103 reproduced the three-encoding single-file60 failure:
+proc-69e317d6a125 EXIT124, UTF8 complete32.328s, file interrupted59.949s.
+There was no established production correctness or source-algorithm divergence.
+This repair uses the explicitly allowed same-work organization, not a guessed
+runtime optimization: one shared `correlated-in-work-cases.mjs` exports a
+registration function with exact-one-fixture encoding validation. Three mandatory
+wrappers register UTF8/16le/16be independently. The original filename remains the
+UTF8 wrapper; both new UTF16 files must be in every complete acceptance inventory.
+The former three-encoding single-file timing is not reclassified as passing.
+
+Original workload remains20 outer/20 RHS/20000 LHS, selected20 and identical
+`o.k<=2` scan,1e9 work cap, both selected/scan statements run twice with reset,
+typed rows and counters, same cleanup. proc-db9e7b4dd435 programmatically compared
+the original saved harness (SHA256 recorded in accepted103) and current shared
+body starting at fixture read: workload/assertion/reset/cleanup body byte-identical.
+No production path, algorithm, native fixture, SQL or capture changed; this is
+not an exceptional algorithm substitution and makes no runtime speedup claim.
+The tradeoff is two extra file startups and a mandatory three-file inventory;
+serial execution still performs all work, under unchanged file60/batch600 caps.
+Historical per-encoding61.242s remains timing-risk evidence, not erased.
+
+proc-ea6507baae7b EXIT0 in `/work/jsqlite2/integration-delivery`:
+`set -e; for file in test/conformance/correlated-in-work.test.mjs test/conformance/correlated-in-work-utf16le.test.mjs test/conformance/correlated-in-work-utf16be.test.mjs; do CORRELATED_IN_WORK_DIR="$SAIVAGE_CARD_WORK_ROOT/correlated-work" timeout 60s node --experimental-strip-types --test --test-concurrency=1 "$file"; done; npx tsc --noEmit; git diff --check`.
+All three1/1 pass, no skips: file durations37.056/33.728/36.651s (test bodies
+36.507/33.248/36.205s); serial total107.436s below batch600, file60 individually.
+Complete stdout consumed directly from wait_process. No parallelism, file-limit
+raise, reduced assertions, lower cardinality or skipped encodings. This focused
+run is not the outstanding original107+new full gate, build/package or independent
+review/commit validation.
+
+proc-db9e7b4dd435 SHA256: shared body
+`aec8ca80afe00b95f8baca6ba13769e39858da2e7a943f6c0a41da141ce42a27`;
+UTF8 wrapper `ed39a7ea7be6cb64d2efb0d56e689e984318a538813f3b585047293166b15871`;
+UTF16be `0583dea746583224b21c692b7b152e0d7ff0b169844a53cce97a48a6202381b5`;
+UTF16le `45dd3c67ac13f6b141e3e52423749287931d6c95b66c281eae4f3fa4e94557f1`.
+HEAD remains cd0fd5df/tree78a66404 with previous owned repairs dirty; no commit
+or REAL-index delivery inferred. Original harness preserved in card disposable
+`useful20k-organization/original.test.mjs` and accepted103 evidence.
+
+## Nested compound substitution
+
+G-R1-NESTED from independent [[card:card-s-c-d-g]] status53 is repaired in the
+working tree, not independently accepted or committed. Accepted E status100
+retains exact SQL, red0/3 and original input hashes/native receipt
+`3a1013242b20e42727ddf590bbe126e4233d1b02a6b1a7074399a86eb25ccfdc`.
+The unchanged witness has `rhs.k IN(SELECT o.k UNION ALL SELECT o.k)` inside
+selected vector RHS over an ordinary-derived outer source.
+
+Pinned select.c substExpr/substSelect3782–3942 descends expression SELECT and
+all pPrior arms; resolve.ts publishes separately resolved compoundArms.
+The old mapper rejected nested compounds, collected only nested plans and
+updated arm0 only. Repair collects compoundArms too, maps SELECT semantic and
+reduction children, maps every arm's result/FROM/ON/function args/WHERE/GROUP/
+HAVING/VALUES carriers and shared ORDER. Local source identity is retained.
+No flatten eligibility or retained/window owner is relaxed.
+
+First traversal repair exposed a second caller admission gap, not wrong rows:
+proc-982179ca5a52 EXIT1,0/3, typed unsupported at vdbe compileJoinSubquery4187.
+Scalar-width compound IN was being sent to the SRT_Mem fallback, which rejects
+IN. Source-free compound IN now delegates to existing compileWideSubquery and
+shared compound SRT_Set destination. Native selectInnerLoop1384ff inserts every
+produced row into the set; multiSelect2960ff executes UNION ALL left then right
+with the same destination and limits. Existing linkedPlan/compoundArms carry
+outer bindings through the actual shared producer. No evaluator or algorithm
+substitution is introduced. Mixed/table compound and ordered/retained ownership
+are not expanded here.
+
+Verification on this repair:
+- proc-65c836011e02: unchanged g53 fixture3/3,791.580ms, then && typecheck.
+- Added structural all-encoding regression in where-plan-analysis: both early
+  and later correlated arm result/predicate bindings are outer; third arm's
+  local `o` remains local. Initial assertion expected unquoted generated alias
+  (proc-f26f2dc08793); corrected the assertion to its actual quoted token, not
+  production behavior. proc-fa26b496a808: regression1/1 and fresh pinned capture
+  `capture-derived-selected-in.py --nested --library "$SAIVAGE_CARD_WORK_ROOT/select-in-oracle-build/libsqlite3-metadata.so" --output "$SAIVAGE_CARD_WORK_ROOT/derived-nested-current"`, public3/3,1.314s.
+  Native capture reuses attributed g52 fixture/assertions without changing them.
+- proc-7bb9bac628a0: COMMON_CHECKPOINT_OUTPUT=`$SAIVAGE_CARD_WORK_ROOT/derived-aggregate-current`
+  six-file aggregate-inclusive focused suite290/290,9.627s, then ordinary3/3,
+  retained red control3/3, && tsc and diff-check. Full suite log is
+  `$SAIVAGE_CARD_WORK_ROOT/derived-nested-current/focused.log`; complete command
+  output consumed at `work:///cards/card-s-c-d-e/processes/proc-7bb9bac628a0/stdout.log`.
+- proc-9e63f256757c: HEAD cd0fd5df/tree78a66404, empty staged diff. Helper SHA256
+  `133f182cf9d7a1ddc6721d20ac3463dd76eb47eae60b00a1a1f965d6971aec83`,
+  vdbe `8fe0c4ad7082471dac0df4288fcc8d27cba2f5cb5f77fa0a6d5f0b463b96fa92`.
+
+An apply_patch attempt reported no changes; subsequent exact edits made the
+repair. No peer work discarded. Useful20k/file60, finite broader ledger,
+original107/build/package, attributable commit/REAL-index synchronization and
+independent whole-R1 adjudication remain due; focused green is not those gates.
+
+## Retained DISTINCT caller repair
+
+Working-tree author repair following accepted status97 (not whole R1 approval).
+Native `select.c` restriction4 forbids flattening DISTINCT; tags0482/0488
+instead compile the retained producer into the enclosing VDBE, either yielding
+or filling a callable Once-owned ephemeral cursor. The existing
+compileResolvedTableProducer already owns this state machine, transient Tables,
+parameter identities and ResolvedSource reader mapping. Missing caller admission
+in compileDerivedProducer is corrected for joined DISTINCT producers with one
+physical child source, excluding aggregate/window/compound/nested child owners.
+No new evaluator, DISTINCT erasure, mask relaxation or algorithm substitution.
+Existing coroutine exhaustion/first/next and materialized Gosub/Rewind/Next paths,
+LEFT null-row ownership and terminal cursor cleanup remain in the shared owner.
+Other retained compositions remain implementation gaps, not scope exclusions.
+
+Original red capture retained beneath card work `derived-retained-red`: exact
+unchanged reproducer now passes3/3 (`proc-37ce94fc5d2b`,985.818ms).
+Durable capture option `capture-derived-selected-in.py --distinct` independently
+uses the pinned metadata library and preserves existing g52 fixture/test ownership.
+`proc-55faffa1d87d` EXIT0: fresh native capture `derived-retained-current`, public
+retained3/3 (993.256ms), ordinary3/3 (970.066ms), then &&-gated tsc and diff-check.
+This compares typed rows/five metadata fields/selected probes/reset for the four
+correlated/LEFT ON/WHERE/OR cases per encoding, not every retained branch.
+`proc-64383fd00572` EXIT0: supplied COMMON_CHECKPOINT_OUTPUT through existing
+native aggregate generator using pinned metadata library; aggregate plus prior
+five focused suites289/289, no skips,11.370s. This resolves status95's missing
+aggregate-input failure, not the outstanding original107/full package gates.
+Detailed full test output is card work `derived-aggregate-current/focused.log`.
+No new commit/index synchronization or independent acceptance claimed.
+
+## Correlated finite composition and fault evidence
+
+### Current production integration (working tree, not accepted delivery)
+
+The t28 ordinary-caller coordination is affirmative. `flattenOrdinaryDerived`
+now consumes `spliceResolvedFirstSource` for an explicit-result first derived
+source with one physical producer and later parent sources. All six callers
+pass schema explicitly, including the map lambda. `resolveTransientArm` supplies
+actual transient Tables before substitution; re-resolution feeds existing table
+lowering, not a parallel evaluator. Parent and child windows are fenced on this
+new route, while the previous single-source/window route remains unchanged.
+Stars, retained DISTINCT/materialization and broader eligibility are outstanding,
+not newly declared unsupported product scope. The older preflight/red receipts
+below are revision-bound provenance, superseded for this public witness.
+
+`proc-e3fd9237b50b` passes unchanged derived public3/3 plus tsc. Final narrowed
+star detection (only result stars, not multiplication/count arguments):
+`proc-914b9c04f425` passes286/286 across planner, derived-values-registers,
+compound-expanded-width, compound-filtered-parameters and CTE/JSON/window
+composition, then derived3/3, tsc and diff-check via &&. Earlier broad invocation
+`proc-0adc9b953566` has286 passing and one file failure: retained ORDER/LIMIT
+aggregate requires COMMON_CHECKPOINT_OUTPUT, which was absent. This is an
+unresolved harness-input verification gap, not a passing aggregate test.
+No new native capture, stable original107/build/package, commit/index delivery,
+independent acceptance or useful20k file60 qualification claimed in this increment.
+
+The clause-owner prerequisite regression in `where-plan-analysis.test.mjs`
+now follows recursive OR/AND clause-local parent/child IDs across direct WHERE,
+LEFT ON, LEFT WHERE and OR placements in all three encodings. It checks that
+both vector fields share the original RHS identity and source0 prerequisite,
+retain source1 binding and full residual, and that the chosen source1 loop
+waits for source0. Pinned comparison: whereexpr.c `exprSelectUsage`997 and
+TERM_SLICE1494ff, where.c path prerequisite check5948, TS analyzeClause1210ff.
+proc-3bc67ce4a4dc passes1/1 focused. This is planner structure evidence complementing
+the native/public matrix, not derived-source readiness or a new native capture.
+The unchanged ordinary-derived reproducer was rerun: proc-e9a77f154f46 fails0/3
+at prepare with temporary unsupported in compileTableSelectProducer7332;
+source-list splice remains the owning correction, not prerequisite-mask deletion.
+
+A further source-identity preflight in `where-plan-analysis.test.mjs` supplies
+an actual transient Table at the existing `expandAndResolveSelect` binding
+boundary. All encodings demonstrate caller-result identity, qualified LEFT ON
+and bare-name nested WHERE references to that SAME transient source at lexical
+depth1, local child qualifier shadowing, and rejection of ambiguous bare names.
+Pinned `select.c:SubstContext`3770/`substExpr` and `substSelect`3914 consume
+resolved cursor/column identities; TS `resolve.ts:lookupName`246 publishes
+`ResolvedColumnUse` including source identity and selectDepth. This disproves
+the need for name-only substitution on this finite route: the required binding
+information already exists before lowering. It does not implement source
+splicing, producer qualification or retained DISTINCT destinations.
+`proc-1efcfff1732b` passes1/1 focused; `proc-7209120366df` passes264/264 full
+where-plan-analysis in6.526s, then tsc/diff-check, unchanged vdbe.ts and empty
+staged diff. No runtime edit or new native capture: this is structural preflight,
+not a public/oracle compatibility or derived reproducer pass. Next repair should
+consume resolved ownership rather than replay the withdrawn qualified-only
+source-splice experiment (accepted card status v88).
+
+The next increment implements that identity-based substitution in the new
+`src/internal/select-substitute.ts`, currently **not wired to production**.
+It collects actual ResolvedColumnUse identities recursively, substitutes column
+ordinals through caller EList/WHERE/GROUP/HAVING/ORDER and ON/function arguments,
+and rewrites nested SELECT semantic carriers. COLLATE/parenthesis wrappers stay
+owned by their operators; local shadowing remains untouched. Its caller must
+provide producer-qualified expressions and isolated noncompound arms; transient
+rowid and missing replacement columns fail rather than fabricate values. It
+supplies neither flatten eligibility/SrcList splicing nor LEFT null-row guards,
+star expansion, compound traversal or complete derived readiness.
+The regression now substitutes then re-resolves a physical source splice in the
+harness, verifying ON/WHERE references bind the actual replacement owner and
+that shadowed names and explicit NOCASE survive. Initial failures
+proc-4cb2d6bb0fb5/proc-5303744837c4 exposed an incorrect test expectation: the
+INTEGER PRIMARY KEY replacement resolves to rowid columnIndex=-1, not0.
+proc-684a1ac41c23 exercised explicit transient-rowid rejection; the test now
+asserts that rejection rather than trying to substitute a persistent source.
+proc-92de15ae6ebc passes focused1/1 and full264/264 (6.400s), then tsc/diff-check,
+unchanged vdbe.ts and empty staged diff. The public derived reproducer remains
+0/3 (proc-4a82c640f87e); the helper is not a delivered repair. Shared vdbe.ts
+integration still needs the coordinated edit window and complete caller work.
+
+Producer qualification is now implemented in the same unintegrated module via
+`qualifyResolvedSource`, reusing the identity-mapped traversal rather than
+qualifying every bare token. A splice caller supplies a collision-free alias
+and renames the physical SrcItem. Tests move a bare INTEGER PRIMARY KEY producer
+expression into both nested caller contexts and re-resolve to the original
+physical owner, including a quoted alias containing whitespace and producer
+WHERE. A declared `rowid` column is a finite negative control: render the actual
+INTEGER PRIMARY KEY name, not the hidden pseudo-column spelling. For unnamed
+rowid choose an unshadowed SQLite alias or reject if none is representable.
+This closes one explicitly missing representation step, not alias allocation,
+eligibility, stars, table splicing or production integration. Subsequent
+`spliceResolvedFirstSource` now composes this traversal with fresh aliases absent
+from linked NameContexts, one-slot source transfer, retained caller LEFT join
+flags, transient carrier removal, preserved public result names and AND-combined
+producer/caller WHERE. It is still unintegrated: caller eligibility and actual
+transient descriptor installation remain required. The primitive rejects
+DISTINCT/retained producer destinations, stars and null-extended producer owners
+rather than pretending those are flattened. All-encoding structural controls
+exercise nested alias collision, ON/WHERE correlations, metadata name and source
+carrier removal. proc-aa68a3db1f57 passes264/264 plus tsc/diff/unchanged vdbe/index;
+proc-4a91fa558f35 public derived0/3 remains red before this helper is reached.
+Final
+proc-9d95bca652c8 passes264/264 +tsc/diff-check/unchanged vdbe.ts/empty staged diff;
+public proc-a32e156b8634 remains0/3 at the same preparation guard. No new native
+capture or public compatibility is claimed for the unintegrated helper.
+
+Peer-assessed g52 products `capture-selected-in-r1-matrix.py` and
+`selected-in-r1-matrix.test.mjs` retain native-first typed values/storage classes,
+five metadata fields, partial/permuted vectors, correlated LEFT ON versus WHERE,
+OR branch work, empty RHS and clear/rebind/reset across three encodings. Their
+authorship belongs to [[card:card-s-c-d-g]], not the production author.
+`selected-correlated-in-lifecycle.test.mjs` extends the actual correlated caller
+to cancellation/deadline during awaited RHS movement after a selected seek;
+sticky error identity, reset reporting, typed full retry and finalize are checked
+in all three encodings. It additionally faults the actual live RHS owner's
+OpenEphemeral reuse after a prior selected seek: cancellation/deadline enter the
+real clearTable control checkpoint, retain sticky failure identity and permit
+full typed retry after reset. `vdbe.c:4565ff` clears a reusable ephemeral table
+before subsequent nullRow publication, as `PrivateKeyVmCursor.reuse` does.
+proc-acd762e440a1 passes3/3 in1.729s, then tsc/diff-check. Additional
+actual `PrivateStateByteBudget.reserve` observation now requires nonzero admitted
+bytes and zero outstanding bytes at terminal fault and successful typed retry
+for movement and live-owner rebuild cases; proc-d9af19e8dd9f passes3/3 in1.096s
+plus tsc/diff-check. This witnesses owned accounting refunds, not JS heap
+collection. It follows vdbeaux.c sqlite3VdbeHalt/closeAllCursors releasing cursors
+and registers; TS halt closes private owners before clearing their map. This is
+a concrete rebuild boundary, not injected corruption or a proof of every
+resource lifetime. It does not assert heap reclamation or all fault timings.
+
+Executor evidence proc-248b1d106f25 regenerated pinned native receipts before
+public consumption. proc-76481db4ae85 passes seven focused suites **289/289**
+serially, then tsc and diff-check. Full output is in the card work area's
+`r1-red-matrix/green-focused.log`. Runtime input remains cd0fd5df; tests-only
+additions do not prove whole R1 acceptance. Accepted status v81 preserves the
+20k selected-work probe and two failed NOT INDEXED work-limit controls: selected
+20 seeks/20 table lookups/820 tableNext is useful evidence, not a completed scan
+comparison on that SQL. A separate bounded contrast is now durable in
+`capture-correlated-in-work.py` / `correlated-in-work.test.mjs`: the same 20k LHS
+and 20 outer keys, an explicit `o.k<=2` predicate on BOTH selected and scan SQL,
+and two RHS keys. Native-first readonly typed rows/full EXPLAIN are captured for
+both paths in all encodings. Public initial/reset runs assert positive selected
+seeks/probes with <=40 seeks, <=4 table lookups and <2000 tableNext, versus scan
+zero selected work and >=40000 tableNext, with >20x contrast. This is not a pass
+of the original unbounded scan. EP_VarSelect requires per-encounter rebuilding;
+scan repeatedly executes RHS code at residual encounters. Each private clear
+charges its page write and VM operations also consume the statement budget;
+limiting encounter count in an explicit shared predicate keeps the contrast
+finite without weakening the original selected witness or declaring budget
+failure a correctness defect. The explicit connection work budget is 1e9.
+
+proc-7157de8318b9 completed a diagnostic contrast (20 RHS keys): selected
+20 seeks/2 lookups/460 tableNext vs scan1200020 tableNext. proc-82d5d4c44410
+passed the first durable three-encoding version, but it took284.821s. The final
+two-key fixture retains20k LHS and both original output rows while bounding RHS
+scan work. proc-800a44789e79 freshly captures native first then passes3/3 with
+tsc/diff-check;169.736s total. Per-encoding times59.424/48.182/61.242s mean this
+suite is NOT a pass under the original file60s gate; splitting or reducing
+repeat work for that gate remains unresolved. No timeout assertion relaxed.
+
+Native-first corruption addition (e-authored):
+`capture-correlated-in-corruption.py` reuses g52 construction unchanged and
+finds t_ab's root from sqlite_schema, invalidates only its page-type byte, then
+opens the image readonly. For CROSS/LEFT ON/LEFT WHERE/OR, native prepares
+successfully, step/reset report SQLITE_CORRUPT11 twice, and failed execution's
+finalize reports11; NOT INDEXED retains original typed rows before/after. Pin
+is SQLite3.53.4/bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc.
+`btree.c:decodeFlags2028/btreeInitPage2218/moveToRoot5554` rejects invalid type
+on the consumed root; TS Btree.page checks the same boundary. VDBE halt releases
+owned private cursors/registers, not the independent connection or sibling
+statement. No source divergence found here.
+
+proc-e7dbeb33bf76 EXIT0 captures native first with
+`PYTHONDONTWRITEBYTECODE=1 python3 test/conformance/capture-correlated-in-corruption.py --library "$SAIVAGE_CARD_WORK_ROOT/select-in-oracle-build/libsqlite3-metadata.so" --output "$SAIVAGE_CARD_WORK_ROOT/correlated-corruption"`.
+Then proc-094580207672 EXIT0 runs
+`CORRELATED_IN_CORRUPTION_DIR="$SAIVAGE_CARD_WORK_ROOT/correlated-corruption" node --experimental-strip-types --test --test-concurrency=1 test/conformance/correlated-in-corruption.test.mjs && npx tsc --noEmit && git diff --check`:
+3/3, zero failures/skips,1.222s. Public tests check exact code/kind, saved error
+identity, reset and repeated fault/finalize, actual admitted private bytes fully
+refunded at halt, plus typed/storage-class off-path controls on the same
+connection before/after each failed statement. This is a concrete persistent
+root corruption branch, not private arena mutation or every cleanup timing.
+API error/ownership contract is unchanged; no public export/instrumentation added.
+
+Derived readiness/parent-child prerequisite composition, broader correlated
+resource bounds, original107/build/package and stable-input independent
+adjudication remain outstanding.
+
+## Derived outer-source readiness: newly reproduced gap
+
+`capture-derived-selected-in.py` reuses g52's attributed fixture generator in
+an isolated base subdirectory, then independently captures native typed rows and
+full EXPLAIN for derived outer-source correlated CROSS/LEFT ON/LEFT WHERE/OR
+SQL in all encodings. `derived-selected-in.test.mjs` reuses g52's assertions
+without editing its original products. The DISTINCT-derived diagnostic
+proc-71fc58de474f fails public preparation3/3; removing DISTINCT and recapturing
+native first still fails3/3 (proc-7c3b350fab92). Both reach
+`compileTableSelectProducer:7332`, temporary unsupported derived CTE composition,
+before selected caller lowering. No rows or selected-work success is credited.
+The retained durable capture now uses ordinary `(SELECT k FROM outer_t) AS o`.
+Native retains selected SeekGE for all four cases; public test stops at the first
+case in each encoding, so LEFT/OR execution is not yet separately assessed.
+
+Pinned `whereexpr.c:exprSelectUsage:997` recursively includes derived sources
+and ON expressions; `where.c:5948` rejects a path until prerequisite sources are
+ready. Current `flattenOrdinaryDerived:5719` admits only one outer FROM item,
+so even the ordinary two-source derived/CROSS witness is rejected before those
+selected-path checks. This is an implementation gap, not a browser necessity or
+an exclusion granted by these tests. A coherent next repair requires tracing
+select.c flattenSubquery/substSelect source identity substitution into the
+multi-source caller, including retained correlated RHS references and LEFT
+fences. Simply deleting the one-source guard would lose required binding
+ownership; no such speculative edit was made. Materialized DISTINCT readiness
+is a separate prerequisite branch and remains open.
+
 ## Correlated selected frontier
 
 Original red witness retained in capture-selected-correlated-in.py and

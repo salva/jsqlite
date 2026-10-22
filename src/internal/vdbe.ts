@@ -1,3 +1,4 @@
+import {spliceResolvedFirstSource} from './select-substitute.ts';
 import {metadataColumnDeclaredType,metadataSource,metadataHiddenColumns,METADATA_MODULE_COLUMNS,type MetadataValue} from './pragma.ts';
 import {chooseJsonTableIndex,jsonTableConstraints,planJsonTableConstraints} from './json-table-plan.ts';
 import {PrivateKeyVmCursor} from './private-key-vm.ts';
@@ -4178,6 +4179,9 @@ function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResol
   const rememberNested=(plan:ReturnType<typeof expandAndResolveSelect>):void=>{for(const child of plan.nested){nestedPlans.set(child.source,{plan:child,cursor:builder.cursor()});rememberNested(child);}};rememberNested(expanded);
   const compileJoinSubquery=(incoming:SubqueryExpression):number=>{
     const expression=incoming.resolved?{...incoming,select:incoming.resolved.source}:incoming;
+    // expr.c SRT_Set is width-independent. Source-free compound IN uses
+    // the existing multiSelect producer, not the scalar SRT_Mem fallback.
+    if(expression.kind==='in-subquery'&&expression.select.hasCompound&&expression.select.arms.every(arm=>!arm.from.items.length))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if((expression.kind==='scalar-subquery'||expression.kind==='in-subquery')&&!expression.select.from.derived&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasCompound&&!expression.select.hasValues&&!selectHasAggregate(expression.select)&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasWindow(expression.select))return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if((expression.resolved??nestedPlans.get(expression.select)?.plan)?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
     if(selectHasAggregate(expression.select)||expression.select.hasGroupBy||expression.select.hasHaving)return compileWideSubquery(expression,expression.resolved??nestedPlans.get(expression.select)?.plan,builder,ops,parameters,environment,outerBinding,compileJoinSubquery);
@@ -5156,7 +5160,7 @@ export function compileOrderedCteUnionAll(select:SelectNode,schema:SchemaGraph,d
     if(!derived)continue;
     if(!cte?.length){
       const lexicalColumns=arm.result.map(item=>{const tree=expressionFromReduction(item.reduction!);return {name:item.alias??(tree.kind==='column'?tree.name.split('.').at(-1)!:expressionName(item))};});
-      const flattened=flattenOrdinaryDerived(arm);
+      const flattened=flattenOrdinaryDerived(arm,schema);
       if(flattened.from.derived)continue;
       // sqlite3Select column names are generated from the lexical EList
       // before flattening substitutes producer expressions.
@@ -5282,7 +5286,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
     hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,hasHaving:arm.hasHaving,
     groupBy:arm.groupBy??Object.freeze([]),having:arm.having??null,orderBy:Object.freeze([]),limit:null,offset:null,
     hasOrderBy:false,hasLimit:false,hasCompound:false,
-    arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])} as SelectNode)).map(flattenOrdinaryDerived);
+    arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])} as SelectNode)).map(arm=>flattenOrdinaryDerived(arm,schema));
   // Limited producers need the ordinary scan's shared iLimit/iOffset contract.
   // Other specialized destinations must carry that contract before admission.
   if((select.limit||select.offset)&&arms.some(arm=>arm.from.cteDerived?.length||selectHasWindow(arm)))return undefined;
@@ -5716,8 +5720,26 @@ export function fromClauseTermCanBeCoroutine(f:FromSubqueryRouteFacts):boolean{i
 // lexical NameContext evidence, never persistent schema-table lookup.
 // select.c:flattenSubquery4290ff, bounded single ordinary SrcItem owner.
 // Called on isolated compound arms as well as standalone sqlite3Select.
-function flattenOrdinaryDerived(select:SelectNode):SelectNode {
+function flattenOrdinaryDerived(select:SelectNode,schema:SchemaGraph):SelectNode {
   const derived=select.from.derived;
+  // select.c flattenSubquery/substSelect: preserve later SrcItems and resolve
+  // against the transient producer before moving its physical source.
+  if(derived&&derived.index===0&&select.from.items.length>1){
+    const producer=derived.select,item=select.from.items[0]!;
+    if(select.hasCompound||selectHasWindow(select)||selectHasWindow(producer)||
+       selectHasAggregate(producer)||producer.hasDistinct||producer.hasGroupBy||
+       producer.hasHaving||producer.hasOrderBy||producer.hasLimit||producer.hasCompound||
+       producer.from.items.length!==1||producer.from.derived||producer.from.derivedSources?.length||
+       producer.from.cteDerived?.length||select.from.cteDerived?.some(source=>source.index===0)||
+       item.joinFromLeft.left||item.joinFromLeft.right||item.leftOfRightJoin||item.on||item.using)
+      return select;
+    // Stars require transient EList expansion, not physical-source expansion.
+    if([...select.result,...producer.result].some(expression=>{
+      const tokens=expression.tokens;
+      return tokens.length===1&&tokens[0]!.text==='*'||tokens.length===3&&tokens[1]!.text==='.'&&tokens[2]!.text==='*';
+    }))return select;
+    return spliceResolvedFirstSource(resolveTransientArm(select,schema),resolveTransientArm(producer,schema));
+  }
   if(select.hasCompound||!derived||derived.index!==0||select.from.items.length!==1||selectHasWindow(derived.select)||selectHasAggregate(derived.select)||derived.select.hasDistinct||derived.select.hasGroupBy||derived.select.hasHaving||derived.select.hasOrderBy||derived.select.hasLimit||derived.select.hasCompound||derived.select.from.items.length<1)return select;
     const names=uniqueTransientColumnNames(derived.select.result.map(expression=>expression.alias??expressionName(expression)));
     const producerQualifier=derived.select.from.items[0]!.alias??derived.select.from.items[0]!.tableName;
@@ -5751,7 +5773,7 @@ function flattenOrdinaryDerived(select:SelectNode):SelectNode {
 }
 
 function compoundArmColumns(arm:SelectNode,schema:SchemaGraph):Program['columns'] {
-  arm=flattenOrdinaryDerived(arm);
+  arm=flattenOrdinaryDerived(arm,schema);
   if(arm.from.derived&&!arm.from.cteDerived?.length){
     const plan=resolveTransientArm(arm,schema);
     return plan.result.map(result=>{
@@ -6086,6 +6108,13 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
 }
 
 function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;scalarRetained?:boolean;emitRow?:(first:number,count:number)=>void}):Program|undefined {
+ const retained=select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
+ // select.c restriction (4) retains DISTINCT; tags0482/0488 install its
+ // producer alongside physical siblings in the caller's resolved WhereInfo.
+ if(!owner?.scalarRetained&&select.from.items.length>1&&retained.length&&
+    !select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!selectHasAggregate(select)&&!selectHasWindow(select)&&
+    retained.every(({select:child})=>child.hasDistinct&&!child.hasCompound&&!child.hasGroupBy&&!child.hasHaving&&!selectHasAggregate(child)&&!selectHasWindow(child)&&child.from.items.length===1&&!child.from.derived&&!child.from.cteDerived?.length))
+   return compileResolvedTableProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
   if(owner?.scalarRetained){
     const child=select.from.derived?.select;
     if(!child||select.from.items.length!==1||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.hasOrderBy||!owner.scalarRetained&&(!!select.limit||!!select.offset)||child.from.items.length>1||child.from.derived||child.hasCompound&&!owner.scalarRetained||selectHasWindow(child))throw new JSQLiteError('unsupported','retained derived destination shape is not implemented',{unsupportedClassification:'temporary'});
@@ -6203,7 +6232,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   // retain their unresolved specialized ownership; never infer schema tables.
   const compoundDestinationProducer=derived.select.hasCompound&&!orderedAggregateProducer&&!values&&!ordered&&!setProducer&&!mixedProducer&&!tableCompoundPlan&&!mixedPhysicalPlan&&!joinedOrderedPlan&&!unionProducer&&!groupedAllProducer&&derived.select.arms.every(arm=>{
     const isolated={...derived.select,result:arm.result,from:arm.from,where:arm.where,hasCompound:false,arms:Object.freeze([arm])} as SelectNode;
-    const from=flattenOrdinaryDerived(isolated).from;
+    const from=flattenOrdinaryDerived(isolated,schema).from;
     return !from.derived||!!from.cteDerived?.length||from.items.length===1;
   });
   let residualCompoundColumns:Program['columns']|undefined;
@@ -7297,7 +7326,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // select.c flattenSubquery runs before window rewrite. Preserve the
     // represented bounded ordinary derived route rather than inventing a
     // second aggregate scan over its synthetic transient schema root.
-    const flattened=flattenOrdinaryDerived(select);
+    const flattened=flattenOrdinaryDerived(select,schema);
     // A multi-source producer keeps its SrcItem/module argument ownership:
     // feed the existing shared inner-loop SRT_Coroutine, not a flattened
     // Window expression through the ordinary module scalar emitter.
@@ -7321,7 +7350,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // VALUES producers have no FROM item and retain their admitted outer sorter.
   if(derived&&derived.index===0&&select.from.items.length===1&&select.orderBy.length>0&&derived.select.from.items.length&&!selectHasWindow(derived.select)&&!derived.select.hasOrderBy&&!derived.select.where)
     throw new JSQLiteError("unsupported","this derived table scan shape is not implemented",{unsupportedClassification:"temporary"});
-  const flattened=flattenOrdinaryDerived(select);
+  const flattened=flattenOrdinaryDerived(select,schema);
   if(flattened!==select)return compileTableSelect(flattened,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
   const materialized=compileDerivedProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);if(materialized)return materialized;
   // select.c resolves a CTE SrcItem to its Select before ordinary schema-table

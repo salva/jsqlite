@@ -544,6 +544,12 @@ expand optimizer, STAT4, skipscan or specialized SELECT guarantees.
 
 The represented ordinary-derived projection route preserves transient column
 names for unaliased direct columns before flattening; explicit AS takes priority.
+A first ordinary derived source with one physical producer can also retain later
+joined caller sources through resolved-identity substitution. This bounded route
+does not extend joined-star or window admission. Separately, joined retained
+DISTINCT over one physical producer uses the existing resolved
+coroutine/materialization route; broader retained derived shapes remain
+unsupported rather than flattened.
 An ordered physical-derived filter outside the represented producer route still
 fails with typed temporary unsupported, including repeated RIGHT/FULL producers.
 This is not a general derived ORDER admission (card-k-h-b post-v24 checkpoint).

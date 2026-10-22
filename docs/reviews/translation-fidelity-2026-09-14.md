@@ -13,8 +13,27 @@ frozen two-arm witness now checks positive seeks/probes, two OR starts and reset
 with a NOT INDEXED control. Correlated selected frontier production now retains
 RHS masks, binds caller source locations and rebuilds the linked ephemeral set
 without Once, releasing its previous private tree. The all-encoding original
-CROSS JOIN reproducer passes selected access/reset; broader correlated
-LEFT/OR/derived/lifecycle matrix remains unverified. See [current evidence](../research/selected-select-in-delivery.md#correlated-selected-frontier).
+CROSS JOIN reproducer passes selected access/reset. Finite correlated typed
+LEFT ON/WHERE, OR, empty/rebind and awaited-movement cancellation/deadline retry
+now have three-encoding witnesses, including live-owner rebuild interruption
+and terminal owned-byte-accounting refunds. Native-first selected-root corruption
+now covers correlated CROSS/LEFT ON/LEFT WHERE/OR, saved errors, reset/retry and
+unaffected NOT INDEXED controls. A bounded20k-LHS selected/scan contrast also
+passes with all three encodings now organized as mandatory serial per-encoding
+files sharing unchanged workload/assertions; focused file60 gates pass, not a
+runtime speedup or full inventory acceptance ([evidence](../research/selected-select-in-delivery.md#useful20k-same-work-organization)). The ordinary first-source derived
+route with one physical producer now resolves transient descriptors and splices
+by source identity while retaining later caller sources; its three-encoding
+public selected-IN witness passes. The independently reproduced G-R1-NESTED
+substitution failure is repaired by collecting resolved compound arms and mapping
+all nested arm/semantic/reduction carriers; source-free compound IN uses the
+existing shared SRT_Set producer. The unchanged three-encoding witness passes,
+as do ordinary/retained controls; this is finite author evidence, not independent
+acceptance. [Nested evidence](../research/selected-select-in-delivery.md#nested-compound-substitution).
+Joined retained DISTINCT over one physical
+producer now enters the existing resolved coroutine/materialization owner and
+passes the same typed public witness. Stars and broader retained,
+prerequisite/resource branches remain open. This is not whole R1 acceptance. See [current evidence](../research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 
 Selected scalar uncorrelated SELECT-IN now chooses eligible base-table ROWID or
 compatible single-column UNIQUE physical RHS reuse, otherwise entering the original

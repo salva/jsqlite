@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
+import {substituteResolvedColumns,qualifyResolvedSource,spliceResolvedFirstSource} from '../../src/internal/select-substitute.ts';
 import * as wherePlanning from '../../src/internal/where-plan.ts';
 import {parseSql} from '../../src/internal/parse.ts';import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {analyzeWhere,rightJoinResidual,btreeLoops,sourceBit,wherePathSolver,wherePathChoiceWidth,logEstAdd,planWhere,ROWID_NEEDED,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
@@ -8,6 +9,139 @@ const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:t
 // sqlite3DefaultRowEst: nRowLogEst=200, equality prefixes33/32; row widths use szEst.
 function schema(encoding='utf-8',withoutRowid=false,aNotNull=false){const id=col('id','INTEGER',{primaryKeyPosition:1}),a=col('a','TEXT',{collation:'NOCASE',notNull:aNotNull}),b=col('b','REAL'),blob=col('blob','BLOB');const t={nRowLogEst:200,hasStat1:false,integerPrimaryKey:withoutRowid?null:id,szTabRow:sqliteLogEst(BigInt(([id,a,b,blob].reduce((n,c)=>n+c.szEst,0)+(withoutRowid?0:1))*4)),kind:'table',name:'t',tableName:'t',rootPage:2,sql:'',columns:Object.freeze([id,a,b,blob]),indexes:[],withoutRowid,primaryKey:Object.freeze([id]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])};const i={rowLogEst:Object.freeze([200,33,32]),szIdxRow:sqliteLogEst(BigInt((a.szEst+b.szEst+id.szEst)*4)),hasStat1:false,unordered:false,noSkipScan:false,kind:'index',name:'i_ab',tableName:'t',rootPage:3,sql:'',table:t,terms:Object.freeze([{column:a,expression:null,expressionSql:null,descending:false,collation:'NOCASE',nulls:null},{column:b,expression:null,expressionSql:null,descending:true,collation:null,nulls:null}].map(Object.freeze)),unique:false,origin:'create',physical:null};i.physical=physicalIndex(i,encoding);const iblob={...i,rowLogEst:Object.freeze([200,33]),szIdxRow:sqliteLogEst(BigInt((blob.szEst+id.szEst)*4)),name:'i_blob',rootPage:4,terms:Object.freeze([Object.freeze({column:blob,expression:null,expressionSql:null,descending:false,collation:null,nulls:null})]),physical:null};iblob.physical=physicalIndex(iblob,encoding);t.indexes.push(i,iblob);Object.freeze(t.indexes);return {tables:new Map([['t',t]]),t,i,iblob,id,a,b,blob};}
 const resolve=(sql,s)=>expandAndResolveSelect(parseSql(sql).statement,s);
+test('nested compound substitution visits every resolved arm without capturing local aliases',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);
+  const transient={...s.t,name:'o',tableName:'o',rootPage:0,indexes:[],columns:[col('k','INTEGER')]};
+  const source=parseSql(`SELECT o.k,u.id FROM (SELECT id AS k FROM t) AS o CROSS JOIN t AS u
+   WHERE u.id IN (SELECT o.k WHERE o.k>0 UNION ALL SELECT o.k WHERE o.k<10 UNION ALL SELECT o.id FROM t AS o WHERE o.id>0)` ).statement;
+  const plan=expandAndResolveSelect(source,s,null,0,new Map([[0,transient]]));
+  const mapped=spliceResolvedFirstSource(plan,resolve('SELECT id AS k FROM t',s));
+  const rebound=expandAndResolveSelect(mapped,s),child=rebound.nested[0];
+  assert.equal(child.compoundArms.length,3);
+  for(const arm of child.compoundArms.slice(0,2)){
+   assert.equal(arm.result[0].source,rebound.sources[0]);
+   assert.ok(arm.columnUses.length>=2);
+   assert.ok(arm.columnUses.every(use=>use.source===rebound.sources[0]&&use.selectDepth===1));
+  }
+  const shadow=child.compoundArms[2];
+  assert.equal(shadow.result[0].source,shadow.sources[0]);
+  assert.ok(shadow.columnUses.every(use=>use.source===shadow.sources[0]&&use.selectDepth===0));
+  assert.equal(child.source.arms[0].result[0].tokens[0].text,JSON.stringify(mapped.from.items[0].alias));  assert.equal(child.source.arms[1].result[0].tokens[0].text,JSON.stringify(mapped.from.items[0].alias));  assert.equal(child.source.arms[2].result[0].tokens[0].text,'o');
+ }
+});
+test('derived substitution preflight retains resolved identity across caller ON and nested scopes',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);
+  // select.c sqlite3ExpandSubquery installs a transient Table before
+  // resolveSelectStep; substExpr later matches iTable/iColumn, not SQL names.
+  // Supply that same descriptor boundary without invoking the still-red
+  // multi-source flattening route or treating a derived alias as schema data.
+  const transient=Object.freeze({...s.t,name:'o',tableName:'o',rootPage:0,indexes:Object.freeze([]),columns:Object.freeze([col('k','INTEGER')])});
+  const sql=`SELECT o.k,u.id FROM (SELECT id AS k FROM t) AS o LEFT JOIN t AS u
+   ON (u.a,u.b) IN (SELECT x.a,x.b FROM t AS x WHERE x.id=o.k)
+   WHERE o.k IN (SELECT x.id FROM t AS x WHERE x.id=k)`;
+  const source=parseSql(sql).statement;
+  assert.ok(source.from.derived,'retain generated producer owner');
+  const plan=expandAndResolveSelect(source,s,null,0,new Map([[0,transient]]));
+  const owner=plan.sources[0];
+  const spliced=spliceResolvedFirstSource(plan,resolve('SELECT id AS k FROM t WHERE a IS NOT NULL',s));
+  assert.equal(spliced.from.derived,undefined);
+  assert.equal(spliced.from.items.length,2);
+  assert.equal(spliced.from.items[1].joinFromLeft.left,true);
+  assert.equal(spliced.result[0].alias,'k');
+  assert.throws(()=>spliceResolvedFirstSource(plan,resolve('SELECT DISTINCT id AS k FROM t',s)),/eligibility/);
+  assert.throws(()=>spliceResolvedFirstSource(plan,resolve('SELECT * FROM t',s)),/explicit/);
+  assert.ok(spliced.where.tokens.some(token=>token.text==='AND'));
+  const splicePlan=expandAndResolveSelect(spliced,s);
+  assert.equal(splicePlan.result[0].source,splicePlan.sources[0]);
+  for(const child of splicePlan.nested)assert.ok(child.columnUses.some(use=>use.source===splicePlan.sources[0]&&use.selectDepth===1));
+  const collisionSource=parseSql(sql.replace('t AS x','t AS __flatten_0').replaceAll('x.a','__flatten_0.a').replaceAll('x.b','__flatten_0.b').replace('x.id=o.k','__flatten_0.id=o.k')).statement;
+  const collisionPlan=expandAndResolveSelect(collisionSource,s,null,0,new Map([[0,transient]]));
+  const collisionSplice=spliceResolvedFirstSource(collisionPlan,resolve('SELECT id AS k FROM t',s));
+  assert.equal(collisionSplice.from.items[0].alias,'__flatten_1');
+  const collisionResolved=expandAndResolveSelect(collisionSplice,s);
+  assert.ok(collisionResolved.nested[0].columnUses.some(use=>use.source===collisionResolved.sources[0]));
+  assert.equal(owner.table,transient);
+  assert.equal(plan.result[0].source,owner);
+  assert.equal(plan.nested.length,2,'ON and WHERE have separate linked NameContexts');
+  for(const child of plan.nested){
+   const refs=child.columnUses.filter(use=>use.source===owner);
+   assert.ok(refs.length>0,'qualified ON and bare WHERE both resolve to actual transient owner');
+   assert.ok(refs.every(use=>use.columnIndex===0&&use.selectDepth===1));
+   assert.equal(child.correlated,true);
+  }
+  const replacements=parseSql('SELECT t.id FROM t').statement.result;
+  // Producer bare columns must keep their original owner after being moved
+  // below a child that has its own table with the same column name.
+  const producerPlan=resolve('SELECT id AS k FROM t WHERE a IS NOT NULL',s);
+  const qualifiedProducer=qualifyResolvedSource(producerPlan,producerPlan.sources[0],'fresh producer');
+  const moved=substituteResolvedColumns(plan,owner,qualifiedProducer.result);
+  const movedFrom=Object.freeze(Object.assign([...moved.from],{...moved.from,items:Object.freeze([{...producerPlan.source.from.items[0],alias:'fresh producer'},moved.from.items[1]])}));
+  const movedPlan=expandAndResolveSelect({...moved,from:movedFrom},s);
+  for(const child of movedPlan.nested)assert.ok(child.columnUses.some(use=>use.source===movedPlan.sources[0]&&use.selectDepth===1));
+  const qualifiedFrom=Object.freeze(Object.assign([...qualifiedProducer.from],{...qualifiedProducer.from,items:Object.freeze([{...qualifiedProducer.from.items[0],alias:'fresh producer'}])}));
+  const qualifiedPlan=expandAndResolveSelect({...qualifiedProducer,from:qualifiedFrom},s);
+  assert.ok(qualifiedPlan.columnUses.every(use=>use.source===qualifiedPlan.sources[0]));
+  assert.equal(qualifiedPlan.result[0].columnIndex,-1);
+  const hiddenRowidTable={...s.t,columns:Object.freeze([...s.t.columns,col('rowid','TEXT')])};
+  const hiddenRowidSchema={...s,tables:new Map([['t',hiddenRowidTable]])};
+  const hiddenPlan=resolve('SELECT id FROM t',hiddenRowidSchema);
+  const hiddenQualified=qualifyResolvedSource(hiddenPlan,hiddenPlan.sources[0],'p');
+  const hiddenFrom=Object.freeze(Object.assign([...hiddenQualified.from],{...hiddenQualified.from,items:Object.freeze([{...hiddenQualified.from.items[0],alias:'p'}])}));
+  assert.equal(expandAndResolveSelect({...hiddenQualified,from:hiddenFrom},hiddenRowidSchema).result[0].columnIndex,-1,'named rowid must not capture the INTEGER PRIMARY KEY');
+  const substituted=substituteResolvedColumns(plan,owner,replacements);
+  assert.deepEqual(substituted.result[0].tokens.map(token=>token.text),['t','.','id']);
+  const physicalFrom=Object.freeze(Object.assign([...substituted.from],{...substituted.from,items:Object.freeze([parseSql('SELECT id FROM t').statement.from.items[0],substituted.from.items[1]])}));
+  const rebound=expandAndResolveSelect({...substituted,from:physicalFrom},s);
+  assert.equal(rebound.result[0].source,rebound.sources[0]);
+  for(const child of rebound.nested)assert.ok(child.columnUses.some(use=>use.source===rebound.sources[0]&&use.columnIndex===-1&&use.selectDepth===1),JSON.stringify(child.columnUses.map(use=>({name:use.source.alias??use.source.tableName,depth:use.selectDepth,col:use.columnIndex,tokens:use.expression.signature}))));
+  assert.throws(()=>substituteResolvedColumns(plan,plan.sources[1],replacements),/transient rowid/);
+  // A spelling collision in a child is local, not an enclosing reference.
+  const shadow=parseSql('SELECT o.k FROM (SELECT id AS k FROM t) AS o CROSS JOIN t AS u WHERE o.k IN (SELECT o.id FROM t AS o)').statement;
+  const shadowPlan=expandAndResolveSelect(shadow,s,null,0,new Map([[0,transient]]));
+  assert.equal(shadowPlan.nested[0].correlated,false);
+  const shadowMapped=substituteResolvedColumns(shadowPlan,shadowPlan.sources[0],replacements);
+  assert.equal(shadowMapped.where.reduction.children.find(node=>node.kind==='reduction'&&node.signature.startsWith('select ::=')).semantic.result[0].tokens.map(token=>token.text).join(''),'o.id');
+  const collated=expandAndResolveSelect(parseSql('SELECT (o.k COLLATE NOCASE) FROM (SELECT id AS k FROM t) AS o CROSS JOIN t AS u').statement,s,null,0,new Map([[0,transient]]));
+  assert.ok(substituteResolvedColumns(collated,collated.sources[0],replacements).result[0].tokens.some(token=>token.text==='NOCASE'));
+  assert.ok(shadowPlan.nested[0].columnUses.every(use=>use.source!==shadowPlan.sources[0]));
+  // Replacing unresolved bare names before this check would silently choose
+  // the producer when the correct native result is an ambiguity error.
+  const ambiguous=Object.freeze({...transient,columns:Object.freeze([col('id','INTEGER')])});
+  assert.throws(()=>expandAndResolveSelect(parseSql('SELECT id FROM (SELECT id FROM t) AS o CROSS JOIN t AS u').statement,s,null,0,new Map([[0,ambiguous]])),/ambiguous column name: id/);
+ }
+});
+test('correlated vector field prerequisites survive LEFT and OR clause ownership',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const placement of ['where','left-on','left-where','or']){
+  const s=schema(encoding),atom="(u.a,u.b) IN (SELECT x.a,x.b FROM t AS x WHERE x.id=o.id)";
+  const predicate=placement==='or'?`(${atom} AND u.id>0) OR (${atom} AND u.id<0)`:atom;
+  const join=placement.startsWith('left')?'LEFT JOIN':'CROSS JOIN';
+  const sql=`SELECT o.id,u.id FROM t AS o ${join} t AS u INDEXED BY i_ab ${placement==='left-on'?`ON ${predicate}`:placement==='left-where'?`ON u.id=o.id WHERE ${predicate}`:`WHERE ${predicate}`}`;
+  const resolved=resolve(sql,s),planned=planWhere(resolved,{neededColumns:[new Set([s.id]),new Set([s.id])],orderBy:[]});
+  let witnessed=0;
+  // Child IDs are clause-local, including recursive OR/AND owners.
+  const visit=clause=>{for(const parent of clause.terms){
+   if(parent.info?.clause)visit(parent.info.clause);
+   const children=clause.terms.filter(t=>t.parentId===parent.id&&t.inField!==undefined);
+   if(!children.length)continue;witnessed++;
+   assert.deepEqual(children.map(t=>t.inField),[0,1],sql);
+   assert.deepEqual(parent.childIds,children.map(t=>t.id),sql);
+   assert.equal(children[0].inSelectRhs,children[1].inSelectRhs,sql);
+   for(const child of children){
+    assert.equal(child.inSelectRhs.prereq,sourceBit(0),sql);
+    assert.equal(child.prereqRight,sourceBit(0),sql);
+    assert.equal(child.left.source,resolved.sources[1],sql);
+    assert.equal(child.outerJoinSafe.mayOmitResidual,false,sql);
+    assert.equal(child.origin.kind,placement==='left-on'?'join-on':'where',sql);
+   }
+  }};visit(planned.analysis.clause);
+  assert.ok(witnessed>0,sql);
+  const rhs=planned.path.loops.find(loop=>loop.sourceOrdinal===1);assert.ok(rhs,sql);
+  assert.equal(rhs.prereq&sourceBit(0),sourceBit(0),sql);
+  assert.ok(planned.path.loops.findIndex(loop=>loop.sourceOrdinal===0)<planned.path.loops.indexOf(rhs),sql);
+ }
+});
 test('vector SELECT-IN OR arms retain multi-or candidate admission',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding),request={neededColumns:[new Set([s.a])],orderBy:[]};
