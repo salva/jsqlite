@@ -1,11 +1,16 @@
 ## Selected scalar SELECT-IN — scoped author integration
 
-Selected scalar uncorrelated SELECT-IN now enters the original linked SRT_Set
-producer and private UNIQUE cursor before chosen LHS seeks. Bounded all-encoding
+Selected scalar uncorrelated SELECT-IN now chooses eligible base-table ROWID or
+compatible single-column UNIQUE physical RHS reuse, otherwise entering the original
+linked SRT_Set producer/private UNIQUE cursor before chosen LHS seeks. Bounded all-encoding
 public companions compare native typed rows/metadata and actual seeks/probes for
 scalar/range/two-slot/INNER/LEFT/OR, original parameters and cancellation/reset.
 This corrects missing selected scalar caller predictions for measured branches,
-not vector/correlated/direct-index reuse or every LEFT/OR/resource transition.
+not vector/correlated reuse or every LEFT/OR/resource transition. Direct ROWID/
+UNIQUE ASC/DESC reuse currently has scalar/reset/source-gate evidence, not the
+full composition/lifecycle matrix. An initially retained independent membership
+tail was removed for wholly admitted WHERE terms; admission is checked against
+the entire owning clause rather than only the selected loop terms.
 codeAllEqualityTerms slot-order correction now guards nullable equality before
 later RHS construction in ordinary/join/recursive-OR lowering; native-backed
 ordinary/LEFT NULL-prefix controls cover bypass with zero private capacity.

@@ -1,5 +1,51 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Direct scalar physical RHS continuation (author repair)
+
+Parent3831d1fa/tree29b86af returned INTEGER ids1,3 for the pinned UNIQUE RHS
+reproducer but opened two private arenas; native full EXPLAIN had no
+OpenEphemeral/SorterOpen. proc-01491f6f54dd returns identical ids with opens0,
+tableNext0, residualTests0, indexSeeks2, inProbes2, sorterRows0. This is a
+work/control repair, not a wrong-row example.
+
+Pinned expr.c3072 isCandidateForInOpt and3245–3438 sqlite3FindInIndex own the
+scalar ROWID/compatible UNIQUE ASC/DESC choice before fallback. The descriptor
+retains TableNode/PhysicalIndex identity, KeyInfo and physical direction, not a
+second SELECT plan. ROWID uses table endpoints/Rowid/movement; fallback remains
+linked SELECT/UNIQUE SRT_Set. Ordinary TERM_CODED admission now checks the
+complete owning clause and retains unrelated residuals. An id=3 companion
+checks this distinction. No algorithm substitution is introduced.
+
+capture-select-in-reuse.py captures full opcodes, sourceid, fixture hashes,
+typed rows and native counters before public execution. Three encodings cover
+ROWID, UNIQUE ASC/DESC, nonunique duplicates, WHERE/DISTINCT/LIMIT/aggregate
+fallback, reset/repeat and delegated arena-open observation. proc-ddcfa6c99f0d
+passes10/10 with linked producer controls. After sourceid/residual additions,
+proc-82fe03e368c6 and proc-d4cd203bd01f pass3/3. Capture SHA256
+808d8c48ca6f3c7d8b35b4fe7dbc94974e5052b11b087a552821ba221977f0ad.
+
+Failed hypotheses: initial wiring left one arena (proc-02024c07e95e), traced to
+redundant residual membership. First native capture used a filtered helper that
+omitted OpenEphemeral (proc-7a848e222b13); full EXPLAIN corrected the discriminator,
+not native behavior. proc-642b516bd796 rejected unsupported --work-root before
+running tests. First affected run proc-af755b80a2d1 had four failures: three
+used older FIRST capture missing later case keys; private movement injection
+assumed a page acquire after seeks, now absent with redundant materialization
+removed. Construction injection stays at actual page allocation; movement now
+injects at real PrivateKeyVmCursor.next after positive seeks, retaining sticky
+errors/reset/retry/finalize/zero-ledger checks. WHERE v IS NOT NULL forces the
+same-row fallback. proc-2a470f256100 passes3/3. These failed runs are not current
+passing evidence. proc-59eb17fde57a tsc/build/package/diff-check passes; package
+SHA256 523b3fcc5fc2bd0377a39837231ec096e6abe66abf520821a1899afcf4597997,
+55 modules112 files, isolated browser-global VM, not GUI.
+
+Remaining: finite direct scalar/reset/source-gate evidence is not full typed
+REAL/BLOB/metadata, affinity/collation mismatch, composition or persistent RHS
+movement/error proof. Prior lifecycle/error controls exercise private fallback.
+Representative native-aligned seek/visit/tablefetch measurements, independent
+review and combined owner integration remain due. No scope, quotas, watchdog,
+planner/cache/host-sort changes. Current checks/commit identity are in card status.
+
 ## Applicability correction and attributed peer coverage on a171d4ab
 
 Independent [[card:card-s-c-d-g]] status41 found the sole failure in its actual

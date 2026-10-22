@@ -5,6 +5,7 @@ import http from 'node:http';
 import test from 'node:test';
 import {openFixture,privateAccounting} from './public-api-adapter.mjs';
 import {PrivateBlobkeyPages} from '../../src/internal/private-blobkey-pages.ts';
+import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
 import {PrivateStateLimitError} from '../../src/internal/private-state.ts';
 
 const directory=process.env.SELECT_IN_NATIVE_DIR,brokenDirectory=process.env.SELECT_IN_CORRUPTION_DIR;
@@ -21,7 +22,7 @@ for(const variant of capture.variants)test(`${variant.encoding}: SELECT-IN page 
  const server=http.createServer((_q,r)=>r.writeHead(200,{'Content-Length':bytes.length}).end(bytes));
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const request=()=>new Request(`http://127.0.0.1:${server.address().port}/fixture`);
- const original=PrivateBlobkeyPages.open;
+ const original=PrivateBlobkeyPages.open,originalNext=PrivateKeyVmCursor.prototype.next;
  const budgets=new Set();let db,st;
  try{
   db=await openFixture(request());
@@ -41,7 +42,13 @@ for(const variant of capture.variants)test(`${variant.encoding}: SELECT-IN page 
      }
     },limits);
    };
-   st=db.prepare('SELECT id FROM t INDEXED BY t_ab WHERE a IN(SELECT v FROM rhs)').statement;
+   PrivateKeyVmCursor.prototype.next=async function(control){
+    if(mode==='movement'&&armed&&privateAccounting(st).indexSeeks>0){
+     injected=true;armed=false;throw cause;
+    }
+    return originalNext.call(this,control);
+   };
+   st=db.prepare('SELECT id FROM t INDEXED BY t_ab WHERE a IN(SELECT v FROM rhs WHERE v IS NOT NULL)').statement;
    const error=await failure(st);
    assert.ok(injected);assert.equal(error.kind,'limit');assert.equal(error.cause,cause);
    assert.equal(await failure(st),error);
@@ -54,11 +61,11 @@ for(const variant of capture.variants)test(`${variant.encoding}: SELECT-IN page 
    // A second failed execution takes finalize directly, without reset masking
    // the failure or providing the only cleanup path.
    armed=true;injected=false;
-   st=db.prepare('SELECT id FROM t INDEXED BY t_ab WHERE a IN(SELECT v FROM rhs)').statement;
+   st=db.prepare('SELECT id FROM t INDEXED BY t_ab WHERE a IN(SELECT v FROM rhs WHERE v IS NOT NULL)').statement;
    const finalError=await failure(st);assert.ok(injected);assert.equal(finalError.cause,cause);
    assert.throws(()=>st.finalize(),e=>e===finalError);st=undefined;
    for(const budget of budgets)assert.equal(budget.usedBytes,0,'finalize releases failed execution ledger');
-   PrivateBlobkeyPages.open=original;
+   PrivateBlobkeyPages.open=original;PrivateKeyVmCursor.prototype.next=originalNext;
   }
   db.closeDeferred();db=undefined;
   const broken=corrupt.variants.find(v=>v.encoding===variant.encoding);
@@ -74,7 +81,7 @@ for(const variant of capture.variants)test(`${variant.encoding}: SELECT-IN page 
   assert.throws(()=>st.finalize(),e=>e===retry);st=undefined;
   for(const budget of budgets)assert.equal(budget.usedBytes,0,'corrupt selected execution releases private ledger');
  }finally{
-  PrivateBlobkeyPages.open=original;
+  PrivateBlobkeyPages.open=original;PrivateKeyVmCursor.prototype.next=originalNext;
   try{st?.finalize()}catch{}try{db?.closeDeferred()}catch{}
   await new Promise((resolve,reject)=>server.close(e=>e?reject(e):resolve()));
  }

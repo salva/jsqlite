@@ -25,7 +25,7 @@ export async function dispatchPrivateInCursor(
   return !guarded||guarded.nullRow?{handled:true,jump:op.p2}:advanced;
  }
  const cursor=cursors.get(op.code==='Column'?op.p3:op.p1);
- if(!cursor)return unhandled;
+ if(!cursor||op.code==='Rowid'||op.code==='Rewind'||op.code==='Last'||op.code==='Next'||op.code==='Prev')return unhandled;
  if(op.code==='Column'){
   await cursor.column(op.p1,registers[op.p2]!,control);
   return advanced;

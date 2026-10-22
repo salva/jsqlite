@@ -3,7 +3,7 @@ import {chooseJsonTableIndex,jsonTableConstraints,planJsonTableConstraints} from
 import {PrivateKeyVmCursor} from './private-key-vm.ts';
 import {beginInLoop} from './where-in-loop.ts';
 import {dispatchPrivateInCursor} from './private-in-dispatch.ts';
-import {emitSelectedInRhs} from './where-in-producer.ts';
+import {emitSelectedInRhs,selectedInStorage} from './where-in-producer.ts';
 import type {SelectInLoopRhs} from './where-plan.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
@@ -237,7 +237,7 @@ type Op =
   | { readonly code: "NullRow"; readonly p1: number }
   | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity; readonly inProbe?:boolean }
   | { readonly code: "RealAffinity"; readonly p1: number }
-  | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number }
+  | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number; readonly inProbe?:boolean }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
   | { readonly code: "IsNull"; readonly p1:number; readonly p2:number }
   | { readonly code: "IfNot"; readonly p1: number; readonly p2: number; readonly residual?: boolean }
@@ -4154,7 +4154,7 @@ export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof
  const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:binaryCollation(left,right)}]});
  return emitSelectedInRhs(builder,rhs,info,affinity,(resolved,destination)=>{
   compileWideSubquery(expression,resolved,builder,builder.ops,parameters,environment,undefined,undefined,destination);
- });
+ },selectedInStorage(rhs,info,affinity));
 }
 
 function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,inputEnvironment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding,schema?:SchemaGraph):(expression:SubqueryExpression)=>number {
@@ -4588,7 +4588,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           }
           if(admission.term.inSelectRhs){
             const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-            const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending,false,0,cap!.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
+            const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending,set.storage.descending,set.storage.kind==='rowid'?-1:0,cap!.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
             iterators.push(loop.start);inTargets.set(admission,target);continue;
           }
           const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
@@ -4694,7 +4694,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         }
         if(admission.term.inSelectRhs){
           const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-          const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending,false,0,capability.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
+          const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending,set.storage.descending,set.storage.kind==='rowid'?-1:0,capability.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
           iterators.push(loop.start);inTargets.set(admission,target);continue;
         }
         const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
@@ -5037,7 +5037,7 @@ function emitInAdvance(ops:Op[],iterator:number,nullPass?:number):void {
   if(early){const {code:_,...prefix}=early;ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});}
   ops.push({code:'Goto',p2:iterator});return;
  }
- if(op?.code!=='IndexRewind'&&op?.code!=='IndexLast')throw new Error('IN restart lost cursor owner');
+ if(op?.code!=='IndexRewind'&&op?.code!=='IndexLast'&&op?.code!=='Rewind'&&op?.code!=='Last')throw new Error('IN restart lost cursor owner');
  const guard=ops[iterator+2];
  if(guard?.code!=='IsNull')throw new Error('IN restart lost NULL guard');
  const hit=ops[iterator+3];
@@ -5050,7 +5050,7 @@ function emitInAdvance(ops:Op[],iterator:number,nullPass?:number):void {
   const {code:_,...prefix}=early;
   ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});
  }
- ops.push({code:op.code==='IndexLast'?'IndexPrev':'IndexNext',p1:op.p1,p2:iterator+1});
+ ops.push({code:op.code==='Last'?'Prev':op.code==='Rewind'?'Next':op.code==='IndexLast'?'IndexPrev':'IndexNext',p1:op.p1??0,p2:iterator+1});
 }
 
 interface FullScanPlan { readonly loopStart: number; readonly rewindIndex: number; readonly indexCursor?:number; readonly singleRow?:boolean; readonly reverse?:boolean; readonly inIterators?:readonly number[]; readonly startNullGuards?:readonly number[]; readonly equalityNullGuards?:readonly number[]; readonly prefixLoop?:PrefixLoop; readonly primaryMiss?:number }
@@ -7339,7 +7339,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // the existing table path until their seek opcodes are available.
 
   let selectedOr:WhereLoop|null=null,selectedOrClause:import("./where-plan.ts").WhereClause|null=null;
-  let selectedPhysical:PhysicalIndex|null=null,selectedNeedsTableLookup=false,selectedEqualities:readonly IndexConstraintAdmission[]=Object.freeze([]),selectedIndexLower:IndexConstraintAdmission|null=null,selectedIndexUpper:IndexConstraintAdmission|null=null,selectedIndexReverse=false,selectedNSkip=0,selectedNEq=0,selectedInSeekScan=false,selectedLoopTerms:readonly WhereTerm[]=Object.freeze([]),whereAccounting:Program["whereAccounting"],rowidEquality:WhereTerm|null=null,rowidLower:WhereTerm|null=null,rowidUpper:WhereTerm|null=null,rowidReverse=false,rowidOrderConsumed=false,indexOrderConsumed=false;
+  let selectedPhysical:PhysicalIndex|null=null,selectedNeedsTableLookup=false,selectedEqualities:readonly IndexConstraintAdmission[]=Object.freeze([]),selectedIndexLower:IndexConstraintAdmission|null=null,selectedIndexUpper:IndexConstraintAdmission|null=null,selectedIndexReverse=false,selectedNSkip=0,selectedNEq=0,selectedInSeekScan=false,selectedClauseTerms:readonly WhereTerm[]=Object.freeze([]),whereAccounting:Program["whereAccounting"],rowidEquality:WhereTerm|null=null,rowidLower:WhereTerm|null=null,rowidUpper:WhereTerm|null=null,rowidReverse=false,rowidOrderConsumed=false,indexOrderConsumed=false;
   try {
     // Covering is determined from every value read after positioning: result,
     // residual WHERE, and sorter inputs. Do not narrow this to projection
@@ -7353,7 +7353,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const orderBy=resolvedWhereOrder(expanded);
     const selection=planWhere(expanded,{neededColumns:[needed],orderBy,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})}),loop=selection.path?.loops[0];
     if(loop?.kind==="multi-or"){selectedOr=loop;selectedOrClause=selection.analysis.clause;}
-    whereAccounting=Object.freeze({plannerCandidates:selection.plannerCandidates,plannerPaths:selection.plannerPaths});selectedLoopTerms=loop?.terms??Object.freeze([]);
+    whereAccounting=Object.freeze({plannerCandidates:selection.plannerCandidates,plannerPaths:selection.plannerPaths});selectedClauseTerms=selection.analysis.clause.terms;
     if(loop?.kind==="table-scan"&&loop.capability){rowidReverse=loop.capability.reverse;rowidOrderConsumed=select.orderBy.length>0&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
     if(loop?.kind==="rowid"&&loop.capability){rowidEquality=loop.capability.rowidEquality?.term??null;rowidLower=loop.capability.rowidLower?.term??null;rowidUpper=loop.capability.rowidUpper?.term??null;rowidReverse=loop.capability.reverse;rowidOrderConsumed=select.orderBy.length>0&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
     if(loop?.kind==="index"&&loop.capability){selectedPhysical=loop.capability.physicalIndex;selectedNeedsTableLookup=loop.capability.needsTableLookup;selectedEqualities=loop.capability.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);selectedNSkip=loop.capability.nSkip;selectedNEq=loop.capability.nEq;selectedInSeekScan=!!loop.capability.inSeekScan;selectedIndexLower=loop.capability.lower;selectedIndexUpper=loop.capability.upper;selectedIndexReverse=loop.capability.reverse;indexOrderConsumed=select.orderBy.length>0&&!loop.capability.equalitySlots.some(admission=>admission?.operator==="in")&&loop.capability.orderTermsSatisfied===select.orderBy.length;}
@@ -7559,7 +7559,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         }
         if(admission.term.inSelectRhs){
           const set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-          const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending,false,0,selectedInSeekScan?undefined:{p1:positionCursor,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>targets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:selectedPhysical.keyInfo});
+          const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending,set.storage.descending,set.storage.kind==='rowid'?-1:0,selectedInSeekScan?undefined:{p1:positionCursor,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>targets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:selectedPhysical.keyInfo});
           inIterators.push(loop.start);targets.set(admission,target);continue;
         }
         const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register();
@@ -7784,11 +7784,11 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   // it never licenses dropping a different query conjunct that merely implied
   // candidate usability. Keep this narrow and structural.
   const partialIdentity=selectedPhysical?.index.partialWhere?expressionStructuralIdentity(selectedPhysical.index.partialWhere):null;
-  const allWhereTermsAdmitted=!select.hasSubquery&&(selectedEqualities.length>0||selectedIndexLower!==null||selectedIndexUpper!==null)&&selectedConstraints.length>0&&selectedLoopTerms.filter(term=>!term.virtual).every(term=>(selectedConstraints.some(item=>item.term.id===term.id)&&term.outerJoinSafe.mayOmitResidual)||(partialIdentity!==null&&expressionStructuralIdentity(term.expression)===partialIdentity));
+  const allWhereTermsAdmitted=(selectedEqualities.length>0||selectedIndexLower!==null||selectedIndexUpper!==null)&&selectedConstraints.length>0&&selectedClauseTerms.filter(term=>!term.virtual).every(term=>(selectedConstraints.some(item=>item.term.id===term.id)&&term.outerJoinSafe.mayOmitResidual)||(partialIdentity!==null&&expressionStructuralIdentity(term.expression)===partialIdentity));
   // wherecode.c marks terms TERM_CODED independently. A rowid bound may omit
   // only its own comparison; it must not suppress an unrelated residual term
   // from the same AND-clause (for example `rowid<7 AND b>2`).
-  const rowidConstraints=[rowidEquality,rowidLower,rowidUpper].filter((term):term is WhereTerm=>term!==null),allRowidTermsAdmitted=!select.hasSubquery&&rowidConstraints.length>0&&selectedLoopTerms.filter(term=>!term.virtual).every(term=>rowidConstraints.some(candidate=>candidate.id===term.id&&candidate.outerJoinSafe.mayOmitResidual));
+  const rowidConstraints=[rowidEquality,rowidLower,rowidUpper].filter((term):term is WhereTerm=>term!==null),allRowidTermsAdmitted=!select.hasSubquery&&rowidConstraints.length>0&&selectedClauseTerms.filter(term=>!term.virtual).every(term=>rowidConstraints.some(candidate=>candidate.id===term.id&&candidate.outerJoinSafe.mayOmitResidual));
   if (select.where && !(allRowidTermsAdmitted||allWhereTermsAdmitted)) {
     if (!select.where.reduction) throw new JSQLiteError("unsupported", "WHERE predicate is not implemented", { unsupportedClassification: "temporary" });
     // wherecode.c Case5: !untestedTerms disables only the owned OR term.
@@ -7804,7 +7804,10 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       }
       return compileExpressionTree(tree,ops,()=>builder.register(),parameters,compileExpressionSubquery);
     };
-    for(const expression of remainingOrTerms?remainingOrTerms.map(term=>term.expression):[select.where]){
+    // TERM_CODED is per owning conjunct, not a whole-WHERE subquery ban.
+    // Keep every unrelated residual while omitting exact selected admissions.
+    const remainingIndexTerms=!selectedOr&&selectedConstraints.length?selectedClauseTerms.filter(term=>!term.virtual&&!selectedConstraints.some(item=>item.term.id===term.id&&term.outerJoinSafe.mayOmitResidual)):null;
+    for(const expression of (remainingOrTerms??remainingIndexTerms)?.map(term=>term.expression)??[select.where]){
       const output=compilePredicate(resolveExpression(expression));
       builder.jump(scanNext,{code:"IfNot",p1:output,p2:0,residual:true},(op,pc)=>({...op,p2:pc} as Op));
     }
@@ -9881,7 +9884,7 @@ export class VdbeStatement implements Statement {
             this.#indexCursors.get(op.p1)?.clearPosition();
             break;
           }
-          case "Column": {const cursorNumber=op.p3??0,privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
+          case "Column": {const cursorNumber=op.p3??0,privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.values[op.p1] ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.inProbe&&this.#registers[op.p2]!.initialStorageClass!=='null')this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1}; if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
           case "IfNullRow": {const privateCursor=this.#privateCursors.get(op.p1);if(privateCursor?.kind==='ephemeral-index'?privateCursor.nullRow:!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
           // vdbe.c OP_TypeCheck P3>=2: one STRICT virtual column on reads.
           case "TypeCheck": {
@@ -9897,7 +9900,7 @@ export class VdbeStatement implements Statement {
           }
           case "Affinity": {const value=this.#registers[op.p1]!;value.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")opcodeRealAffinity(value);break;}
           case "RealAffinity": {const value=this.#registers[op.p1]!;if(value.initialStorageClass==="integer")value.cast("real",this.#program.encoding);break;}
-          case "Rowid": {const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
+          case "Rowid": {if(op.inProbe)this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1};const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const rowid=this.#recordRowids.get(op.p1??0);if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IsNull": if(this.#registers[op.p1]!.initialStorageClass==="null")this.#pc=op.p2;break;
           case "IfNot": if(op.residual)this.#privateAccounting={...this.#privateAccounting,residualTests:this.#privateAccounting.residualTests+1};if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;

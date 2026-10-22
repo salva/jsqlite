@@ -9,6 +9,8 @@ export type InLoopOp =
  | ({readonly code:'IndexSeekHit'} & InPrefix)
  | {readonly code:'IndexRewind'|'IndexLast'|'IndexNext'|'IndexPrev';readonly p1:number;readonly p2:number}
  | {readonly code:'Column';readonly p1:number;readonly p2:number;readonly p3:number;readonly inProbe?:boolean}
+ | {readonly code:'Rowid';readonly p1:number;readonly p2:number;readonly inProbe?:boolean}
+ | {readonly code:'Rewind'|'Last'|'Next'|'Prev';readonly p1:number;readonly p2:number}
  | {readonly code:'IsNull';readonly p1:number;readonly p2:number}
  | {readonly code:'IfNotOpen';readonly p1:number;readonly p2:number};
 export interface InLoopSink {
@@ -31,9 +33,9 @@ export interface WhereInLoop {
  * the caller; RHS physical DESC toggles the requested iteration direction. */
 export function beginInLoop(ops:InLoopSink,cursor:number,target:number,reverse:boolean,rhsDescending=false,field=0,earlyout?:InPrefix):WhereInLoop {
  const backwards=reverse!==rhsDescending,start=ops.length;
- ops.push({code:backwards?'IndexLast':'IndexRewind',p1:cursor,p2:0});
+ ops.push({code:field<0?(backwards?'Last':'Rewind'):(backwards?'IndexLast':'IndexRewind'),p1:cursor,p2:0});
  const top=ops.length;
- ops.push({code:'Column',p1:field,p2:target,p3:cursor,inProbe:true});
+ ops.push(field<0?{code:'Rowid',p1:cursor,p2:target,inProbe:true}:{code:'Column',p1:field,p2:target,p3:cursor,inProbe:true});
  const nullGuard=ops.length;ops.push({code:'IsNull',p1:target,p2:0});
  // codeINTerm clamps seekHit after the NULL guard, before the full seek.
  if(earlyout?.keys.length)ops.push({code:'IndexSeekHit',...earlyout});
@@ -54,11 +56,11 @@ export function finishInLoops(ops:InLoopEndSink,loops:readonly WhereInLoop[],exi
   // only IfNoHope because its comparison affinity was bypassed.
   if(leftJoin)ops.push({code:'IfNotOpen',p1:loop.cursor,p2:ops.length+(early?3:2)});
   if(early){const {code:_,...prefix}=early;ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});}
-  ops.push({code:loop.reverse?'IndexPrev':'IndexNext',p1:loop.cursor,p2:loop.top});
+  ops.push({code:(ops[loop.start] as InLoopOp).code==='Last'?'Prev':(ops[loop.start] as InLoopOp).code==='Rewind'?'Next':loop.reverse?'IndexPrev':'IndexNext',p1:loop.cursor,p2:loop.top});
  }
  for(let i=0;i<loops.length;i++){
   const loop=loops[i]!,start=ops[loop.start] as InLoopOp,guard=ops[loop.nullGuard] as InLoopOp;
-  if((start.code!=='IndexRewind'&&start.code!=='IndexLast')||guard.code!=='IsNull')throw new Error('IN level lost positioning ownership');
+  if((start.code!=='IndexRewind'&&start.code!=='IndexLast'&&start.code!=='Rewind'&&start.code!=='Last')||guard.code!=='IsNull')throw new Error('IN level lost positioning ownership');
   ops[loop.start]={...start,p2:i===0?exit:advances[i-1]!};
   // NULL goes directly to movement, including past a LEFT unopened guard.
   ops[loop.nullGuard]={...guard,p2:advances[i]!+(leftJoin?1:0)+((ops[loop.nullGuard+1] as InLoopOp|undefined)?.code==='IndexSeekHit'?1:0)};

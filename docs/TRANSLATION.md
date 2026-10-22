@@ -448,15 +448,19 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 ## WHERE, joins and physical indexes
 
 Selected scalar uncorrelated SELECT-IN retains the linked resolved SELECT and
-original parameters, produces native-shaped SRT_Set into a UNIQUE private Btree,
-and positions/copies/skips NULL before selected LHS prefix/range seeks. Ordinary,
+original parameters. expr.c candidate/uniqueness gates choose direct base-table
+ROWID or compatible single-column UNIQUE physical RHS cursors; other cases
+produce native-shaped SRT_Set into a UNIQUE private Btree. Physical RHS direction
+is independent of the LHS direction and retains its own KeyInfo. Both paths
+position/copy/skip NULL before selected LHS prefix/range seeks. Ordinary,
 joined and recursive-OR slot callers share inside-out RHS advancement; seek/end
 failure advances rather than rewinding the innermost slot. Private endpoint,
 movement and Column dispatch precedes persistent dispatch, publishing jumps only
 after success. Equality slots are produced and NULL-guarded in index order,
 before later IN construction/positioning, following codeAllEqualityTerms; LEFT
 null-extension bypasses RHS movement through its production nullPass guard.
-SELECT-IN comparison affinity belongs to SRT_Set production: seek and equality
+SELECT-IN comparison affinity belongs to RHS production/eligibility: SRT_Set
+coerces fallback values, while direct reuse requires compatible affinity. Seek and equality
 prefix-end slots use BLOB/no-op affinity, as in codeAllEqualityTerms. Range,
 ordinary equality and list-IN slots retain their own comparison affinity.
 List-IN register iteration is retained.
@@ -477,8 +481,9 @@ malformed index pages and injected private-page admission/acquire failures now
 have public retry/reset/finalize controls with measured zero retained private
 ledger. These deterministic boundary injections are not browser allocator
 exhaustion or malformed private-byte proof. Recursive joined OR has a selected affinity/typed-row witness,
-not exhaustive composition coverage. Vectors/correlation and direct RHS-index reuse
-remain implementation gaps, not product exclusions. See
+not exhaustive composition coverage. Direct ROWID/UNIQUE ASC/DESC reuse has
+three-encoding scalar/reset/source-gate controls, not the full lifecycle and
+composition matrix. Vectors/correlation remain implementation gaps, not product exclusions. See
 [scoped evidence and limitations](research/selected-select-in-delivery.md).
 
 ON hit/match recording precedes ready non-ON WHERE constraints and downstream

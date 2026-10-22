@@ -2,6 +2,14 @@
 
 ### Selected scalar SELECT-IN LOOP
 
+`expr.c:isCandidateForInOpt/sqlite3FindInIndex` →
+`where-in-producer.ts:selectedInStorage/emitSelectedInRhs` retains scalar LOOP
+ROWID or compatible single-column UNIQUE physical identity, Once/OpenRead and
+physical KeyInfo/direction. `selected-select-in-reuse.test.mjs` and pinned
+`capture-select-in-reuse.py` compare full native opcode materialization gates
+and public rows/reset with real delegated arena-open observations for ASC/DESC,
+IPK and nonunique/WHERE/DISTINCT/aggregate/LIMIT fallback. `where-in-loop.ts`
+uses Rowid plus table movement for ROWID, Column plus index movement otherwise.
 `expr.c:sqlite3CodeRhsOfIN` / `select.c:SRT_Set` →
 `vdbe.ts:compileWideSubquery/compileSelectedInRhs`, `where-in-producer.ts` retain
 linked producer, KeyInfo/affinity, Once and original parameter ownership.
