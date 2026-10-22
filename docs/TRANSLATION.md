@@ -447,6 +447,12 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 
 ## WHERE, joins and physical indexes
 
+The [current finite two-axis WHERE inventory](research/where-beta4-admission.md)
+separates SQL correctness from selected/executed work at the accepted selected-IN
+delivery. It supersedes the scalar-IN-first/seven-of-twelve proposal, distinguishes
+RIGHT/FULL main-pass bypass from selected unmatched drain, and recommends bounded
+foundation readiness without granting whole-engine or release compatibility.
+
 Selected scalar uncorrelated SELECT-IN retains the linked resolved SELECT and
 original parameters. expr.c candidate/uniqueness gates choose direct base-table
 ROWID or compatible single-column UNIQUE physical RHS cursors; other cases

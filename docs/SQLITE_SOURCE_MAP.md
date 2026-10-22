@@ -513,6 +513,11 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
+[Current twelve-family mapping and evidence](research/where-beta4-admission.md)
+separates SQL semantics from selected work, retains accepted scalar/vector/correlated
+IN owners and distinguishes main RIGHT/FULL planner bypass from the one-source
+unmatched-drain consumer. No mechanical family-count credit is implied.
+
 `where.c:whereLoopOutputAdjust` (3037ff, `pExpr->pRight` at3090) →
 `where-plan.ts:outputAdjust/expressionOperand`: live ordinal RHS projection,
 no per-insertion child array or cross-call mutable-graph memo. Progress/error
