@@ -4144,9 +4144,9 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
 
 // expr.c sqlite3CodeRhsOfIN delegates production to the original linked
 // SELECT compiler, with SRT_Set but without a membership consumer.
-export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},selectedFields?:readonly number[]) {
+export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},selectedFields?:readonly number[],binding?:ResolvedExpressionBinding) {
  const node=rhs.expression.reduction!;
- const original=bindResolvedExpression(expressionFromReduction(node),resolvedExpressionCarrier(outer,node as Reduction),source=>source.cursorId,true);
+ const original=bindResolvedExpression(expressionFromReduction(node),resolvedExpressionCarrier(outer,node as Reduction),source=>source.cursorId,true,binding);
  if(original.kind!=='in-subquery'||original.negated)throw new JSQLiteError('internal','selected RHS lost IN expression');
  const originalFields=original.left.kind==='vector'?original.left.fields:[original.left];
  const projection=selectedFields??originalFields.map((_,i)=>i);
@@ -4165,7 +4165,7 @@ export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof
  });
  const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:fields.length,keyFieldCount:fields.length,terms:comparisons.map(({collation})=>({collation}))});
  const set=emitSelectedInRhs(builder,projectedRhs,info,comparisons.map(field=>field.affinity),(resolved,destination)=>{
-  compileWideSubquery(expression,resolved,builder,builder.ops,parameters,environment,undefined,undefined,destination);
+  compileWideSubquery(expression,resolved,builder,builder.ops,parameters,environment,binding,undefined,destination);
  },projectedRhs.scalar?selectedInStorage(projectedRhs,info,comparisons[0]!.affinity):selectedVectorInStorage(projectedRhs,info,comparisons.map(field=>field.affinity)));
  const fieldMap=originalFields.map((_,i)=>set.fieldMap[projection.indexOf(i)]!);
  return {...set,rhs,fieldMap};
@@ -4621,7 +4621,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
             continue;
           }
           if(admission.term.inSelectRhs){
-            const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0));
+            const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0),nestedBinding);
             const group=admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs);
             const fields=group.map(a=>{const register=a===admission?target:allocate();inTargets.set(a,register);return{target:register,field:set.fieldMap[a.term.inField??0]!};});
             const loop=beginInVectorLoop(ops,set.cursor,fields,reverse!==!!physical.fields[ordinal(admission)]?.descending,set.storage.descending,cap!.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
@@ -4732,7 +4732,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           continue;
         }
         if(admission.term.inSelectRhs){
-          const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0));
+          const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0),nestedBinding);
           const group=admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs);
           const fields=group.map(a=>{const register=a===admission?target:allocate();inTargets.set(a,register);return{target:register,field:set.fieldMap[a.term.inField??0]!};});
           const loop=beginInVectorLoop(ops,set.cursor,fields,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending,set.storage.descending,capability.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
@@ -9639,6 +9639,10 @@ export class VdbeStatement implements Statement {
               catch(error){try{arena.close()}catch{}throw error}
               break;
             }
+            // OpenEphemeral on a repeated correlated invocation releases the old
+            // tree before constructing its replacement (native cursor reopen).
+            this.#privateCursors.get(op.p1)?.close();
+            this.#privateCursors.delete(op.p1);
             this.#privateCursors.set(op.p1,new EphemeralIndexCursor(op.statementEncoding?new KeyInfo({...op.keyInfo,encoding:this.#program.encoding}):op.keyInfo,this.#program.privateStateLimits,this.#privateBytes,op.insertionOrder));break;}
           case "MakeRecord": {
             const values=this.#registers.slice(op.p1,op.p1+op.p2);

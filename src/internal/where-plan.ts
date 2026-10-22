@@ -1190,7 +1190,7 @@ function producesEmptyInTruth(node:ExprReduction):boolean {
  const unsafe=(v:LemonValue<SqlToken>):boolean=>parseHasFunc(v)||carriesSelect(v);
  return !unsafe(lhs);
 }
-function comparisonOperator(node:ExprReduction,resolved:ResolvedSelect):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP select RP"){const rhs=selectInLoopRhs(resolved,node,rhsPrereq(resolved,node,'left','in'));return rhs?.scalar&&!rhs.correlated&&rhs.prereq===0n?'in':null;}if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"||node.signature==="expr ::= expr IS NOT DISTINCT FROM expr"){const rhs=exprChildren(node)[1];
+function comparisonOperator(node:ExprReduction,resolved:ResolvedSelect):WhereOperator|null {const text=node.children.filter(x=>x.kind==="terminal").map(x=>x.kind==="terminal"?sqliteAsciiFold(x.value.text):"").join(" ");if(node.signature.startsWith("expr ::= expr EQ|NE expr"))return text.includes("!=")||text.includes("<>")?null:"eq";if(node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))return text.includes(">=")?"ge":text.includes("<=")?"le":text.includes(">")?"gt":"lt";if(node.signature==="expr ::= expr in_op LP select RP"){const rhs=selectInLoopRhs(resolved,node,rhsPrereq(resolved,node,'left','in'));return rhs?.scalar?'in':null;}if(node.signature==="expr ::= expr in_op LP exprlist RP")return node.children.some(x=>x.kind==="reduction"&&x.signature==="in_op ::= NOT IN")?null:"in";if(node.signature==="expr ::= expr IS expr"||node.signature==="expr ::= expr IS NOT DISTINCT FROM expr"){const rhs=exprChildren(node)[1];
  // resolve.c TK_IS resolves a skipped ID/TRUEFALSE RHS to TK_TRUTH.
  if(rhs){const truth=skipCollateAndLikely(rhs,resolved),tokens=asExpr(truth).tokens;
   if(producesEmptyInTruth(truth)||truth.signature==="expr ::= ID|INDEXED|JOIN_KW"&&tokens.length===1&&/^(true|false)$/i.test(tokens[0]!.text)&&!binding(resolved,truth))return null;
@@ -1221,7 +1221,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
   // whereexpr.c1494: TERM_SLICE retains the original IN expression and
   // resolved SELECT identity. Only the field binding is scalarized.
   const vectorRhs=selectInLoopRhs(resolved,node,rhsPrereq(resolved,node,'left','in'));
-  if(split==='and'&&vectorRhs&&!vectorRhs.scalar&&!vectorRhs.correlated&&vectorRhs.prereq===0n&&!vectorRhs.select.hasCompound&&!vectorRhs.resolved.windows.length&&originalLeftNode.signature==='expr ::= LP nexprlist COMMA expr RP'){
+  if(split==='and'&&vectorRhs&&!vectorRhs.scalar&&!vectorRhs.select.hasCompound&&!vectorRhs.resolved.windows.length&&originalLeftNode.signature==='expr ::= LP nexprlist COMMA expr RP'){
    const fields:ExprReduction[]=[];
    const collect=(value:LemonValue<SqlToken>):void=>{if(value.kind!=='reduction')return;if(value.signature.startsWith('expr ::=')){fields.push(value);return;}value.children.forEach(collect);};
    originalLeftNode.children.forEach(collect);
@@ -1230,7 +1230,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     const right=vectorRhs.resolved.result[inField]!.expression.reduction;
     if(!binding||right?.kind!=='reduction')continue;
     parent.childIds.push(childId);
-    drafts.push({node,inField,inRhs:vectorRhs,origin,parentId,childIds:[],virtual:true,operator:'in',left:binding,rightNode:right as ExprReduction,orientation:'left',prereqAll:all,prereqRight:vectorRhs.prereq,collation:explicitExprCollation(field,resolved)??explicitExprCollation(right as ExprReduction,vectorRhs.resolved)??(sqliteAsciiFold(resolvedExpressionCollation(field,resolved)??resolvedExpressionCollation(right as ExprReduction,vectorRhs.resolved)??'binary') as BuiltinCollation),outerJoinSafe:{mayDrive:!(isLeft&&binding.sourceOrdinal<origin.rightSource),mayOmitResidual:false}});
+    drafts.push({node,inField,inRhs:vectorRhs,origin,parentId,childIds:[],virtual:true,operator:'in',left:binding,rightNode:right as ExprReduction,orientation:'left',prereqAll:all,prereqRight:vectorRhs.prereq,collation:explicitExprCollation(field,resolved)??explicitExprCollation(right as ExprReduction,vectorRhs.resolved)??(sqliteAsciiFold(resolvedExpressionCollation(field,resolved)??resolvedExpressionCollation(right as ExprReduction,vectorRhs.resolved)??'binary') as BuiltinCollation),outerJoinSafe:{mayDrive:!(isLeft&&binding.sourceOrdinal<origin.rightSource)&&!(vectorRhs.prereq&sourceBit(binding.sourceOrdinal)),mayOmitResidual:false}});
    }
   }
   // whereexpr.c1290: AND-owned BETWEEN creates ordered GE/LE children.

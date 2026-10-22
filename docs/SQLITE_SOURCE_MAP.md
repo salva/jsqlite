@@ -17,8 +17,14 @@ two-vector-arm witness checks seeks/probes and two branch starts through reset.
 `wherecode.c:codeINTerm` → `beginInVectorLoop` and `vdbe.ts:emitInAdvance`
 share one positioning/movement pair and all field NULL guards. Finite mapping,
 parent identity and public all-encoding/reset controls: `where-in-producer.test.mjs`,
-`where-in-loop.test.mjs`, `selected-vector-in.test.mjs`; [evidence and remaining
-OR/correlation gaps](research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
+`where-in-loop.test.mjs`, `selected-vector-in.test.mjs`.
+`expr.c:sqlite3CodeRhsOfIN` EP_VarSelect and `whereexpr.c:exprSelectUsage`
+→ prerequisite-bearing field children, caller-bound `compileSelectedInRhs`,
+Once-free `emitSelectedInRhs` at the ready outer level, and reentrant
+OpenEphemeral release. `selected-correlated-in.test.mjs` with
+`capture-selected-correlated-in.py` covers the original three-encoding
+CROSS JOIN equality-prefix/range/reset witness. [Finite evidence and remaining
+composition/lifecycle gaps](research/selected-select-in-delivery.md#correlated-selected-frontier).
 Pinned independent receipts: `capture-selected-vector-in.py` (full EXPLAIN, typed
 id rows, five metadata fields; all three encodings).
 

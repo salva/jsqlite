@@ -669,8 +669,14 @@ mapping or shared UNIQUE SRT_Set deduplicates the projected keys, including part
 vector prefixes; the full tuple remains residual. OR arms reuse AND-owned field
 analysis, preserving parent identity, and INDEXED BY constrains each recursive
 branch rather than suppressing OR candidates. The physical OR caller uses the
-shared linked subquery emitter for full-tuple residuals. Correlated scheduling
-remains an implementation gap, not an exclusion. Current finite evidence: [vector increment](research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
+shared linked subquery emitter for full-tuple residuals. Selected correlated
+scalar/vector RHS sets rebuild at the chosen ready outer invocation, using the
+original linked SELECT and caller source locations; EP_VarSelect suppresses Once.
+Vector field children retain RHS prerequisite masks and cannot drive their own
+dependency source. OpenEphemeral releases its previous private tree on reentry.
+Parent tuple residuals and LEFT/ON fences remain conservative. Broader derived,
+LEFT/OR correlated compositions and lifecycle coverage remain unverified, not
+exclusions. Current finite evidence: [correlated frontier](research/selected-select-in-delivery.md#correlated-selected-frontier).
 This is not vector index-strategy completeness. See `expr.c:sqlite3ExprVectorSize`,
 `sqlite3ExprCodeIN` and the [vector review](research/card-i-c-row-vector-review.md).
 Generated dependency BUSY ownership flows through CASE/BETWEEN/IN-list and

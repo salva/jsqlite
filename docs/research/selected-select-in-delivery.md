@@ -1,5 +1,41 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Correlated selected frontier
+
+Original red witness retained in capture-selected-correlated-in.py and
+selected-correlated-in.test.mjs: CROSS JOIN outer keys 1/2/3, composite IN plus
+c>=2, duplicate RHS and NULL nonmatch. Native-first readonly receipts across
+UTF-8/16le/16be retain full EXPLAIN/typed rows. Public initial/reset compares
+typed INTEGER pairs and requires actual positive indexSeeks/inProbes.
+
+Pinned expr.c sqlite3CodeRhsOfIN omits reuse for EP_VarSelect; whereexpr.c
+exprSelectUsage maps correlated references into enclosing masks; where.c paths
+require prerequisites before entry. Existing TS prereq walks retain source
+identity through NameContexts. Scalar/vector admission now keeps those masks;
+field children cannot drive their own prerequisite source. Existing chosen-loop
+ready masks place production inside the ready outer invocation, before LHS
+seek. compileSelectedInRhs passes actual caller ResolvedExpressionBinding to
+compileWideSubquery: locals use allocated cursors, outer references use caller
+sourceLocation. Original tokens/parameters, field projection, affinities,
+collations, NULL guards and full-tuple residual remain. No parallel evaluator,
+cache or algorithm substitution. Correlated storage is linked UNIQUE SRT_Set,
+rebuilt without Once. Reentrant OpenEphemeral closes/detaches its old ordinary
+private cursor before replacement; packed cursor reuse keeps its existing owner.
+
+Author evidence: proc-03adc3d46224 original witness 3/3 (six initial/reset runs).
+proc-9745936f78da initially 281/282: sole failure was obsolete producer unit
+expectation rejecting correlation/prerequisites. Replaced with correlated
+no-Once emission test, retaining invalid-width atomic rejection/child-error
+identity. proc-6cf2e1ab150c: tsc and five focused suites 283/283, no failures/skips.
+Current delivery/final checks: [[card:card-s-c-d-e]] status. Combined107,
+build/package/browser and independent review remain due. This finite witness
+is not full typed metadata/rebind/LEFT/OR/derived correlation, useful20k or
+fault/lifecycle acceptance.
+
+Capture before public consumption:
+`PYTHONDONTWRITEBYTECODE=1 python3 test/conformance/capture-selected-correlated-in.py --library "$SAIVAGE_CARD_WORK_ROOT/select-in-oracle-build/libsqlite3-metadata.so" --output "$SAIVAGE_CARD_WORK_ROOT/correlated-red"`.
+Then `node --experimental-strip-types --test test/conformance/selected-correlated-in.test.mjs`.
+
 ## Vector lowering increment (unfinished)
 
 The accepted reordered-vector reproducer and native typed/full EXPLAIN receipts

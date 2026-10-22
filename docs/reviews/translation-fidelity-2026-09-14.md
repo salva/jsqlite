@@ -10,8 +10,11 @@ evidence, not whole-goal approval. The OR admission repair retains INDEXED BY
 through recursive candidates (native whereLoopAddOr has no forced-index veto),
 reuses AND-owned field analysis and links full-tuple residual subqueries. The
 frozen two-arm witness now checks positive seeks/probes, two OR starts and reset,
-with a NOT INDEXED control. Correlation prerequisites and full lifecycle
-matrix remain unresolved; see [current evidence](../research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
+with a NOT INDEXED control. Correlated selected frontier production now retains
+RHS masks, binds caller source locations and rebuilds the linked ephemeral set
+without Once, releasing its previous private tree. The all-encoding original
+CROSS JOIN reproducer passes selected access/reset; broader correlated
+LEFT/OR/derived/lifecycle matrix remains unverified. See [current evidence](../research/selected-select-in-delivery.md#correlated-selected-frontier).
 
 Selected scalar uncorrelated SELECT-IN now chooses eligible base-table ROWID or
 compatible single-column UNIQUE physical RHS reuse, otherwise entering the original

@@ -84,12 +84,20 @@ test('vector SRT_Set retains linked width, affinities and original parameter inv
  assert.throws(()=>emitSelectedInRhs(invalid,carrier,info,['blob'],()=>assert.fail()),/matching field/);
  assert.equal(invalid.cursors,0);assert.deepEqual(invalid.ops,[]);
 });
+test('correlated producer rebuilds an invocation-owned set without Once',()=>{
+ const scalar=rhs('SELECT 1 WHERE 1 IN (SELECT ?1)');
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ const builder=new SelectProgramBuilder();let calls=0;
+ emitSelectedInRhs(builder,{...scalar,correlated:true,prereq:1n},info,'blob',()=>calls++);
+ assert.equal(calls,1);assert.equal(builder.ops.filter(op=>op.code==='Once').length,0);
+ assert.equal(builder.ops[0].code,'OpenEphemeral');
+});
 test('unsupported RHS fails before allocation/publication; child compile error remains primary',()=>{
  const scalar=rhs('SELECT 1 WHERE 1 IN (SELECT ?1)');
  const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
- for(const changed of [{scalar:false},{correlated:true},{prereq:1n}]){
+ for(const changed of [{scalar:false}]){
   const builder=new SelectProgramBuilder();
-  assert.throws(()=>emitSelectedInRhs(builder,{...scalar,...changed},info,'blob',()=>assert.fail('child must not compile')),/scalar uncorrelated/);
+  assert.throws(()=>emitSelectedInRhs(builder,{...scalar,...changed},info,'blob',()=>assert.fail('child must not compile')),/field contract/);
   assert.equal(builder.cursors,0);assert.equal(builder.registers,0);assert.deepEqual(builder.ops,[]);
  }
  const primary=new Error('child SELECT compile failure'),builder=new SelectProgramBuilder();

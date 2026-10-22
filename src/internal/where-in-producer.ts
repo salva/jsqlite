@@ -82,17 +82,19 @@ export function emitSelectedInRhs<Op extends {readonly code:string}>(
  // Reject unsupported construction before consuming cursor/register identity.
  const affinities:readonly MemAffinity[]=typeof affinity==='string'?[affinity]:affinity;
  const width=rhs.resolved.result.length;
- if(rhs.correlated||rhs.prereq!==0n||(!rhs.scalar&&width<2))throw new JSQLiteError('unsupported','selected SELECT IN requires scalar uncorrelated RHS or a vector field contract',{unsupportedClassification:'temporary'});
+ if(!rhs.scalar&&width<2)throw new JSQLiteError('unsupported','selected SELECT IN requires a field contract',{unsupportedClassification:'temporary'});
+ // EP_VarSelect disallows statement-wide reuse. The caller owns readiness.
+ if(rhs.correlated&&storage.kind!=='ephemeral')throw new JSQLiteError('internal','correlated RHS requires ephemeral storage');
  // exprINAffinity and SRT_Set describe every output before allocating state.
  if(affinities.length!==width||keyInfo.keyFieldCount!==width||keyInfo.totalFieldCount!==width)throw new JSQLiteError('internal','selected IN requires matching field affinities and KeyInfo');
  const fieldMap=storage.kind==='index'&&storage.fieldMap?storage.fieldMap:Object.freeze(Array.from({length:width},(_,i)=>storage.kind==='rowid'?-1:i));
  const cursor=builder.cursor(),onceRegister=builder.register();
  const start=builder.ops.length;
- builder.emit({code:'Once',p1:onceRegister,p2:0} as unknown as Op);
+ if(!rhs.correlated)builder.emit({code:'Once',p1:onceRegister,p2:0} as unknown as Op);
  if(storage.kind!=='ephemeral'){
   builder.emit((storage.kind==='index'?{code:'OpenIndex',p1:storage.physical.index.rootPage,p2:cursor,physical:storage.physical}:{code:'OpenRead',p1:storage.table.rootPage,p2:cursor}) as unknown as Op);
   const end=builder.ops.length;
-  builder.ops[start]={code:'Once',p1:onceRegister,p2:end} as unknown as Op;
+  if(!rhs.correlated)builder.ops[start]={code:'Once',p1:onceRegister,p2:end} as unknown as Op;
   return Object.freeze({rhs,fieldMap,cursor,keyInfo:storage.kind==='index'?storage.physical.keyInfo:keyInfo,destination:null,storage,onceRegister,start,end});
  }
  const packedRegister=builder.register();
@@ -101,6 +103,6 @@ export function emitSelectedInRhs<Op extends {readonly code:string}>(
  // Pass the original resolved SELECT, never reconstructed SQL or fake literals.
  emitSelect(rhs.resolved,destination);
  const end=builder.ops.length;
- builder.ops[start]={code:'Once',p1:onceRegister,p2:end} as unknown as Op;
+ if(!rhs.correlated)builder.ops[start]={code:'Once',p1:onceRegister,p2:end} as unknown as Op;
  return Object.freeze({rhs,fieldMap,cursor,keyInfo,destination,storage,onceRegister,start,end});
 }
