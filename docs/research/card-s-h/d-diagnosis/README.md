@@ -1,6 +1,10 @@
 # Independent integration diagnosis
 
-## Current verify reconciliation: 40ab4992 candidate
+## Revision-bound closure and current integration
+
+`affected-inputs.json` is immutable evidence for runtime `40ab4992141e757c229e7d6d31403487757256f9`, not a current-runtime manifest. The closure test authenticates all 104 entries against that exact Git object, with a source-mutation negative control. It separately checks currently consumed acquired `.db`/`.json` fixtures against the same receipt and tests altered native bytes. Later source changes are validated by current integration manifests and behavior tests, not by replacing historical hashes. This research test requires the retained Git commit; an unavailable object fails explicitly. It does not certify current source bytes or runtime behavior. Beta.4 repair evidence and outstanding integration obligations: [[card:card-w]] status (accepted prior diagnosis v167).
+
+## Historical verify reconciliation: 40ab4992 candidate
 
 Current software candidate is `40ab4992141e757c229e7d6d31403487757256f9`, tree `8a288909a2a0eff9cb866e17288bc34d4be65f5c`. The executable input-closure manifest now names/hashes that committed runtime rather than the obsolete393febaf snapshot; its corruption-negative assertion remains intact. The old manifest is retained in Git history. An initial recursive research run exposed this stale evidence fixture (two closure failures before later files ran), not a product regression; the revised manifest is verified against `git show40ab4992` bytes, not accepted by weakening the assertion. Independent exact-archive diagnosis83/83 and native ten identity controls settle the prior resolver353 finding: QNUMBER publication now carries canonical generated numeric rule/signature, while actual Lemon trace/goto/depth still consume the actual LR rule. No resolver relaxation or production repair by d. Current card status owns final verification disposition and exact evidence applicability. Historical33f5 review and failed broad run below retain provenance, not current failure assertions.
 
