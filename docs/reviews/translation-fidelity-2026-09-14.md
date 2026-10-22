@@ -1,4 +1,14 @@
-## Selected scalar SELECT-IN — scoped author integration
+## Selected SELECT-IN — scoped author integration
+
+Current uncommitted vector increment replaces the scalar-only prediction for
+selected partial/permuted vector prefixes: field children retain original RHS identity,
+grouped callers project slot-ordered linked results before KeyInfo/construction,
+and all NULL guards share advancement. Three-encoding native-first complete,
+partial, permuted, projected-duplicate, repeated RHS, unforced, INNER and LEFT
+witnesses pass selected seeks/reset/typed id/five metadata fields. This is author
+evidence, not whole-goal approval. OR field-child admission still falls back to
+scan despite native selected seeks; correlation prerequisites and full lifecycle
+matrix remain unresolved; see [current evidence](../research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
 
 Selected scalar uncorrelated SELECT-IN now chooses eligible base-table ROWID or
 compatible single-column UNIQUE physical RHS reuse, otherwise entering the original

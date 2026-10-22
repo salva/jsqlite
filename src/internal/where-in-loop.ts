@@ -27,19 +27,28 @@ export interface WhereInLoop {
  readonly start:number;
  readonly top:number;
  readonly nullGuard:number;
+ readonly nullGuards:readonly number[];
 }
 /** Call after linked SRT_Set production. Re-entering start resets this slot;
  * continuing top never reruns the producer. LHS physical DESC is folded by
  * the caller; RHS physical DESC toggles the requested iteration direction. */
 export function beginInLoop(ops:InLoopSink,cursor:number,target:number,reverse:boolean,rhsDescending=false,field=0,earlyout?:InPrefix):WhereInLoop {
- const backwards=reverse!==rhsDescending,start=ops.length;
+ return beginInVectorLoop(ops,cursor,[{target,field}],reverse,rhsDescending,earlyout);
+}
+/** codeINTerm aiMap fields share one positioned RHS row and one movement.
+ * Repeated fields retain distinct output registers, not Cartesian slots. */
+export function beginInVectorLoop(ops:InLoopSink,cursor:number,fields:readonly {readonly target:number;readonly field:number}[],reverse:boolean,rhsDescending=false,earlyout?:InPrefix):WhereInLoop {
+ if(!fields.length)throw new Error('IN loop requires an output field');
+ const backwards=reverse!==rhsDescending,start=ops.length,field=fields[0]!.field;
  ops.push({code:field<0?(backwards?'Last':'Rewind'):(backwards?'IndexLast':'IndexRewind'),p1:cursor,p2:0});
- const top=ops.length;
- ops.push(field<0?{code:'Rowid',p1:cursor,p2:target,inProbe:true}:{code:'Column',p1:field,p2:target,p3:cursor,inProbe:true});
- const nullGuard=ops.length;ops.push({code:'IsNull',p1:target,p2:0});
- // codeINTerm clamps seekHit after the NULL guard, before the full seek.
+ const top=ops.length,nullGuards:number[]=[];
+ for(const {target,field} of fields){
+  ops.push(field<0?{code:'Rowid',p1:cursor,p2:target,inProbe:true}:{code:'Column',p1:field,p2:target,p3:cursor,inProbe:true});
+  nullGuards.push(ops.length);ops.push({code:'IsNull',p1:target,p2:0});
+ }
+ // codeINTerm clamps seekHit after all NULL guards, before the full seek.
  if(earlyout?.keys.length)ops.push({code:'IndexSeekHit',...earlyout});
- return Object.freeze({cursor,reverse:backwards,start,top,nullGuard});
+ return Object.freeze({cursor,reverse:backwards,start,top,nullGuard:nullGuards[0]!,nullGuards:Object.freeze(nullGuards)});
 }
 /** Emit after the LHS cursor continuation. NULL skips to this slot's Next,
  * not to its outer loop. Empty or exhausted inner slots advance outer slots
@@ -50,7 +59,7 @@ export function finishInLoops(ops:InLoopEndSink,loops:readonly WhereInLoop[],exi
  for(let i=loops.length-1;i>=0;i--){
   const loop=loops[i]!;
   advances[i]=ops.length;
-  const hit=ops[loop.nullGuard+1] as InLoopOp|undefined;
+  const hit=ops[loop.nullGuards.at(-1)!+1] as InLoopOp|undefined;
   const early=hit?.code==='IndexSeekHit'?hit:undefined;
   // where.c: LEFT bypass skips both IfNoHope and movement. NULL skips
   // only IfNoHope because its comparison affinity was bypassed.
@@ -63,7 +72,11 @@ export function finishInLoops(ops:InLoopEndSink,loops:readonly WhereInLoop[],exi
   if((start.code!=='IndexRewind'&&start.code!=='IndexLast'&&start.code!=='Rewind'&&start.code!=='Last')||guard.code!=='IsNull')throw new Error('IN level lost positioning ownership');
   ops[loop.start]={...start,p2:i===0?exit:advances[i-1]!};
   // NULL goes directly to movement, including past a LEFT unopened guard.
-  ops[loop.nullGuard]={...guard,p2:advances[i]!+(leftJoin?1:0)+((ops[loop.nullGuard+1] as InLoopOp|undefined)?.code==='IndexSeekHit'?1:0)};
+  for(const address of loop.nullGuards){
+   const fieldGuard=ops[address] as InLoopOp;
+   if(fieldGuard.code!=='IsNull')throw new Error('IN level lost NULL ownership');
+   ops[address]={...fieldGuard,p2:advances[i]!+(leftJoin?1:0)+((ops[loop.nullGuards.at(-1)!+1] as InLoopOp|undefined)?.code==='IndexSeekHit'?1:0)};
+  }
  }
  return advances.at(-1)??exit;
 }

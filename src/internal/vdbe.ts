@@ -1,9 +1,9 @@
 import {metadataColumnDeclaredType,metadataSource,metadataHiddenColumns,METADATA_MODULE_COLUMNS,type MetadataValue} from './pragma.ts';
 import {chooseJsonTableIndex,jsonTableConstraints,planJsonTableConstraints} from './json-table-plan.ts';
 import {PrivateKeyVmCursor} from './private-key-vm.ts';
-import {beginInLoop} from './where-in-loop.ts';
+import {beginInVectorLoop} from './where-in-loop.ts';
 import {dispatchPrivateInCursor} from './private-in-dispatch.ts';
-import {emitSelectedInRhs,selectedInStorage} from './where-in-producer.ts';
+import {emitSelectedInRhs,selectedInStorage,selectedVectorInStorage} from './where-in-producer.ts';
 import type {SelectInLoopRhs} from './where-plan.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
@@ -4144,17 +4144,31 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
 
 // expr.c sqlite3CodeRhsOfIN delegates production to the original linked
 // SELECT compiler, with SRT_Set but without a membership consumer.
-export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits}) {
+export function compileSelectedInRhs(rhs:SelectInLoopRhs,outer:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,environment:{schema?:SchemaGraph|undefined;database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},selectedFields?:readonly number[]) {
  const node=rhs.expression.reduction!;
- const expression=bindResolvedExpression(expressionFromReduction(node),resolvedExpressionCarrier(outer,node as Reduction),source=>source.cursorId,true);
- if(expression.kind!=='in-subquery'||expression.negated)throw new JSQLiteError('internal','selected RHS lost IN expression');
- const left=expression.left,result=rhs.resolved.result[0]!;
- const right=subquerySemanticField(result.expression,rhs.resolved,0);
- const affinity=comparisonAffinity(expressionAffinity(left),expressionAffinity(right));
- const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:binaryCollation(left,right)}]});
- return emitSelectedInRhs(builder,rhs,info,affinity,(resolved,destination)=>{
+ const original=bindResolvedExpression(expressionFromReduction(node),resolvedExpressionCarrier(outer,node as Reduction),source=>source.cursorId,true);
+ if(original.kind!=='in-subquery'||original.negated)throw new JSQLiteError('internal','selected RHS lost IN expression');
+ const originalFields=original.left.kind==='vector'?original.left.fields:[original.left];
+ const projection=selectedFields??originalFields.map((_,i)=>i);
+ // wherecode.c removeUnindexableInClauseTerms: project in selected slot order
+ // BEFORE FindInIndex/KeyInfo/SRT_Set. Full tuple uniqueness is insufficient.
+ const project=(plan:ReturnType<typeof expandAndResolveSelect>):ReturnType<typeof expandAndResolveSelect>=>{
+  const source={...plan.source,result:projection.map(i=>plan.result[i]!.expression),arms:plan.source.arms.map(arm=>({...arm,result:projection.map(i=>arm.result[i]!)}))};
+  return {...resolvedProducerProjection(plan,source),...(plan.compoundArms?{compoundArms:plan.compoundArms.map(project)}:{})};
+ };
+ const resolved=project(rhs.resolved),fields=projection.map(i=>originalFields[i]!);
+ const expression={...original,select:resolved.source,resolved,left:fields.length===1?fields[0]!:{kind:'vector' as const,fields}};
+ const projectedRhs={...rhs,resolved,select:resolved.source,scalar:fields.length===1};
+ const comparisons=fields.map((left,i)=>{
+  const right=subquerySemanticField(resolved.result[i]!.expression,resolved,i);
+  return {affinity:comparisonAffinity(expressionAffinity(left),expressionAffinity(right)),collation:binaryCollation(left,right)};
+ });
+ const info=new KeyInfo({encoding:environment.database.encoding,totalFieldCount:fields.length,keyFieldCount:fields.length,terms:comparisons.map(({collation})=>({collation}))});
+ const set=emitSelectedInRhs(builder,projectedRhs,info,comparisons.map(field=>field.affinity),(resolved,destination)=>{
   compileWideSubquery(expression,resolved,builder,builder.ops,parameters,environment,undefined,undefined,destination);
- },selectedInStorage(rhs,info,affinity));
+ },projectedRhs.scalar?selectedInStorage(projectedRhs,info,comparisons[0]!.affinity):selectedVectorInStorage(projectedRhs,info,comparisons.map(field=>field.affinity)));
+ const fieldMap=originalFields.map((_,i)=>set.fieldMap[projection.indexOf(i)]!);
+ return {...set,rhs,fieldMap};
 }
 
 function resolvedScalarSubqueryEmitter(expanded:ReturnType<typeof expandAndResolveSelect>,builder:SelectProgramBuilder<Op>,parameters:ParameterBuilder,inputEnvironment:{database:BtreeDatabase;maxRows:number;maxWorkUnits:number;maxResultBytes:number;privateStateLimits:PrivateStateLimits},outerBinding?:ResolvedExpressionBinding,schema?:SchemaGraph):(expression:SubqueryExpression)=>number {
@@ -4600,14 +4614,17 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         // WhereEnd restarts inner values before advancing outer values.
         const inTargets=new Map<typeof admissions[number],number>();
         for(const admission of admissions){
+          if(inTargets.has(admission))continue;
           if(admission.operator!=='in'){
             const target=key(admission.term);inTargets.set(admission,target);
             if(admission.operator==='eq'){equalityGuards.push(ops.length);ops.push({code:'IsNull',p1:target,p2:0});}
             continue;
           }
           if(admission.term.inSelectRhs){
-            const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-            const loop=beginInLoop(ops,set.cursor,target,reverse!==!!physical.fields[ordinal(admission)]?.descending,set.storage.descending,set.storage.kind==='rowid'?-1:0,cap!.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
+            const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0));
+            const group=admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs);
+            const fields=group.map(a=>{const register=a===admission?target:allocate();inTargets.set(a,register);return{target:register,field:set.fieldMap[a.term.inField??0]!};});
+            const loop=beginInVectorLoop(ops,set.cursor,fields,reverse!==!!physical.fields[ordinal(admission)]?.descending,set.storage.descending,cap!.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:physical.keyInfo});
             iterators.push(loop.start);inTargets.set(admission,target);continue;
           }
           const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
@@ -4706,6 +4723,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const inTargets=new Map<typeof admissions[number],number>();
       const iterators:number[]=[];
       for(const admission of admissions){
+        if(inTargets.has(admission))continue;
         if(admission.operator!=='in'){
           const target=compileExpressionTree(bound(admission.term),ops,allocate,parameters,compileJoinSubquery);
           inTargets.set(admission,target);
@@ -4714,8 +4732,10 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
           continue;
         }
         if(admission.term.inSelectRhs){
-          const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-          const loop=beginInLoop(ops,set.cursor,target,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending,set.storage.descending,set.storage.kind==='rowid'?-1:0,capability.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
+          const target=allocate(),set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0));
+          const group=admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs);
+          const fields=group.map(a=>{const register=a===admission?target:allocate();inTargets.set(a,register);return{target:register,field:set.fieldMap[a.term.inField??0]!};});
+          const loop=beginInVectorLoop(ops,set.cursor,fields,capability.reverse!==!!capability.physicalIndex!.fields[ordinal(admission)]?.descending,set.storage.descending,capability.inSeekScan?undefined:{p1:indexCursor!,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>inTargets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:capability.physicalIndex!.keyInfo});
           iterators.push(loop.start);inTargets.set(admission,target);continue;
         }
         const tree=resolveTree(expressionFromReduction(admission.term.expression.reduction!),admission.term.expression.reduction as Reduction);
@@ -5059,14 +5079,19 @@ function emitInAdvance(ops:Op[],iterator:number,nullPass?:number):void {
   ops.push({code:'Goto',p2:iterator});return;
  }
  if(op?.code!=='IndexRewind'&&op?.code!=='IndexLast'&&op?.code!=='Rewind'&&op?.code!=='Last')throw new Error('IN restart lost cursor owner');
- const guard=ops[iterator+2];
- if(guard?.code!=='IsNull')throw new Error('IN restart lost NULL guard');
- const hit=ops[iterator+3];
+ const guards:number[]=[];
+ let after=iterator+1;
+ while(ops[after]?.code==='Column'||ops[after]?.code==='Rowid'){
+  if(ops[after+1]?.code!=='IsNull')throw new Error('IN restart lost NULL guard');
+  guards.push(after+1);after+=2;
+ }
+ if(!guards.length)throw new Error('IN restart lost fields');
+ const hit=ops[after];
  const early=hit?.code==='IndexSeekHit'?hit:undefined;
  // NULL skips IfNoHope: the affinity/prefix state has not been established.
  // LEFT null-extension bypasses both the prefix check and RHS movement.
  if(nullPass!==undefined)ops.push({code:'IfPos',p1:nullPass,p2:ops.length+(early?3:2),p3:0});
- (guard as {p2:number}).p2=ops.length+(early?1:0);
+ for(const at of guards)(ops[at] as {p2:number}).p2=ops.length+(early?1:0);
  if(early){
   const {code:_,...prefix}=early;
   ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});
@@ -7571,6 +7596,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       // each inner cursor on a new outer RHS value.
       const targets=new Map<typeof admissions[number],number>();
       for(const admission of admissions){
+        if(targets.has(admission))continue;
         const target=builder.register();
         if(admission.operator!=="in"){
           const value=compileExpressionTree(boundRhs(admission.term),ops,()=>builder.register(),parameters);
@@ -7579,8 +7605,10 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
           continue;
         }
         if(admission.term.inSelectRhs){
-          const set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
-          const loop=beginInLoop(ops,set.cursor,target,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending,set.storage.descending,set.storage.kind==='rowid'?-1:0,selectedInSeekScan?undefined:{p1:positionCursor,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>targets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:selectedPhysical.keyInfo});
+          const set=compileSelectedInRhs(admission.term.inSelectRhs,expanded,builder,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs).map(a=>a.term.inField??0));
+          const group=admissions.filter(a=>a.term.inSelectRhs===admission.term.inSelectRhs);
+          const fields=group.map(a=>{const register=a===admission?target:builder.register();targets.set(a,register);return{target:register,field:set.fieldMap[a.term.inField??0]!};});
+          const loop=beginInVectorLoop(ops,set.cursor,fields,selectedIndexReverse!==!!selectedPhysical.fields[ordinal(admission)]?.descending,set.storage.descending,selectedInSeekScan?undefined:{p1:positionCursor,keys:[...skippedKeys,...admissions.slice(0,admissions.indexOf(admission)).map(a=>targets.get(a)!)],affinities:[...skippedAffinities,...admissions.slice(0,admissions.indexOf(admission)).map(a=>a.term.inSelectRhs?'blob' as const:a.comparison.kind==='comparison'?a.comparison.affinity:'blob' as const)],keyInfo:selectedPhysical.keyInfo});
           inIterators.push(loop.start);targets.set(admission,target);continue;
         }
         const values=inValues(admission.term).map(value=>compileExpressionTree(value,ops,()=>builder.register(),parameters)),indexRegister=builder.register();

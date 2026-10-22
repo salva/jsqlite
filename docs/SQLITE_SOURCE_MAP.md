@@ -1,6 +1,23 @@
 # SQLite source map
 
-### Selected scalar SELECT-IN LOOP
+### Selected SELECT-IN LOOP
+
+`whereexpr.c:exprAnalyze` TERM_SLICE/iField → `where-plan.ts:analyzeClause`
+retains original vector IN identity, per-field resolved affinity/collation and
+parent residual ownership. `wherecode.c:removeUnindexableInClauseTerms` →
+`vdbe.ts:compileSelectedInRhs` projects/reorders actual linked SELECT results in
+selected slot order before comparison/KeyInfo/storage selection. Reduced UNIQUE
+SRT_Set prevents duplicate partial-prefix probes. Ordinary/INNER/LEFT callers
+consume the resulting field map; OR field-child admission remains open.
+`expr.c:sqlite3FindInIndex` aiMap/colUsed →
+`where-in-producer.ts:selectedVectorInStorage`, frozen `SelectedInSet.fieldMap`;
+`wherecode.c:codeINTerm` → `beginInVectorLoop` and `vdbe.ts:emitInAdvance`
+share one positioning/movement pair and all field NULL guards. Finite mapping,
+parent identity and public all-encoding/reset controls: `where-in-producer.test.mjs`,
+`where-in-loop.test.mjs`, `selected-vector-in.test.mjs`; [evidence and remaining
+OR/correlation gaps](research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
+Pinned independent receipts: `capture-selected-vector-in.py` (full EXPLAIN, typed
+id rows, five metadata fields; all three encodings).
 
 `expr.c:isCandidateForInOpt/sqlite3FindInIndex` →
 `where-in-producer.ts:selectedInStorage/emitSelectedInRhs` retains scalar LOOP

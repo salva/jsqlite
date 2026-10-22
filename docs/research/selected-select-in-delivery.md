@@ -1,5 +1,102 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Vector lowering increment (unfinished)
+
+The accepted reordered-vector reproducer and native typed/full EXPLAIN receipts
+are described in [[card:card-s-c-d-e]] accepted status69. It still obtains scan
+rather than selected probe credit in the baseline. Current grouped caller
+increment repairs this focused witness, without publishing complete vector
+SELECT-IN coverage. proc-8edf64e27a32 shows all three encodings now use
+indexSeeks2/inProbes4, exact id1n (residualTests1, tableNext3 from retained
+parent membership). proc-ce5f8967ee9d passes tsc,278 focused tests, zero skips,
+and diff-check including new public selected-vector-in.test.mjs reset controls.
+Earlier failed initial optional-field typecheck proc-53b26647338d was corrected
+with the actual exactOptionalPropertyTypes contract. No combined validation,
+commit or independent approval yet.
+
+where-plan.ts now emits field-bearing children sharing the original resolved IN
+identity and parent residual ownership. Per-field RHS affinity/collation uses
+its actual resolved SELECT, not the outer scope. Ordinary, joined and joined-OR
+callers group admissions by that identity, allocate mapped targets and begin one
+vector loop; emitInAdvance walks all emitted fields and patches every NULL guard
+before shared movement/earlyout. Complete contiguous source-order LHS prefixes
+are admitted. Partial prefixes would require reduced RHS projection/dedup to
+avoid duplicate LHS rows; those proposals are not emitted yet. Permuted or
+noncontiguous LHS prefixes, correlated prerequisite scheduling and full
+composition/lifecycle coverage remain implementation gaps, not exclusions.
+
+Pinned `wherecode.c:codeINTerm` counts repeated expression slots (`nEq`), uses
+`aiMap` to emit Column/IsNull for each selected output, and owns only one
+Rewind/Next pair for that expression. `where-in-loop.ts:beginInVectorLoop`
+now represents this shared positioning/movement, including repeated mapped
+fields and all-field NULL-to-advance guards. Scalar `beginInLoop` delegates to
+that primitive unchanged. `where-in-loop.test.mjs` exercises reordered/repeated
+fields and four direction combinations; these are control-flow tests, not public
+vector acceptance. Caller integration is intentionally still unfinished. A subsequent producer
+increment translates exprINAffinity's width contract: emitSelectedInRhs accepts
+one affinity per resolved output, validates complete KeyInfo/width before state
+allocation, and snapshots the affinity vector into the existing shared SRT_Set
+destination. compileSelectedInRhs derives every field's actual comparison
+collation/affinity instead of assuming result0; scalar physical reuse remains
+unchanged. The next increment implements selectedVectorInStorage's distinct
+leading-column aiMap, UNIQUE/nonpartial ownership, field collation and affinity
+checks, and frozen physical identity/direction. SelectedInSet carries the actual
+mapping (identity for fallback, -1 for rowid). compileSelectedInRhs now selects
+this storage for vectors, but public field admission/grouped caller consumption
+is still absent; no public physical vector support is claimed. Repeated RHS
+columns deliberately fall back, matching sqlite3FindInIndex's colUsed rejection
+rather than aliasing one index slot twice. Finite mapping test covers [1,0], DESC,
+physical no-materialization, repeated-column/nonunique/collation fallback.
+proc-38237faefb83: typecheck,14 tests and diff-check pass, then the public
+three-encoding witness fails selected work unchanged (exit1; correct rows).
+Initial proc-cb9a23cb9f4d failed typecheck due to assuming sourceOrdinal/ordinal
+instead of actual ResolvedResult.source identity; corrected at the contract.
+No broader validation or delivery is claimed. A finite producer test retains linked
+identity, original ?2/?1 occurrences, width2 record production, independent
+snapshot ownership and preallocation rejection of mismatched widths.
+proc-3834eef6e20a passes tsc,13 loop/producer tests and diff-check. Public selected
+work still fails unchanged in all encodings (proc-60dc33202fbb exit1). This is a
+producer foundation, not completion or evidence that widening gates alone fixes
+selection. In particular comparisonOperator still requires rhs.scalar, before
+analyzeClause's whole-vector indexedBinding; both semantic admission and grouped
+caller consumption remain necessary.
+
+Remaining source-owner dependency decisions for R1:
+- `whereexpr.c:exprAnalyze` vector-IN children (`u.x.iField`, lines1494–1517)
+  must reach `where-plan.ts:analyzeClause` as field-bearing children retaining
+  original expression identity. Current indexedBinding on the vector gives no
+  scalar left binding. This precedes capability admission; merely widening the
+  producer's scalar gate cannot make the witness selected.
+- `expr.c:sqlite3FindInIndex` multi-field physical identity/uniqueness and
+  aiMap now reach SelectedInSet through selectedVectorInStorage (including
+  reordered columns and repeated-column fallback). compileSelectedInRhs derives
+  every field before shared SRT_Set or physical production. Remaining consumption
+  work: joined and ordinary admission loops in vdbe.ts still compile each
+  admission independently; group by original IN identity and consume
+  all mapped targets before selected seek, not Cartesian RHS loops.
+- Correlated scheduling: `expr.c:sqlite3CodeRhsOfIN` omits Once for EP_VarSelect;
+  current emitSelectedInRhs rejects correlation/prereq!=0 and unconditionally emits
+  Once. A ready outer binding/frontier must reach the linked SELECT producer and
+  rebuild it on each correlated invocation, preserving the original parameter
+  inventory and cleanup. This requires caller/prerequisite scheduling, not just
+  omission of Once. No scheduling implementation is claimed here.
+- Derived-mask/dominance: analyzeClause's virtual/derived parent-child ownership,
+  path prerequisite masks and capability admission must retain field provenance;
+  joined invocation codeSelectedTerms may disable only exact enforced ready
+  conjuncts with LEFT/ON fences. Partial vector prefixes must retain residual
+  tuple truth, including NULL. Composition obligations include equality/range,
+  competing indexes, INNER/LEFT/OR/skipscan, DESC, LIMIT and reset/rebind. No new
+  exclusion or fallback compatibility credit is granted. Planner coordinates
+  admission/prerequisite ownership with [[card:card-s-c-d-d]] and other active
+  owners; no unavailable dependency or edit conflict has been demonstrated.
+
+Author check proc-eb6feebb0588: tsc and five loop tests pass, zero skips, diff
+check passes; later diagnostic grep named a nonexistent where-capability.ts
+and failed (not a verification pass). Relevant capability ownership still needs
+tracing before admission changes. Earlier stable107-file scalar validation is
+not validation of this changed primitive; combined validation remains due.
+
+
 ## Physical RHS coverage promotion
 
 Coverage authored by [[card:card-s-c-d-g]] (accepted status48), independently
@@ -319,6 +416,41 @@ loop/producer/linked/VM, selected-index controls and planner analysis:
 `work:///cards/card-s-c-d-e/processes/proc-8129c12dc1ea/stdout.log`.
 This is author affected-path verification, not full gates or independent approval.
 Earlier source rationale/commands/hypotheses remain in accepted per-card status42/45.
+
+## Vector slot projection repair evidence
+
+Current increment supersedes the earlier complete-prefix-only safety boundary.
+`wherecode.c:removeUnindexableInClauseTerms` (573–650) duplicates the IN carrier,
+selects RHS/LHS fields in loop-slot order, then codeINTerm calls FindInIndex.
+`compileSelectedInRhs` now projects resolved result carriers and compound arms
+before comparisons, KeyInfo and storage choice. Original parameter inventory and
+full parent tuple residual survive; UNIQUE SRT_Set deduplicates projected keys,
+not full tuples. Planner no longer assumes source field order or full width.
+No host hash, parallel evaluator or algorithm substitution was introduced.
+
+Reproduction proc-76647f230246 was missing selected work, not wrong rows.
+Repair checks proc-680a50fc12a8 EXIT0: pinned native capture first, tsc, 278 tests
+zero failures/skips, diff-check. Full output:
+`work:///cards/card-s-c-d-e/processes/proc-680a50fc12a8/stdout.log`.
+Capture command: `PYTHONDONTWRITEBYTECODE=1 python3 test/conformance/capture-selected-vector-in.py --library "$SAIVAGE_CARD_WORK_ROOT/select-in-oracle-build/libsqlite3-metadata.so" --output "$SAIVAGE_CARD_WORK_ROOT/vector-projection-native"`;
+then `SELECT_IN_VECTOR_DIR="$SAIVAGE_CARD_WORK_ROOT/vector-projection-native" node --experimental-strip-types --test test/conformance/selected-vector-in.test.mjs test/conformance/where-in-loop.test.mjs test/conformance/where-in-producer.test.mjs test/conformance/where-plan-analysis.test.mjs`.
+Eight cases per encoding cover complete/partial/permuted/projected duplicates/
+repeated RHS/unforced/INNER/LEFT, typed INTEGER id rows, five metadata fields,
+positive selected seeks/probes and reset. All three encodings use independent
+read-only pinned receipts with full EXPLAIN. These tiny fixtures establish no
+useful-work bound or mixed-type/rebind/lifecycle completeness; residual membership
+still performs table movement.
+
+Expanded OR experiment proc-e8de90ddfb90 fails access assertion in all encodings:
+indexSeeks0/inProbes0/tableNext6/orBranchStarts0 despite native two SeekGE.
+Retained as capture `frontierCases`, explicitly outside the passing eight-case
+matrix; not silently credited as fixed. Next scope is OR child admission through
+whereexpr prereq/parent ownership, then correlated readiness/derived masks and
+broader native matrix. proc-708380676a55 failed after a malformed deliberate edit;
+fixed before passing tsc. proc-c4061493260c failed Python syntax before capture;
+fixed before final native-first run. Earlier producer-only attempts remain in
+accepted card status history. Full changed-input107 gates and independent review
+remain due; historical scalar passes do not cover this increment.
 
 ## SELECT-IN affinity ownership repair
 

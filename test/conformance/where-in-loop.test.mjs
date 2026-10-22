@@ -1,7 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {beginInLoop,finishInLoops} from '../../src/internal/where-in-loop.ts';
+import {beginInLoop,beginInVectorLoop,finishInLoops} from '../../src/internal/where-in-loop.ts';
 // Control-flow witness only; public caller tests exercise the VM separately.
+test('vector aiMap fields share movement and every NULL guard skips that row',()=>{
+ for(const reverse of [false,true])for(const descending of [false,true]){
+  const ops=[],loop=beginInVectorLoop(ops,71,[{target:89,field:1},{target:90,field:0},{target:91,field:1}],reverse,descending);
+  const advance=finishInLoops(ops,[loop],999);
+  assert.equal(loop.top,1);assert.deepEqual(loop.nullGuards,[2,4,6]);
+  assert.deepEqual(ops.filter(op=>op.code==='Column').map(op=>[op.p1,op.p2,op.p3]),[[1,89,71],[0,90,71],[1,91,71]]);
+  for(const address of loop.nullGuards)assert.equal(ops[address].p2,advance);
+  assert.equal(ops[advance].code,reverse!==descending?'IndexPrev':'IndexNext');
+  assert.equal(ops[advance].p2,loop.top);
+  assert.equal(ops.filter(op=>op.code==='IndexNext'||op.code==='IndexPrev').length,1);
+ }
+});
 // Inputs stand for already-unique Btree records, not SQL evaluation.
 function run(sets,reverses){
  const ops=[],loops=sets.map((_,i)=>beginInLoop(ops,i,i,reverses[i]));
