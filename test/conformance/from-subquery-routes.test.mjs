@@ -77,7 +77,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} FROM
 
 // Source-branch discriminator for select.c conditions 1a-c/2a-b/3-5. Unknown
 // CTE/self-view facts deliberately select the conservative non-coroutine route.
-import {compileTableSelect,fromClauseTermCanBeCoroutine,programOpcodeNames} from '../../src/internal/vdbe.ts';
+import {compileTableSelect,fromClauseTermCanBeCoroutine,precedingFromCoroutineBarrier,programOpcodeNames} from '../../src/internal/vdbe.ts';
 import {parseSql} from '../../src/internal/parse.ts';
 import {ImmutableStorage,storageOwner} from '../../src/internal/storage.ts';
 import {btreeFromStorage} from '../../src/internal/btree.ts';
@@ -104,6 +104,30 @@ test('0486 repeated immutable view lowers one fill and an independent OpenDup',(
  const storage=ImmutableStorage.open(fs.readFileSync(path.join(generated,'subquery-utf8.db'))),owner={[storageOwner]:storage};
  try {const names=programOpcodeNames(compileTableSelect(parsed.statement,loadSchemaGraph(owner),btreeFromStorage(storage),100));assert.equal(names.filter(name=>name==='OpenEphemeral').length,1);assert.equal(names.filter(name=>name==='Gosub').length,1);assert.equal(names.filter(name=>name==='OpenDup').length,1);}
  finally {storage.close();}
+});
+
+test('preceding resolved FROM owners and every crossed edge govern coroutine eligibility',()=>{
+ const storage=ImmutableStorage.open(fs.readFileSync(path.join(generated,'subquery-utf8.db'))),owner={[storageOwner]:storage};
+ try {
+  const schema=loadSchemaGraph(owner);
+  for(const [sql,expected] of [
+   ['SELECT s.a FROM t1 o,t1 p,(SELECT a FROM t1 LIMIT 2) s',false],
+   ['SELECT s.a FROM (SELECT a FROM t1 LIMIT 2) o,t1 p,(SELECT a FROM t1 LIMIT 2) s',true],
+   ['SELECT s.a FROM v_limited o,t1 p,(SELECT a FROM t1 LIMIT 2) s',true],
+   ['SELECT s.a FROM t1 o CROSS JOIN t1 p,(SELECT a FROM t1 LIMIT 2) s',true],
+   ['SELECT s.a FROM t1 o LEFT JOIN t1 p ON o.a=p.a,(SELECT a FROM t1 LIMIT 2) s',true],
+   ['SELECT s.a FROM t1 o RIGHT JOIN t1 p ON o.a=p.a,(SELECT a FROM t1 LIMIT 2) s',true],
+   ['SELECT s.a FROM t1 o LEFT OUTER JOIN t1 p ON o.a=p.a,(SELECT a FROM t1 LIMIT 2) s',true],
+   ['SELECT s.a FROM t1 o,t1 p CROSS JOIN (SELECT a FROM t1 LIMIT 2) s',true],
+  ]){
+   const parsed=parseSql(sql);assert.equal(parsed.statement?.kind,'select');
+   assert.equal(precedingFromCoroutineBarrier(parsed.statement,2,schema),expected,sql);
+  }
+  const parsed=parseSql('SELECT s.a FROM t1 o,t1 p,(SELECT a FROM t1 LIMIT 2) s').statement;
+  // After WITH expansion, the lexical table slot is owned by a CteUse.
+  const ctePrefix={...parsed,from:Object.assign([...parsed.from],parsed.from,{cteDerived:[{index:0}]})};
+  assert.equal(precedingFromCoroutineBarrier(ctePrefix,2,schema),true,'expanded CTE prefix is a subquery');
+ } finally {storage.close();}
 });
 
 test('eligible 0482 route consumes yielded registers without materialization',()=>{

@@ -429,6 +429,14 @@ claim complete upstream coverage or reproduce execution inventories.
 
 ## Ordinary materialized producer cursors
 
+- select.c:7290–7295 preceding SrcItem/subquery and join-edge walk →
+  vdbe.ts precedingFromCoroutineBarrier, consumed by all three route callers.
+  Derived/CTE producer slots and schema views distinguish subqueries from physical
+  prefixes; LEFT/RIGHT join representations imply native JT_OUTER.
+  Tests: from-subquery-routes.test.mjs original executable0482 opcode assertion,
+  physical/derived/view/expanded-CTE prefixes and crossed join barriers.
+  [Scoped evidence](research/from-coroutine-prefix.md).
+
 - select.c flattenSubquery restrictions 8/9/11/19, tags0482/0488 and
   selectInnerLoop SRT_EphemTab → vdbe.ts compileRetainedFilter:
   resolved transient producer tables, shared-builder ORDER/LIMIT child fill,

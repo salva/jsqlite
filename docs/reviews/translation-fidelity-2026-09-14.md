@@ -1,3 +1,13 @@
+## Retained FROM coroutine prefix correction
+
+The beta4 source.index>0 caller prediction was incorrect: select.c:7290–7295
+rejects preceding subqueries, not physical tables, and walks all intervening
+join barriers. The current route derives those facts from retained derived/CTE
+slots and schema views, recognizing implicit LEFT/RIGHT outer barriers.
+The original executable0482 assertion remains intact, alongside prefix/barrier
+regressions. [Author evidence and limits](../research/from-coroutine-prefix.md)
+are scoped; separate correlated20k timeouts and full integration remain unresolved.
+
 ## Selected SELECT-IN — scoped author integration
 
 Committed vector lowering replaces the scalar-only prediction for

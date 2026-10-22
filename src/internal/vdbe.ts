@@ -5720,6 +5720,18 @@ function compileSingleCompoundDerived(select:SelectNode,schema:SchemaGraph,datab
 }
 
 export type FromSubqueryRouteFacts=Readonly<{sourceCount:number;index:number;joinFromLeft:SelectNode["from"]["items"][number]["joinFromLeft"];nextCross:boolean;leftOfRightJoin:boolean;updateFrom:boolean;coroutineOptimization:boolean;isCte:boolean|null;cteMaterialized:boolean|null;cteUseCount:number|null;cteNotMaterialized:boolean|null;earlierSubquery:boolean|null;selfJoinView:boolean|null}>;
+// select.c:7290-7295 walks SrcItems, including expanded views/CTEs.
+// A physical prefix is not a subquery; every crossed join edge is a barrier.
+export function precedingFromCoroutineBarrier(select:SelectNode,index:number,schema:SchemaGraph):boolean {
+ const derived=select.from.derivedSources??(select.from.derived?[select.from.derived]:[]);
+ for(let i=index;i>0;i--){
+  const edge=select.from.items[i]!.joinFromLeft;
+  if(edge.outer||edge.left||edge.right||edge.cross)return true;
+  const prior=i-1,item=select.from.items[prior]!;
+  if(derived.some(source=>source.index===prior)||select.from.cteDerived?.some(source=>source.index===prior)||schema.views.has(sqliteAsciiFold(sqlName(item.tableName))))return true;
+ }
+ return false;
+}
 /** Direct translation of select.c:fromClauseTermCanBeCoroutine conditions 1a-c/2a-b/3-5. */
 export function fromClauseTermCanBeCoroutine(f:FromSubqueryRouteFacts):boolean{if(f.isCte===null||f.selfJoinView===null||f.earlierSubquery===null)return false;if(f.isCte){if(f.cteMaterialized===null||f.cteUseCount===null||f.cteNotMaterialized===null)return false;if(f.cteMaterialized)return false;if(f.cteUseCount>=2&&!f.cteNotMaterialized)return false;}if(f.leftOfRightJoin||!f.coroutineOptimization||f.selfJoinView)return false;if(f.index===0){if(f.sourceCount===1)return true;if(f.nextCross)return true;if(f.updateFrom)return false;return true;}if(f.updateFrom||f.joinFromLeft.outer||f.joinFromLeft.cross||f.earlierSubquery)return false;return true;}
 
@@ -6102,7 +6114,7 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
   // select.c tag-select-0482: single FROM term can yield directly. The
   // child sorter, if needed, remains a blocking owner before its first Yield.
   const item=select.from.items[source.index]!;
-  const coroutine=fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:!!select.from.items[source.index+1]?.joinFromLeft.cross,leftOfRightJoin:select.from.items.some(item=>item.joinFromLeft.right),updateFrom:false,coroutineOptimization:true,isCte:false,cteMaterialized:false,cteUseCount:1,cteNotMaterialized:false,earlierSubquery:source.index>0,selfJoinView:false});
+  const coroutine=fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:!!select.from.items[source.index+1]?.joinFromLeft.cross,leftOfRightJoin:select.from.items.some(item=>item.joinFromLeft.right),updateFrom:false,coroutineOptimization:true,isCte:false,cteMaterialized:false,cteUseCount:1,cteNotMaterialized:false,earlierSubquery:precedingFromCoroutineBarrier(select,source.index,schema),selfJoinView:false});
   if(coroutine){
    const register=builder.register(),first=builder.range(width),skip=ops.length;
    ops.push({code:'InitCoroutine',p1:register,p2:0,p3:skip+1});
@@ -6468,7 +6480,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   const columns=select.result.map((expression,index)=>{const tree=results[index]!,source=tree.kind==='register'?inner.columns[tree.index-payload]:undefined;if(source)return Object.freeze({...source,name:expression.alias??source.name});if(tree.kind==='column'&&tree.cursor===outerCursor){const columnIndex=tree.index<0?outer.columns.findIndex((_column,i)=>isIntegerPrimaryKeyAlias(outer,i)):tree.index,column=outer.columns[columnIndex]!;return Object.freeze({name:expression.alias??column.name,declaredType:column.declaredType,database:'main',table:outer.name,origin:column.name});}return Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null});});return Object.freeze({ops:owner?ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
  }
  if(!derived||derived.index!==1||select.from.items.length!==2||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.result.length!==2||select.orderBy.length!==2||select.limit||select.offset)return undefined;
- const item=select.from.items[derived.index]!,coroutine=fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:derived.index,joinFromLeft:item.joinFromLeft,nextCross:false,leftOfRightJoin:select.from.items[0]!.leftOfRightJoin,updateFrom:false,coroutineOptimization:true,isCte:false,cteMaterialized:false,cteUseCount:1,cteNotMaterialized:false,earlierSubquery:false,selfJoinView:false});
+ const item=select.from.items[derived.index]!,coroutine=fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:derived.index,joinFromLeft:item.joinFromLeft,nextCross:false,leftOfRightJoin:select.from.items[0]!.leftOfRightJoin,updateFrom:false,coroutineOptimization:true,isCte:false,cteMaterialized:false,cteUseCount:1,cteNotMaterialized:false,earlierSubquery:precedingFromCoroutineBarrier(select,derived.index,schema),selfJoinView:false});
  const outerItem=select.from.items[0]!,outer=schema.findTable(sqlName(outerItem.tableName));if(!outer)return undefined;
  const inner={columns:compoundArmColumns(derived.select,schema)};
  const ordinalOrder=select.orderBy.every((term,index)=>term.expr.tokens.length===1&&term.expr.tokens[0]!.text===String(index+1)&&!term.descending&&term.nulls===null);if(!ordinalOrder)return undefined;
@@ -6779,7 +6791,7 @@ function compileCteDerivedSourcesFallback(select:SelectNode,schema:SchemaGraph,d
  // ordinary derived compiler for an eligible coroutine, but retain this owner
  // for forced/repeated materialization. The CteUse object is shared across all
  // references and has its final prepare-time nUse before compilation begins.
- if(sources.length===1){const source=sources[0]!,item=select.from.items[source.index]!;if(fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:false,leftOfRightJoin:select.from.items[0]!.leftOfRightJoin,updateFrom:false,coroutineOptimization:true,isCte:true,cteMaterialized:source.materialization==='materialized',cteUseCount:source.use.nUse,cteNotMaterialized:source.materialization==='not-materialized',earlierSubquery:false,selfJoinView:false}))return undefined;}
+ if(sources.length===1){const source=sources[0]!,item=select.from.items[source.index]!;if(fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:false,leftOfRightJoin:select.from.items[0]!.leftOfRightJoin,updateFrom:false,coroutineOptimization:true,isCte:true,cteMaterialized:source.materialization==='materialized',cteUseCount:source.use.nUse,cteNotMaterialized:source.materialization==='not-materialized',earlierSubquery:precedingFromCoroutineBarrier(select,source.index,schema),selfJoinView:false}))return undefined;}
  const descriptors=new Map<object,Program['columns']>(),names:(readonly string[])[]=[];
  for(const source of sources){let columns=descriptors.get(source.use);if(!columns){columns=compoundArmColumns(source.select,schema);descriptors.set(source.use,columns);}names[source.index]=uniqueTransientColumnNames(source.select.result.map((e,i)=>e.alias??columns[i]?.name??`column${i+1}`));}
  const direct=(tree:Expression):{source:number;column:number}|null=>{if(tree.kind!=="column")return null;const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!;let candidates=sources;if(parts.length===2)candidates=sources.filter(source=>sqliteIdentifierEqual(source.alias,parts[0]!));else if(parts.length!==1)return null;const found=candidates.flatMap(source=>{const column=names[source.index]!.findIndex(n=>sqliteIdentifierEqual(n,name));return column<0?[]:[{source:source.index,column}]});return found.length===1?found[0]!:null;};

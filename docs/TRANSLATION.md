@@ -211,6 +211,14 @@ and [invocation correction](research/retained-filter-demand.md).
 Original t1 fixture contract and cross-owner merge-gate adjudication:
 [bounded native/public evidence](research/original-test-contract.md).
 
+The retained FROM route derives preceding-subquery facts from derived/CTE
+producer ownership and schema views, not source position. The select.c:7290–7295
+walk checks every crossed join edge (LEFT/RIGHT imply native JT_OUTER even
+without the OUTER keyword). Physical-table prefixes remain coroutine eligible;
+prior subqueries and join barriers retain materialization. Existing CteUse,
+self-view reuse and destination/lifecycle gates remain separate. Source and
+regression evidence: [coroutine caller correction](research/from-coroutine-prefix.md).
+
 ## Read-only metadata PRAGMA (bounded consumers)
 
 Physical-left two-source scalar metadata consumers use the shared resolved WHERE producer, rather than the JSON name-only adapter. Filter argv, projection, ON/WHERE and ORDER therefore share generated SELF/BUSY dependency lowering, physical storage identity and NullRow-before-generated evaluation. The metadata BestIndex owner selects/omits usable hidden EQ inputs at the positioned prefix; Filter remains per outer row. Aggregate consume callbacks enroll genuine positioned source payloads and independent rowids through the shared resolved WHERE producer before AggInfo consumption, without reparsing a scalar projection. Bounded count/sum and GROUP/HAVING consumers use the same generated SELF/storage and LEFT/error-readiness owners. This is not broader join or general virtual-table admission. [Source comparison and native regression evidence](research/card-e-n-pragma-red/GENERATED.md).
