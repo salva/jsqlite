@@ -21,6 +21,12 @@ prerequisite/LEFT-WHERE guards and owning ON omission before match production.
 `selected-select-in-reuse-matrix.test.mjs` / `capture-select-in-reuse-matrix.py`
 map typed physical reuse, affinity/collation fallback, joined unrelated residuals,
 LEFT null-extension and useful composite-range work; [finite evidence](research/selected-select-in-delivery.md#joined-direct-rhs-residual-ownership).
+`vdbe.c:Next/Prev next_tail` → physical `IndexCursor.previous`, VDBE IndexPrev
+and step-loop control boundary. `selected-select-in-persistent-errors.test.mjs`
+delegates actual native-root-identified RHS movement for cancel/deadline and
+reset/retry; `capture-select-in-persistent-corruption.py` supplies native readonly
+selected/offpath corruption codes. The matrix also requires selected OR branches,
+not scan credit. [Scope and attribution](research/selected-select-in-delivery.md#physical-rhs-coverage-promotion).
 `vdbe.c` endpoint/movement/Column →
 `private-in-dispatch.ts`, `private-key-vm.ts`; `btree.c` reverse traversal →
 `private-blobkey-pages.ts`. Public chosen/executed native comparisons:

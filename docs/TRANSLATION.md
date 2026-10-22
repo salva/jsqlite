@@ -459,8 +459,11 @@ admission publishes invocation-owned disableTerm state only for exact enforced
 conjuncts at their prerequisite frontier: ordinary WHERE cannot be omitted on a
 LEFT level; an owning ON conjunct can, before match/null-extension production.
 Unrelated predicates remain residual. The [joined reuse evidence](research/selected-select-in-delivery.md#joined-direct-rhs-residual-ownership)
-covers native typed/metadata and actual no-materialization controls, not all
-persistent-RHS lifecycle/error schedules. Private endpoint,
+covers native typed/metadata and actual no-materialization controls. The
+[physical RHS controls](research/selected-select-in-delivery.md#physical-rhs-coverage-promotion)
+add native selected/offpath corruption and public synchronous DESC movement
+cancel/deadline/reset/retry at zero private quota, plus selected two-branch OR;
+they do not exhaust ROWID/ASC fault timing or arbitrary OR schedules. Private endpoint,
 movement and Column dispatch precedes persistent dispatch, publishing jumps only
 after success. Equality slots are produced and NULL-guarded in index order,
 before later IN construction/positioning, following codeAllEqualityTerms; LEFT

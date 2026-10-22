@@ -13,8 +13,11 @@ reproduced joined tail now omit only exact enforced owning equality conjuncts at
 their ready frontier. Joined LEFT WHERE remains residual; owning ON omission
 precedes match/null-extension production and preserves unrelated predicates.
 The [joined finite matrix](../research/selected-select-in-delivery.md#joined-direct-rhs-residual-ownership)
-covers typed/metadata, fallback gates and useful20k access; persistent-RHS
-cancellation/corruption and general OR schedules are not closed by those controls.
+covers typed/metadata, fallback gates and useful20k access. Promoted
+[physical RHS evidence](../research/selected-select-in-delivery.md#physical-rhs-coverage-promotion)
+adds native selected/offpath corruption, public DESC movement cancellation/deadline
+with sticky reset/retry/finalize and selected two-branch OR. This is finite
+coverage, not exhaustive ROWID/ASC fault timing or general OR schedules.
 codeAllEqualityTerms slot-order correction now guards nullable equality before
 later RHS construction in ordinary/join/recursive-OR lowering; native-backed
 ordinary/LEFT NULL-prefix controls cover bypass with zero private capacity.

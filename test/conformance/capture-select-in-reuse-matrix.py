@@ -48,6 +48,7 @@ INSERT INTO big SELECT x,x%1000,x%20,'payload' FROM n;
 CREATE TABLE big_rhs(v INTEGER);CREATE UNIQUE INDEX big_rhs_v ON big_rhs(v DESC);
 INSERT INTO big_rhs VALUES(2),(503),(NULL);'''
 cases=[
+ ('or-reuse','SELECT id,v,b FROM typed WHERE v IN(SELECT v FROM mixed_desc) OR b=6',True),
  ('mixed-asc','SELECT id,v,b FROM typed INDEXED BY typed_vb WHERE v IN(SELECT v FROM mixed) AND b>=1 AND b<5',True),
  ('mixed-desc','SELECT id,v,b FROM typed INDEXED BY typed_vb WHERE v IN(SELECT v FROM mixed_desc) AND b>0 AND b<=4',True),
  ('nocase','SELECT id,v FROM words INDEXED BY words_v WHERE v IN(SELECT v FROM word_rhs)',True),

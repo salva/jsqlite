@@ -39,6 +39,10 @@ for(const variant of capture.variants)test(`${variant.encoding}: typed persisten
     assert.deepEqual(types,run.rows.map(row=>row.map(cell=>cell.type)),c.name+' storage classes');
     const work=privateAccounting(st);measured.set(c.name,{...work,rows});
     assert.equal(work.sorterRows,0,c.name);
+    if(c.name==='or-reuse'){
+     assert.ok(work.orBranchStarts>=2,'both physical OR branches execute');
+     assert.equal(work.tableNext,0,'OR does not obtain scan credit');
+    }
     if(c.name==='inner-residual'||c.name==='left-residual')assert.ok(work.residualTests>0,c.name+' retains unrelated predicate');
     if(!scan){
      if(c.reuse){assert.equal(opens,0,`${c.name}: ${JSON.stringify(work)}`);if(!['parameter-residual','inner','left','inner-residual','left-residual'].includes(c.name))assert.equal(work.residualTests,0,c.name);}

@@ -1,5 +1,33 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Physical RHS coverage promotion
+
+Coverage authored by [[card:card-s-c-d-g]] (accepted status48), independently
+assessed by owning executor [[card:card-s-c-d-e]] (accepted status66), promoted
+without changing any of its four file bytes/native expectations. Exact hashes
+and source comparison are in those records. No production algorithm or public
+API/admission change. Pin remains SQLite3.53.4/sourceid
+bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc.
+
+Native-root-identified synchronous DESC RHS movement delegates before control
+injection after positive LHS seeks. Pinned vdbe.c next_tail publishes movement
+then checks interrupt; TS observes control at the next opcode boundary. Tests
+retain sticky error/reset/retry rebuilt endpoints, finalize, independent offpath
+usability and zero actual private opens at maxPrivateBytes0. No native cancellation
+timing or JS heap release parity claimed. Independent readonly C API corrupt-root
+captures retain selected step/reset/retry/finalize11/11/11/11 and exact offpath
+typed rows across three encodings. OR adds selected two-branch/no-table-scan
+assertions without shrinking useful20k or original matrix work. ROWID/ASC fault
+timing and arbitrary OR schedules remain unexhausted, not excluded.
+
+Owner proc-333c7e96c6a6 passes6/6, zero skips, plus tsc/diff-check on exact g48
+bytes; command/env/output retained in accepted status66. Matrix capture SHA256
+c964783168e7844bd76a0aee5dad644c95ad2b8049ca356359c335b13307283f;
+corruption cb551db5621186d0c9cdcc7a67a3d14a1fe25bb41cd981ed0d431ff57dbf809b.
+Immutable promotion identity and validation belong to current per-card status;
+focused success alone does not settle prior combined timeout/drift.
+
+
 ## Joined direct RHS residual ownership
 
 Author correction of independent [[card:card-s-c-d-g]] finding (accepted status45),
