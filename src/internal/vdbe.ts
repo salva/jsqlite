@@ -4567,7 +4567,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     for(const [batch,arm] of arms.entries()){
       const clause=orRuntimeArmClause(arm,parent.sourceOrdinal,outer,parent.orInfo!.clause);
       if(!clause)throw new JSQLiteError('internal','joined OR lost owned arm');
-      const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
+      const candidates=btreeLoops(parent.source,parent.sourceOrdinal,clause,{forcedIndex:parent.source.indexedBy===null||parent.source.table.kind!=='table'?null:parent.source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(parent.source.indexedBy!))??null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
       const branch=wherePathSolver([candidates],1,undefined,0,1,null,readyMask).loops[0]!;
       const consumed=branchConsumedTerms(branch,clause,available);
       const consume=(tested=false):void=>{
@@ -7677,14 +7677,18 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       for(const [ordinal,arm] of arms.entries()){
         const clause=orRuntimeArmClause(arm,0,outer,parent.orInfo!.clause);
         if(!clause)throw new JSQLiteError('internal','selected OR lost owned arm');
-        const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
+        const candidates=btreeLoops(parent.source,0,clause,{forcedIndex:parent.source.indexedBy===null||parent.source.table.kind!=='table'?null:parent.source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(parent.source.indexedBy!))??null,neededColumns:needed,orderBy:[],resolved:expanded,planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
         const branch=wherePathSolver([candidates],1).loops[0]!;
         const consumed=branchConsumedTerms(branch,clause,1n<<BigInt(branch.sourceOrdinal));
         const emitArm=(tested=false):void=>{
           const residuals:number[]=[];
           if(!tested)for(const term of arm.info?.kind==='and'?arm.info.clause.terms:[arm]){
             if(term.virtual||consumed.has(term))continue;
-            const predicate=resolveExpression(term.expression),truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters);
+            const predicate=resolveExpression(term.expression);
+            // Case5 residual IN retains the full vector parent. Use the same
+            // linked subquery producer as ordinary positioned expressions.
+            const compileArmSubquery=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},{policy:'scalar',positionedSources:new Set([expanded.sources[0]!]),location:ref=>({kind:'cursor',cursor:ref.source===expanded.sources[0]?0:nestedReadCursors.get(ref.source)??ref.source.cursorId,...(ref.source===expanded.sources[0]&&ref.columnIndex>=0?{physicalColumnIndex:selectedPhysical&&!selectedNeedsTableLookup?storageColumn(ref.columnIndex):tableStorageColumn(ref.columnIndex)}:{})})},schema);
+            const truth=compileExpressionTree(predicate,ops,()=>builder.register(),parameters,compileArmSubquery);
             residuals.push(ops.length);ops.push({code:'IfNot',p1:truth,p2:0,residual:true});
           }
           const test=emitCase5Identity(ops,primary,0,rowid,record,rowset,ordinal,ordinal===arms.length-1);

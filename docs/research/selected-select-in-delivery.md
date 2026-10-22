@@ -441,12 +441,16 @@ read-only pinned receipts with full EXPLAIN. These tiny fixtures establish no
 useful-work bound or mixed-type/rebind/lifecycle completeness; residual membership
 still performs table movement.
 
-Expanded OR experiment proc-e8de90ddfb90 fails access assertion in all encodings:
-indexSeeks0/inProbes0/tableNext6/orBranchStarts0 despite native two SeekGE.
-Retained as capture `frontierCases`, explicitly outside the passing eight-case
-matrix; not silently credited as fixed. Next scope is OR child admission through
-whereexpr prereq/parent ownership, then correlated readiness/derived masks and
-broader native matrix. proc-708380676a55 failed after a malformed deliberate edit;
+Revision-bound OR experiment proc-e8de90ddfb90 failed selected access despite
+native two SeekGE. The frozen `frontierCases` receipt is now enrolled alongside
+the eight cases. The OR correction keeps exprAnalyze's AND-only vector field
+production: existing OR analysis already wraps non-single arms in owned AND
+clauses. The actual veto was AddOr excluding forced indexes, followed by a
+forced-index usability check recognizing only ordinary index loops. Both now
+accept the recursive multi-or route. Physical branch rebuilding retains the
+forced index; full tuple residuals use the existing linked subquery emitter,
+not a second evaluator. Correlated readiness/derived masks and broader native
+matrix remain subsequent scope. proc-708380676a55 failed after a malformed deliberate edit;
 fixed before passing tsc. proc-c4061493260c failed Python syntax before capture;
 fixed before final native-first run. Earlier producer-only attempts remain in
 accepted card status history. Full changed-input107 gates and independent review
@@ -482,3 +486,37 @@ one index produced scan access (inProbes0), correctly rejected3/3
 (`proc-bdc811cbfcdd`). Use unforced multi-index a-IN OR b=3 to exercise the actual
 recursive caller, not relax the selected-access assertion. Native artifacts were
 recaptured before TS verification. No raw capture or production instrumentation.
+
+### Forced vector OR admission repair — author evidence
+
+Against vector80981f3d/tree0aa2096f, direct OR field generation was attempted
+and reverted: it duplicates the already-owned AND children and did not repair
+selected access (proc-755afd848910). Removing the forced-index AddOr veto exposed
+full-tuple residual lowering without a subquery emitter (proc-055601bf5dba).
+Linking the existing emitter repaired public execution; recognizing multi-or as
+forced-index usable repaired the synthetic planner check (proc-c973985d679b).
+No alternate evaluator or algorithm substitution was added. Pinned whereexpr.c
+1490–1548 retains AND-only field generation; where.c4835–4909 recurses through
+AddBtree using the same SrcItem. wherecode.c573/668 retains projected LOOP keys
+and the original parent residual.
+
+Fresh native-first capture uses capture-selected-vector-in.py and the pinned
+metadata library, output `$SAIVAGE_CARD_WORK_ROOT/or-admission-native` on
+[[card:card-s-c-d-d]]. Public matrix now includes the frozen OR receipt in all
+three encodings, exact typed rows/metadata, reset, positive seeks/probes, two OR
+starts and a zero-selected-work NOT INDEXED control. Focused 279/279, tsc and
+diff-check pass (proc-0a7d9f053dbd). Earlier proc-7ef75dd97fe6 passed279 but failed
+tsc on table/module narrowing; that narrowing is corrected.
+
+Initial full-family invocation proc-6a008af167ba omitted three fixture environment
+variables: seven files failed setup, plus input drift while commentary changed;
+it is not a passing gate. Corrected proc-bc64cce48975: explicit previous104-file
+inventory plus vector test (105 distinct files), all completed0, no drift/not_run.
+proc-2c8951131a9b adds the three persistent reuse files: all completed0, tsc and
+diff-check pass. Thus the prior107-file inventory plus vector is covered without
+shrinking it. Both runs use serial1/batch80/file60/batch600; corrected maximum
+17.854s OR-WR-full does not retract historical58.302s risk. Manifests under this
+card's `or-admission-gates-corrected/integration-run/manifest.json` and
+`or-admission-extra-gates/integration-run/manifest.json` retain exact commands,
+inputs, hashes and results. This is author verification, not independent review
+or closure of correlation/frontier/derived-mask whole-goal obligations.

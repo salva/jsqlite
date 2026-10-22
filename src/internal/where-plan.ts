@@ -481,7 +481,10 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // physical branch choice is deliberately absent from the published union.
  // where.c4835 excludes RIGHT/FULL, not LEFT: ON arms retain ownership
  // through orArmClause; WhereEnd owns final LEFT null extension.
- if(!options.forcedIndex&&!options.notIndexed&&!source.joinFromLeft?.right&&!source.joinFromLeft?.outer&&!source.leftOfRightJoin){
+ // AddOr has no INDEXED BY veto: recursive AddBtree retains the forced index.
+ // Non-single vector arms use the existing AND-owned field analysis below;
+ // splitting fields again in the OR clause would duplicate their ownership.
+ if(!options.notIndexed&&!source.joinFromLeft?.right&&!source.joinFromLeft?.outer&&!source.leftOfRightJoin){
   for(const parent of clause.terms){
    const info=parent.info;
    if(info?.kind!=="or"||(info.indexable&sourceBit(sourceOrdinal))===0n)continue;
@@ -500,7 +503,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
    if(!options.orSet&&budget.remaining===0n)break;
   }
  }
- if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
+ if(!options.orSet&&options.forcedIndex&&!loops.some(loop=>loop.kind==="index"||loop.kind==="multi-or"))throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);return Object.freeze(loops);
 }
 /** where.c:whereLoopAddOr arm dispatch. Native tempWC carries one matching
  * stored orientation. This bounded immutable representation groups an original

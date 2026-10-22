@@ -8,6 +8,14 @@ const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:t
 // sqlite3DefaultRowEst: nRowLogEst=200, equality prefixes33/32; row widths use szEst.
 function schema(encoding='utf-8',withoutRowid=false,aNotNull=false){const id=col('id','INTEGER',{primaryKeyPosition:1}),a=col('a','TEXT',{collation:'NOCASE',notNull:aNotNull}),b=col('b','REAL'),blob=col('blob','BLOB');const t={nRowLogEst:200,hasStat1:false,integerPrimaryKey:withoutRowid?null:id,szTabRow:sqliteLogEst(BigInt(([id,a,b,blob].reduce((n,c)=>n+c.szEst,0)+(withoutRowid?0:1))*4)),kind:'table',name:'t',tableName:'t',rootPage:2,sql:'',columns:Object.freeze([id,a,b,blob]),indexes:[],withoutRowid,primaryKey:Object.freeze([id]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])};const i={rowLogEst:Object.freeze([200,33,32]),szIdxRow:sqliteLogEst(BigInt((a.szEst+b.szEst+id.szEst)*4)),hasStat1:false,unordered:false,noSkipScan:false,kind:'index',name:'i_ab',tableName:'t',rootPage:3,sql:'',table:t,terms:Object.freeze([{column:a,expression:null,expressionSql:null,descending:false,collation:'NOCASE',nulls:null},{column:b,expression:null,expressionSql:null,descending:true,collation:null,nulls:null}].map(Object.freeze)),unique:false,origin:'create',physical:null};i.physical=physicalIndex(i,encoding);const iblob={...i,rowLogEst:Object.freeze([200,33]),szIdxRow:sqliteLogEst(BigInt((blob.szEst+id.szEst)*4)),name:'i_blob',rootPage:4,terms:Object.freeze([Object.freeze({column:blob,expression:null,expressionSql:null,descending:false,collation:null,nulls:null})]),physical:null};iblob.physical=physicalIndex(iblob,encoding);t.indexes.push(i,iblob);Object.freeze(t.indexes);return {tables:new Map([['t',t]]),t,i,iblob,id,a,b,blob};}
 const resolve=(sql,s)=>expandAndResolveSelect(parseSql(sql).statement,s);
+test('vector SELECT-IN OR arms retain multi-or candidate admission',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding),request={neededColumns:[new Set([s.a])],orderBy:[]};
+  assert.ok(planWhere(resolve("SELECT a FROM t WHERE a IN (SELECT 'x') OR a='y'",s),request).path.loops.some(loop=>loop.kind==='multi-or'));
+  const vector=planWhere(resolve("SELECT a FROM t INDEXED BY i_ab WHERE (b,a) IN (SELECT 1.5,'x') OR (a,b) IN (SELECT 'y',2.5)",s),request);
+  assert.ok(vector.path.loops.some(loop=>loop.kind==='multi-or'),`${encoding}: vector field children must admit OR branches, not a forced full index scan`);
+ }
+});
 test('whereLoopInsert keeps the cheaper represented IN/range proposal',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

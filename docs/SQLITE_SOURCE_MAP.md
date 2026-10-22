@@ -8,7 +8,10 @@ parent residual ownership. `wherecode.c:removeUnindexableInClauseTerms` →
 `vdbe.ts:compileSelectedInRhs` projects/reorders actual linked SELECT results in
 selected slot order before comparison/KeyInfo/storage selection. Reduced UNIQUE
 SRT_Set prevents duplicate partial-prefix probes. Ordinary/INNER/LEFT callers
-consume the resulting field map; OR field-child admission remains open.
+consume the resulting field map. OR uses the existing AND-owned arm analysis;
+`where.c:whereLoopAddOr` retains INDEXED BY for recursive candidates, and
+`wherecode.c` Case5 residuals use the linked scalar subquery emitter. The frozen
+two-vector-arm witness checks seeks/probes and two branch starts through reset.
 `expr.c:sqlite3FindInIndex` aiMap/colUsed →
 `where-in-producer.ts:selectedVectorInStorage`, frozen `SelectedInSet.fieldMap`;
 `wherecode.c:codeINTerm` → `beginInVectorLoop` and `vdbe.ts:emitInAdvance`

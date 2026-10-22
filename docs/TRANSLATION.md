@@ -666,8 +666,11 @@ uncorrelated SELECT-IN now has identity-bearing field children and grouped RHS
 cursor iteration with selected-slot projection/reordering before RHS KeyInfo and
 construction (wherecode.c removeUnindexableInClauseTerms). Physical UNIQUE RHS
 mapping or shared UNIQUE SRT_Set deduplicates the projected keys, including partial
-vector prefixes; the full tuple remains residual. Correlated scheduling and OR
-field-child admission remain implementation gaps, not exclusions. Current finite evidence: [vector increment](research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
+vector prefixes; the full tuple remains residual. OR arms reuse AND-owned field
+analysis, preserving parent identity, and INDEXED BY constrains each recursive
+branch rather than suppressing OR candidates. The physical OR caller uses the
+shared linked subquery emitter for full-tuple residuals. Correlated scheduling
+remains an implementation gap, not an exclusion. Current finite evidence: [vector increment](research/selected-select-in-delivery.md#vector-lowering-increment-unfinished).
 This is not vector index-strategy completeness. See `expr.c:sqlite3ExprVectorSize`,
 `sqlite3ExprCodeIN` and the [vector review](research/card-i-c-row-vector-review.md).
 Generated dependency BUSY ownership flows through CASE/BETWEEN/IN-list and
