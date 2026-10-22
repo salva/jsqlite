@@ -43,8 +43,12 @@ witness passes author verification, without relaxing flattening fences.
 R14 identified stale ORDER result positions after reduced projection. The owning
 resolved projection now remaps retained slots and preserves removed expressions;
 linked table ORDER lowering no longer reinterprets ordinals against reduced width.
-GROUP bindings retain original resolved identity. Focused unchanged native witnesses
-pass author checks; independent R14 acceptance remains required.
+GROUP bindings retain original resolved identity. R15 identified a remaining
+retained-reference KeyInfo defect: clause COLLATE was ignored in favor of the result
+descriptor. The current author candidate resolves ORDER comparison expressions
+independently of retained value slots, including original full-tuple residuals.
+Focused native/public checks pass; R15 independent acceptance and combined delivery
+verification remain pending (R14/G62 evidence alone does not cover this correction).
 [Projection evidence](../research/selected-select-in-delivery.md#r14-result-reference-repair).
 Broader arbitrary retained, prerequisite/resource and plan-parity branches remain
 outside that finite closure. This is not whole R1 acceptance. See [current evidence](../research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).

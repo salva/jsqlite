@@ -1,5 +1,40 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## R15 ORDER comparison ownership
+
+Review15 identified retained ORDER result references using descriptor collation
+instead of the resolved clause expression. On d0410ab9 the independently captured
+native receipt `work:///cards/card-s-c-d-e/r15-collation-red/native/native.json`
+(SHA256 625c42ff6f7e650fe93a322fdfb1286708860dbec3df9631149eb1af6d883ca2)
+chooses INTEGER(1),TEXT('a'); current ordinal/alias chose (2,'B'), while removed
+reference returned empty. Red evidence remains in card E accepted status121.
+
+Pinned resolve.c resolveAlias68 reapplies TK_COLLATE after result substitution;
+select.c sqlite3KeyInfoFromExprList1598 reads the resulting pExpr and clause flags;
+expr.c sqlite3ExprCollSeq gives explicit COLLATE precedence over inherited column
+collation. The table compiler now substitutes the bound result expression under
+clause COLLATE wrappers for comparison, independently of the remapped result slot
+used by SorterInsert for values. Both reduced producer and original full-tuple
+residual use this same compiler. No alternate evaluator, dropped clause, rejection
+or algorithm substitution. Removed references still bind their original resolved
+expression; the original full-tuple predicate is unchanged.
+
+Existing native vector capture adds separate tables and 20 ordinal/alias,
+retained/removed controls: BINARY-result/NOCASE-clause, reverse override, inherited
+NOCASE, DESC NULLS LAST and ASC NULLS FIRST. NULLS FIRST uses LIMIT2 so a NULL probe
+and a useful non-NULL probe execute, preserving mandatory positive selected-work
+assertions rather than weakening them for an all-NULL result. The initial LIMIT1
+control returned the correct empty rows but failed the positive-seek assertion
+(proc-a75f93ea70ef); this was a fixture-work mismatch, not credited as a pass.
+The native capture asserts independently specified expected IDs. The unchanged
+public wrapper checks typed INTEGER IDs, metadata, selected seeks/probes and two
+executions. The original red receipt additionally checks INTEGER/TEXT rows and
+storage classes in all three encodings, including both reset runs. Focused pass:
+proc-83e1882d099e (original red3/3 plus typecheck); proc-3c916d85a07f (expanded
+vector3/3 plus original R14 partial3/3 and permuted3/3). Combined gate/delivery
+evidence is maintained in the card's current status; independent R15 adjudication
+remains required.
+
 ## R14 result-reference repair
 
 Review14's source-derived witnesses were independently captured then executed on

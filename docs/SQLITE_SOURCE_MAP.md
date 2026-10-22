@@ -28,6 +28,11 @@ selected slot order before comparison/KeyInfo/storage selection.
 ORDER slots and preserves removed resolved expressions; GROUP bindings retain
 original expression identity, including applicable linked arms.
 `compileInnerTableSelect` consumes resolved ORDER slots without ordinal rebinding.
+`resolve.c:resolveAlias`, `select.c:sqlite3KeyInfoFromExprList` and
+`expr.c:sqlite3ExprCollSeq` → table ORDER expression substitution retains clause
+COLLATE for KeyInfo independently of result-register value reuse. Reduced and
+original residual consumers share this owner. Native ordinal/alias reverse,
+inherited, DESC and NULL-sort controls: [collation evidence](research/selected-select-in-delivery.md#r15-order-comparison-ownership).
 Native/public partial/permuted ordinal/alias LIMIT and GROUP coverage plus resolver
 repeated-slot/arm checks: [projection evidence](research/selected-select-in-delivery.md#r14-result-reference-repair).
 Reduced UNIQUE

@@ -4457,12 +4457,18 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // means evaluate the linked expression, not reinterpret its ordinal spelling.
   const orderTerms=(multiOrderConsumed?[]:select.orderBy).map((term,index)=>{
     const resultIndex=expanded.orderResultColumns[index]??-1;
-    const tree=expressionFromReduction(term.expr.reduction!);
-    return {tree:resultIndex<0?resolveTree(tree,term.expr.reduction as Reduction):tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};
+    const clauseTree=expressionFromReduction(term.expr.reduction!);
+    // resolve.c resolveAlias reapplies clause COLLATE to the result expression.
+    // Result slots own value reuse only; select.c KeyInfo reads the ORDER Expr.
+    const resultExpression=resultIndex<0?null:expanded.result[resultIndex]!.expression;
+    const resultTree=resultExpression?resolveTree(expressionFromReduction(resultExpression.reduction!),resultExpression.reduction as Reduction):null;
+    const substitute=(tree:Expression):Expression=>tree.kind==='collate'?{...tree,value:substitute(tree.value)}:resultTree!;
+    const tree=resultTree?substitute(clauseTree):resolveTree(clauseTree,term.expr.reduction as Reduction);
+    return {tree,resultIndex,descending:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false};
   });
   if(owner)owner.builder.reserveCursorsThrough(Math.max(-1,...expanded.sources.map(source=>cursorFor(source))));
 
-  if(orderTerms.length)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:term.resultIndex>=0?sqliteAsciiFold(expanded.result[term.resultIndex]!.descriptor.collation) as BuiltinCollation:collation(term.tree),desc:term.descending,nullsLarge:term.nullsLarge}))})});
+  if(orderTerms.length)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTerms.length,keyFieldCount:orderTerms.length,terms:orderTerms.map(term=>({collation:collation(term.tree),desc:term.descending,nullsLarge:term.nullsLarge}))})});
   if(select.hasDistinct)ops.push({code:'OpenEphemeral',p1:distinctCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:expanded.result.length,keyFieldCount:expanded.result.length,terms:resolvedResultKeyTerms(expanded)})});
   // Parent-program construction labels, not a finished child PC map. The
   // body is inline on the matched pass and called on the unmatched pass.

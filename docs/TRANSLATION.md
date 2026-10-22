@@ -670,7 +670,11 @@ construction (wherecode.c removeUnindexableInClauseTerms). Reduced ORDER result
 references remap to selected slots; removed references retain original resolved
 expressions, including clause COLLATE. GROUP ordinal/alias bindings retain their
 original expression identity on every linked arm. The table sorter consumes
-resolved references rather than rebinding raw ordinals to reduced width.
+resolved references rather than rebinding raw ordinals to reduced width. Result
+slots govern value reuse only: sorter KeyInfo derives collation from the resolved
+ORDER expression, reapplying clause COLLATE over inherited result collation
+(resolveAlias / sqlite3KeyInfoFromExprList). This applies to both reduced producers
+and original full-tuple residuals; direction and NULL sort flags remain clause-owned.
 [Projection evidence](research/selected-select-in-delivery.md#r14-result-reference-repair).
 Physical UNIQUE RHS
 mapping or shared UNIQUE SRT_Set deduplicates the projected keys, including partial

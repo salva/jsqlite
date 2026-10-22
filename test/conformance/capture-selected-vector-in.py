@@ -31,6 +31,12 @@ CREATE INDEX projection_ab ON projection_t(a,b);
 INSERT INTO projection_t VALUES(1,1,9,9),(2,2,3,3),(3,9,1,1),(4,3,2,2);
 CREATE TABLE projection_rhs(x,y);
 INSERT INTO projection_rhs VALUES(1,9),(2,3);
+CREATE TABLE collate_t(id INTEGER PRIMARY KEY,a,b);
+CREATE INDEX collate_ab ON collate_t(a,b);
+CREATE INDEX collate_a ON collate_t(a);
+CREATE TABLE collate_rhs(x COLLATE NOCASE,y);
+INSERT INTO collate_t VALUES(1,1,'a'),(2,2,'B'),(3,3,NULL);
+INSERT INTO collate_rhs VALUES('a',1),('B',2),(NULL,3);
 CREATE TABLE rhs(x,y);CREATE UNIQUE INDEX rhs_yx ON rhs(y,x);
 INSERT INTO t VALUES(1,1,2,3),(2,1,3,4),(3,2,2,1),(4,NULL,2,9);
 INSERT INTO rhs VALUES(1,2),(2,2),(NULL,2);'''
@@ -44,12 +50,23 @@ for label,order in [('ordinal','2'),('alias','chosen')]:
 for label,order in [('ordinal','1'),('alias','chosen')]:
  queries.append(('permuted-order-'+label, f'SELECT id FROM projection_t INDEXED BY projection_ab WHERE (b,a) IN(SELECT x AS chosen,y FROM projection_rhs ORDER BY {order} LIMIT 1) ORDER BY id'))
 queries.append(('partial-group-ordinal','SELECT id FROM projection_t INDEXED BY projection_a WHERE (a,c) IN(SELECT x,y FROM projection_rhs GROUP BY 2 ORDER BY 2 LIMIT 1) ORDER BY id'))
+# R15: compare inherited and explicit reverse precedence, retained/permuted and
+# removed references. Existing public wrapper checks selected work and reset.
+for shape,index,tuple_,projection,ordinal in [('retained','collate_ab','b,a','x AS chosen,y','1'),('removed','collate_a','a,b','y,x AS chosen','2')]:
+ for label,expression in [('ordinal',ordinal),('alias','chosen')]:
+  for control,result,modifier in [('override-nocase','x COLLATE BINARY','COLLATE NOCASE ASC NULLS LAST'),('override-binary','x COLLATE NOCASE','COLLATE BINARY ASC NULLS LAST'),('inherited','x','ASC NULLS LAST'),('desc','x COLLATE BINARY','COLLATE NOCASE DESC NULLS LAST'),('nulls-first','x COLLATE BINARY','COLLATE NOCASE ASC NULLS FIRST')]:
+   projected=projection.replace('x AS chosen',result+' AS chosen')
+   queries.append((f'collate-{shape}-{label}-{control}',f'SELECT id FROM collate_t INDEXED BY {index} WHERE ({tuple_}) IN(SELECT {projected} FROM collate_rhs ORDER BY {expression} {modifier} LIMIT {2 if control=="nulls-first" else 1}) ORDER BY id'))
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=root/(enc+'.db');path.unlink(missing_ok=True);db=C.c_void_p();assert d.sqlite3_open(str(path).encode(),C.byref(db))==0
  o.execsql(d,db,"PRAGMA encoding='%s'"%enc);o.execsql(d,db,setup);assert d.sqlite3_close(db)==0
  assert d.sqlite3_open_v2(str(path).encode(),C.byref(db),1,None)==0
  cases=[]
  for name,sql in queries:
-  rows,_=o.query(d,db,sql);ops,_=o.query(d,db,'EXPLAIN '+sql);cases.append(dict(name=name,sql=sql,rows=rows,ops=ops,metadata=metadata(db,sql)))
+  rows,_=o.query(d,db,sql);ops,_=o.query(d,db,'EXPLAIN '+sql)
+  if name.startswith('collate-'):
+   expected=[[dict(type='integer',value='2' if name.endswith(('override-binary','desc')) else '1')]]
+   assert rows==expected,(name,rows,expected)
+  cases.append(dict(name=name,sql=sql,rows=rows,ops=ops,metadata=metadata(db,sql)))
  assert d.sqlite3_close(db)==0
  (root/(enc+'.json')).write_text(json.dumps(dict(sourceid=d.sqlite3_sourceid().decode(),sql=queries[0][1],cases=[c for c in cases if c['name']!='or'],frontierCases=[c for c in cases if c['name']=='or'])))
