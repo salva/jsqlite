@@ -1,0 +1,790 @@
+{
+  "generation": "g-fee22cf861600cad6529c65e4a6561aeedca2a0405e64643575b7752aa9d2fd0",
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "8d3a57c33418e6273e85046b7a8b664ad47827660658dfacef0136416c9f48f3",
+  "variants": [
+    {
+      "encoding": "utf8",
+      "cases": [
+        {
+          "family": "subquery",
+          "fixtureSha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+          "sql": "SELECT (SELECT q.vb FROM v1 q WHERE q.vb>2 ORDER BY q.vb DESC LIMIT 1) AS high, EXISTS(SELECT q.vc FROM v1 q WHERE q.vb>9) AS absent, 6 IN (SELECT q.vb FROM v1 q WHERE q.vb>2) AS member",
+          "metadata": [
+            {
+              "name": "high",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t1",
+              "origin": "b"
+            },
+            {
+              "name": "absent",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+          "sql": "SELECT 6 IN (SELECT DISTINCT q.vb FROM v1 q WHERE q.vb>2) AS member",
+          "metadata": [
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+          "sql": "SELECT (SELECT abs(-9223372036854775808) FROM v1 LIMIT 0) AS lazy",
+          "metadata": [
+            {
+              "name": "lazy",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "8bd51f684d531f99f7869ea5d9dd3d1f99488c24887055137f2dfe8f399a873c",
+          "sql": "SELECT (SELECT abs(-9223372036854775808) FROM v1) AS required",
+          "metadata": [
+            {
+              "name": "required",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "reset": 1,
+              "error": "integer overflow"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "reset": 1,
+              "error": "integer overflow"
+            }
+          ]
+        },
+        {
+          "family": "encoding",
+          "fixtureSha256": "66ff4cab504f06fa3bbbfd2785c712362fb9c11e10e825e4bb40f84393e8ee6b",
+          "sql": "SELECT EXISTS(SELECT 1 FROM t1 CROSS JOIN json_each('[4,5]') j WHERE EXISTS(SELECT 1 FROM json_each(json_array(j.value)) k WHERE k.value=5)) AS hit",
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "encoding",
+          "fixtureSha256": "66ff4cab504f06fa3bbbfd2785c712362fb9c11e10e825e4bb40f84393e8ee6b",
+          "sql": "SELECT EXISTS(SELECT 1 FROM t1 CROSS JOIN json_each('[4,5]') j WHERE EXISTS(SELECT 1 FROM json_each(json_array(j.value)) k WHERE k.value=9)) AS miss",
+          "metadata": [
+            {
+              "name": "miss",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "cases": [
+        {
+          "family": "subquery",
+          "fixtureSha256": "0306bf9b00c44a780b34334ed9cf800f252df989fdc95a87b89ff6ad416aed45",
+          "sql": "SELECT (SELECT q.vb FROM v1 q WHERE q.vb>2 ORDER BY q.vb DESC LIMIT 1) AS high, EXISTS(SELECT q.vc FROM v1 q WHERE q.vb>9) AS absent, 6 IN (SELECT q.vb FROM v1 q WHERE q.vb>2) AS member",
+          "metadata": [
+            {
+              "name": "high",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t1",
+              "origin": "b"
+            },
+            {
+              "name": "absent",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "0306bf9b00c44a780b34334ed9cf800f252df989fdc95a87b89ff6ad416aed45",
+          "sql": "SELECT 6 IN (SELECT DISTINCT q.vb FROM v1 q WHERE q.vb>2) AS member",
+          "metadata": [
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "0306bf9b00c44a780b34334ed9cf800f252df989fdc95a87b89ff6ad416aed45",
+          "sql": "SELECT (SELECT abs(-9223372036854775808) FROM v1 LIMIT 0) AS lazy",
+          "metadata": [
+            {
+              "name": "lazy",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "0306bf9b00c44a780b34334ed9cf800f252df989fdc95a87b89ff6ad416aed45",
+          "sql": "SELECT (SELECT abs(-9223372036854775808) FROM v1) AS required",
+          "metadata": [
+            {
+              "name": "required",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "reset": 1,
+              "error": "integer overflow"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "reset": 1,
+              "error": "integer overflow"
+            }
+          ]
+        },
+        {
+          "family": "encoding",
+          "fixtureSha256": "38ae98d12c3bb6e5273879b2fbc1268c1a90d91179412172e26a4884d063b3f8",
+          "sql": "SELECT EXISTS(SELECT 1 FROM t1 CROSS JOIN json_each('[4,5]') j WHERE EXISTS(SELECT 1 FROM json_each(json_array(j.value)) k WHERE k.value=5)) AS hit",
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "encoding",
+          "fixtureSha256": "38ae98d12c3bb6e5273879b2fbc1268c1a90d91179412172e26a4884d063b3f8",
+          "sql": "SELECT EXISTS(SELECT 1 FROM t1 CROSS JOIN json_each('[4,5]') j WHERE EXISTS(SELECT 1 FROM json_each(json_array(j.value)) k WHERE k.value=9)) AS miss",
+          "metadata": [
+            {
+              "name": "miss",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "cases": [
+        {
+          "family": "subquery",
+          "fixtureSha256": "c505412f30f61df28a9a7f3a52d53a107b9b11497216c6d6c3ab6c490836dad2",
+          "sql": "SELECT (SELECT q.vb FROM v1 q WHERE q.vb>2 ORDER BY q.vb DESC LIMIT 1) AS high, EXISTS(SELECT q.vc FROM v1 q WHERE q.vb>9) AS absent, 6 IN (SELECT q.vb FROM v1 q WHERE q.vb>2) AS member",
+          "metadata": [
+            {
+              "name": "high",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t1",
+              "origin": "b"
+            },
+            {
+              "name": "absent",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "6"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "c505412f30f61df28a9a7f3a52d53a107b9b11497216c6d6c3ab6c490836dad2",
+          "sql": "SELECT 6 IN (SELECT DISTINCT q.vb FROM v1 q WHERE q.vb>2) AS member",
+          "metadata": [
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "c505412f30f61df28a9a7f3a52d53a107b9b11497216c6d6c3ab6c490836dad2",
+          "sql": "SELECT (SELECT abs(-9223372036854775808) FROM v1 LIMIT 0) AS lazy",
+          "metadata": [
+            {
+              "name": "lazy",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "null"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "subquery",
+          "fixtureSha256": "c505412f30f61df28a9a7f3a52d53a107b9b11497216c6d6c3ab6c490836dad2",
+          "sql": "SELECT (SELECT abs(-9223372036854775808) FROM v1) AS required",
+          "metadata": [
+            {
+              "name": "required",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [],
+              "end": 1,
+              "reset": 1,
+              "error": "integer overflow"
+            },
+            {
+              "rows": [],
+              "end": 1,
+              "reset": 1,
+              "error": "integer overflow"
+            }
+          ]
+        },
+        {
+          "family": "encoding",
+          "fixtureSha256": "8ac45acefa4c170906ad80acec4b95ff5056b035859d683fd7cfbb05a37b8bdf",
+          "sql": "SELECT EXISTS(SELECT 1 FROM t1 CROSS JOIN json_each('[4,5]') j WHERE EXISTS(SELECT 1 FROM json_each(json_array(j.value)) k WHERE k.value=5)) AS hit",
+          "metadata": [
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        },
+        {
+          "family": "encoding",
+          "fixtureSha256": "8ac45acefa4c170906ad80acec4b95ff5056b035859d683fd7cfbb05a37b8bdf",
+          "sql": "SELECT EXISTS(SELECT 1 FROM t1 CROSS JOIN json_each('[4,5]') j WHERE EXISTS(SELECT 1 FROM json_each(json_array(j.value)) k WHERE k.value=9)) AS miss",
+          "metadata": [
+            {
+              "name": "miss",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            },
+            {
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101,
+              "reset": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

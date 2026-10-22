@@ -138,7 +138,7 @@ status.
 
 ### Mixed module predicate readiness
 
-The mixed physical/module producer resolves WHERE/ON against both declarations before partitioning bound dependencies. INNER/CROSS physical-ready conjuncts execute once before module arguments/Filter and are removed from inner residual evaluation. Module-dependent terms retain inner-row positioning; LEFT match/null-extension ordering is unchanged. Child Select prerequisites now follow linked source identities through nested/compound children; shared Mem/Set/Exists lowering retains positioned parent cursor/register locations. Physical-ready children run in the later pass at that same ready level; module-dependent children remain after Filter (`whereexpr.c:exprSelectUsage`). Regression: `json-child-readiness.test.mjs`; correction evidence: [[card:card-m-f-k]] status. This bounded readiness translation follows `resolve.c:lookupName`, `select.c:sqlite3SelectPrep` and `wherecode.c:sqlite3WhereCodeOneLoopStart` prereqAll/notReady and TERM_CODED ownership, not a general virtual-table planner substitution. Tests: `json-mixed-readiness.test.mjs`, `json-mixed-resolution-controls.test.mjs`, `json-mixed-resolution.test.mjs`. Revision-bound author evidence and remaining acceptance obligations: [[card:card-m-f-k]] accepted status615/622.
+The mixed physical/module producer resolves WHERE/ON against both declarations before partitioning bound dependencies. INNER/CROSS physical-ready conjuncts execute once before module arguments/Filter and are removed from inner residual evaluation. Module-dependent terms retain inner-row positioning; LEFT match/null-extension ordering is unchanged. Child Select prerequisites now follow linked source identities through nested/compound children, including SrcItem table-function arguments (`whereexpr.c:exprSelectUsage` pFuncArg), excluding child-local sources from the enclosing mask; shared Mem/Set/Exists lowering retains positioned parent cursor/register locations. Physical-ready children run in the later pass at that same ready level; module-dependent children remain after Filter (`whereexpr.c:exprSelectUsage`). Regression: `json-child-readiness.test.mjs`; correction evidence: [[card:card-m-f-k]] status. This bounded readiness translation follows `resolve.c:lookupName`, `select.c:sqlite3SelectPrep` and `wherecode.c:sqlite3WhereCodeOneLoopStart` prereqAll/notReady and TERM_CODED ownership, not a general virtual-table planner substitution. Tests: `json-mixed-readiness.test.mjs`, `json-mixed-resolution-controls.test.mjs`, `json-mixed-resolution.test.mjs`. Revision-bound author evidence and remaining acceptance obligations: [[card:card-m-f-k]] accepted status615/622.
 
 ### Linked JSON module enrollment and selected rows
 
@@ -522,7 +522,12 @@ not established. [Retained reprepare evidence](research/card-h-b-reprepare/READM
 `whereexpr.c`, `where.c`, `wherecode.c` produce terms, candidate loops, paths and
 loop control; `where-plan.ts` and the ordinary SELECT caller consume them.
 Joined WHERE residuals are emitted at their ready loop frontier, not deferred
-wholesale to the innermost row. Ordinary levels translate the pinned covered,
+wholesale to the innermost row. OR branch-consumption assertions distinguish
+independent outer restrictions from arm-local residuals: the outer predicate
+runs once per admitted outer row, while a selected commuted child consumes its
+original arm before the shared Gosub. `or-commuted-child.test.mjs` checks both
+intervals, branch roots, typed native rows, error controls and reset.
+Ordinary levels translate the pinned covered,
 noncorrelated, then correlated-subquery passes: `WhereTerm.variableSelect`
 retains resolver correlation independently of readiness masks, and coverage
 walks this cursor's columns without entering SELECTs. Actual column consumption
@@ -533,7 +538,11 @@ RIGHT shared-drain reads retain their primary-reader contract. This preserves re
 and error order, not just scan cost. Existing LEFT match/null-extension and RIGHT
 subroutine single-pass placement and LTORJ deferral remain authoritative. Correlated RHS
 production still rebuilds at each required invocation; no cross-invocation cache
-or residual deletion is used. [Frontier repair evidence and limits](record:///status.md?card=card-s-c-d-e).
+or residual deletion is used. Correlated EXISTS retains the shared UNION ALL
+LIMIT: ready outer-only restrictions precede inner rewind, and a first-arm hit
+skips later arms; an empty first arm still reaches required errors. Once and
+reset remain distinct invocation owners. [Source and finite lazy/error controls](research/join-retained-compound-contracts-evidence.md).
+[Frontier repair evidence and limits](record:///status.md?card=card-s-c-d-e).
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
 LogEst estimates retain dependency and join-barrier ownership. Output adjustment
 reads the current syntactic RHS directly from the parser carrier (the analogue
@@ -732,7 +741,15 @@ collects resolved compound-arm bindings and traverses every nested arm and its
 semantic/reduction carriers (native `substSelect(...,1)`), without capturing
 local aliases. Source-free compound IN dependencies enter the existing shared
 SRT_Set producer rather than the scalar SRT_Mem fallback; flattening eligibility
-and retained/window owners are unchanged. [Nested evidence](research/selected-select-in-delivery.md#nested-compound-substitution).
+and retained/window owners are unchanged. Ordinary scalar/EXISTS/IN child readers
+and their Set destinations allocate distinct physical cursors from the enclosing
+SelectProgramBuilder; resolver identities do not reserve live Parse.nTab slots.
+This includes readers introduced by view expansion (`expr.c:sqlite3FindInIndex`
+allocates its IN cursor with `pParse->nTab++`). Regression:
+`select-scalar-child.test.mjs` nested view member and twice/reset cases, plus
+`w172-owner.test.mjs` emitted reader/Set/DISTINCT cursor separation and all-encoding
+native five-field metadata/error controls. [Validation evidence](research/w172-owner-evidence.md).
+[Nested evidence](research/selected-select-in-delivery.md#nested-compound-substitution).
 Joined retained DISTINCT, ORDER/LIMIT and GROUP/HAVING/aggregate producers over one physical source use
 the existing resolved producer route: native coroutine eligibility selects yielding
 versus callable Once materialization while physical siblings retain their identities.

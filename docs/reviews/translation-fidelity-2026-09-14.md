@@ -16,7 +16,20 @@ table fallback. RIGHT shared-drain primary-reader identity is unchanged.
 Native/public covered rejection, uncovered error and off-path corrupt-table
 controls are retained in `covered-deferred.test.mjs` with pinned capture, three
 encodings and two executions/reset. This is author evidence, not independent
-acceptance of the combined delta.
+acceptance of the combined delta. W172 additionally exposed an ordinary
+view-child IN cursor collision: its table OpenRead reused the SRT_Set cursor.
+The ordinary child caller now allocates physical readers and the destination
+from one builder rather than treating resolver identities as reserved slots.
+`select-scalar-child.test.mjs` verifies the reported typed member and reset;
+`w172-owner.test.mjs` additionally checks actual emitted reader/Set/DISTINCT cursor
+separation, native five-field metadata and typed/error twice/reset controls across
+three encodings ([evidence](../research/w172-owner-evidence.md)). Independent combined-delta acceptance remains open. The nested mixed-module
+prepare failure was a separate readiness divergence: exprSelectUsage walked
+child clauses but omitted SrcItem pFuncArg. The enclosing prerequisite walk now
+includes those arguments, preserving child-local exclusion and the existing
+unusable-input rejection. Planner dependency/constant controls and the three-
+encoding nested EXISTS reproduce this boundary. Author repair
+and exact checks are in [[card:card-s-c-d-e]] status, not combined approval.
 The original 20k correlated scan test now also bounds outer-rejected scan work;
 RHS rebuilding/residual semantics and workload/time ceilings are unchanged.
 This is a measured work reduction, not attribution of W170's unmarked timeout

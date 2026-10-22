@@ -131,9 +131,9 @@ test('window compound arms share allocation, parameters, destination and explici
 });
 
 test('ordinary derived flatten production is shared by descriptor and compound arm callers',()=>{
- assert.match(source,/as SelectNode\)\)\.map\(flattenOrdinaryDerived\)/);
- assert.match(source,/function compoundArmColumns[^\n]*\{\n  arm=flattenOrdinaryDerived\(arm\)/);
- assert.match(source,/const flattened=flattenOrdinaryDerived\(select\)/);
+ assert.match(source,/as SelectNode\)\)\.map\(arm=>flattenOrdinaryDerived\(arm,schema\)\)/);
+ assert.match(source,/function compoundArmColumns[^\n]*\{\n  arm=flattenOrdinaryDerived\(arm,schema\)/);
+ assert.match(source,/const flattened=flattenOrdinaryDerived\(select,schema\)/);
 });
 
 test('parser never erases single-source renamed projection solely for absent alias',()=>{

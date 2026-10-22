@@ -28,8 +28,20 @@ for(const v of capture.variants)test(`${v.id}: commuted-child selected consumpti
   const roots=program.ops.filter(op=>op.code==='OpenIndex'&&op.orBranch).map(op=>op.p1);
   if(c.id==='ready'){
    assert.equal(roots.length,2,'actual selected physical arms');
-   const first=program.ops.findIndex(op=>op.code==='Gosub');
-   assert.equal(program.ops.slice(0,first).filter(op=>op.code==='IfNot').length,0,'selected commuted child consumes original arm before Gosub');
+   // wherecode.c codes ready outer restrictions before entering OR arms.
+   const firstBranch=program.ops.findIndex(op=>op.code==='OpenIndex'&&op.orBranch);
+   const outerTests=program.ops.slice(0,firstBranch).filter(op=>op.code==='IfNot');
+   assert.equal(outerTests.length,1,'independent outer restriction stays at its ready frontier');
+   const predicate=program.ops.find(op=>op.code==='Binary'&&op.p3===outerTests[0].p1);
+   assert.equal(predicate.op,'<=');
+   assert.ok(program.ops.slice(0,firstBranch).some(op=>op.code==='Rowid'&&op.p1===0&&op.p2===predicate.p1));
+   assert.ok(program.ops.slice(0,firstBranch).some(op=>op.code==='Integer'&&op.p1===2n&&op.p2===predicate.p2));
+   for(let start=firstBranch;start>=0;){
+    const end=program.ops.findIndex((op,i)=>i>start&&op.code==='Gosub');
+    assert.ok(end>start,'each selected arm invokes the shared body');
+    assert.equal(program.ops.slice(start,end).filter(op=>op.code==='IfNot').length,0,'selected commuted child consumes original arm before Gosub');
+    start=program.ops.findIndex((op,i)=>i>end&&op.code==='OpenIndex'&&op.orBranch);
+   }
   }
   const st=db.prepare(c.sql).statement;
   try{for(const run of c.runs){const rows=[];let error;
@@ -39,7 +51,7 @@ for(const v of capture.variants)test(`${v.id}: commuted-child selected consumpti
     assert.deepEqual(accounting.orBranchRoots,Array.from({length:2},()=>roots).flat(),'full repeated enclosing-row branch order');
     assert.ok(accounting.indexSeeks>=4);
    }
-   if(c.id==='ready')assert.equal(accounting.residualTests,4,'independent outer bound remains tested; no branch-parent replay');
+   if(c.id==='ready')assert.equal(accounting.residualTests,2,'outer bound tested once per admitted outer row, not once per OR output; no branch-parent replay');
    assert.deepEqual(rows,run.rows);if(run.code){assert.equal(error?.code,run.code);assert.match(error.message,/integer overflow/);assert.throws(()=>st.reset(),/integer overflow/);}else{assert.equal(error,undefined);st.reset();}
    assert.equal(privateAccounting(st).orBranchStarts,0,'reset clears invocation accounting');
   }}finally{st.finalize();}

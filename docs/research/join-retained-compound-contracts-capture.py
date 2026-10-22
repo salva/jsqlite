@@ -8,6 +8,9 @@ arm='SELECT t.x,u.x FROM t JOIN u ON t.x=u.x'
 throwing='SELECT abs(-9223372036854775808),u.x FROM t JOIN u ON t.x=u.x'
 queries=[f'SELECT ({arm} UNION ALL {arm})',f'SELECT 2 IN ({arm} UNION ALL {arm})',f'SELECT (2,2) IN ({arm} UNION ALL {arm})',f'SELECT EXISTS({arm} UNION ALL {arm})',f'SELECT EXISTS({arm} UNION ALL {arm} LIMIT 0)',f'SELECT EXISTS({arm} UNION ALL {arm}) FROM t a',f'SELECT (2,2) IN ({arm} UNION ALL {arm}) FROM t a','SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x) FROM t a',throwing+' UNION SELECT missing,u.x FROM t JOIN u ON t.x=u.x',throwing+' UNION ALL '+arm,'SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3 UNION ALL SELECT d.x,u.x FROM (SELECT x FROM t ORDER BY x DESC LIMIT 1) d JOIN u ON d.x=u.x WHERE d.x<3']
 variants=[]
+child='SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x'
+bad='SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE abs(-9223372036854775808)>0'
+queries += [f'SELECT a.x,EXISTS({child} UNION ALL {child}) FROM t a',f'SELECT EXISTS({child} UNION ALL {bad}) FROM t a WHERE a.x>=2',f'SELECT EXISTS({child} UNION ALL {bad}) FROM t a WHERE a.x=1']
 for v in json.loads((root/'docs/research/join-retained-compound-native.json').read_text())['encodings']:
  raw=base64.b64decode(v['base64']);assert hashlib.sha256(raw).hexdigest()==v['sha256'];p=work/(v['encoding']+'.sqlite');p.write_bytes(raw)
  db=C.c_void_p();assert d.sqlite3_open_v2(str(p).encode(),C.byref(db),1,None)==0;cases=[]

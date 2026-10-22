@@ -43,8 +43,30 @@ test('linked joined invocation counts distinguish Once, correlated replay and re
  try{for(const [sql,expected,count] of [
   [`SELECT EXISTS(${arm} UNION ALL ${arm}) FROM t a`,[[1n],[1n],[1n]],4],
   [`SELECT (2,2) IN (${arm} UNION ALL ${arm}) FROM t a`,[[1n],[1n],[1n]],9],
-  ['SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x) FROM t a',[[0n],[1n],[1n]],16],
+  ['SELECT EXISTS(SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x UNION ALL SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x) FROM t a',[[0n],[1n],[1n]],9], // outer1 + empty two arms4 + matching first arms2+2
  ]){const s=db.prepare(sql).statement;try{for(let i=0;i<2;i++){starts=0;assert.deepEqual(await rows(s),expected);assert.equal(starts,count,sql);s.reset();}}finally{s.finalize();}}}finally{TableScanCursor.prototype.first=first;}
+}));
+test('correlated EXISTS stops UNION ALL after the first hit, but reaches required errors',async()=>fixture({},async db=>{
+ // select.c SRT_Exists sets the result and shared LIMIT; multiSelect skips
+ // subsequent arms when it is exhausted. wherecode.c tests t.x=a.x before u.
+ const child='SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE t.x=a.x';
+ const bad='SELECT t.x,u.x FROM t JOIN u ON t.x=u.x WHERE abs(-9223372036854775808)>0';
+ const first=TableScanCursor.prototype.first;let starts=0;
+ TableScanCursor.prototype.first=function(){starts++;return first.call(this);};
+ try{
+  const s=db.prepare(`SELECT a.x,EXISTS(${child} UNION ALL ${child}) FROM t a`).statement;
+  try{for(let run=0;run<2;run++){
+   starts=0;
+   for(const [x,exists,count] of [[1n,0n,5],[2n,1n,7],[3n,1n,9]]){
+    assert.equal(await s.step(),'row');assert.deepEqual([s.column(0),s.column(1)],[x,exists]);assert.equal(starts,count);
+   }
+   assert.equal(await s.step(),'done');s.reset();
+  }}finally{s.finalize();}
+  const lazy=db.prepare(`SELECT EXISTS(${child} UNION ALL ${bad}) FROM t a WHERE a.x>=2`).statement;
+  try{for(let run=0;run<2;run++){assert.deepEqual(await rows(lazy),[[1n],[1n]]);lazy.reset();}}finally{lazy.finalize();}
+  const required=db.prepare(`SELECT EXISTS(${child} UNION ALL ${bad}) FROM t a WHERE a.x=1`).statement;
+  try{let error;await assert.rejects(required.step(),e=>(error=e,/integer overflow/.test(e.message)));assert.throws(()=>required.reset(),e=>e===error);}finally{required.finalize();}
+ }finally{TableScanCursor.prototype.first=first;}
 }));
 test('actual joined sorter reservation rollback and cleanup refund owned bytes',async()=>fixture({},async db=>{
  const reserve=PrivateStateByteBudget.prototype.reserve,release=PrivateStateByteBudget.prototype.release,insert=SorterCursor.prototype.insert;

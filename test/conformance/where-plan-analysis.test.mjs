@@ -2431,6 +2431,13 @@ test('output RHS projection matches filtered Expr ordinal across carrier shapes'
  const carrier={children:[lhs,rhs]};assert.equal(project(carrier,1),rhs);
  carrier.children=[third,lhs];assert.equal(project(carrier,1),lhs);
 });
+test('nested SELECT function arguments contribute only enclosing source prerequisites',()=>{
+ const r=resolve("SELECT o.id FROM t o CROSS JOIN t sibling WHERE EXISTS(SELECT 1 FROM json_each(json_array(o.id)) j WHERE j.value>0)",schema());
+ const clause=analyzeWhere(r).clause;
+ assert.equal(clause.terms[0].prereqAll,1n,'pFuncArg owns o, not child-local j or unrelated sibling');
+ const constant=resolve("SELECT o.id FROM t o WHERE EXISTS(SELECT 1 FROM json_each('[1]') j WHERE j.value>0)",schema());
+ assert.equal(analyzeWhere(constant).clause.terms[0].prereqAll,0n,'child locals do not enter enclosing MaskSet');
+});
 test('output RHS projection retains live carrier identity and progress ordering',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
  const s=schema(encoding),r=resolve('SELECT id FROM t WHERE blob=7',s),c=analyzeWhere(r).clause;

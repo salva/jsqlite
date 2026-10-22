@@ -3311,6 +3311,9 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       const plan=expandAndResolveSelect(nested,schema,null,selectProgramBuilder.cursors);
       const source=plan.sources[0]!;
       if(source.table.kind==='table'&&!source.table.withoutRowid&&!source.table.columns.some(column=>column.generatedExpr)){
+        // The resolved source identities do not reserve Parse.nTab. Allocate
+        // physical readers before SRT_Set so its cursor cannot be reopened.
+        const readers=new Map(plan.sources.map(source=>[source,selectProgramBuilder.cursor()]));
         const destination=allocate(),isIn=expression.kind==='in-subquery';
         const cursor=isIn?selectProgramBuilder.cursor():-1;
         if(isIn)resultOps.push({code:'OpenEphemeral',p1:cursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
@@ -3328,7 +3331,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           resultOps.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});
           childLimit={count,ifZero,combined,capacity,...(offset===undefined?{}:{offset})};
         }
-        compileInnerTableSelect(nested,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},scalarPrepared:true,...(childLimit?{sharedLimit:childLimit}:{})});
+        compileInnerTableSelect(nested,plan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,cursorFor:source=>readers.get(source)??source.cursorId,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination},scalarPrepared:true,...(childLimit?{sharedLimit:childLimit}:{})});
         (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
         if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:'InSet',p1:cursor,key:left,output:destination,affinity:comparisonAffinity(expressionAffinity(expression.left),plan.result[0]!.descriptor.affinity??expressionAffinity(expressionFromReduction(nested.result[0]!.reduction!))),negated:expression.negated});}
         return destination;

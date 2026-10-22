@@ -951,7 +951,7 @@ function prereq(resolved:ResolvedSelect,node:ExprReduction):SourceMask {
    // unrelated resolved child. Nested SELECTs are reached from these roots.
    const expressions=[...plan.source.result,...plan.source.groupBy,
      ...plan.source.orderBy.map(term=>term.expr),plan.source.where,
-     plan.source.having,...plan.sources.map(source=>source.on)];
+     plan.source.having,...plan.sources.flatMap(source=>[source.on,...(source.arguments??[])])];
    for(const expression of expressions)if(expression?.reduction?.kind==='reduction')mask|=usage(plan,expression.reduction as ExprReduction);
    const derived=plan.source.from.derived;
    if(derived){const child=plans.get(derived.select);if(child)mask|=selectUsage(child);}

@@ -1,5 +1,31 @@
 # Linked joined/retained compound controls — bounded author evidence
 
+## W172 current scheduling adjudication
+
+On HEAD143 plus the uncommitted W172 repair delta, the old correlated-start16
+assertion is stale after ready-frontier restriction placement. Pinned
+`wherecode.c:2615–2688` tests ready t.x=a.x before opening u;
+`select.c:1412–1415` SRT_Exists relies on LIMIT to stop after presence;
+`select.c:3020–3045` shares that LIMIT across UNION ALL arms and skips the
+second arm when exhausted. Actual starts are outer1 + first empty correlation
+both arms4 + matching correlations first arm2 each =9. A per-row regression
+requires cumulative5/7/9 and repeats after reset, rather than only changing a
+golden total. Existing uncorrelated Once4 and vector-IN9 controls are retained.
+A throwing second arm is skipped for matching correlations but raises saved
+integer-overflow/reset error for the empty correlation; the same new SQL is
+captured independently through pinned native prepare/step/reset in all encodings.
+
+Fresh capture `proc-da5ba9e6e17b` precedes the public11/11 run, then typecheck
+and diff check; receipt includes14 SQL ×3 encodings, two executions each.
+It reuses the authenticated W approved-2b35 library (sourceID remains the pin),
+not a new native build. Raw receipt:
+`work:///cards/card-s-c-d-e/w172-compound/native.json`; retained current receipt
+is `join-retained-compound-contracts-native.json`. Exact final combined results
+and remaining validation/delivery obligations: [[card:card-s-c-d-e]] status.
+These finite controls do not claim full scheduler/access/resource equivalence.
+
+## Historical implementation evidence (revision-bound)
+
 Input runtime: `ef3dc8e7aa297463b0588968c751ff6f7d964427`, in the existing exact archive extraction, plus the single owned pre-emission dispatcher hunk copied from the workspace and new tests/receipt. No other workspace runtime substitution. Successor commit is not delivered yet.
 
 ## Source comparison and current diagnosis
