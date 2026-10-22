@@ -4470,8 +4470,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const compileJoinSubquery=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},nestedBinding);
   const omittedMetadataConstraints=new Set<Reduction>();
   for(const loop of selectedBySource.values())if(loop.kind==='metadata-module')for(const arg of loop.arguments)if(arg.constraint)omittedMetadataConstraints.add(arg.constraint.reduction);
+  const omittedSelectedConstraints=new Set<Reduction>();
   const predicateTree=(carrier:ResolvedExpressionCarrier):Expression=>{
-    if(omittedMetadataConstraints.has(carrier.reduction))return {kind:'literal',value:1n};
+    if(omittedMetadataConstraints.has(carrier.reduction)||omittedSelectedConstraints.has(carrier.reduction))return {kind:'literal',value:1n};
     if(carrier.reduction.signature==='expr ::= expr AND expr')return {kind:'binary',op:'AND',left:predicateTree(carrier.children[0]!),right:predicateTree(carrier.children[1]!)};
     return resolveTree(expressionFromReduction(carrier.reduction),carrier.reduction);
   };
@@ -4480,6 +4481,24 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // belongs to this WHERE invocation, not the immutable analysis or a scan.
   const whereTerms=analyzeWhere(expanded,true).clause.terms.filter(term=>!term.virtual&&term.origin.kind==='where');
   const codedWhere=new Set<number>();
+  // disableTerm is invocation-owned; planner ids belong to another analysis.
+  const codeSelectedTerms=(terms:readonly WhereTerm[],level:number,ready:bigint):void=>{
+    const source=loopSources[level]!;
+    if(source.leftOfRightJoin)return;
+    for(const selected of terms){
+      if(selected.virtual||(selected.prereqAll&~ready)!==0n)continue;
+      if(selected.origin.kind==='join-on'){
+        // disableTerm permits EP_OuterON at its own LEFT level. Keep every
+        // other ON conjunct and the match/null-extension ordering intact.
+        if(selected.origin.rightSource===expanded.sources.indexOf(source)&&selected.expression.reduction)
+          omittedSelectedConstraints.add(selected.expression.reduction as Reduction);
+        continue;
+      }
+      if(source.joinFromLeft.left||selected.origin.kind!=='where'||!selected.outerJoinSafe.mayOmitResidual)continue;
+      const identity=expressionStructuralIdentity(selected.expression);
+      for(const term of whereTerms)if(expressionStructuralIdentity(term.expression)===identity)codedWhere.add(term.id);
+    }
+  };
   const codedOrIdentities=new Set<string>();
   // Case5 disableTerm is invocation-owned and applies to ordinary final
   // residuals as well as outer-join constraints. Untested parents are never
@@ -4678,6 +4697,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const ready=admissions.every(admission=>(admission.term.prereqRight&~readyMask)===0n);
     const bound=(term:WhereTerm):Expression=>{if(term.operator==='is-null')return {kind:'literal',value:null};const expression=resolveTree(expressionFromReduction(term.expression.reduction!),term.expression.reduction as Reduction);if(expression.kind!=='binary')throw new JSQLiteError('internal','joined index bound lost binary expression');return term.originalIndexedOperand==='left'?expression.right:expression.left;};
     if(usable&&(admissions.length||capability.nSkip)&&ready){
+      // codeEqualityTerm/codeINTerm disable exact enforced terms, not WHERE.
+      codeSelectedTerms(equalities.map(admission=>admission.term),level,readyMask|(1n<<BigInt(expanded.sources.indexOf(source))));
       if(capability.inSeekScan&&level>0)ops.push({code:'IndexNullRow',p1:indexCursor!});
       const skippedKeys=Array.from({length:capability.nSkip},allocate),skippedAffinities=Array<MemAffinity>(capability.nSkip).fill('blob');
       const prefixEntry=beginPrefixLoop(ops,indexCursor!,skippedKeys,skippedAffinities,capability.physicalIndex!.keyInfo,capability.reverse,capability.nSkip);

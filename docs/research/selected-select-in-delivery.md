@@ -1,5 +1,56 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Joined direct RHS residual ownership
+
+Author correction of independent [[card:card-s-c-d-g]] finding (accepted status45),
+starting from 6f036000/tree05773cf1. The g-authored capture/test matrix is promoted
+with attribution; its original13 cases are retained. Two author-added native-first
+companions preserve unrelated INNER WHERE and LEFT ON predicates, including
+unmatched null rows. Frozen original native capture SHA256
+3442064b9ef2c5d2e79ae390e59c76a796cd68b6f33297350586e6e6205d2892
+and red process proc-6d8e3ff753a0 remain evidence, not current acceptance.
+
+Owning repair: compileInnerTableSelect publishes exact enforced equality-slot
+terms into invocation-owned residual state (not immutable planner state).
+wherecode.c:disableTerm419–446 / codeINTerm841 require ready prerequisites and
+allow LEFT-owned OuterON but not ordinary WHERE on that LEFT level. TS maps
+ordinary owning terms by structural identity across analyses; owning ON uses
+retained reduction identity. Virtual/derived terms are not published, so no
+untested parent is disabled. RIGHT left-of-join fence remains. No alternate
+algorithm or SQL-text special case is introduced.
+
+Attempt evidence: proc-09fd64a61db2 failed tsc before tests because a nested
+ordinal helper shadowed the source ordinal; explicit source ordinal fixed it.
+proc-0e272d8dfac6 passed tsc and INNER but exposed previously unreached LEFT's
+same membership tail; source OuterON comparison led to exact owning-ON coding,
+not a blanket outer guard removal. Original13-case matrix then passed3/3 in
+proc-4a68797f577f. Added unrelated residual controls initially tripped the test's
+zero-residual assumption (proc-e1dc82aa437c); exact rows/no-allocation already
+passed. Companion residuals now explicitly require positive residualTests, not
+zero, preserving original assertions. proc-2e4794bbcafc matrix3/3 passed but
+subsequent unit paths were incorrect and exit1; corrected paths below.
+
+Final focused command proc-28d9cdd6c356: `npx tsc --noEmit &&
+SELECT_IN_REUSE_DIR=.../direct-reuse-native
+SELECT_IN_NATIVE_DIR=.../select-in-affinity-native
+SELECT_IN_CORRUPTION_DIR=.../select-in-corruption-native
+SELECT_IN_REUSE_MATRIX_DIR=.../direct-reuse-matrix-fixed
+node --experimental-strip-types --test --test-concurrency=1
+ test/conformance/selected-select-in-reuse-matrix.test.mjs
+ test/conformance/selected-select-in-reuse.test.mjs
+ test/conformance/selected-select-in-errors.test.mjs
+ test/conformance/where-in-loop.test.mjs
+ test/conformance/where-in-producer.test.mjs && git diff --check` exits0,
+20/20 no skips. Paths are purpose-named children of the card work root.
+Matrix generator uses pinned metadata-enabled libsqlite3-metadata.so, full native
+EXPLAIN and typed/five-field metadata before TS;15 cases x3 encodings.
+The complete matrix reaches LEFT and useful20k selected/NOT INDEXED controls;
+actual delegated arena count is zero for reuse, positive for fallback, with
+positive selected work and bounded index visits/tablefetch. Existing fallback
+error/ledger controls remain fallback evidence, not persistent RHS fault proof.
+Stable combined timeout/drift obligations, broader OR/lifecycle and independent
+acceptance remain open. No shared root edits or installed-browser claim.
+
 ## Direct scalar physical RHS continuation (author repair)
 
 Parent3831d1fa/tree29b86af returned INTEGER ids1,3 for the pinned UNIQUE RHS

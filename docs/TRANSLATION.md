@@ -454,7 +454,13 @@ produce native-shaped SRT_Set into a UNIQUE private Btree. Physical RHS directio
 is independent of the LHS direction and retains its own KeyInfo. Both paths
 position/copy/skip NULL before selected LHS prefix/range seeks. Ordinary,
 joined and recursive-OR slot callers share inside-out RHS advancement; seek/end
-failure advances rather than rewinding the innermost slot. Private endpoint,
+failure advances rather than rewinding the innermost slot. Joined equality-slot
+admission publishes invocation-owned disableTerm state only for exact enforced
+conjuncts at their prerequisite frontier: ordinary WHERE cannot be omitted on a
+LEFT level; an owning ON conjunct can, before match/null-extension production.
+Unrelated predicates remain residual. The [joined reuse evidence](research/selected-select-in-delivery.md#joined-direct-rhs-residual-ownership)
+covers native typed/metadata and actual no-materialization controls, not all
+persistent-RHS lifecycle/error schedules. Private endpoint,
 movement and Column dispatch precedes persistent dispatch, publishing jumps only
 after success. Equality slots are produced and NULL-guarded in index order,
 before later IN construction/positioning, following codeAllEqualityTerms; LEFT

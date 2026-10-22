@@ -15,7 +15,13 @@ uses Rowid plus table movement for ROWID, Column plus index movement otherwise.
 linked producer, KeyInfo/affinity, Once and original parameter ownership.
 `wherecode.c:codeINTerm` / `where.c:sqlite3WhereEnd` → `where-in-loop.ts`,
 `vdbe.ts:emitInAdvance` and selected ordinary/join/OR callers position, copy,
-skip NULL and unwind RHS slots inside-out. `vdbe.c` endpoint/movement/Column →
+skip NULL and unwind RHS slots inside-out. `wherecode.c:disableTerm` →
+`vdbe.ts:compileInnerTableSelect` invocation-owned exact equality-term coding,
+prerequisite/LEFT-WHERE guards and owning ON omission before match production.
+`selected-select-in-reuse-matrix.test.mjs` / `capture-select-in-reuse-matrix.py`
+map typed physical reuse, affinity/collation fallback, joined unrelated residuals,
+LEFT null-extension and useful composite-range work; [finite evidence](research/selected-select-in-delivery.md#joined-direct-rhs-residual-ownership).
+`vdbe.c` endpoint/movement/Column →
 `private-in-dispatch.ts`, `private-key-vm.ts`; `btree.c` reverse traversal →
 `private-blobkey-pages.ts`. Public chosen/executed native comparisons:
 `selected-select-in-red.test.mjs`; `selected-select-in-null-prefix.test.mjs`

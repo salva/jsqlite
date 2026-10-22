@@ -8,9 +8,13 @@ scalar/range/two-slot/INNER/LEFT/OR, original parameters and cancellation/reset.
 This corrects missing selected scalar caller predictions for measured branches,
 not vector/correlated reuse or every LEFT/OR/resource transition. Direct ROWID/
 UNIQUE ASC/DESC reuse currently has scalar/reset/source-gate evidence, not the
-full composition/lifecycle matrix. An initially retained independent membership
-tail was removed for wholly admitted WHERE terms; admission is checked against
-the entire owning clause rather than only the selected loop terms.
+full composition/lifecycle matrix. The ordinary membership tail and the separately
+reproduced joined tail now omit only exact enforced owning equality conjuncts at
+their ready frontier. Joined LEFT WHERE remains residual; owning ON omission
+precedes match/null-extension production and preserves unrelated predicates.
+The [joined finite matrix](../research/selected-select-in-delivery.md#joined-direct-rhs-residual-ownership)
+covers typed/metadata, fallback gates and useful20k access; persistent-RHS
+cancellation/corruption and general OR schedules are not closed by those controls.
 codeAllEqualityTerms slot-order correction now guards nullable equality before
 later RHS construction in ordinary/join/recursive-OR lowering; native-backed
 ordinary/LEFT NULL-prefix controls cover bypass with zero private capacity.
