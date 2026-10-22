@@ -12,6 +12,12 @@ and coroutine versus callable Once materialization.
 g52 typed/metadata/selected-work/reset assertions across encodings.
 Evidence: [retained DISTINCT](research/selected-select-in-delivery.md#retained-distinct-caller-repair),
 [retained ORDER/LIMIT](research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
+`select.c:sqlite3Select` SF_Aggregate retention and destination dispatch →
+`compileResolvedTableProducer:compileChild` selects existing `compileAggregateSelect`
+for GROUP/HAVING/aggregate children in validation and shared coroutine/ephemeral
+emission. `capture-derived-selected-in.py --grouped` and mandatory
+`grouped-selected-in.test.mjs` cover grouped/HAVING/aggregate children, both
+retained destinations and selected correlated consumers. [Source/control evidence](research/selected-select-in-delivery.md#retained-group-caller-repair).
 
 `whereexpr.c:exprAnalyze` TERM_SLICE/iField → `where-plan.ts:analyzeClause`
 retains original vector IN identity, per-field resolved affinity/collation and

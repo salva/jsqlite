@@ -1,5 +1,48 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Retained GROUP caller repair
+
+G58 independently found a native-positive retained `(SELECT k FROM outer_t
+GROUP BY k)` feeding joined correlated vector IN, rejected at prepare on
+60d7dbc6/treec9f51269. Original receipt
+`work:///cards/card-s-c-d-g/verify-grouped-producer/native.json`, SHA256
+cc34b1e26b2b396f1a5d1e20c09d4e7617784655e2730fd79968a676618417fa,
+and SQL/fixtures remain unchanged. E115 records red0/3 and full source comparison.
+
+Pinned select.c7800ff retains SF_Aggregate children; tags0482/0488 recursively
+invoke sqlite3Select with coroutine or ephemeral destination. The aggregate
+branch owns grouping/reset, updateAccumulator, finalization and HAVING before
+selectInnerLoop publishes a row (GROUP scan/sorter branch8520ff). TS flattening
+correctly retains GROUP. Joined admission excluded GROUP/HAVING/aggregate;
+resolved child validation/emission always used ordinary compileTableSelect,
+unlike production select-compiler's aggregate classification.
+
+Repair expands bounded admission and classifies the child at the resolved
+destination owner, delegating unpublished validation and shared emission to
+existing compileAggregateSelect for GROUP/HAVING/aggregate. No aggregate algorithm
+changed, no flatten fence removed and no new evaluator/substitution. Coroutine
+and callable Once materialization retain builder/register/cursor/parameter identity,
+child completion, parent readiness/correlation and reset/error ownership. Still
+bounded to single physical-source noncompound/nonwindow children and ordinary
+nonaggregate joined parents, not arbitrary retained composition. T28 caller and
+transient-producer agreement applies; no new aggregate algorithm coupling.
+
+Unchanged G58 reproducer passes3/3 plus typecheck in proc-80c34814fe9b EXIT0.
+Native-first `--grouped` capture preserves attributed G52 fixtures and covers
+CROSS/LEFT ON/LEFT WHERE/OR,2→5→NULL→2 rebind, GROUP HAVING count(*), grouped max,
+ungrouped min, and a non-first grouped source before selected LHS. Independent
+rows/metadata feed shared typed-class/selected-work/reset assertions.
+proc-f329b0cbdefb passes3/3. Initial capture syntax error proc-de22a56a93af prevented
+execution. Initial materialization probe placed LHS before its correlated grouped
+prerequisite: rows/metadata matched but seeks/probes were0 (proc-caa5f8f8e6da),
+not chosen-access credit. Revised companion places physical key1 source before
+GROUP and LHS after it, covering callable materialization with ready prerequisites.
+Original G58 witness and work assertions unchanged. Mandatory gate appends grouped
+wrapper after unchanged117 prefix, retaining all useful20k scale wrappers and
+controls1/80/60/600. Full gate/delivery results and remaining acceptance are in
+current E status; these author checks are not independent approval.
+
+
 ## Combined caller candidate: finite R1 handoff
 
 Candidate promotion is not whole-R1 acceptance. Native `substSelect` visits

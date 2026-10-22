@@ -30,11 +30,15 @@ all nested arm/semantic/reduction carriers; source-free compound IN uses the
 existing shared SRT_Set producer. The unchanged three-encoding witness passes,
 as do ordinary/retained controls; this is finite author evidence, not independent
 acceptance. [Nested evidence](../research/selected-select-in-delivery.md#nested-compound-substitution).
-Joined retained DISTINCT or ORDER/LIMIT over one physical
+Joined retained DISTINCT, ORDER/LIMIT or GROUP/HAVING/aggregate over one physical
 producer enters the existing resolved coroutine/materialization owner, retaining
 child ordering and row limits before parent join/correlation. The original G56
 three-encoding native-positive witness now passes author execution; independent
-acceptance remains pending. [Retained-limit evidence](../research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
+acceptance remains pending. GROUP classification dispatches validation and both
+retained destinations to the existing aggregate owner; G58's unchanged grouped
+witness passes author verification, without relaxing flattening fences.
+[Grouped evidence](../research/selected-select-in-delivery.md#retained-group-caller-repair).
+[Retained-limit evidence](../research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
 Stars and broader retained,
 prerequisite/resource branches remain open. This is not whole R1 acceptance. See [current evidence](../research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).
 

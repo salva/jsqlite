@@ -492,7 +492,9 @@ ledger. These deterministic boundary injections are not browser allocator
 exhaustion or malformed private-byte proof. Recursive joined OR has a selected affinity/typed-row witness,
 not exhaustive composition coverage. Direct ROWID/UNIQUE ASC/DESC reuse has
 three-encoding scalar/reset/source-gate controls, not the full lifecycle and
-composition matrix. Vectors/correlation remain implementation gaps, not product exclusions. See
+composition matrix. Selected vector prefixes and correlated frontier rebuilds have
+bounded native-backed coverage described below; general vector-strategy and
+composition completeness do not follow. These remaining gaps are not product exclusions. See
 [scoped evidence and limitations](research/selected-select-in-delivery.md).
 
 ON hit/match recording precedes ready non-ON WHERE constraints and downstream
@@ -694,11 +696,15 @@ semantic/reduction carriers (native `substSelect(...,1)`), without capturing
 local aliases. Source-free compound IN dependencies enter the existing shared
 SRT_Set producer rather than the scalar SRT_Mem fallback; flattening eligibility
 and retained/window owners are unchanged. [Nested evidence](research/selected-select-in-delivery.md#nested-compound-substitution).
-Joined retained DISTINCT and ORDER/LIMIT producers over one physical source use
+Joined retained DISTINCT, ORDER/LIMIT and GROUP/HAVING/aggregate producers over one physical source use
 the existing resolved producer route: native coroutine eligibility selects yielding
 versus callable Once materialization while physical siblings retain their identities.
 Child ordering and row limits finish in that destination before parent predicates
 or correlated selected-IN probes; flattening restrictions remain intact.
+GROUP/HAVING and aggregate children dispatch to the existing AggInfo owner in
+both unpublished validation and shared destination emission, not ordinary table
+lowering. Group finalization/HAVING precedes Yield or ephemeral insertion.
+[Grouped caller evidence](research/selected-select-in-delivery.md#retained-group-caller-repair).
 [Retained-limit source comparison and finite evidence](research/selected-select-in-delivery.md#retained-orderlimit-caller-repair).
 Expanded stars, broader derived prerequisite composition, resource bounds and
 whole-goal coverage remain open obligations, not exclusions. Current evidence: [finite composition and faults](research/selected-select-in-delivery.md#correlated-finite-composition-and-fault-evidence).

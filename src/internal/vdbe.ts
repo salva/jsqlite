@@ -6072,11 +6072,17 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
  const readers=new Map<ResolvedSource,number>(expanded.sources.map(source=>[source,builder.cursor()]));
  const sourceProducers=new Map<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>();
  retainSelectParameters(select,parameters,sources.map(source=>source.select));
+ // sqlite3Select dispatches SF_Aggregate, including GROUP without an EList
+ // aggregate, inside the retained destination before the caller's WHERE.
+ const compileChild=(child:SelectNode,shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest})=>
+  child.hasGroupBy||child.hasHaving||selectHasAggregate(child)
+   ?compileAggregateSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared?{...shared,ops:shared.builder.ops}:undefined)
+   :compileTableSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,shared);
  for(const source of sources){
   const resolved=expanded.sources[source.index]!,cursor=builder.cursor(),width=tables.get(source.index)!.columns.length;
   // Preserve all prepare-time lowering gates in an unpublished program. None
   // of this validation bytecode executes or enters the enclosing builder.
-  compileTableSelect(source.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+  compileChild(source.select);
   const childPlan=expandAndResolveSelect(source.select,schema);
   const child=disableUnusedRetainedResults(source.select,childPlan,jsonColumnDemand(expanded,resolved));
   readers.set(resolved,cursor);
@@ -6088,7 +6094,7 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
    const register=builder.register(),first=builder.range(width),skip=ops.length;
    ops.push({code:'InitCoroutine',p1:register,p2:0,p3:skip+1});
    const entry=ops.length;
-   compileTableSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'coroutine',register,first}});
+   compileChild(child,{builder,parameters,destination:{kind:'coroutine',register,first}});
    ops.push({code:'EndCoroutine',p1:register,p2:0});(ops[skip] as {p2:number}).p2=ops.length;
    sourceProducers.set(resolved,{coroutine:{register,first,entry}});
   }else{
@@ -6098,7 +6104,7 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
    ops.push({code:'Goto',p2:0});const entry=ops.length,once=ops.length;
    ops.push({code:'Once',p1:builder.register(),p2:0});
    ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:Array.from({length:width},()=>({collation:'binary' as const}))})});
-   compileTableSelect(child,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor}});
+   compileChild(child,{builder,parameters,destination:{kind:'ephemeral',cursor}});
    (ops[once] as {p2:number}).p2=ops.length;ops.push({code:'Return',p1:register});(ops[skip] as {p2:number}).p2=ops.length;
    sourceProducers.set(resolved,{materialize:{register,entry}});
   }
@@ -6112,10 +6118,11 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
  // select.c restrictions (4), (8)/(9), (11), (19) retain DISTINCT and
  // ORDER/LIMIT children. Retention is not rejection: tags0482/0488 install
  // their producer alongside physical siblings in the caller's WhereInfo.
- // Child ORDER/LIMIT stays in its own destination before any parent predicate.
+ // Child ORDER/LIMIT and group completion stay in their own destination
+ // before any parent predicate; GROUP never bypasses flattening fences.
  if(!owner?.scalarRetained&&select.from.items.length>1&&retained.length&&
     !select.hasCompound&&!select.hasGroupBy&&!select.hasHaving&&!selectHasAggregate(select)&&!selectHasWindow(select)&&
-    retained.every(({select:child})=>(child.hasDistinct||child.hasOrderBy||child.hasLimit)&&!child.hasCompound&&!child.hasGroupBy&&!child.hasHaving&&!selectHasAggregate(child)&&!selectHasWindow(child)&&child.from.items.length===1&&!child.from.derived&&!child.from.cteDerived?.length))
+    retained.every(({select:child})=>(child.hasDistinct||child.hasOrderBy||child.hasLimit||child.hasGroupBy||child.hasHaving||selectHasAggregate(child))&&!child.hasCompound&&!selectHasWindow(child)&&child.from.items.length===1&&!child.from.derived&&!child.from.cteDerived?.length))
    return compileResolvedTableProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
   if(owner?.scalarRetained){
     const child=select.from.derived?.select;
