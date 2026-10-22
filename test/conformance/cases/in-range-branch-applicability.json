@@ -74,7 +74,8 @@
     },
     {
       "dimension": "subquery-IN-RHS",
-      "disposition": "residual",
+      "disposition": "selected",
+      "historicalDisposition": "residual",
       "sql": "SELECT id FROM t INDEXED BY t_abcd WHERE a IN (SELECT a FROM t WHERE id=3) AND b>=2 ORDER BY id",
       "fixture": "test/conformance/fixtures/in-range-branch-utf8.db",
       "expected": [

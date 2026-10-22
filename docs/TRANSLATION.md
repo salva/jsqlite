@@ -472,8 +472,11 @@ check; LEFT null-extension skips both check and movement. Public native-backed
 absent/present/empty/NULL, joined/LEFT, reverse and two-slot controls cover this
 branch. Selected list-IN slots now share this prefix earlyout at the fused
 non-NULL list-value boundary, retaining existing ordered-register production.
-Physical DESC LHS coverage and selected malformed-page/private-failure cleanup
-still need dedicated evidence. Recursive joined OR has a selected affinity/typed-row witness,
+Physical DESC LHS coverage still needs dedicated evidence. Selected/off-path
+malformed index pages and injected private-page admission/acquire failures now
+have public retry/reset/finalize controls with measured zero retained private
+ledger. These deterministic boundary injections are not browser allocator
+exhaustion or malformed private-byte proof. Recursive joined OR has a selected affinity/typed-row witness,
 not exhaustive composition coverage. Vectors/correlation and direct RHS-index reuse
 remain implementation gaps, not product exclusions. See
 [scoped evidence and limitations](research/selected-select-in-delivery.md).

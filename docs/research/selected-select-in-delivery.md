@@ -1,5 +1,47 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Applicability correction and attributed peer coverage on a171d4ab
+
+Independent [[card:card-s-c-d-g]] status41 found the sole failure in its actual
+104-file run (103pass/1fail, no watchdog/not_run/drift): stale residual-only
+subquery-IN-RHS applicability assertion. Original typed rows and native EQP
+already selected t_abcd(a=?,b>?). Current fixture disposition is selected with
+historicalDisposition residual; test requires positive indexSeeks/inProbes,
+no table Next, native chosen EQP and unchanged typed rows. Other residual and
+unsupported controls and archived review-v6 documents remain intact. No production
+code changed. Fresh baseline proc-3b7758a9f053 failed1 as independently reported;
+it is not retroactively passed.
+
+Promoted unchanged peer-authored lifecycle, errors and corruption generator from
+[[card:card-s-c-d-g]] after reading all three and reviewing real interception and
+finally cleanup. Attribution is peer authorship plus delivery-owner review, not
+independent acceptance of our own correction. Actual PrivateBlobkeyPages.open
+allocates page1/root with catch-close on failure; tests delegate real arena/VM
+operations, observe real budgets, restore hooks in finally and inject before
+lease retention. Native corrupt-root capture independently obtains scan rows,
+selected SQLITE_CORRUPT step/reset/retry/finalize. Boundary failures are deterministic
+quota injection, not allocator equivalence or malformed private payload proof.
+Measured ledger is retained private-state accounting, not JS heap. Existing typed
+INTEGER rows are preserved; this is not a new REAL/BLOB/metadata matrix.
+
+Fresh capture and focused applicability/errors/lifecycle proc-19ea70cd4779:
+7/7,zero skips,5.596s,exit0; corruption capture SHA256
+`8746ee4a968c8636b05dcc300503cdf53d1baaf838fba78f20f834d362f7259e`,
+identical to peer capture. Source pin and original fixture identities unchanged.
+
+Combined affected-family verification proc-5843dcba80df ran the same explicit
+104-file inventory as g41 via tools/test/integration.py, with explicit pinned
+oracle and three fixture directories. Manifest at
+`$SAIVAGE_CARD_WORK_ROOT/applicability-combined-gates/integration-run/manifest.json`:
+104 completed0, no watchdog/not_run/input_drift; serial1/batch80/file60/batch600.
+Batches289.351s/35.667s, slowest OR-WR-right45.633s (historical58.302s risk
+remains revision-bound, not relaxed). All original assertions/workloads retained
+apart from the justified stale negative corrected above. This is the affected
+family, not the whole default corpus. proc-b4344c640f9f typecheck/build/package/
+diff-check exit0; package SHA25610ab3e704732af3935eb127f10544d402c9a4af6c2cf98ed1d5d082cb254a836,
+VM browser-global smoke, not GUI. Later changes only add these evidence words;
+production and test inputs remain identical. Independent adjudication still due.
+
 ## List-IN prefix earlyout repair on 892b4ff3 parent
 
 The accepted native-FIRST red (status54, proc-c98eac536ba3) has identical empty

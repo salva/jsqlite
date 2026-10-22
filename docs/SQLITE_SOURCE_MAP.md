@@ -23,6 +23,15 @@ success publication; `selected-select-in-earlyout.test.mjs` and pinned capture
 NULL/empty/LEFT and reset/repeat boundaries. Selected list-IN uses the same
 cursor hit/prefix owner after its fused non-NULL value producer; the same capture
 and test cover absent/present/NULL/empty/join/LEFT/reverse/two-slot and mixed slots.
+`selected-select-in-lifecycle.test.mjs` observes awaited private movement and
+cancel/deadline/reset. `capture-select-in-corruption.py` discovers/corrupts the
+native selected root; `selected-select-in-errors.test.mjs` maps persistent
+Btree/VDBE corruption propagation and PrivateBlobkeyPages.open arena cleanup to
+public sticky-error/reset/retry/finalize and real zero-budget observations.
+Private-page injections occur before lease retention, not deep mutation failure.
+`in-range-branch-applicability.test.mjs` retains typed native controls and now
+requires positive scalar SELECT-IN equality/range work for the historical
+subquery-IN-RHS fixture; archived review-v6 residual provenance remains intact.
 [Evidence/boundaries](research/selected-select-in-delivery.md).
 
 ### SQL numeric semantic production

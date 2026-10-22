@@ -19,7 +19,12 @@ translation and native-backed absent/present/NULL/empty/LEFT/reset controls.
 Selected list-IN prefix earlyout now shares that cursor owner after its fused
 non-NULL ordered-list producer, with native-backed absent/present/NULL/empty,
 join/LEFT/reverse/two-slot and mixed-slot controls. Physical DESC LHS and broader
-resource/malformed transitions remain gaps; reverse coverage is bounded by the new public companion.
+composition/resource transitions remain gaps. Selected/off-path malformed LHS
+and injected private-page boundary failures have retry/reset/finalize coverage
+with zero measured retained private ledger; not allocator equivalence or private
+malformed-byte coverage. The original subquery-IN-RHS applicability fixture now
+asserts native-selected equality/range work, preserving its archived residual
+provenance rather than imposing that old negative admission.
 [Source mapping, evidence and remaining limits](../research/selected-select-in-delivery.md).
 Author verification is not independent acceptance; historical findings below
 retain their revision applicability.

@@ -39,7 +39,17 @@ test('review-v6 original branch dispositions have executable source-mapped cover
         assert.deepEqual(rows,c.expected.map(row=>row.map(decode)),c.dimension);
         const count=privateAccounting(st);
         if(admittedTuple)assert.deepEqual(Array.from({length:st.columnCount},(_,i)=>st.columnMetadata(i).name),['id']);
-        else if(c.disposition==='selected')assert.ok(count.indexSeeks>0,`${c.dimension}: selected index seek`);
+        else if(c.disposition==='selected'){
+          assert.ok(count.indexSeeks>0,`${c.dimension}: selected index seek`);
+          if(c.dimension==='subquery-IN-RHS'){
+            // wherecode.c codeINTerm: linked scalar SRT_Set drives the chosen
+            // equality prefix and subsequent range, superseding review-v6.
+            assert.equal(c.historicalDisposition,'residual');
+            assert.ok(c.eqp.includes('SEARCH t USING COVERING INDEX t_abcd (a=? AND b>?)'));
+            assert.ok(count.inProbes>0,'scalar SELECT RHS actually drives selected probes');
+            assert.equal(count.tableNext,0,'chosen covering access is not a table scan');
+          }
+        }
         else assert.equal(count.indexSeeks,0,`${c.dimension}: safe residual traversal, not selected seek`);
       }finally{st.finalize()}
     }
