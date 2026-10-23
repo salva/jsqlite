@@ -7,7 +7,7 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
@@ -19,6 +19,7 @@ if a.case=='inner': sql=sql.replace('LEFT JOIN','INNER JOIN')
 if a.case=='on': sql=sql.replace('r.k=l.k','r.k=l.k AND r.id<4')
 if a.case=='where': sql=sql.replace(' ORDER BY',' WHERE r.id<4 ORDER BY')
 if a.case=='is': sql=sql.replace('r.k=l.k','r.k IS l.k')
+if a.case=='lifetime': sql=sql.replace('r.k=l.k','r.k=?1')
 if a.case in ['nocase','rtrim','binary']:
  sql=sql.replace('r.k=l.k',f'r.k=l.k AND r.payload=l.c COLLATE {a.case.upper()}')
 result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
@@ -51,7 +52,16 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
   columns=[{key:(getattr(d,'sqlite3_column_'+fn)(st,i) or b'').decode() or None for key,fn in [('name','name'),('declaredType','decltype'),('database','database_name'),('table','table_name'),('origin','origin_name')]} for i in range(d.sqlite3_column_count(st))]
   runs=[]
-  for run in range(2):
+  # One prepared owner for reset/rebind; finalize then actually prepare again.
+  bindings=[1,1,17,17,80001,80001] if a.case=='lifetime' else [None,None]
+  for run,binding in enumerate(bindings):
+   if a.case=='lifetime':
+    if run==4:
+     assert d.sqlite3_finalize(st)==0
+     st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
+     replacement_columns=[{key:(getattr(d,'sqlite3_column_'+fn)(st,i) or b'').decode() or None for key,fn in [('name','name'),('declaredType','decltype'),('database','database_name'),('table','table_name'),('origin','origin_name')]} for i in range(d.sqlite3_column_count(st))]
+     assert replacement_columns==columns
+    h.bind(d,st,[binding])
    rows=[]
    while True:
     rc=d.sqlite3_step(st)
@@ -60,15 +70,28 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    assert rc==101
    runs.append({'rows':rows,'rc':rc,'fullscanSteps':d.sqlite3_stmt_status(st,1,1),'autoindexRows':d.sqlite3_stmt_status(st,3,1),'vmSteps':d.sqlite3_stmt_status(st,4,1),'filterHit':d.sqlite3_stmt_status(st,8,1),'filterMiss':d.sqlite3_stmt_status(st,7,1)})
    assert d.sqlite3_reset(st)==0
-  assert runs[0]==runs[1]
+  for i in range(0,len(runs),2): assert runs[i]==runs[i+1]
+  if a.case=='lifetime':
+   assert len(runs[0]['rows'])==512
+   assert all(row[1]['type']=='integer' for row in runs[0]['rows'])
+   for i in [2,4]:
+    assert len(runs[i]['rows'])==64
+    assert all(row[1]['type']=='null' for row in runs[i]['rows'])
+   if enabled:
+    # The RHS-only parameter equality becomes a native partial-build predicate:
+    # neither missing key inserts records, so both have an empty Bloom filter.
+    assert runs[0]['autoindexRows']==127
+    assert (runs[2]['filterHit'],runs[2]['filterMiss'])==(64,0)
+    assert (runs[4]['filterHit'],runs[4]['filterMiss'])==(64,0)
   if enabled and a.case in ['absent','collision']:
    assert len(rows)==64 and all(row[1]['type']=='null' for row in rows)
    assert runs[0]['filterHit']==(63 if a.case=='absent' else 0)
    assert runs[0]['filterMiss']==(0 if a.case=='absent' else 63)
   assert d.sqlite3_finalize(st)==0
-  variant['modes'].append({'automaticIndex':enabled,'columns':columns,'eqp':eqp,'ops':ops,'runs':runs})
+  variant['modes'].append({'automaticIndex':enabled,'columns':columns,'eqp':eqp,'ops':ops,'bindings':bindings,'reprepareBeforeRun':4 if a.case=='lifetime' else None,'runs':runs})
  assert variant['modes'][0]['columns']==variant['modes'][1]['columns']
- assert variant['modes'][0]['runs'][0]['rows']==variant['modes'][1]['runs'][0]['rows']
+ for on,off in zip(variant['modes'][0]['runs'],variant['modes'][1]['runs']):
+  assert on['rows']==off['rows'] and on['rc']==off['rc']
  assert d.sqlite3_close(db)==0
  result['variants'].append(variant)
 (out/'native.json').write_text(json.dumps(result,indent=2)+'\n')

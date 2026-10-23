@@ -119,13 +119,27 @@ after confirmed work in each phase, and reset/retry/finalize/close must verify
 release plus independent statement survival. These are required pending controls,
 not executed safety guarantees. Empty skip bodies are inventory, not coverage.
 
+Native parameterized lifetime case (`--case lifetime`) now reuses the same
+statement for bindings1 twice and17 twice, finalizes then prepares anew for80001
+twice. All encodings and automatic_index ON/OFF record full plans, typed rows,
+five metadata fields and per-run work. Native first pair returns512 matched rows;
+subsequent pairs64 NULL-extended rows. A RHS-only parameter predicate is pushed
+into native partial build:17 and80001 both build an empty filter, so both have
+64 absent jumps, not the original fixture's collision behavior. The initial
+incorrect collision expectation failed (`proc-afe3a086111a`); corrected receipt
+`work:///cards/card-s-a-c/lifetime-native-corrected/native.json` SHA256
+31306a4059579967867b54d3284ae5f65a4d9e5d5fc5a9bbce9da653db80a32b
+passed (`proc-dc35a9e21072`). Public baseline companion binds/resets/reprepares
+and checks all36 executions (2 SQL alternatives ×3 encodings ×6 runs), metadata
+and typed rows, with stable accounting within each identical-binding pair.
+This remains scan correctness, not runtime autoindex feature credit.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
 all-encoding cases and public scan controls. Actual runtime work assertions await
-the implementation dependency through [[card:card-s-a]]. Missing parameterized
-rebind/reprepare fixtures and independently obtained error/corrupt/off-path captures
-remain required; raw native hash/type-flag controls are now supplied by the C
+the implementation dependency through [[card:card-s-a]]. the parameterized lifetime fixture now supplies reset/rebind/reprepare rows and
+metadata; independently obtained error/corrupt/off-path captures remain required; raw native hash/type-flag controls are now supplied by the C
 witness above. Production resource fault execution remains pending. This document
 explicitly does not close the entire accepted brief or
 beta.5. File60/batch600, original workloads and caps are unchanged. No WR/MOST
