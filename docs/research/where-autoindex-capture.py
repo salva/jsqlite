@@ -7,7 +7,7 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
@@ -22,11 +22,13 @@ if a.case=='is': sql=sql.replace('r.k=l.k','r.k IS l.k')
 if a.case=='lifetime': sql=sql.replace('r.k=l.k','r.k=?1')
 if a.case in ['nocase','rtrim','binary']:
  sql=sql.replace('r.k=l.k',f'r.k=l.k AND r.payload=l.c COLLATE {a.case.upper()}')
+if a.case=='representations': sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k AS rk FROM lhs l LEFT JOIN rhs r ON r.k=l.k ORDER BY l.id,r.id'
 result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path
  db=C.c_void_p();assert d.sqlite3_open(str(path).encode(),C.byref(db))==0
- h.execsql(d,db,f"PRAGMA encoding='{enc}'; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k INTEGER); CREATE TABLE rhs(id INTEGER PRIMARY KEY,k INTEGER,payload TEXT);")
+ affinity='' if a.case=='representations' else 'INTEGER'
+ h.execsql(d,db,f"PRAGMA encoding='{enc}'; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k {affinity}); CREATE TABLE rhs(id INTEGER PRIMARY KEY,k {affinity},payload TEXT);")
  h.execsql(d,db,'WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<64) INSERT INTO lhs SELECT x,CASE WHEN x=64 THEN NULL ELSE x%16 END FROM n;')
  h.execsql(d,db,"WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<128) INSERT INTO rhs SELECT x,CASE WHEN x=128 THEN NULL ELSE x%16 END,'v'||x FROM n;")
  if a.case in ['nocase','rtrim','binary']:
@@ -39,6 +41,9 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
  if a.case=='empty-outer': h.execsql(d,db,'DELETE FROM lhs;')
  if a.case=='types':
   h.execsql(d,db,"UPDATE lhs SET k=CASE id%8 WHEN 0 THEN 1.0 WHEN 1 THEN 1.5 WHEN 2 THEN '01' WHEN 3 THEN 'x' WHEN 4 THEN x'31' WHEN 5 THEN -1 WHEN 6 THEN NULL ELSE 80001 END; UPDATE rhs SET k=CASE id%7 WHEN 0 THEN 1 WHEN 1 THEN 1.5 WHEN 2 THEN '01' WHEN 3 THEN 'X' WHEN 4 THEN x'31' WHEN 5 THEN -1 ELSE NULL END;")
+ if a.case=='representations':
+  # No declared affinity preserves REAL 1.0 in storage, unlike INTEGER.
+  h.execsql(d,db,"UPDATE lhs SET k=CASE id%8 WHEN 0 THEN 1.0 WHEN 1 THEN 1 WHEN 2 THEN '1' WHEN 3 THEN x'31' WHEN 4 THEN -1.0 WHEN 5 THEN -1 WHEN 6 THEN NULL ELSE 17 END; UPDATE rhs SET k=CASE id%8 WHEN 0 THEN 1 WHEN 1 THEN 1.0 WHEN 2 THEN '1' WHEN 3 THEN x'31' WHEN 4 THEN -1 WHEN 5 THEN -1.0 WHEN 6 THEN NULL ELSE 80001 END;")
  assert d.sqlite3_close(db)==0
  assert d.sqlite3_open_v2(str(path).encode(),C.byref(db),1,None)==0
  variant={'encoding':enc,'fixture':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'modes':[]}
@@ -71,6 +76,13 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    runs.append({'rows':rows,'rc':rc,'fullscanSteps':d.sqlite3_stmt_status(st,1,1),'autoindexRows':d.sqlite3_stmt_status(st,3,1),'vmSteps':d.sqlite3_stmt_status(st,4,1),'filterHit':d.sqlite3_stmt_status(st,8,1),'filterMiss':d.sqlite3_stmt_status(st,7,1)})
    assert d.sqlite3_reset(st)==0
   for i in range(0,len(runs),2): assert runs[i]==runs[i+1]
+  if a.case=='representations':
+   assert len(rows)==1296
+   assert any(row[2]['type']=='real' and row[3]['type']=='integer' for row in rows)
+   assert any(row[2]['type']=='integer' and row[3]['type']=='real' for row in rows)
+   assert all(row[1]['type']=='null' for row in rows if row[2]['type']=='null' or row[2].get('value')=='17')
+   for row in rows:
+    if row[2]['type'] in ['text','blob']: assert row[3]==row[2]
   if a.case=='lifetime':
    assert len(runs[0]['rows'])==512
    assert all(row[1]['type']=='integer' for row in runs[0]['rows'])

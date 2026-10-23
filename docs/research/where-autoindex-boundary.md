@@ -134,6 +134,24 @@ and checks all36 executions (2 SQL alternatives ×3 encodings ×6 runs), metadat
 and typed rows, with stable accounting within each identical-binding pair.
 This remains scan correctness, not runtime autoindex feature credit.
 
+## Equal-representation SQL control
+
+`--case representations` uses undeclared key affinity (not INTEGER affinity),
+so REAL1.0 survives storage. Its projected keys assert actual REAL→INTEGER and
+INTEGER→REAL matches, exact TEXT/BLOB storage distinctions, NULL EQ rejection
+and missing17 rejection. Native automatic_index ON/OFF typed rows and metadata
+agree twice across UTF8/16le/16be (1296 rows each); both FilterAdd/Filter and
+OpenAutoindex are required on the enabled path. This exercises numeric-equality
+no-false-negative behavior through the actual native producer/consumer, not just
+raw hash equivalence. `where.c:1133–1150` permits Bloom for non-TEXT affinity;
+`vdbe.c:filterHash` routes REAL through IntValue and preserves TEXT/BLOB flags.
+Native-first receipt `work:///cards/card-s-a-c/representations-native/native.json`
+SHA2560691d9f832465c1cecd66c2c27fa1f73dcd2bef377e66dfe6b5b178e958b3920;
+combined native→public baseline→contract checks exit0 (`proc-75b6c0d47c6e`).
+The public companion verifies12 scan executions with typed keys/metadata/reset;
+zero TS automatic-index/Bloom feature credit. Other affinity combinations and
+standalone Bloom/pulldown remain obligations.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
