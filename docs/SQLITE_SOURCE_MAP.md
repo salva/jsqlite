@@ -16,6 +16,9 @@ exact deadline checkpoint timing is not asserted.
 `private-key-vm-prefix-failure.test.mjs` enumerates every Seek* checkpoint failure,
 explicit reseek/complete suffix traversal and cumulative disposal refund; retained
 page/path metadata means immediate byte equality is not a scratch-leak test.
+`private-key-vm-split-failure.test.mjs` discovers actual first root expansion and
+rejects every insertion checkpoint, checking primary error/cache invalidation,
+independent arena readability and cumulative disposal refund (not victim rollback).
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`

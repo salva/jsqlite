@@ -321,6 +321,29 @@ contract. Evidence: `work:///cards/card-s-j-a/processes/proc-f0130bc5564c/stdout
 Corrected4/4/typecheck/diffcheck: `work:///cards/card-s-j-a/processes/proc-1b3bcdd0ca16/stdout.log`.
 This does not measure exact transient high water or interrupt insertion/balancing.
 
+## Packed insertion/root-expansion interruption
+
+`private-key-vm-split-failure.test.mjs` discovers the first page-count growth,
+reconstructs the pre-expansion tree per attempt, and rejects each actual async
+checkpoint of that insertion. Each rejected insert preserves its primary error,
+stales the VM cache, and disposes with cumulative zero budget; another arena's
+row remains readable. Successful control proves actual growth, not merely an
+insertion on a multipage tree. Native `btree.c:sqlite3BtreeInsert` balances only
+after successful insert/overflow and invalidates after balance even on error;
+TS #writeIndex releases path/snapshot in finally and faults an interrupted
+mutation owner. These controls do not assert victim rollback or continued use
+of a faulted arena, native interrupt timing, exact transient high water, or
+same-connection public concurrency. No production divergence demonstrated.
+
+Initial test failed before enumeration: `pageCount>1` mistook the already allocated
+arena pages for expansion. Corrected discovery compares against initial count,
+without changing product semantics. Failure evidence:
+`work:///cards/card-s-j-a/processes/proc-400c29df9aba/stdout.log`.
+Corrected focused test/typecheck/diffcheck exit0:
+`work:///cards/card-s-j-a/processes/proc-d1053516a5b4/stdout.log`.
+The exhaustive fresh-tree reconstruction takes about69 seconds in isolation;
+this is bounded source-derived coverage, not a runtime benchmark.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
