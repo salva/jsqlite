@@ -39,10 +39,47 @@ than exact primary membership; it now patches seekExact, with the same error
 identity, cleanup-once, reset/finalize assertions. Proc-097e75375ec0 passed91/91
 plus typecheck/diff. The broad run precedes that test-only correction; it is not
 post-commit evidence. Exact commands/logs and remaining acceptance are in
-[[card:card-s-c-d-e]] status. These tests add no upstream credits. Targeted searches
-found only the skip-scan handoff ledger (`card-s-g/COVERAGE.md`), not a general
-family-credit artifact; no unrelated skip-scan credit or invented denominator is
-changed here. Full stable-delta independent acceptance remains required.
+[[card:card-s-c-d-e]] status. Postcommit proc-aa67fc7a4110 passed1161/1161
+plus typecheck/diff/index and all18 owned hashes on981967ea. Supplemental
+proc-d86bede1ac80 passed64/64,33181.813495ms, plus typecheck/diff after wiring
+the declared fixture environments. These overlapping selections add no upstream
+credits. Full stable-delta independent acceptance remains required.
+
+### Finite family-ledger reconciliation
+
+The located historical whole-brief finite ledger is
+[G60](record:///status.md?card=card-s-c-d-g&v=60), accepted on70d045af,
+not981967ea. It is qualitative, not a numerical SQLite family denominator;
+`card-s-g/COVERAGE.md` is a separate skip-scan artifact. No credit or denominator
+is changed here.
+
+- Prerequisite/dominance and invocation-owned residuals: planner/resolver owners
+  are unchanged in981967ea. Historical source adjudication stays attributed to
+  G60, while current where-in-loop tests exercise the changed NULL target owner.
+- Scalar/vector direction, NULL/empty, first/next/restart and range termination:
+  LEFT initial IfNotOpen versus EARLYOUT IfNoHope continuation changed. Current
+  direction/vector target matrix and public three-slot/LEFT cases cover that
+  correction. The64-test supplemental gate adds affinity, earlyout, correlated
+  rebuild, persistent reuse and selected/offpath corruption in all encodings.
+- Nested substitution/shadow, retained star, GROUP/HAVING/aggregate and both
+  retained destinations: producer/lowering owners are unchanged. Supplemental
+  derived/grouped/retained-limit wrappers exercise affected primitive consumers;
+  this is not re-review of every aggregate or retained-source branch.
+- Native/error/lifecycle foundations: comparison, payload demand, movement
+  invalidation and register borrowing changed. G60's unchanged-owner reuse cannot
+  certify them. The1161-test gate provides current representative malformed,
+  local-overflow/cache/work/capacity/refund, WR/OR/rowid2/3/partial/qualified/STAT4
+  evidence;64 supplemental tests add selected RHS movement/error/lifecycle
+  consumers. Direct C terminal-header adjudication and EOF's source-owner guard
+  are not fresh damaged-page native or dynamic EOF oracles respectively.
+- Documentation/delivery: affected guide/map/API/audit/conformance and18-path
+  commit are delivered. Ordered-register-list quadratic tradeoff and unsupported
+  compositions remain disclosed. G60's historical118+8/package evidence does not
+  certify the current candidate or installed-browser behavior.
+
+This reconciles the finite ledger with changed owners and author regression
+coverage; independent entire-delta approval remains outstanding. Universal error
+timing/plan identity and whole-product/browser compatibility are not claimed.
 
 ## Persistent primitive consolidation — author decisions
 
@@ -79,15 +116,14 @@ reset clear maps/positions; success replaces records. A source-owner EOF guard a
 public join/reset controls cover affected owners, not exhaustive cache parity.
 
 Continuation broad run proc-1942b485622e reached1118 tests,1108pass/10fail,
-144878.588941ms; it crossed a source edit and is not stable-candidate proof. Its WR
-miss-injection test still patched seek after membership moved to seekExact; both
-false/invalid-position injections now target seekExact without weakening expected
-empty results. Six failures involve missing card-s-g native companion JSON; one
-private cursor capacity and two LEFT continuation counter expectations still need
-source/baseline adjudication. They are not waived or attributed to this delta.
-Chained tsc/diff did not run after that failure. Current focused results and final
-combined delivery gaps are in the card status. No family numerator increases from
-these local/source primitive tests; the actual family ledger remains unlocated.
+144878.588941ms across a source edit; it remains nonpassing, unstable-input
+ evidence. Delivered miss/error interventions now target seekExact; missing native
+companions were generated through their declared contract. Source/baseline
+adjudication repaired LEFT NULL continuation and derived private capacity
+expectations from removed iterator/subview capabilities, not a leak. Final1161/1161
+verification applies to the stable committed input, not that run. Detailed failed
+hypotheses/source comparisons remain in E193/E197/E198 status; no family credit
+increases from these local/source primitive tests.
 
 ## Selected boundary follow-up
 
