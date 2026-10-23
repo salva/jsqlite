@@ -38,6 +38,11 @@ mixed-state failure acceptance. `private-bloom-text-consumption.test.mjs`
 adds existing VM concat/numeric ownership, post-result work failure and reset
 rebuild controls; native restores numeric flags and TS formats a copy, so concat
 is not a live mixed-Str producer.
+`vdbe.c:OP_MakeRecord` output sizing/reuse maps to `record-pack.ts` and
+`vdbe.ts` packed-record publication: fresh-array replacement charges old/new
+overlap rather than native zMalloc reuse. Exact threshold/refund controls in
+`where-plan-analysis.test.mjs`; [tradeoff/evidence](research/where-autoindex-primitives.md).
+
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`

@@ -629,6 +629,19 @@ divergence or failed fixture. These are implementation-budget thresholds, not
 native allocator/JS heap equivalence, nor all record types/header boundaries.
 Record bytes have independent arithmetic assertion but no fresh native capture.
 
+Same-output replacement follow-up: pinned vdbe.c3690–3706 reuses Mem.zMalloc
+if large enough, otherwise ClearAndResize. TS packedRecords instead retains old
+immutable bytes until fresh packing/publication, then refunds old charge. This
+is a bounded ownership adaptation, not allocator parity/platform necessity;
+transient budget is higher. Same descriptor fields and output register now
+require22274 bytes (10128 filter+2×6073 records) in all encodings,22273 fails;
+second MakeRecord requires no encoding scratch because live text was converted
+by the first. Twice/reset controls verify first-error stability; success reuses
+retired6073 bytes for a larger filter while replacement stays live. Focused
+proc-ead340378297 passes without production divergence. Guide states tradeoff.
+No claim of native failure threshold or inspection of old output after error;
+cleanup ends execution. These controls do not read replaced packed contents.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

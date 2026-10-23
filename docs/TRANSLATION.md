@@ -484,6 +484,12 @@ private filter owner controls another statement's packed cursor. No SQL producer
 probe affinity to the live key registers **before Filter**, not only to the
 private snapshot inside IndexSeekPrefix; build FilterAdd follows MakeRecord's
 live-register affinity. Shared hash intentionally does not coerce by itself.
+MakeRecord currently publishes a fresh packed Uint8Array instead of reusing
+native Mem.zMalloc: replacement admits old plus new packed charges until
+publication, then refunds the old charge. This bounded representation trades
+higher transient capacity for simple immutable record ownership; it is not a
+browser necessity or native allocation parity. Exact admission/reuse controls
+are retained in [primitive evidence](research/where-autoindex-primitives.md).
 Composed all-encoding VM controls cover mixed numeric/TEXT, REAL/IntReal, NULL/IS,
 BLOB and collations, including authoritative rejection after a present bit and a
 missing-prefilter-affinity negative control. Source-owned automatic driving-term

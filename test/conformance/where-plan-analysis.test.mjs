@@ -411,6 +411,24 @@ test('descriptor MakeRecord exact admission separates conversion scratch and ret
    assert.equal(charge,6073);assert.equal(packRecord(fields,encoding).length,6009);
    assert.equal(scratch,encoding==='utf-8'?0:72);
   }finally{fields.forEach(v=>v.release());}
+  // Same-output replacement allocates a new immutable byte array; unlike
+  // native reusable Mem.zMalloc, old/new packed owners coexist until publish.
+  const replacementThreshold=10128+charge*2;
+  for(const delta of [-1,0]){
+   const ops=[{code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},
+    {code:'Integer',p1:1n,p2:2},{code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:7n,p2:4},
+    {code:'MakeRecord',p1:1,p2:4,p3:5},{code:'ResultRow',p1:4,p2:1},
+    {code:'Integer',p1:9n,p2:4},{code:'MakeRecord',p1:1,p2:4,p3:5},
+    // Retired record charge must be reusable while replacement stays live.
+    {code:'FilterInit',p1:8,bytes:10000+charge},{code:'ResultRow',p1:4,p2:1},{code:'Halt'}];
+   const vm=new VdbeStatement({encoding,registers:9,parameters:[],columns:[{name:'identity'}],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:replacementThreshold+delta},ops},()=>{},()=>()=>{},()=>{});
+   try{for(let run=0;run<2;run++){
+    assert.equal(await vm.step(),'row');assert.equal(vm.column(0),7n);
+    if(delta<0){let primary;await assert.rejects(vm.step(),e=>{primary=e;return e.kind==='limit'});await assert.rejects(vm.step(),e=>e===primary);assert.throws(()=>vm.reset(),e=>e===primary);}
+    else{assert.equal(await vm.step(),'row');assert.equal(vm.column(0),9n);assert.equal(await vm.step(),'done');if(!run)vm.reset();}
+   }}finally{vm.finalize();}
+  }
+  t.diagnostic(`${encoding}: same-output replacement threshold ${replacementThreshold}`);
   const threshold=10128+scratch+charge;t.diagnostic(`${encoding}: threshold ${threshold}, scratch ${scratch}, retained ${charge}`);
   for(const delta of [-1,0]){
    const ops=[{code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},
