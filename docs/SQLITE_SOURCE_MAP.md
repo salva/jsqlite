@@ -25,7 +25,9 @@ and10 async insertion/5 overflow-seek failures per type, including rejected
 insertion after page-count growth; primary error/borrow ownership and disposal
 are preserved, with no retry of failed mutation or rollback claim. Its real byte
 budget sweep also witnesses capacity rejection after partial overflow allocation
-and cumulative disposal refund (sampled limits, not exact peak admission).
+and cumulative disposal refund. The same input's observed reserve/replace peak
+accepts at42427 bytes and rejects at42426 on fresh owners; this is aggregate
+accounted admission, not JS heap measurement or full page/Mem attribution.
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`

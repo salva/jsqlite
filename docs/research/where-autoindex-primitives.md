@@ -383,6 +383,16 @@ This is sampled capacity-boundary evidence, not exact peak/minimum admission or
 native malloc parity. No exercised production divergence or repair.
 Focused3/3/typecheck/diffcheck evidence:
 `work:///cards/card-s-j-a/processes/proc-286b35498e39/stdout.log`.
+An additional exact-boundary control observes reserve **and replace** through the
+unchanged aggregate primitive on fresh owners. For this6003-byte packed BLOB,
+accounted baseline8704, post-insert retained17280, peak42427 bytes/pages4:
+a fresh42427-byte cap reproduces identical accounting, while42426 rejects with
+the original PrivateStateLimitError. All owners dispose to zero. Peak exceeds
+retained by25147 bytes; this separates aggregate transient charges from retained
+state, not a page-vs-Mem attribution or actual JS heap measurement. This proves
+the accounted admission boundary only for this input/operation, not all private
+allocations or SQL execution. Focused4/4/typecheck/diffcheck:
+`work:///cards/card-s-j-a/processes/proc-50441330b48b/stdout.log`.
 
 ## Remaining acceptance work
 

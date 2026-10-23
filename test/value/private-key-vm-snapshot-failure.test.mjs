@@ -68,3 +68,31 @@ test('real byte rejection after partial overflow allocation preserves limit erro
  assert.ok(successful>0);assert.ok(rejected>0);
  t.diagnostic(`capacity sweep: ${rejected} rejected, ${partial} after page growth, ${successful} successful`);
 });
+
+test('observed overflow insertion high water is the exact fresh-owner admission boundary',async t=>{
+ class PeakBudget extends PrivateStateByteBudget{
+  peak=0;primary=null;
+  reserve(bytes,message){try{super.reserve(bytes,message);this.peak=Math.max(this.peak,this.usedBytes)}catch(error){this.primary??=error;throw error}}
+  replace(oldBytes,newBytes,message){try{super.replace(oldBytes,newBytes,message);this.peak=Math.max(this.peak,this.usedBytes)}catch(error){this.primary??=error;throw error}}
+ }
+ const packed=new Uint8Array(6003);packed.set([3,0xdd,0x6c]);packed.fill(65,3);
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ async function trial(maxBytes,expectFailure=false){
+  const budget=new PeakBudget(maxBytes),limits={maxEntries:10,maxKeyBytes:20000,maxBytes};
+  const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits);
+  const vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,info,limits),info);
+  const baseline=budget.usedBytes;
+  try{
+   if(expectFailure)await assert.rejects(vm.insert(packed,control),error=>error instanceof PrivateStateLimitError&&error===budget.primary);
+   else await vm.insert(packed,control);
+   return {peak:budget.peak,retained:budget.usedBytes,baseline,pages:arena.pageCount};
+  }finally{vm.close();arena.close();assert.equal(budget.usedBytes,0)}
+ }
+ const witness=await trial(1000000);
+ assert.ok(witness.peak>witness.retained);assert.ok(witness.retained>witness.baseline);
+ const exact=await trial(witness.peak);
+ assert.deepEqual(exact,witness);
+ const rejected=await trial(witness.peak-1,true);
+ assert.ok(rejected.peak<=witness.peak-1);
+ t.diagnostic(`exact bytes: baseline=${witness.baseline}; retained=${witness.retained}; peak=${witness.peak}; pages=${witness.pages}`);
+});
