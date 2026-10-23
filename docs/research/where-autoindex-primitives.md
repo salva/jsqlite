@@ -475,9 +475,22 @@ sizes are4 WR/5 rowid; WR physical table offsets reflect PK-first storage,
 not logical column ordinals. Empty-table count returns typed INTEGER0; this
 witness proves layout, not build/probe runtime parity. Initial witness harness
 mistook query's (rows,counters) tuple for rows and failed with TypeError
-(proc-ae2b4117ffa8); corrected without production changes. Implicit high PK
-without any high referenced expression remains a distinct upstream boundary;
-no arbitrary high-column runtime enrollment is claimed.
+(proc-ae2b4117ffa8); corrected without production changes. The follow-up native implicit-high-PK witness
+`work:///cards/card-s-j-a/processes/proc-8ec1a6b9d82f/stdout.log` resolves this
+boundary: same pinned66-column WR schema, low c1 driving key, no high reference
+produces MakeRecord1 although OpenAutoindex P2=2; with `abs(u.c64)>0` it
+produces MakeRecord4 and P2=5. This is pinned colUsed-versus-extraCols control
+flow, not permission to invent identity payload. Descriptor now omits implicit
+high PK payload unless colUsed is high. Matching resolved columnUses supplies
+nested residual/RHS coverage, not merely direct analyzed LHS fields.
+Twelve encoding/orientation/source-identity analysis controls test no high use,
+`abs(u.c64)>0`, `0<abs(u.c64)`, and non-target `abs(o.c64)>0`. Source identity
+prevents borrowing another source's high bit. A controlled omission of resolved
+uses reproduced failure for nested u.c64 (proc-9671dfa61741); restoring resolved
+ownership passes. This is descriptor coverage evidence, not populated auto
+runtime execution; counterexamples involving generated-column colUsed expansion
+remain outside these fixtures. No arbitrary high-column runtime enrollment is
+claimed.
 
 ## Remaining acceptance work
 

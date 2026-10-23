@@ -63,7 +63,9 @@ EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
 `automaticIndexDescriptor`; `resolve.c:sqlite3ExprColUsed` driving-expression
 high-bit ownership is retained independently of caller covering requests (high
 key expands every column>=63, including a duplicate key payload). Regression:
-`where-plan-foundation.test.mjs` high driving column controls; native witness
+`where-plan-foundation.test.mjs` high driving column controls and
+`where-plan-analysis.test.mjs` resolved high residual/implicit-PK boundary;
+native witnesses
 and boundary in [primitive evidence](research/where-autoindex-primitives.md).
 Automatic proposal gates/cost templates →
 `automaticIndexCandidates`; smallouter readiness/threshold →

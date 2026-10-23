@@ -80,6 +80,23 @@ test('automatic conflicting collations follow first ready term through commutati
  }
 });
 
+test('automatic high WR coverage follows resolved references not implicit PK alone',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding,true);
+  const columns=Object.freeze(Array.from({length:66},(_,i)=>col(`c${i}`,'INTEGER')));
+  s.t.columns=columns;s.t.primaryKey=Object.freeze([columns[65]]);s.t.indexes=[];
+  for(const [suffix,high] of [['',false],[' WHERE abs(u.c64)>0',true],[' WHERE 0<abs(u.c64)',true],[' WHERE abs(o.c64)>0',false]]){
+   const plan=resolve(`SELECT count(*) FROM t o CROSS JOIN t u ON u.c1=o.c0${suffix}`,s);
+   const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+   const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+   const candidate=wherePlanning.automaticIndexCandidates(source,1,clause,context)[0];
+   const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set(),encoding,plan);
+   assert.deepEqual(d.fields,high?[columns[1],columns[63],columns[64],columns[65]]:[columns[1]],suffix);
+   assert.equal(d.keyInfo.totalFieldCount,high?4:1);
+  }
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

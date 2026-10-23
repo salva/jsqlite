@@ -196,14 +196,16 @@ export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,claus
  }
  if(!keys.length)return null;
  const fields:(ColumnNode|null)[]=keys.map(key=>key.column);
- // resolve.c includes driving expressions in colUsed, independently of
- // caller-requested output/covering columns. A high driving key therefore
- // sets the shared high-column bit even when needed is empty.
- const highNeeded=clause.terms.some(term=>term.left?.source===source&&term.left.columnIndex>=63)||table.columns.slice(63).some(column=>needed.has(column));
+ // resolve.c records every referenced target column, including nested
+ // residual/RHS uses, independently of caller-requested coverage. Resolved
+ // source identity prevents correlated references from capturing a namesake.
+ const highNeeded=clause.terms.some(term=>term.left?.source===source&&term.left.columnIndex>=63)||table.columns.slice(63).some(column=>needed.has(column))||!!resolved?.columnUses.some(use=>use.source===source&&use.columnIndex>=63);
  for(let i=0;i<table.columns.length;i++){
   const column=table.columns[i]!;
-  // Native colUsed bit63 expands every high column, including a driving key.
-  if((i>=63&&highNeeded)||(!seen.has(column)&&(needed.has(column)||(table.withoutRowid&&table.primaryKey.includes(column))))){fields.push(column);seen.add(column);}
+  // where.c expands high payload only from colUsed, not extraCols. A high
+  // implicit WR PK alone sets extraCols bit63 but does not append payload.
+  if(i>=63){if(highNeeded){fields.push(column);seen.add(column);}continue;}
+  if(!seen.has(column)&&(needed.has(column)||(table.withoutRowid&&table.primaryKey.includes(column)))){fields.push(column);seen.add(column);}
  }
  if(!table.withoutRowid)fields.push(null);
  const terms:KeyTerm[]=fields.map((_,i)=>({collation:i<keys.length?keys[i]!.collation:"binary"}));
