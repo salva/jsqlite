@@ -39,6 +39,10 @@ for(const [predicate,matched,error] of [
  [`(${badJson} OR NULL)`,false,true],
  [`((SELECT ${badJson} WHERE a.k IS a.k) AND NULL)`,false,false],
  [`(NULL AND (SELECT ${badJson} WHERE a.k IS a.k))`,false,false],
+ [`((SELECT ${badJson}) AND NULL)`,false,join!=='INNER'],
+ [`(NULL AND (SELECT ${badJson}))`,false,false],
+ [`((SELECT 1) AND NULL)`,false,false],
+ [`(NULL AND (SELECT 1))`,false,false],
 ])
 test(`nested predicate rejection ${enc}/${join}/${predicate}`,()=>withDb(enc,async db=>{
  const s=db.prepare(`SELECT a.rowid,b.rowid FROM a ${join} JOIN b ON ${predicate}`).statement;

@@ -656,6 +656,11 @@ positioned prefix. Prepare/error-phase and finite coverage:
 [JSON evidence](research/recursive-join/json-right-full-evidence.md).
 Per-barrier RIGHT/FULL state; selected expression/partial/covering/
 WITHOUT ROWID paths, not optimizer completeness.
+`whereexpr.c:sqlite3WhereSplit`, `wherecode.c` ripe-constraint passes →
+`vdbe.ts` outer-ON caller consumes ordered base conjuncts from RIGHT-aware
+constraint analysis, noncorrelated before TERM_VARSELECT. Uncorrelated scalar-first
+NULL guards preserve native error order; correlated/reversed controls suppress.
+Evidence: [[card:card-k-e]] status and `right-residual.test.mjs`.
 `expr.c:sqlite3ExprIfTrue/IfFalse` (AND/OR/NOT), `exprEvalRhsFirst` → joined
 `vdbe.ts:compilePredicate`: recursive polarity/NULL policy, sole-subquery operand
 postponed, shared caller-patched failure exit. Leaves retain the expression

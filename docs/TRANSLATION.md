@@ -573,7 +573,13 @@ coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 
 Ordinary comma/CROSS/INNER/LEFT and represented repeated/mixed rowid RIGHT/FULL
 barriers are admitted at the documented gates. ON belongs to match testing; LEFT null extension precedes
-WHERE. Joined predicate AND/OR/NOT rejection follows the mutually recursive
+WHERE. Outer-ON conjunctions consume `whereexpr.c:sqlite3WhereSplit` base
+terms in source order, with correlated (`TERM_VARSELECT`) terms deferred after
+noncorrelated terms by `wherecode.c`. They do not branch on the original unsplit
+AND: uncorrelated scalar-first error ordering therefore differs from correlated
+scalar-first ordering. The full RIGHT-aware analysis owns these terms even when
+matched access planning falls back. Within each unsplit term, joined predicate
+AND/OR/NOT rejection follows the mutually recursive
 `expr.c:sqlite3ExprIfTrue/sqlite3ExprIfFalse` branches: polarity and JUMPIFNULL
 propagate through nested boolean operands, with `exprEvalRhsFirst` postponing
 the sole subquery-bearing operand. Value-producing booleans retain three-valued

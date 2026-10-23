@@ -1,5 +1,13 @@
 ## RIGHT/FULL matched persistent access (bounded independent acceptance)
 
+Outer-ON conjunction lowering now consumes ordered WhereSplit base terms,
+deferring TERM_VARSELECT correlated terms, rather than treating the original
+AND as an unsplit expr.c branch. The uncorrelated scalar-first/NULL error gap
+is corrected at this caller; reversed and correlated controls retain their
+native suppression. RIGHT-aware terms come from full constraint analysis, not
+an access-planner fallback's empty clause. Evidence and qualified broad gates
+remain in [[card:card-k-e]] status; author verification is not independent approval.
+
 Joined predicate rejection translates `expr.c:sqlite3ExprIfTrue/IfFalse`'s
 mutually recursive AND/OR/NOT branches: polarity and NULL policy propagate into
 nested operands; `exprEvalRhsFirst` postpones the sole subquery-bearing operand.
