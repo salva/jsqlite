@@ -35,8 +35,19 @@ respectively63 absent jumps/0 present, or0 absent/63 present; both return64 LEFT
 rows with NULL RHS. A collision is not a match: native seek/residual rejects it.
 FilterHit means absent jump, FilterMiss means present fallthrough. ON/OFF rows
 must match. IS is not assumed to emit the same NULL-rejecting Bloom route.
-This is not raw Mem flag/hash coverage; signed wrap, IntReal, saturation, explicit
-native hash receipts and detailed filter-pulldown remain required.
+Raw primitive witness `where-autoindex-hash.c` now includes the **actual pinned
+amalgamation**, calling static filterHash with native Mem flags and IntValue; it
+does not copy the hash or define a host hash. Compile with cc -O0,
+-DSQLITE_THREADSAFE=0 and -DSQLITE_AMALGAMATION_PATH='"/absolute/oracle-build/build/sqlite3.c"',
+link -lm -ldl, then run. Keep binary in card work storage. This is a development
+source witness, never a runtime backend. Native successful receipt:
+`work:///cards/card-s-a-c/processes/proc-099f56cdce9c/stdout.log`.
+It asserts negative uint64 addition/wrap, IntReal, positive/negative REAL
+truncation and saturation, equal INTEGER/REAL bits, Str/Blob flag contributions
+and NULL zero. Actual flags: Int4, IntReal32, Real8, Str2, Blob16, Null1.
+Equal1 Int/Real both hash/bit1; −1 hashes UINT64_MAX; −1+2 wraps to1.
+This raw witness complements, not replaces, native affinity and SQL-level
+no-false-negative ON/OFF cases. Detailed filter-pulldown remains required.
 
 Native-first capture commands completed exit0 in
 `work:///cards/card-s-a-c/processes/proc-c752e7250f09/stdout.log` (first10 cases)
