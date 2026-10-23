@@ -309,6 +309,53 @@ test('mixed automatic descriptor composes live affinity Bloom and authoritative 
  }
 });
 
+test('mixed descriptor build failures after FilterAdd preserve first error refund and independent survivor',async t=>{
+ const control={async checkpoint(){}};
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve('SELECT u.id FROM t o CROSS JOIN t u ON u.a COLLATE NOCASE=o.a AND u.b=o.b',s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([s.id]),encoding,plan);
+  assert.equal(d.bloom,true);
+  const limits={maxEntries:100,maxKeyBytes:10000,maxBytes:1000000},budget=new PrivateStateByteBudget(limits.maxBytes);
+  async function owner(){const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits);return {arena,vm:new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,d.keyInfo,limits),d.keyInfo),filter:await PrivateBloomFilter.open(budget,10000,control)};}
+  const survivor=await owner(),fields=['é',1.5,7n].map(v=>memFromPublic(v,encoding)),out=new Mem();
+  d.keys.forEach((key,i)=>fields[i].applyAffinity(key.affinity,encoding));
+  const packed=packRecord(fields,encoding),probe=fields.slice(0,2);
+  try{
+   survivor.filter.add(probe);await survivor.vm.insert(packed,control);
+   // Warm retained positioning metadata before measuring failing-owner refunds.
+   assert.equal(await survivor.vm.seekBound(probe,'SeekGE',control),true);
+   await survivor.vm.column(2,out,control);assert.equal(out.integerValue(),7n);
+   async function run(failAt){
+    // Survivor probes below may retain their own additional page/path leases.
+    // Compare around this owner's lifetime, not across survivor operations.
+    const baseline=budget.usedBytes;
+    const failed=await owner();let calls=0;const primary=new Error(`packed build checkpoint ${failAt}`);
+    const interrupted={checkpoint(){if(++calls===failAt)throw primary}};
+    try{
+     // where.c constructs the packed record, publishes FilterAdd, then IdxInsert.
+     // A positive bit here survives a failed insert until execution disposal;
+     // it is never a successful build or permission to resume that mutation.
+     failed.filter.add(probe);assert.equal(failed.filter.absent(probe),false);
+     if(failAt){await assert.rejects(failed.vm.insert(packed,interrupted),error=>error===primary);assert.equal(failed.vm.cacheStale,true);}
+     else await failed.vm.insert(packed,interrupted);
+    }finally{failed.filter.close();failed.vm.close();failed.arena.close();}
+    assert.equal(budget.usedBytes,baseline);
+    assert.equal(survivor.filter.absent(probe),false);
+    assert.equal(await survivor.vm.seekBound(probe,'SeekGE',control),true);
+    assert.equal(await survivor.vm.boundJump(probe,'IdxGT',control),false);
+    await survivor.vm.column(2,out,control);assert.equal(out.integerValue(),7n);
+    return calls;
+   }
+   const checkpoints=await run(0);assert.ok(checkpoints>0);t.diagnostic(`${encoding}: ${checkpoints} insertion checkpoints after FilterAdd`);
+   for(let failAt=1;failAt<=checkpoints;failAt++)await run(failAt);
+  }finally{fields.forEach(v=>v.release());out.release();survivor.filter.close();survivor.vm.close();survivor.arena.close();}
+  assert.equal(budget.usedBytes,0);
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

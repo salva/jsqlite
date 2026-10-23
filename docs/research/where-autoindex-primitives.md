@@ -590,6 +590,20 @@ queries (proc-651c367fc25b) agree on identities and show REAL1/1.5 distinctly;
 TS test asserts identities, not public REAL metadata. All resources refund.
 This primitive composition does not emit SQL consumers or prove public reset.
 
+Composed build failure boundary: where.c1213–1223 produces packed key, then
+FilterAdd then IdxInsert. Descriptor-owned mixed keys now enumerate all5 actual
+small-insert async checkpoints per encoding after bit publication.15 injected
+errors preserve exact error identity/cache invalidation; failed owners are
+disposed, never resumed/retried, refund to pre-owner budget; independent packed
+and Bloom survivor sharing the budget still probes correctly; final budget0.
+Focused proc-4e6e6dbb8ac0 passes without production change. Initial fixed
+cross-survivor baseline failed21264!=20112 (proc-2953490a7823): survivor's
+subsequent bound probe retains page/path leases. Baseline moved to immediately
+before each failing owner lifetime, preserving exact owner refund assertion;
+final cumulative zero remains required. No claim of rollback, native fault
+timing, public survivor/session continuity, split/overflow coverage or SQL build
+completion; separate packed failure tests retain their narrower evidence.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
