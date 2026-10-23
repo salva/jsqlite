@@ -180,9 +180,9 @@ test('fallback selection publishes empty truth rather than a previous clause car
   const schema=loadSchemaGraph({[storageOwner]:db}),budget={remaining:20000n};
   const plan=sql=>{const r=expandAndResolveSelect(parseSql(sql).statement,schema);return planWhere(r,{neededColumns:r.sources.map(s=>new Set(s.table.columns)),orderBy:[],planBudget:budget});};
   const hot=plan('SELECT id FROM t WHERE a=0');assert.equal(hot.truth.high.length,1);
-  // Two-rowid RIGHT now participates in matched planning. Exercise the
-  // still-fallback wider layout, without weakening truth-reset assertions.
-  const fallback=plan('SELECT x.id FROM t AS x RIGHT JOIN t AS y ON x.id=y.id CROSS JOIN t AS z');
+  // Three-rowid layouts with one RIGHT barrier participate in matched planning.
+  // Repeated RIGHT barriers retain fallback; preserve truth-reset assertions.
+  const fallback=plan('SELECT x.id FROM t AS x RIGHT JOIN t AS y ON x.id=y.id RIGHT JOIN t AS z ON y.id=z.id');
   assert.equal(budget.truth.high.size,0,'successful fallback resets reusable carrier');assert.equal(budget.truth.heuristic.size,0);assert.equal(budget.truth.secondPass,false);
   assert.equal(fallback.path,null);assert.deepEqual(fallback.truth,{high:[],heuristic:[],secondPass:false});assert.ok(Object.isFrozen(fallback.truth.high));
   assert.equal(hot.truth.high.length,1);
