@@ -17,10 +17,19 @@ export function assertRuntimeWork(o, {buildRows, probes, absent, collisions}) {
   assert.equal(o.coveringTableLookups, 0);
 }
 export function assertReleased(o, independentBefore, independentAfter) {
+  assert.ok(Number.isSafeInteger(o.ownerId) && o.ownerId>0);
+  for(const field of ['chargedBytes','refundedBytes','ownedBytes'])
+    assert.ok(Number.isSafeInteger(o[field]) && o[field]>=0,field);
+  assert.ok(o.chargedBytes>0,'release fixture must have owned resources');
+  assert.equal(o.chargedBytes-o.refundedBytes,o.ownedBytes);
   assert.equal(o.ownedBytes, 0);
   assert.equal(o.openCursors, 0);
   assert.equal(o.onceActive, false);
   assert.equal(o.filterBytes, 0);
+  assert.ok(independentBefore && independentAfter,'survivor snapshots required');
+  assert.ok(Number.isSafeInteger(independentBefore.ownerId) && independentBefore.ownerId>0);
+  assert.notEqual(independentBefore.ownerId,o.ownerId);
+  assert.ok(Number.isSafeInteger(independentBefore.ownedBytes) && independentBefore.ownedBytes>0);
   assert.deepEqual(independentAfter, independentBefore);
 }
 export function assertFresh(before, after) {

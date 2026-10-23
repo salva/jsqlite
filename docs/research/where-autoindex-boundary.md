@@ -65,14 +65,29 @@ Counters reset per execution; read snapshots must be immutable copies.
 `where-autoindex-pending-controls.mjs` supplies adapter-driven executable
 work/lifetime, capacity and interruption assertions; no adapter exists yet.
 Its limit result uses existing PrivateStateLimitError, not a new public code.
-Adapter bind(17) must use a parameterized fixture whose expected work is supplied
-by the caller (not the fixed literal captures). Fault-driver behavior and actual
-runtime results remain pending; importing these functions is not execution.
+`workAndLifetime` requires four distinct caller-owned expectation objects
+(rows, columns, work) for first/reset/bind17/reprepare; all runs assert complete
+results, metadata, no error and work, including replacement. Reprepare returns
+old-owner release and paused-survivor snapshots for release validation.
+`interrupted` requires caller-owned exact error name/message per cause, complete
+retry expectation and survivor rows. Only build has page/record/filter allocation
+faults; cancel/deadline target both phases. Adapter-reported expected errors are
+not an oracle. Negative self-tests in the lifetime/fault contract test files
+exercise wrong errors, stale rows, missing builds/refunds and damaged survivors.
+These use synthetic data only: real native fixtures, production adapter and
+actual public error selections remain pending.
 ExecutionId changes on reset/rebind/reprepare execution; planIdentity remains
 stable across reset/rebind without reprepare. Reprepare must instead publish a
 new immutable plan after releasing the old execution (not covered by assertFresh).
 
-Release snapshot: `ownedBytes` charged bytes attributable to this execution,
+Release snapshot: `ownerId` is a positive stable execution-owner integer, distinct
+from the independently paused survivor owner. `chargedBytes` and `refundedBytes`
+are cumulative successful charges/refunds for that same owner, never reset by
+cleanup; charged−refunded must equal ownedBytes, and the fixture must have charged
+positive bytes. Survivor snapshots require a positive ownedBytes and ownerId;
+undefined/empty snapshots cannot establish independence. After interrupted-owner
+cleanup, resume the survivor and assert progress and complete native-expected rows.
+`ownedBytes` is charged bytes attributable to this execution,
 `openCursors` live execution-owned cursors, `onceActive` reusable Once state,
 `filterBytes` owned Bloom bytes. All zero/false after release. Independent
 statement snapshots must be byte-for-byte unchanged by another owner's cleanup.
