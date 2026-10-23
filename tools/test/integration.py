@@ -21,6 +21,9 @@ COMPOUND_FIXTURES = {
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    if 'test/conformance/covered-deferred.test.mjs' in files:
+        commands.append(['python3', 'test/conformance/capture-covered-deferred.py',
+                         '--library', str(library), '--output', str(work_root/'covered-deferred-native')])
     compounds = [f for f in COMPOUND_FIXTURES if f in files]
     if compounds:
         # Reject wrong identity before either producer creates output directories.
@@ -199,6 +202,9 @@ def main():
     work_root = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']).resolve()
     library = args.oracle_library.resolve() if args.oracle_library else work_root/'oracle-build/build/libsqlite3-oracle.so'
     commands = prerequisite_commands(files, library, work_root)
+    if 'test/conformance/covered-deferred.test.mjs' in files:
+        # Fresh planned output wins over any ambient capture from another run.
+        env['COVERED_DEFERRED_DIR'] = str(work_root/'covered-deferred-native')
     for file, (_, output, variable) in COMPOUND_FIXTURES.items():
         if file in files:
             # Planned fresh outputs override ambient roots, never a fallback.
@@ -212,7 +218,7 @@ def main():
         # WR producer deliberately refuses to overwrite old fixtures.
         if any(pathlib.Path(f).name.startswith('skipscan-') for f in files):
             env['SKIPSCAN_NATIVE_ROOT'] = str(work_root/'skipscan-native')
-        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES') if k in env}
+        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES','COVERED_DEFERRED_DIR') if k in env}
         for i, command in enumerate(commands):
             result = component(command, work/f'prerequisite-{i}.log', 180, env)
             report['prerequisites'].append(result); save()
@@ -220,7 +226,7 @@ def main():
                 report['not_run'] = files; save(); return 1
         report['generated_inputs'] = {
             str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native')
+            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native', 'covered-deferred-native')
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
         save()

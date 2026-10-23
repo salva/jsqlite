@@ -183,6 +183,27 @@ class Runner(unittest.TestCase):
     self.assertEqual(report['fixture_environment'][variable],str(root/'cli'/output))
     self.assertFalse((root/'cli'/output).exists())
 
+ def test_covered_deferred_plan_and_failed_producer(self):
+  import subprocess, tempfile, json
+  file='test/conformance/covered-deferred.test.mjs'
+  root=pathlib.Path('/purpose/covered');library=root/'oracle.so'
+  self.assertEqual(runner.prerequisite_commands([file],library,root),[
+   ['python3','test/conformance/capture-covered-deferred.py','--library',str(library),'--output',str(root/'covered-deferred-native')]])
+  # Similar names and ordinary consumers must not acquire this producer.
+  for other in ['test/conformance/covered-deferred-other.test.mjs','test/value/mem.test.mjs']:
+   self.assertEqual(runner.prerequisite_commands([other],library,root),[])
+  with tempfile.TemporaryDirectory(prefix='covered-negative-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory);library=root/'invalid.so';library.write_bytes(b'not a native library')
+   env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',SAIVAGE_CARD_WORK_ROOT=str(root/'run'),COVERED_DEFERRED_DIR=str(root/'ambient'))
+   result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',str(library),file],env=env,capture_output=True,text=True,timeout=15)
+   self.assertEqual(result.returncode,1,result.stdout+result.stderr)
+   report=json.loads((root/'run/integration-run/manifest.json').read_text())
+   self.assertEqual(report['fixture_environment']['COVERED_DEFERRED_DIR'],str(root/'run/covered-deferred-native'))
+   self.assertEqual(report['not_run'],[file]);self.assertEqual(report['results'],[])
+   self.assertEqual(len(report['prerequisites']),1)
+   self.assertEqual(report['prerequisites'][0]['classification'],'fail')
+   self.assertFalse((root/'run/covered-deferred-native').exists())
+
  def test_watchdog_contains_descendant_after_leader_exits(self):
   import subprocess, time
   work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'integration-runner-tests';work.mkdir(exist_ok=True)
