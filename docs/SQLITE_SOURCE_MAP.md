@@ -19,6 +19,9 @@ page/path metadata means immediate byte equality is not a scratch-leak test.
 `private-key-vm-split-failure.test.mjs` discovers actual first root expansion and
 rejects every insertion checkpoint, checking primary error/cache invalidation,
 independent arena readability and cumulative disposal refund (not victim rollback).
+`private-key-vm-snapshot-failure.test.mjs` covers synchronous input/borrowed-Mem
+snapshot rejection for6000-byte TEXT/BLOB overflow keys (12 insert/4 seek sites),
+preserving primary error/borrow ownership and disposal, not retrying failed mutation.
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`

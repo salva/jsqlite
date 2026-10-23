@@ -344,6 +344,29 @@ Corrected focused test/typecheck/diffcheck exit0:
 The exhaustive fresh-tree reconstruction takes about69 seconds in isolation;
 this is bounded source-derived coverage, not a runtime benchmark.
 
+## Large borrowed-key synchronous snapshot interruption
+
+`private-key-vm-snapshot-failure.test.mjs` independently encodes6000-byte BLOB
+and UTF-8 TEXT records and borrows their decoded Mem bytes. Each encoding rejects
+all12 synchronous insertion snapshot checkpoints and all4 prefix-seek snapshot
+checkpoints on fresh owners, preserving primary error and input ownership and
+requiring zero cumulative budget on disposal. Successful controls insert overflow
+records and match them through packed prefix seek. Failed seek permits explicit
+reseek; failed mutating insertion is disposed, never automatically retried.
+
+Compared #writeIndex/#moveto and Mem.copyFromSnapshot publication/finally branches
+with pinned btree.c fillInCell/Insert overflow handling: native synchronous payload
+borrowing needs no await-time copy; TS's bounded snapshots are an ownership
+adaptation. Initial2/2 failure incorrectly assumed all synchronous checkpoints
+precede mutation. Insert has later snapshots and may fault its arena, so recovery
+is not promised; corrected control preserves that boundary rather than retrying.
+No exercised production divergence found. Initial evidence:
+`work:///cards/card-s-j-a/processes/proc-87d3cee0427e/stdout.log`;
+corrected2/2/typecheck/diffcheck:
+`work:///cards/card-s-j-a/processes/proc-55ba8e4d2444/stdout.log`.
+These checks do not enumerate async overflow allocation faults, prove exact
+transient high water, or establish SQL runtime feature credit.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

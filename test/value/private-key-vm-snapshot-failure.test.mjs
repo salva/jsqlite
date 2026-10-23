@@ -1,0 +1,39 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/private-blobkey-pages.ts';
+import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
+import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
+import {KeyInfo} from '../../src/internal/comparison.ts';
+import {BorrowLifetime,memFromRawRecord} from '../../src/internal/mem.ts';
+import {RawRecordReader} from '../../src/internal/record.ts';
+const control={async checkpoint(){},snapshotCheckpoint(){}};
+for(const kind of ['blob','text'])test(`${kind}: each large packed input and borrowed seek snapshot rejection refunds on disposal`,async t=>{
+ const packed=new Uint8Array(6003);packed.set([3,0xdd,kind==='blob'?0x6c:0x6d]);packed.fill(65,3);
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ async function run(mode,failAt){
+  const limits={maxEntries:10,maxKeyBytes:20000,maxBytes:1000000},budget=new PrivateStateByteBudget(limits.maxBytes);
+  const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits);
+  const vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,info,limits),info);
+  const life=new BorrowLifetime(),value=memFromRawRecord(new RawRecordReader(packed,'utf-8').next(),life);
+  let calls=0;const primary=new Error('synchronous snapshot rejected');
+  const interrupted={async checkpoint(){},snapshotCheckpoint(){if(++calls===failAt)throw primary}};
+  try{
+   if(mode==='seek')await vm.insert(packed,control);
+   const operation=()=>mode==='insert'?vm.insert(packed,interrupted):vm.seekBound([value],'SeekGE',interrupted);
+   if(failAt)await assert.rejects(operation(),e=>e===primary);else await operation();
+   // Insert also checkpoints later private snapshots after publication; those
+   // failures may fault the arena. Never retry a mutating failed operation.
+   assert.equal(value.diagnostic().ownership,'borrowed');
+   if(!failAt||mode==='seek'){
+    await vm.insert(packed,control);
+    assert.equal(await vm.seekBound([value],'SeekGE',control),true);
+    assert.equal(await vm.next(control),false);
+   }
+  }finally{value.release();life.invalidate();vm.close();arena.close()}
+  assert.equal(budget.usedBytes,0);return calls;
+ }
+ for(const mode of ['insert','seek']){
+  const count=await run(mode,0);assert.ok(count>2);t.diagnostic(`${mode} snapshot checkpoints=${count}`);
+  for(let i=1;i<=count;i++)await run(mode,i);
+ }
+});
