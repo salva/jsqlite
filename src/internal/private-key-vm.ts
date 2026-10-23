@@ -1,4 +1,4 @@
-import type {KeyInfo,UnpackedRecordKey} from './comparison.ts';
+import {compareRecordKey, UnpackedRecordKey, type KeyInfo} from './comparison.ts';
 import type {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
 import type {PrivateStateControl} from './private-state.ts';
 import {BorrowLifetime,Mem,memFromRawRecord} from './mem.ts';
@@ -30,6 +30,46 @@ export class PrivateKeyVmCursor {
     this.deferredMoveto=false;
     this.cacheStale=true;
     return exists;
+  }
+  /** vdbe.c SeekGE/GT/LE/LT over BLOBKEY. Unlike Found, a prefix
+   * positions at its edge using default_rc, then corrects the adjacent slot.
+   * Caller retains its Mem values; IndexMoveto owns the await-time snapshot. */
+  async seekBound(values:readonly Mem[],op:'SeekGE'|'SeekGT'|'SeekLE'|'SeekLT',control:PrivateStateControl):Promise<boolean>{
+    if(values.length===0||values.length>this.info.keyFieldCount)throw new Error('invalid private bound width');
+    const key=new UnpackedRecordKey(values,op==='SeekGT'||op==='SeekLE'?-1:1,'seek',this.info,false);
+    this.nullRow=false;this.cacheStale=true;this.deferredMoveto=false;
+    try{
+      const {res,state}=await this.cursor.indexMoveto(key,control);
+      let positioned:boolean;
+      if(op==='SeekGE'||op==='SeekGT'){
+        positioned=res<0||(res===0&&op==='SeekGT')?await this.cursor.next(control):true;
+      }else{
+        positioned=res>0||(res===0&&op==='SeekLT')?await this.cursor.previous(control):state==='VALID';
+      }
+      this.nullRow=!positioned;return positioned;
+    }finally{key.release()}
+  }
+  /** vdbe.c IdxGT/GE/LT/LE: compare only the prefix at the current
+   * packed position, never decoded retained rows or a second search. */
+  async boundJump(values:readonly Mem[],op:'IdxGT'|'IdxGE'|'IdxLT'|'IdxLE',control:PrivateStateControl):Promise<boolean>{
+    if(values.length===0||values.length>this.info.keyFieldCount)throw new Error('invalid private bound width');
+    const copies:Mem[]=[];let charge=0;
+    try{
+      let bytes=0;
+      for(const value of values){const d=value.diagnostic();bytes+=d.byteLength+(d.numeric?8:0)}
+      control.snapshotCheckpoint?.(0);
+      const requested=128+values.length*128+bytes;
+      this.arena.reserveScratch(requested);charge=requested;
+      for(const value of values){const copy=new Mem();copies.push(copy);copy.copyFromSnapshot(value,units=>control.snapshotCheckpoint?.(units))}
+      const key=new UnpackedRecordKey(copies,op==='IdxGT'||op==='IdxLE'?-1:0,'seek',this.info,false);
+      try{
+        const res=await this.cursor.withPayload(control,async bytes=>{
+          await control.checkpoint(values.length);
+          return compareRecordKey(bytes,key,this.info);
+        });
+        return op==='IdxLE'||op==='IdxLT'?-res>0:res+1>0;
+      }finally{key.release()}
+    }finally{for(const copy of copies)copy.release();this.arena.releaseScratch(charge)}
   }
   async first(control:PrivateStateControl):Promise<boolean>{
     // vdbe.c OP_Rewind publishes cache/deferred before checking rc;

@@ -27,6 +27,7 @@ import {parseSql} from "./parse.ts";
 import { lowerOrdinaryCtes } from "./cte.ts";
 import { windowRangeTest, arithmeticBinary, bitwiseBinary, bitwiseNot, booleanValue, logicalNot } from "./vdbe-primitives.ts";
 import { compareMem, compareRecordKey, KeyInfo, UnpackedRecordKey, unpackRecordKey, type BuiltinCollation } from "./comparison.ts";
+import {PrivateBloomFilter} from './private-bloom.ts';
 import { EphemeralIndexCursor, FifoCursor, PriorityQueueCursor, PrivateStateByteBudget, PrivateStateLimitError, SorterCursor, type PrivateStateControl, type PrivateStateLimits } from "./private-state.ts";
 import { decodeRecord, CursorRecord, RawRecordReader, RecordFormatError } from "./record.ts";
 import { BtreeFormatError, BtreeLimitError, type BtreeDatabase, type IndexCursor, type TableCursor, type TableScanCursor } from "./btree.ts";
@@ -132,6 +133,9 @@ type Op =
   | { readonly code: "Real"; readonly p1: number; readonly p2: number }
   | { readonly code: "String"; readonly p1: string; readonly p2: number }
   | { readonly code: "Blob"; readonly p1: Uint8Array; readonly p2: number }
+  | { readonly code: "FilterInit"; readonly p1:number; readonly bytes:number }
+  | { readonly code: "FilterAdd"; readonly p1:number; readonly p3:number; readonly p4:number }
+  | { readonly code: "Filter"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4:number }
   | { readonly code: "Null"; readonly p2: number }
   | { readonly code: "Copy"; readonly p1: number; readonly p2: number }
   | { readonly code: "Variable"; readonly p1: number; readonly p2: number }
@@ -261,7 +265,7 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
     case "IfNotZero":case "IfPos":case "DecrJumpZero":case "Rewind":case "Last":
     case "SeekRowid":case "SeekRowidRange":case "RowidUpperBound":case "RowidLowerBound":
     case "IndexRewind":case "IndexLast":case "InListValue":case "IndexIfNoHope":case "IndexSeekPrefix":case "IndexPrefixEnd":
-    case "IndexRangeEnd":case "IsNull":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
+    case "Filter":case "IndexRangeEnd":case "IsNull":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
       return {...original,p2:target(original.p2)} as Op;
     case "CompareJump":
       return {...original,less:target(original.less),equal:target(original.equal),greater:target(original.greater)};
@@ -9584,6 +9588,7 @@ export class VdbeStatement implements Statement {
   #privateKeys = new Map<number,PrivateKeyVmCursor>();
   // Execution-owned RHS Btree substitute, invalidated by each iterator reset.
   #inSets = new Map<number,{values:Mem[];bytes:number}>();
+  #filters = new Map<number,PrivateBloomFilter>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
   #inverseAggregates: ReadonlySet<number>;
@@ -10052,6 +10057,18 @@ export class VdbeStatement implements Statement {
             break;
           }
           case "IndexSeekPrefix": {
+            const packed=this.#privateKeys.get(op.p1);
+            if(packed){
+              if(op.seekScan)throw new JSQLiteError('internal','private SeekScan not lowered');
+              if(packed.info!==op.keyInfo)throw new JSQLiteError('internal','private prefix KeyInfo mismatch');
+              // Affinity belongs to the key registers before Seek*, as native
+              // Affinity does. No duplicate host-key array is retained.
+              for(let i=0;i<op.keys.length;i++)this.#registers[op.keys[i]!]!.applyAffinity(op.affinities[i]!,this.#program.encoding);
+              const values=op.keys.map(r=>this.#registers[r]!);
+              const seek=op.reverse?(op.strict?'SeekLT':'SeekLE'):(op.strict?'SeekGT':'SeekGE');
+              if(!await packed.seekBound(values,seek,this.#privateControl(options,limit,started)))this.#pc=op.p2;
+              break;
+            }
             const cursor=this.#indexCursors.get(op.p1);
             if(!cursor)throw new JSQLiteError("internal","seek on unopened index cursor");
             const values:Mem[]=[];
@@ -10081,7 +10098,18 @@ export class VdbeStatement implements Statement {
             } finally {for(const value of values)value.release();}
             break;
           }
-          case "IndexPrefixEnd": {const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.field(i);if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}if(!matches)this.#pc=op.p2;else {const cursor=this.#indexCursors.get(op.p1);if(cursor)cursor.seekHit=Math.max(cursor.seekHit,op.keys.length);}break;}
+          case "IndexPrefixEnd": {
+            const packed=this.#privateKeys.get(op.p1);
+            if(packed){
+              if(packed.info!==op.keyInfo)throw new JSQLiteError('internal','private prefix KeyInfo mismatch');
+              for(let i=0;i<op.keys.length;i++)this.#registers[op.keys[i]!]!.applyAffinity(op.affinities[i]!,this.#program.encoding);
+              if(packed.nullRow){this.#pc=op.p2;break}
+              const values=op.keys.map(r=>this.#registers[r]!);
+              const control=this.#privateControl(options,limit,started);
+              if(await packed.boundJump(values,'IdxGT',control)||await packed.boundJump(values,'IdxLT',control))this.#pc=op.p2;
+              break;
+            }
+            const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.field(i);if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}if(!matches)this.#pc=op.p2;else {const cursor=this.#indexCursors.get(op.p1);if(cursor)cursor.seekHit=Math.max(cursor.seekHit,op.keys.length);}break;}
           case "IndexRangeEnd": {const record=this.#records.get(op.p1),raw=record?.field(op.field),key=this.#registers[op.key]!;if(!raw){this.#pc=op.p2;break;}const current=memFromRawRecord(raw,this.#borrow),bound=new Mem();bound.copyFrom(key);bound.applyAffinity(op.affinity,this.#program.encoding);try{const comparison=compareMem(current,bound,op.collation),passes=op.operator==="lt"?comparison<0:op.operator==="le"?comparison<=0:op.operator==="gt"?comparison>0:comparison>=0;if(!passes)this.#pc=op.p2;}finally{current.release();bound.release();}break;}
           case "DeferredSeek": {const index=this.#records.get(op.p1),raw=index?.last();if(raw?.storageClass!=="integer")throw new JSQLiteError("internal","index rowid tail is not integer");this.#deferredRowids.set(op.p2,raw.value);this.#records.delete(op.p2);this.#recordRowids.set(op.p2,raw.value);break;}
           case "DeferredIndexSeek": {this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const record=this.#records.get(op.p1),cursor=this.#indexCursors.get(op.p2);if(!record||!cursor)throw new JSQLiteError("internal","deferred index seek on unopened cursor");const values=op.primaryKeyFields.map(ordinal=>{const raw=record.field(ordinal);if(raw===undefined)throw new BtreeFormatError("secondary key is missing a primary-key field");return memFromRawRecord(raw,this.#borrow)});const key=new UnpackedRecordKey(values,0,"seek",op.physical.keyInfo);try{if(!cursor.seek(payload=>compareRecordKey(payload,key,op.physical.keyInfo),"ge"))throw new BtreeFormatError("secondary key does not reference a primary row");this.#loadIndexRecord(op.p2);}finally{key.release();}break;}
@@ -10128,6 +10156,21 @@ export class VdbeStatement implements Statement {
           case "Integer": {const old=this.#inSets.get(op.p2);if(old){for(const value of old.values)value.release();this.#privateBytes.release(old.bytes);this.#inSets.delete(op.p2);}this.#registers[op.p2]!.setInt64(op.p1);break;}
           case "Real": this.#registers[op.p2]!.setDouble(op.p1); break;
           case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
+          case "FilterInit": {
+            const filter=await PrivateBloomFilter.open(this.#privateBytes,op.bytes,this.#privateControl(options,limit,started));
+            this.#filters.get(op.p1)?.close();this.#filters.set(op.p1,filter);break;
+          }
+          case "FilterAdd":case "Filter": {
+            const filter=this.#filters.get(op.p1);
+            if(!filter)throw new JSQLiteError('internal','uninitialized filter');
+            // Check work before synchronously borrowing registers. Hashing and
+            // bit publication have no await-time input mutation window.
+            await this.#privateControl(options,limit,started).checkpoint(op.p4);
+            const values=this.#registers.slice(op.p3,op.p3+op.p4);
+            if(op.code==='FilterAdd')filter.add(values);
+            else if(filter.absent(values))this.#pc=op.p2;
+            break;
+          }
           case "Blob": this.#registers[op.p2]!.setBlob(op.p1,{encoding:this.#program.encoding}); break;
           case "RowSetTest": {
             if (!Number.isInteger(op.p4) || op.p4 < -1 || this.#registers[op.p3]!.initialStorageClass !== "integer") throw new JSQLiteError("internal", "invalid RowSetTest operands");
@@ -10333,6 +10376,8 @@ export class VdbeStatement implements Statement {
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateKeys.clear();
+    for(const filter of this.#filters.values())try{filter.close()}catch(error){if(diagnostic===null)diagnostic=error}
+    this.#filters.clear();
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();for(const register of this.#registers)if(register.rowSet())try{register.setNull()}catch(error){if(diagnostic===null)diagnostic=error}for(const set of this.#inSets.values()){for(const value of set.values)value.release();this.#privateBytes.release(set.bytes);}this.#inSets.clear();this.#borrow.invalidate();
     return diagnostic;

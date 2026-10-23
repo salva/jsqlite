@@ -1,5 +1,19 @@
 # SQLite source map
 
+### Shared automatic/Bloom prerequisites (not SQL enrollment)
+
+`vdbe.c:filterHash`, `vdbemem.c:sqlite3VdbeIntValue` →
+`Mem.filterHashContribution`, `private-bloom.ts:filterHash` (unsigned64 sum).
+`vdbe.c:OP_FilterAdd/OP_Filter` → execution-owned `PrivateBloomFilter` and VM
+dispatch; zero-filled native Blob allocation → charged internal FilterInit.
+`vdbe.c:OP_SeekGE/GT/LE/LT`, `OP_IdxGT/GE/LT/LE` →
+`PrivateKeyVmCursor.seekBound/boundJump`, packed indexMoveto/payload owners;
+`vdbe.ts:IndexSeekPrefix/IndexPrefixEnd` private dispatch preserves persistent
+and exact Found/IN ownership. Tests: `private-bloom*.test.mjs`,
+`private-key-vm-bound.test.mjs`, `private-key-vm-prefix-dispatch.test.mjs`.
+[Evidence and pending gates](research/where-autoindex-primitives.md).
+Automatic/standalone descriptors and runtime enrollment remain absent.
+
 ### Scalar comparison affinity
 
 `expr.c:codeCompare/binaryCompareP5/sqlite3CompareAffinity` →

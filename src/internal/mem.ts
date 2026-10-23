@@ -424,6 +424,17 @@ export class Mem {
     if (this.#numeric?.kind === "integer" || this.#numeric?.kind === "int-real") return this.#numeric.value;
     throw new MemStateError("Mem does not contain an exact integer form");
   }
+  /** vdbe.c:filterHash contribution. Numeric flags precede cached text.
+   * Native intentionally hashes all strings alike, and all BLOBs alike. */
+  filterHashContribution(): bigint {
+    if (this.#numeric !== null) {
+      return this.#numeric.kind === "real"
+        ? realToI64(this.#numeric.value as number) : this.#numeric.value as bigint;
+    }
+    if (this.#bytes !== null) return BigInt(4093 + (this.#bytes.kind === "text" ? 0x0002 : 0x0010));
+    if (this.#manifest !== "null") throw new MemStateError("filter key must be a scalar Mem");
+    return 0n;
+  }
   realValue(): number {
     if (this.#numeric?.kind === "real") return this.#numeric.value;
     if (this.#numeric?.kind === "int-real") return Number(this.#numeric.value);

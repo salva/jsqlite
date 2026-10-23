@@ -470,7 +470,15 @@ The [runtime automatic-index/Bloom decision](research/where-autoindex-admission.
 is the current bounded beta.5 proposal: native costed transient covering indexes,
 shared packed private-Btree build/probe, source Bloom hash/filter and execution-owned
 Once/resource lifetime, with native-FIRST captures and existing-owner handoff.
-Runtime support is still missing; correct scan results are not implementation credit.
+Runtime enrollment is still missing; correct scan results are not implementation credit.
+The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
+existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.
+Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
+primitives are available; FilterInit represents native zero-filled Blob storage
+with a separate private owner so ordinary Mem copies cannot alias mutable filter
+state. No SQL producer currently emits them. Candidate/admission descriptors,
+collation/multipage boundary coverage and full consumer/resource acceptance remain
+pending; [primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.
 [Executable boundary and pending private work contract](research/where-autoindex-boundary.md)
 provide native negative-bit/collision and semantic controls, not runtime acceptance.
 The [beta.4 two-axis inventory](research/where-beta4-admission.md) is historical
