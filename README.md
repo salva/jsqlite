@@ -1,5 +1,11 @@
 # JSQLite2
 
+**Public beta: [0.0.0-beta.4](https://github.com/salva/jsqlite/releases/tag/v0.0.0-beta.4).**
+Browser-safe read-only SQLite, released under [GNU GPL v3 or later](LICENSE).
+[Release scope, validation and remaining limitations](docs/releases/beta.4.md).
+Try the [live playground](https://salva.github.io/jsqlite/).
+No npm registry publication; install the GitHub release tarball.
+
 A fresh TypeScript translation of SQLite's read-only C implementation and tests
 for browsers and Fetch-compatible runtimes. The runtime must not embed
 C, native SQLite, or WebAssembly.
@@ -32,31 +38,24 @@ The archive itself is ignored by Git and can be downloaded again from that URL
 and verified against the manifest.
 The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
-## PRIVATE LOCAL alpha
+## Public beta.4
 
-The current local distributable is **0.0.0-alpha.6**, a bounded read-only
-browser ESM package, not full SQLite compatibility or arbitrary SQL composition.
-[Exact artifact/source and package evidence](docs/research/card-v-a-alpha-six.md)
-identify the tested source, retained local acquisition path and finite independent
-acceptance. SPEC breadth is unchanged; untranslated in-scope constructs remain
-temporary gaps, not new exclusions. Performance observations are finite tests,
-not workload-wide latency/heap guarantees or other-browser proof.
+This release packages the independently accepted local-beta engine from
+`f6ae8c3dfc9963b1a8f0aa02c60b8dee7784734d` (runtime `7d9a7822620adc8559f003b63cf7cd730b3effdc`). Release changes add version/license,
+packaging checks and documentation, not engine changes. It is not full SQLite
+compatibility or arbitrary SQL-composition support. All database text encodings
+(UTF-8, UTF-16le, UTF-16be) are covered by the represented tests. SPEC breadth is
+unchanged; untranslated in-scope constructs remain temporary gaps.
 
-Immediate public alpha.6 publication is **WITHDRAWN/DEFERRED**, not completed.
-Historical [public alpha.5](https://github.com/salva/jsqlite/releases/tag/v0.0.0-alpha.5)
-has a different source/artifact and remains unchanged. Do not use its download as
-current-engine delivery. The immutable alpha.6 tarball contains a historical
-README still naming alpha.5; use this mutable guidance instead. Documentation
-successors (including evidence-only `b566e75a`) are not the tested packed source.
+Earlier alpha artifacts and their disclosed limitations remain immutable.
+Historical private/deferred-alpha instructions in research documents describe
+their original handoffs, not this owner-authorized public beta.
 
 ```sh
-# Local handoff only: obtain the retained tarball from the package evidence below.
-# Set ALPHA6_TGZ to that local file, not the historical public alpha.5 download.
-: "${ALPHA6_TGZ:?set to the retained jsqlite2-0.0.0-alpha.6.tgz}"
-printf '%s  %s\n' \
-  66dfc717f6b490b347f67064afea59a076d3c7ac462bde29e702c543949019d8 \
-  "$ALPHA6_TGZ" | sha256sum --check -
-npm install --ignore-scripts --no-audit --no-fund "$ALPHA6_TGZ"
+curl -fLO https://github.com/salva/jsqlite/releases/download/v0.0.0-beta.4/jsqlite2-0.0.0-beta.4.tgz
+curl -fLO https://github.com/salva/jsqlite/releases/download/v0.0.0-beta.4/SHA256SUMS
+# Check the tarball entry against SHA256SUMS before installation.
+npm install --ignore-scripts --no-audit --no-fund ./jsqlite2-0.0.0-beta.4.tgz
 ```
 
 ```ts
@@ -123,10 +122,9 @@ Requires ES2022 (including BigInt), Fetch/Streams, AbortController, text codecs,
 and Web Crypto for SQL randomness. No runtime dependencies, Node APIs, native
 SQLite, WASM, dynamic code generation or telemetry are shipped.
 
-The development package remains **private**, versioned `0.0.0-local-translated`;
-the explicit-source local alpha command applies a recorded `0.0.0-alpha.N`
-metadata overlay in its isolated export. Neither is registry release approval
-or a claim of full SQLite compatibility. SQL admission remains bounded above.
+The package retains **private: true** to prevent accidental npm registry
+publication; beta.4 is distributed as a versioned GitHub tarball. This is not
+a claim of full SQLite compatibility. SQL admission remains bounded above.
 Packaging explicitly includes only emitted JS/declarations, plus npm's mandatory
 package metadata and this README; reference sources, fixtures, tools and research
 are development-only. `npm pack` rebuilds before packing.
