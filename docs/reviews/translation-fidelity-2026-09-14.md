@@ -10,6 +10,15 @@ A bounded two-source rowid-LHS/WR-RHS pair now admits selected access (author
 validation, independent acceptance open). Pinned wherecode.c2175 exact primary
 positioning and complete secondary PK extraction feed existing typed Found/IdxInsert;
 [decision and evidence](../research/wr-matched-evidence.md). The fresh-drain caller now retains WHERE_RIGHT_JOIN semantics after clearing jointype, so stale secondary PKs take exact NotFound/continue instead of deferred-lookup error. Representative selected mixed-PK/physical-empty/metadata/reset/native-corruption controls and first-admitted/second-rejected match capacity are author-tested there; entire-delta independent review remains open.
+The current author primitive consolidation retains independent cursor paths, exact
+membership false-before-publication, demand-decoded Column state and invalidation
+before physical movement including EOF. OP_Column's terminal header/data-size
+check is distinct from permissive generic record unpacking. Comparator direct
+INTEGER/TEXT paths retain per-call ownership/conversion, not persistent RHS
+mutation. LEFT IN NULL continuation preserves the initial IfNotOpen target unless
+EARLYOUT retargets past IfNoHope. [Current source decisions and finite controls](../research/wr-matched-evidence.md#persistent-primitive-consolidation--author-decisions)
+qualify these repairs; no entire-delta independent acceptance or performance
+causality is inferred from the passing original HTTP gate.
 Qualified expression-index leaves now retain resolved source ownership while nested
 COLLATE remains structural. [Three-source source/caller argument and controls](../research/three-source-matched-evidence.md)
 documents the extension independently accepted in [[card:card-s]]

@@ -1,3 +1,4 @@
+import { sqliteUtf16ToUtf8 } from "../../src/internal/utf.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BorrowLifetime, Mem } from "../../src/internal/mem.ts";
@@ -7,8 +8,20 @@ import {
   compareMem,
   compareRecordKey,
   KeyInfo,
+  UnpackedRecordKey,
   unpackRecordKey,
 } from "../../src/internal/comparison.ts";
+
+test('synchronous register search key releases only its descriptor',()=>{
+  const value=integer(42), info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{collation:'binary'}]});
+  const key=new UnpackedRecordKey([value],0,'seek',info,false);
+  assert.equal(compareRecordKey(bytes(2,1,42),key,info),0);
+  key.release();key.release();assert.equal(value.integerValue(),42n);
+  assert.throws(()=>compareRecordKey(bytes(2,1,42),key,info));
+  const again=new UnpackedRecordKey([value],0,'seek',info,false);
+  assert.throws(()=>compareRecordKey(bytes(2,1),again,info));
+  again.release();assert.equal(value.integerValue(),42n);value.release();
+});
 
 const bytes = (...values) => Uint8Array.from(values);
 function integer(value) { const mem = new Mem(); mem.setInt64(BigInt(value)); return mem; }
@@ -24,6 +37,94 @@ function ascii(value, encoding) {
 }
 
 const keyInfo = (term = {}) => new KeyInfo({ encoding: "utf-8", totalFieldCount: 2, keyFieldCount: 1, terms: [{ collation: "binary", ...term }] });
+
+test("UTF16 direct output follows utf.c WRITE_UTF8 and counted terminator boundary", () => {
+  const vectors=[
+    [[],[]], [[0x41],[0x41]], [[0x7f,0x80,0x7ff],[0x7f,0xc2,0x80,0xdf,0xbf]],
+    [[0x800,0xffff],[0xe0,0xa0,0x80,0xef,0xbf,0xbf]],
+    [[0xd800],[0xed,0xa0,0x80]], [[0xdc00],[0xed,0xb0,0x80]],
+    [[0xd800,0xdc00],[0xf0,0x90,0x80,0x80]],
+    [[0xdbff,0xdfff],[0xf4,0x8f,0xbf,0xbf]],
+    [[0xdc00,0x41],[0xf0,0x90,0x81,0x81]], [[0,0x41],[0,0x41]],
+  ];
+  for(const encoding of ["utf-16le","utf-16be"]) for(const [units,expected] of vectors) {
+    const input=bytes(...units.flatMap(c=>encoding==="utf-16le"?[c&255,c>>8]:[c>>8,c&255]));
+    for(const source of [input,bytes(...input,0xff)]) {
+      const result=sqliteUtf16ToUtf8(source,encoding);
+      assert.deepEqual(result,bytes(...expected));
+      assert.equal(result.buffer.byteLength,2*input.length+1);
+      assert.equal(new Uint8Array(result.buffer)[result.byteLength],0);
+    }
+  }
+});
+
+test("UTF16 builtin conversion shares Mem primitive for malformed units without mutation", () => {
+  for (const encoding of ["utf-16le", "utf-16be"]) {
+    const vectors = [[],[0x41],[0x41,0],[0,0],[0,0xd8],[0,0xdc],[0,0xd8,0x41,0],[0xff,0xff],[0x20,0,0x41]];
+    for (const a of vectors) for (const b of vectors) {
+      const left=bytes(...a), right=bytes(...b), savedLeft=left.slice(), savedRight=right.slice();
+      const l=text(a,encoding), r=text(b,encoding);
+      l.changeEncoding("utf-8"); r.changeEncoding("utf-8");
+      for (const kind of ["nocase","rtrim"]) assert.equal(compareBuiltinText(kind,left,right,encoding),compareBuiltinText(kind,l.textBytes(),r.textBytes(),"utf-8"));
+      assert.deepEqual(left,savedLeft); assert.deepEqual(right,savedRight);
+    }
+  }
+});
+
+test("serialized TEXT cross-encoding collation matches private Mem comparison", () => {
+  const encodings=["utf-8","utf-16le","utf-16be"];
+  for(const encoding of encodings) for(const callbackEncoding of encodings) for(const kind of ["binary","nocase","rtrim"]) {
+    const collation={kind,encoding:callbackEncoding};
+    const info=new KeyInfo({encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation,desc:true}]});
+    for(const a of ["A","a ","a\u0000b",""]) for(const b of ["a","A ","a\u0000c",""]) {
+      const left=ascii(a,encoding),right=ascii(b,encoding);
+      const life=new BorrowLifetime();
+      const rhs=unpackRecordKey(bytes(2,13+2*right.length,...right),info,life);
+      const expected=compareMem(text(left,encoding),text(right,encoding),collation);
+      assert.equal(compareRecordKey(bytes(2,13+2*left.length,...left),rhs,info),expected===0?0:-expected);
+      assert.deepEqual(rhs.values[0].textBytes(),right);
+      life.invalidate();
+      assert.throws(()=>compareRecordKey(bytes(2,13+2*left.length,...left),rhs,info));
+      rhs.release();life.close();
+    }
+  }
+});
+
+test("record direct serial comparison preserves Mem ordering, suffixes and limits", () => {
+  for (const encoding of ["utf-8", "utf-16le", "utf-16be"]) {
+    for (const collation of ["binary", "nocase", "rtrim"]) {
+      for (const desc of [false, true]) {
+        const info = new KeyInfo({encoding, totalFieldCount: 2, keyFieldCount: 2,
+          terms: [{collation, desc, nullsLarge: true}, {collation: "binary"}]});
+        const fields = [
+          {serial: 1, payload: bytes(0xff), mem: integer(-1)},
+          {serial: 9, payload: bytes(), mem: integer(1)},
+          ...["A", "a", "a ", "a\u0000b"].map(s => {
+            const payload = ascii(s, encoding);
+            return {serial: 13 + 2 * payload.length, payload, mem: text(payload, encoding)};
+          }),
+          {serial: 12, payload: bytes(), mem: blob()},
+          {serial: 0, payload: bytes(), mem: new Mem()},
+        ];
+        const packed = f => bytes(3, f.serial, 9, ...f.payload);
+        for (const left of fields) for (const right of fields) {
+          const life = new BorrowLifetime();
+          const rhs = unpackRecordKey(packed(right), info, life, {defaultRc: 1});
+          const result = compareMem(left.mem, right.mem, collation);
+          const isNull = left.serial === 0 || right.serial === 0;
+          const ordered = result * (isNull ? -1 : 1) * (desc ? -1 : 1);
+          assert.equal(compareRecordKey(packed(left), rhs, info), ordered === 0 ? 1 : ordered);
+          assert.equal(rhs.eqSeen, result === 0);
+          assert.throws(() => compareRecordKey(packed(left), rhs, info, {maxFields: 0}), ComparisonError);
+          rhs.release(); life.close();
+        }
+        const rhs = unpackRecordKey(bytes(3, 9, 9), info, new BorrowLifetime());
+        assert.throws(() => compareRecordKey(bytes(2, 9), rhs, info), e => e.reason === "corrupt");
+        rhs.release();
+      }
+    }
+  }
+});
 
 test("sqlite3MemCompare storage classes and exact INTEGER/REAL boundaries", () => {
   const nil = new Mem();

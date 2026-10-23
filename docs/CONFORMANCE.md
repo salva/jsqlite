@@ -13,6 +13,20 @@ There are three intentionally separate kinds of evidence:
 3. **TypeScript/runtime evidence**: only operations actually reached through the public adapter or a clearly labelled internal storage/parser test. A mapped-but-unreached SQL assertion receives zero TS credit.
 
 
+## Persistent cursor and selected-IN consolidation (author evidence)
+
+The current [WR evidence and source decisions](research/wr-matched-evidence.md#persistent-primitive-consolidation--author-decisions)
+cover exact membership, independent cursor positions, probe-demand payload parsing,
+Column terminal-header rejection and movement/EOF cache invalidation. Generic
+unpack trailing bytes remain a distinct contract. LEFT IN continuation controls
+cover both directions, vector NULL guards and EARLYOUT's affinity-sensitive target.
+These internal source-owner controls are no-credit companions, not new upstream
+SQL assertions. Existing selected IN/range and WR/OR public native fixtures retain
+their denominators and forced/unforced access witnesses; passing them does not
+establish optimizer parity or entire-delta independent acceptance. Exact candidate
+commands/results, failed prerequisites and original HTTP-gate variability are in
+[[card:card-s-c-d-e]] [status](record:///status.md?card=card-s-c-d-e).
+
 ## Window functions tests-before-port gate ([[card:card-o-a-b]])
 
 This is the immutable historical parser/resolver/rewrite/allocation denominator, not overall current window-runtime accounting; the aggregate and special execution denominators later in this document are separate and supersede its runtime status for represented shapes.

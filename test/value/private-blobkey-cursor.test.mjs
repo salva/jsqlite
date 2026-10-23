@@ -173,7 +173,10 @@ test('stack capacity stays charged across root rewind and failed child acquisiti
  let fail=false;const {arena,cursor:c,budget}=await open((event,pg)=>{if(fail&&event==='acquire'&&pg===3)throw new Error('child acquire')});
  arena.installPage(2,fixture([20],[3,4]));arena.installPage(3,fixture([5,10]));arena.installPage(4,fixture([25,30]));
  const base=budget.usedBytes;await seek(c,10);const retained=budget.usedBytes;assert.ok(retained>base);
- await seek(c,20);assert.equal(c.position.parents.length,0);assert.equal(budget.usedBytes,retained-PRIVATE_LEASE_CHARGE-2*PRIVATE_SUBVIEW_CHARGE-PRIVATE_ITERATOR_CHARGE-2*PRIVATE_ITERATOR_RESULT_CHARGE+128);
+ // Direct serialized INTEGER comparison reads indexed bytes. The child owns
+ // only its packed subview, not a value subview/iterator/results. Root rewind
+ // releases it; the root comparison and result add 64 bytes each.
+ await seek(c,20);assert.equal(c.position.parents.length,0);assert.equal(budget.usedBytes,retained-PRIVATE_LEASE_CHARGE-PRIVATE_SUBVIEW_CHARGE+128);
  fail=true;await assert.rejects(seek(c,10),/child acquire/);assert.equal(c.position.page,2);assert.equal(c.position.parents.length,0);assert.equal(budget.usedBytes,retained-PRIVATE_LEASE_CHARGE+256);
  c.close();c.close();assert.equal(budget.usedBytes,base-PRIVATE_CURSOR_CHARGE);arena.close();assert.equal(budget.usedBytes,0);
 });

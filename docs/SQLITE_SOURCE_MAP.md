@@ -1,5 +1,28 @@
 # SQLite source map
 
+### Persistent cursor demand and comparison primitives
+
+`btree.c:sqlite3BtreeIndexMoveto`, `cursorOnLastPage`, movement parent pages →
+`btree.ts:indexSeek/indexMove/IndexCursor`: cursor-owned initialized Page path,
+probe-only payload-header decoding and default_rc0 exact membership. Boundary
+seek still descends equal prefixes; rightmost-leaf restart requires a strictly
+smaller first key rather than native nearest-cell/pRes equality. This bounded
+boundary-API adaptation does not claim full IndexMoveto parity.
+`vdbe.c:OP_Column/next_tail/OP_NullRow` → `record.ts:CursorRecord` and
+`vdbe.ts` demand/loading/movement owners: parse demanded serial prefix, check
+terminal header/data consumption, invalidate on physical movement/null/reset.
+`vdbeaux.c:sqlite3VdbeRecordCompareWithSkip/vdbeRecordDecodeInt` →
+`RawRecordReader.advance/integer`, `comparison.ts:compareRecordKey`; generic
+unpacking retains trailing-byte behavior independently of OP_Column.
+`vdbe.c:OP_Found/OP_NotFound r.aMem` → synchronous register-backed
+`UnpackedRecordKey(...,false)`, descriptor-only finally release; owning keys
+retain value release. `utf.c:sqlite3VdbeMemTranslate` → `utf.ts` bounded UTF16
+conversion and private per-call comparison conversion (no persistent RHS cache).
+Controls: `test/storage/{btree-reader,record-primitives}.test.mjs`,
+`test/value/comparison.test.mjs`, public `wr-matched-*`, `wr-boundary`,
+`in-range-selected-red`, `or-wr-right`. Decisions, exact evidence applicability
+and remaining entire-delta acceptance: [WR evidence](research/wr-matched-evidence.md).
+
 ### Joined WHERE readiness frontier
 
 `wherecode.c:sqlite3WhereCodeOneLoopStart` ripe base-term loop and
@@ -127,7 +150,11 @@ uses Rowid plus table movement for ROWID, Column plus index movement otherwise.
 linked producer, KeyInfo/affinity, Once and original parameter ownership.
 `wherecode.c:codeINTerm` / `where.c:sqlite3WhereEnd` → `where-in-loop.ts`,
 `vdbe.ts:emitInAdvance` and selected ordinary/join/OR callers position, copy,
-skip NULL and unwind RHS slots inside-out. `wherecode.c:disableTerm` →
+skip NULL and unwind RHS slots inside-out. LEFT continuation retains the initial
+NULL-to-IfNotOpen target unless EARLYOUT retargets past IfNoHope to movement,
+matching sqlite3WhereEnd's two JumpHere sites. Controls:
+`where-in-loop.test.mjs`, `private-in-left-continuation.test.mjs` (both directions).
+`wherecode.c:disableTerm` →
 `vdbe.ts:compileInnerTableSelect` invocation-owned exact equality-term coding,
 prerequisite/LEFT-WHERE guards and owning ON omission before match production.
 `selected-select-in-reuse-matrix.test.mjs` / `capture-select-in-reuse-matrix.py`

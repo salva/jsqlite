@@ -393,7 +393,18 @@ page traversal, record decoding and text conversion. TS owners are `storage.ts`,
 bounded validated file bytes rather than implementing dirty-page journals and
 write locks. Overflow chains and page/record bounds must remain checked; cursor
 position before/after seek, first, next and EOF follows the relevant upstream
-branch, not a post-crash workaround.
+branch, not a post-crash workaround. Persistent comparison/demand/cache ownership
+follows the [current primitive mapping](SQLITE_SOURCE_MAP.md#persistent-cursor-demand-and-comparison-primitives)
+and [source-based dispositions](research/wr-matched-evidence.md#persistent-primitive-consolidation--author-decisions).
+Physical Next/Prev invalidate demand records and rowid state on EOF as well as
+successful movement, matching `vdbe.c:next_tail`; no old payload is published as
+current after DONE. The persistent `CursorRecord` demand cache
+follows OP_Column's terminal-header check: once the requested header parse reaches
+its end, the data offsets must consume the full payload before that field is
+published. Earlier demanded fields do not force unused serial headers. Generic
+`RawRecordReader` unpacking retains its separate trailing-byte contract. Source
+branches and finite repair evidence: [[card:card-s-c-d-e]] status; the focused
+source-derived cache controls are in `test/storage/record-primitives.test.mjs`.
 
 Schema loading reads immutable `sqlite_schema` internally and parses definitions
 into table/column/index/view descriptors. Declared affinity, collation, INTEGER
@@ -471,7 +482,11 @@ produce native-shaped SRT_Set into a UNIQUE private Btree. Physical RHS directio
 is independent of the LHS direction and retains its own KeyInfo. Both paths
 position/copy/skip NULL before selected LHS prefix/range seeks. Ordinary,
 joined and recursive-OR slot callers share inside-out RHS advancement; seek/end
-failure advances rather than rewinding the innermost slot. Joined equality-slot
+failure advances rather than rewinding the innermost slot. LEFT NULL guards
+retain WhereEnd's initial unopened-cursor guard target; only EARLYOUT retargets
+them past IfNoHope to movement after bypassed affinity. Both directions and
+vector fields are covered in `where-in-loop.test.mjs` and
+`private-in-left-continuation.test.mjs`. Joined equality-slot
 admission publishes invocation-owned disableTerm state only for exact enforced
 conjuncts at their prerequisite frontier: ordinary WHERE cannot be omitted on a
 LEFT level; an owning ON conjunct can, before match/null-extension production.

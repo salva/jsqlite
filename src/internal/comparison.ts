@@ -2,6 +2,7 @@
 // Source: SQLite 3.53.4 vdbeaux.c:sqlite3MemCompare,
 // sqlite3IntFloatCompare/sqlite3VdbeRecordCompare and
 // main.c:binCollFunc/nocaseCollatingFunc/rtrimCollFunc.
+import { sqliteUtf16ToUtf8 } from "./utf.ts";
 import { BorrowLifetime, type BorrowToken, Mem, MemError, memFromRawRecord } from "./mem.ts";
 import { decodeVarint, decodeRecord, type DatabaseEncoding, RawRecordReader, RecordFormatError } from "./record.ts";
 
@@ -88,11 +89,13 @@ export class UnpackedRecordKey {
   errCode = 0;
   eqSeen = false;
   #released = false;
-  constructor(values: readonly Mem[], defaultRc: -1 | 0 | 1, caller: "record" | "seek" | "stat4", keyInfo: KeyInfo) {
+  readonly #releaseValues: boolean;
+  constructor(values: readonly Mem[], defaultRc: -1 | 0 | 1, caller: "record" | "seek" | "stat4", keyInfo: KeyInfo, releaseValues = true) {
+    this.#releaseValues = releaseValues;
     this.nField = values.length; this.values = Object.freeze([...values]); this.defaultRc = defaultRc; this.caller = caller; this.keyInfo = keyInfo;
   }
   assertLive(): void { if (this.#released) throw new ComparisonError("internal", "unpacked record key has been released"); }
-  release(): void { if (!this.#released) { for (const value of this.values) value.release(); this.#released = true; } }
+  release(): void { if (!this.#released) { if(this.#releaseValues)for (const value of this.values) value.release(); this.#released = true; } }
 }
 
 function sign(value: number): -1 | 0 | 1 { return value < 0 ? -1 : value > 0 ? 1 : 0; }
@@ -116,8 +119,10 @@ function nocaseCompare(left: Uint8Array, right: Uint8Array): -1 | 0 | 1 {
 }
 function asUtf8(bytes: Uint8Array, encoding: DatabaseEncoding): Uint8Array {
   if (encoding === "utf-8") return bytes;
-  const value = new Mem(); value.setText(bytes, encoding, { ownership: "static" });
-  value.changeEncoding("utf-8"); return value.textBytes();
+  // vdbeCompareMemStringWithEncodingChange uses private shallow copies, not
+  // persistent RHS cache mutation. Byte inputs can use Mem.changeEncoding's
+  // same utf.c primitive directly, with no temporary Mem/borrow generations.
+  return sqliteUtf16ToUtf8(bytes, encoding);
 }
 
 /** Compare byte-counted TEXT. Embedded NUL is data. NOCASE and RTRIM are the
@@ -274,8 +279,7 @@ export function compareRecordKey(packed: Uint8Array, unpacked: UnpackedRecordKey
       if (limits.maxFields !== undefined && comparedFields >= limits.maxFields) {
         throw new ComparisonError("limit", "packed key exceeds configured field limit");
       }
-      const raw = reader.next();
-      if (raw === null) {
+      if (!reader.advance()) {
         // In 3.53.4 prefix intent belongs to the unpacked RHS nField. Once
         // another RHS field is requested, exhaustion of the packed LHS header
         // is a corrupt index record, not an equal prefix/default_rc result.
@@ -285,8 +289,37 @@ export function compareRecordKey(packed: Uint8Array, unpacked: UnpackedRecordKey
       if (limits.maxWorkUnits !== undefined && packed.byteLength + comparedFields > limits.maxWorkUnits) {
         throw new ComparisonError("limit", "packed key exceeds configured work limit");
       }
-      const right = memFromRawRecord(raw, lifetime);
       const term = keyInfo.terms[i]!;
+      const rhs = unpacked.values[i]!;
+      // vdbeaux.c RecordCompareWithSkip's numeric branch and
+      // RecordCompareInt compare integers without constructing a temporary Mem.
+      // Equal fields continue with the same header/payload offsets.
+      const serial = reader.serialNumber;
+      if (((serial >= 1 && serial <= 6) || serial === 8 || serial === 9) && rhs.initialStorageClass === "integer") {
+        const lhs = reader.integer();
+        const value = rhs.integerValue();
+        const result = lhs < value ? -1 : lhs > value ? 1 : 0;
+        if (result !== 0) return term.desc ? -result as -1 | 1 : result;
+        continue;
+      }
+      // RecordCompareWithSkip: serialized TEXT is a private byte view; only
+      // conversion temporaries are owned. Never mutate/cache the RHS input.
+      if (serial >= 13 && serial % 2 !== 0 && rhs.initialStorageClass === "text") {
+        const spec = collationSpec(term.collation, keyInfo.encoding);
+        const lhs = packed.subarray(reader.fieldOffset, reader.fieldOffset + reader.fieldLength);
+        const rhsEncoding = rhs.diagnostic().encoding!;
+        const convert = (bytes: Uint8Array, from: DatabaseEncoding): Uint8Array => {
+          if (from === spec.encoding) return bytes;
+          if (spec.encoding === "utf-8") return asUtf8(bytes, from);
+          const temporary = new Mem(); temporary.setText(bytes, from, { ownership: "static" });
+          temporary.changeEncoding(spec.encoding); return temporary.textBytes();
+        };
+        const result = compareBuiltinText(spec.kind, convert(lhs, keyInfo.encoding), convert(rhs.textBytes(), rhsEncoding), spec.encoding);
+        if (result !== 0) return term.desc ? -result as -1 | 1 : result;
+        continue;
+      }
+      const raw = reader.value();
+      const right = memFromRawRecord(raw, lifetime);
       try {
         let result = compareMem(right, unpacked.values[i]!, term.collation);
         if (result !== 0) {

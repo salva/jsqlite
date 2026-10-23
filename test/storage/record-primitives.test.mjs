@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 
 import {
+  CursorRecord,
   decodeRecord,
   decodeVarint,
+  RawRecordReader,
   RecordFormatError,
 } from "../../src/internal/record.ts";
 
@@ -18,6 +21,22 @@ import {
  * companions and carry no native/upstream conformance credit.
  */
 
+// vdbe.c next_tail invalidates even on SQLITE_DONE. Public join/reset tests
+// exercise consumers; this source guard protects the EOF arm specifically.
+test("persistent movement invalidates demand cache before success or EOF", () => {
+  const source = fs.readFileSync(new URL("../../src/internal/vdbe.ts", import.meta.url), "utf8");
+  for (const [opcode, movement] of [["Next", "if(table?table.next()"], ["Prev", "if(table.previous()"],
+    ["IndexNext", "if(cursor.next()"], ["IndexPrev", "if(cursor.previous()"]]) {
+    const start = source.indexOf(`case "${opcode}": {`, source.indexOf("export class VdbeStatement"));
+    assert.ok(start >= 0);
+    const end = source.indexOf(movement, start);
+    assert.ok(end > start);
+    const owner = source.slice(start, end);
+    assert.ok(owner.includes("this.#records.delete("), opcode);
+    assert.ok(owner.includes("this.#recordRowids.delete("), opcode);
+  }
+});
+
 function record(serialTypes, ...payloads) {
   assert(serialTypes.every((value) => value >= 0 && value < 128));
   const header = Uint8Array.of(serialTypes.length + 1, ...serialTypes);
@@ -31,6 +50,73 @@ function record(serialTypes, ...payloads) {
   }
   return bytes;
 }
+
+test("number serial classification retains multibyte bounds and reserved rejection", () => {
+  const data = new Uint8Array(68); data.set([3, 0x81, 0x0d]); // serial141, TEXT64
+  const reader = new RawRecordReader(data, "utf-8");
+  assert.equal(reader.advance(), true);
+  assert.equal(reader.serialNumber, 141);
+  assert.equal(reader.serialType, 141n);
+  assert.equal(reader.fieldLength, 64);
+  assert.equal(reader.value().storageClass, "text");
+  for (const serial of [10,11]) assert.throws(() => new RawRecordReader(Uint8Array.of(2,serial), "utf-8").advance(), e => e.reason === "reserved-serial-type");
+  assert.throws(() => new RawRecordReader(Uint8Array.of(3,0x81,0x0d), "utf-8").advance(), e => e.reason === "truncated-payload");
+});
+
+test("serial advance retains offsets and signed integer values without materialization", () => {
+  for (const [serial, length] of [[1,1],[2,2],[3,3],[4,4],[5,6],[6,8],[8,0],[9,0]]) {
+    for (const fill of [0, 0x7f, 0x80, 0xff]) {
+      const data = record([serial, 9], new Uint8Array(length).fill(fill));
+      const expected = decodeRecord(data, "utf-8");
+      const reader = new RawRecordReader(data, "utf-8");
+      assert.equal(reader.advance(), true);
+      assert.equal(reader.serialType, BigInt(serial));
+      assert.equal(reader.fieldOffset, 3);
+      assert.equal(reader.fieldLength, length);
+      assert.equal(reader.integer(), expected.values[0].value);
+      assert.deepEqual(reader.value(), expected.values[0]);
+      assert.deepEqual(reader.next(), expected.values[1]);
+      assert.equal(reader.advance(), false);
+    }
+  }
+  const damaged = new RawRecordReader(record([9, 6]), "utf-8");
+  assert.equal(damaged.advance(), true);
+  assert.throws(() => damaged.advance(), RecordFormatError);
+});
+
+test("cursor record cache acquires once, decodes demanded prefix and leaves unused corruption untouched", () => {
+  let reads = 0;
+  const cache = new CursorRecord(() => { reads++; return Uint8Array.of(3, 9, 10); }, "utf-8");
+  assert.equal(reads, 0);
+  assert.deepEqual(cache.field(0), {storageClass: "integer", value: 1n});
+  assert.equal(reads, 1);
+  assert.deepEqual(cache.field(0), {storageClass: "integer", value: 1n});
+  expectReason("reserved-serial-type", () => cache.field(1));
+  assert.equal(reads, 1);
+  const next = new CursorRecord(() => Uint8Array.of(2, 8), "utf-8");
+  assert.deepEqual(next.last(), {storageClass: "integer", value: 0n});
+  assert.equal(next.field(2), undefined);
+});
+
+test("OP_Column cache rejects trailing payload before publishing the terminal field", () => {
+  for (const encoding of ["utf-8", "utf-16le", "utf-16be"]) {
+    for (const bytes of [Uint8Array.of(2, 9, 0x41), Uint8Array.of(2, 14, 0x41, 0x42)]) {
+      const cache = new CursorRecord(() => bytes, encoding);
+      for (const demand of [0, 0, 1]) expectReason("invalid-header", () => cache.field(demand));
+      expectReason("invalid-header", () => cache.last());
+      // Generic unpacking retains its caller-owned trailing-byte contract.
+      assert.equal(decodeRecord(bytes, encoding).values.length, 1);
+    }
+    const cache = new CursorRecord(() => Uint8Array.of(3, 9, 8, 0x41), encoding);
+    assert.deepEqual(cache.field(0), {storageClass: "integer", value: 1n});
+    for (const demand of [1, 2, 1]) expectReason("invalid-header", () => cache.field(demand));
+    assert.deepEqual(cache.field(0), {storageClass: "integer", value: 1n});
+    const valid = new CursorRecord(() => Uint8Array.of(3, 9, 8), encoding);
+    assert.deepEqual(valid.field(0), {storageClass: "integer", value: 1n});
+    assert.deepEqual(valid.last(), {storageClass: "integer", value: 0n});
+    assert.equal(valid.field(2), undefined);
+  }
+});
 
 function integer(serialType, payload) {
   const value = decodeRecord(record([serialType], payload), "utf-8").values[0];
@@ -52,6 +138,17 @@ test("UPSTREAM util.c sqlite3GetVarint: exact lengths and unsigned 64-bit result
   );
   const surrounded = Uint8Array.of(0xaa, 0x81, 0x01, 0xbb);
   assert.deepEqual(decodeVarint(surrounded, 1, 3), { value: 129n, length: 2 });
+});
+
+test("UPSTREAM util.c short varint branches exhaust their domains without reading past end", () => {
+  for (let value = 0; value < 16384; value++) {
+    const bytes = value < 128 ? Uint8Array.of(value, 0xff) : Uint8Array.of(0x80 | (value >>> 7), value & 127, 0xff);
+    const length = value < 128 ? 1 : 2;
+    assert.deepEqual(decodeVarint(bytes, 0, length), {value: BigInt(value), length});
+  }
+  expectReason("truncated-varint", () => decodeVarint(Uint8Array.of(0x81, 0), 0, 1));
+  expectReason("truncated-varint", () => decodeVarint(Uint8Array.of(0), 0, 0));
+  assert.deepEqual(decodeVarint(Uint8Array.of(0x81, 0x80, 0), 0), {value: 16384n, length: 3});
 });
 
 test("UPSTREAM serial 0-6,8,9: NULL, integer constants, every signed width and exact extrema", () => {

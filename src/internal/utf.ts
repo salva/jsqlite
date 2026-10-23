@@ -61,15 +61,20 @@ export function decodeSqliteText(bytes: Uint8Array, encoding: DatabaseEncoding):
  * SQLITE_REPLACE_INVALID_UTF. Write code points directly: an unpaired final
  * surrogate is three bytes, not a WHATWG replacement character. */
 export function sqliteUtf16ToUtf8(bytes:Uint8Array,encoding:DatabaseEncoding):Uint8Array {
-  const out:number[]=[],little=encoding==="utf-16le";
+  // utf.c allocates 2*n+1 after dropping an unmatched trailing byte.
+  // Keep the terminator outside the byte-counted result, as Mem.n does.
+  const end = bytes.length - bytes.length % 2;
+  const out = new Uint8Array(2 * end + 1), little = encoding === "utf-16le";
+  let written = 0;
   const unit=(at:number)=>little?bytes[at]!+bytes[at+1]!*256:bytes[at]!*256+bytes[at+1]!;
-  for(let at=0;at+1<bytes.length;){
+  for(let at=0;at<end;){
     let c=unit(at);at+=2;
-    if(c>=0xd800&&c<0xe000&&at+1<bytes.length){const c2=unit(at);at+=2;c=(c2&0x3ff)+((c&0x3f)<<10)+(((c&0x3c0)+0x40)<<10);}
-    if(c<0x80)out.push(c);
-    else if(c<0x800)out.push(0xc0+(c>>6),0x80+(c&0x3f));
-    else if(c<0x10000)out.push(0xe0+(c>>12),0x80+((c>>6)&0x3f),0x80+(c&0x3f));
-    else out.push(0xf0+(c>>18),0x80+((c>>12)&0x3f),0x80+((c>>6)&0x3f),0x80+(c&0x3f));
+    if(c>=0xd800&&c<0xe000&&at<end){const c2=unit(at);at+=2;c=(c2&0x3ff)+((c&0x3f)<<10)+(((c&0x3c0)+0x40)<<10);}
+    if(c<0x80)out[written++]=c;
+    else if(c<0x800){out[written++]=0xc0+(c>>6);out[written++]=0x80+(c&0x3f);}
+    else if(c<0x10000){out[written++]=0xe0+(c>>12);out[written++]=0x80+((c>>6)&0x3f);out[written++]=0x80+(c&0x3f);}
+    else {out[written++]=0xf0+(c>>18);out[written++]=0x80+((c>>12)&0x3f);out[written++]=0x80+((c>>6)&0x3f);out[written++]=0x80+(c&0x3f);}
   }
-  return Uint8Array.from(out);
+  out[written] = 0;
+  return out.subarray(0, written);
 }

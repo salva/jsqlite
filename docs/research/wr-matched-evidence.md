@@ -24,6 +24,71 @@ Native NOT INDEXED still selects wr_c; TS chooses its primary scan. It is semant
 
 On the final drain-covering guard input, proc-fa58b2facb57 passed60/60 plus tsc/diff: rowid selected/safety/residual, WR joined and all new boundary/lifecycle tests. Two requested paths in that invocation (`where-analysis.test.mjs`, `where-stat4.test.mjs`) do not exist; Node silently did not run them. Correct real paths were then run separately: proc-c5b52104f5c3 passed302/302 plus tsc/diff, including `where-plan-analysis.test.mjs`, `stat4-keystats.test.mjs` and new WR tests. Counts overlap, not additive. Proc-001a58aae814 additionally passed198/198 (repeated/nested RIGHT/FULL and WR joined/collation) plus tsc/diff. Supplemental nullable-OR gate did not pass: proc-c181064232b9 was interrupted after ~83s in or-wr-right, with four earlier passes and later files cancelled; proc-f33a22b16ab6 hit the original60s test timeout and required termination of its lingering server. No increased ceiling or passing claim. A bounded same-SQL public reproduction with maxWorkUnits10000 fails limit on changed input (proc-7119e7b5c406) and on a disposable git-archive of unchanged3bbbe684 (proc-f14da05e4922). This establishes a pre-existing work failure at that bound, not the timeout's exact cause or its resolution. Nullable-OR fallback remains a qualification for entire-delta review.
 
+### Consolidated-candidate validation
+
+The original missing-fixture diagnosis is resolved through existing
+`SKIPSCAN_NATIVE_ROOT`, not checked-in generated databases or a production bypass.
+Existing pinned capture.py, capture-primitive-companions.py and
+capture-corruption-companions.py produced disposable base/primitive/corruption
+fixtures; each producer checks source identity. Initial partial wiring exposed
+four additional missing prerequisites (not semantic failures). Once complete,
+proc-44b997bf3cc8 passed42/42 and chained typecheck/diff checks. The unchanged
+serial broad selection proc-5bd7c50a0a53 passed1155/1155,151546.792604ms with
+file60s/batch600s. The old error injection still intercepted generic seek rather
+than exact primary membership; it now patches seekExact, with the same error
+identity, cleanup-once, reset/finalize assertions. Proc-097e75375ec0 passed91/91
+plus typecheck/diff. The broad run precedes that test-only correction; it is not
+post-commit evidence. Exact commands/logs and remaining acceptance are in
+[[card:card-s-c-d-e]] status. These tests add no upstream credits. Targeted searches
+found only the skip-scan handoff ledger (`card-s-g/COVERAGE.md`), not a general
+family-credit artifact; no unrelated skip-scan credit or invented denominator is
+changed here. Full stable-delta independent acceptance remains required.
+
+## Persistent primitive consolidation — author decisions
+
+Retain probe-only payload parsing: pinned IndexMoveto parses binary-search probes,
+not every unvisited payload. Page/pointer/descent/depth/cycle checks remain at
+acquisition. Unvisited corrupt payload need not fail early; selected/off-path tests
+own that boundary. Retain cursor-owned initialized Page/ancestor paths, not global
+FIFO or cross-cursor positions; immutable bytes are database-owned, movement checks
+open/current cell identity and clear/close discards positions. Retain default_rc0
+exact leaf/interior exit for membership only; a miss GE position is not success,
+and the caller branches before record publication. Rightmost restart requires a
+strictly smaller first key: this boundary API lacks native nearest-cell+pRes
+adjustment, so equal-prefix seeks restart at root. This conservative shortcut
+restriction costs descent, is not platform necessity or full IndexMoveto parity.
+
+Retain RawRecordReader serial/offset advance and direct INTEGER/TEXT paths:
+RecordCompareWithSkip advances offsets without constructing each Mem. Short varint,
+small serial and signed <=32-bit Number-to-BigInt branches preserve exact bounds;
+wider integers retain BigInt assembly. Mixed/REAL/NULL/BLOB paths retain Mem fallback,
+DESC/defaultRc/eqSeen and budgets. Per-call packed subarrays do not escape their
+owned payload; overflow reconstruction remains. No local-page copy intervention
+has useful wall evidence and none lands. Retain private per-call text conversion,
+not RHS mutation/cache; utf.c's UTF16 surrogate formula, dropped odd tail and
+2*n+1 allocation keep terminator outside counted view. Other encoding conversions
+retain temporary Mem. Retain synchronous Found/NotFound register slice borrowing
+(vdbe.c5365–5405 r.aMem), no await; finally releases descriptor only, while other
+keys retain owning release semantics.
+
+CursorRecord remains OP_Column's demanded serial-prefix cache, not generic unpacking.
+Terminal payload/header consumption checks precede publication. Source comparison
+with vdbe.c next_tail found Next/Prev and IndexNext/IndexPrev left stale records on
+EOF: now record/rowid invalidation precedes movement, including DONE. NullRow and
+reset clear maps/positions; success replaces records. A source-owner EOF guard and
+public join/reset controls cover affected owners, not exhaustive cache parity.
+
+Continuation broad run proc-1942b485622e reached1118 tests,1108pass/10fail,
+144878.588941ms; it crossed a source edit and is not stable-candidate proof. Its WR
+miss-injection test still patched seek after membership moved to seekExact; both
+false/invalid-position injections now target seekExact without weakening expected
+empty results. Six failures involve missing card-s-g native companion JSON; one
+private cursor capacity and two LEFT continuation counter expectations still need
+source/baseline adjudication. They are not waived or attributed to this delta.
+Chained tsc/diff did not run after that failure. Current focused results and final
+combined delivery gaps are in the card status. No family numerator increases from
+these local/source primitive tests; the actual family ledger remains unlocated.
+
 ## Selected boundary follow-up
 
 `wr-boundary-capture.py` uses the same independently built pinned library, validates manifest SourceID and records actual library hash in `wr-boundary-native.json`. Six embedded fixture identities cover three encodings and physical empty/nonempty rowid LHS. WR primary has two no-affinity fields, first DESC/NOCASE; data crosses INTEGER/REAL/text/BLOB, NULL search/payload and NULL-extended outputs. Native explicitly rejects NULL PK (constraint19); NULL is not a legal WR PK identity. Eight queries per fixture cover RIGHT/FULL forced/unforced and ON/WHERE, with actual native wr_c search EQP, typed storage classes, column metadata and twice/reset equality. Selected physical descriptors assert PK order a,b before comparison. These are representative boundaries, not arbitrary-layout coverage.

@@ -52,6 +52,75 @@ test("index clearPosition invalidates physical movement and borrowed payload", a
   }
 });
 
+test("cursor retains initialized path pages, drops them on clear, and checks close", async () => {
+  const database = openBtreeDatabase(await bytes());
+  const cursor = database.indexCursor(3);
+  let reads = 0;
+  const page = database.page.bind(database);
+  database.page = (...args) => { reads++; return page(...args); };
+  assert.equal(cursor.first(), true);
+  const initial = reads;
+  const target = indexTuple(cursor.payload(), database.encoding);
+  assert.equal(cursor.next(), true);
+  assert.equal(reads, initial, "same-leaf next uses retained pPage");
+  const compare = payload => compareTuple(indexTuple(payload, database.encoding), target);
+  assert.equal(cursor.seekExact(compare), true);
+  assert.equal(reads, initial, "reseek uses current path, not another root page parse");
+  cursor.clearPosition();
+  assert.equal(cursor.seekExact(compare), true);
+  assert.ok(reads > initial, "clear releases retained path");
+  database.close();
+  assert.throws(() => cursor.next(), BtreeCursorStateError);
+  assert.throws(() => cursor.seekExact(compare), BtreeCursorStateError);
+});
+
+test("default_rc0 exact positioning stops at a matching interior cell and preserves movement", async () => {
+  const database = openBtreeDatabase(await bytes());
+  const cursor = database.indexCursor(3);
+  const reference = database.indexCursor(3);
+  // Probe the root's middle separator: native IndexMoveto returns here.
+  const page = database.page(3, [0x02]);
+  const offset = page.cells[page.cells.length >>> 1];
+  // Interior cell is a four-byte child pointer followed by payload length.
+  const {decodeVarint} = await import("../../src/internal/record.ts");
+  const size = decodeVarint(page.bytes, offset + 4);
+  const payload = page.bytes.subarray(offset + 4 + size.length, offset + 4 + size.length + Number(size.value));
+  const target = indexTuple(payload, database.encoding);
+  let probes = 0;
+  const compare = value => { probes++; return compareTuple(indexTuple(value, database.encoding), target); };
+  assert.equal(cursor.seekExact(compare), true);
+  assert.equal(probes, 1);
+  assert.deepEqual(indexTuple(cursor.payload(), database.encoding), target);
+  assert.equal(reference.seek(compare, "ge"), true);
+  assert.equal(cursor.next(), reference.next());
+  assert.deepEqual(indexTuple(cursor.payload(), database.encoding), indexTuple(reference.payload(), database.encoding));
+  assert.equal(cursor.seekExact(value => compareTuple(indexTuple(value, database.encoding), ["missing", 0n, 0n])), false);
+  cursor.clearPosition();
+  assert.equal(cursor.seekExact(compare), true);
+});
+
+test("rightmost-leaf reseek preserves exact, inexact and direction boundaries", async () => {
+  const database = openBtreeDatabase(await bytes());
+  const cursor = database.indexCursor(3);
+  const fresh = database.indexCursor(3);
+  assert.equal(cursor.last(), true);
+  const last = indexTuple(cursor.payload(), database.encoding);
+  for (const bias of ["ge", "le"]) {
+    for (const target of [last, [last[0], last[1], last[2] + 1n], [last[0], last[1], last[2] - 1n], ["key-001000", 1000n, 1000n]]) {
+      cursor.last();
+      fresh.clearPosition();
+      const compare = payload => compareTuple(indexTuple(payload, database.encoding), target);
+      assert.equal(cursor.seek(compare, bias), fresh.seek(compare, bias));
+      assert.equal(cursor.valid, fresh.valid);
+      if (cursor.valid) {
+        assert.deepEqual(indexTuple(cursor.payload(), database.encoding), indexTuple(fresh.payload(), database.encoding));
+        assert.equal(cursor.previous(), fresh.previous());
+        if (cursor.valid) assert.deepEqual(indexTuple(cursor.payload(), database.encoding), indexTuple(fresh.payload(), database.encoding));
+      }
+    }
+  }
+});
+
 function text(value) {
   assert.equal(value.storageClass, "text");
   return new TextDecoder(value.encoding).decode(value.bytes);

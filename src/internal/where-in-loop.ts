@@ -61,8 +61,8 @@ export function finishInLoops(ops:InLoopEndSink,loops:readonly WhereInLoop[],exi
   advances[i]=ops.length;
   const hit=ops[loop.nullGuards.at(-1)!+1] as InLoopOp|undefined;
   const early=hit?.code==='IndexSeekHit'?hit:undefined;
-  // where.c: LEFT bypass skips both IfNoHope and movement. NULL skips
-  // only IfNoHope because its comparison affinity was bypassed.
+  // where.c: LEFT bypass skips both IfNoHope and movement. With EARLYOUT,
+  // NULL skips IfNoHope because its comparison affinity was bypassed.
   if(leftJoin)ops.push({code:'IfNotOpen',p1:loop.cursor,p2:ops.length+(early?3:2)});
   if(early){const {code:_,...prefix}=early;ops.push({code:'IndexIfNoHope',...prefix,p2:ops.length+2});}
   ops.push({code:(ops[loop.start] as InLoopOp).code==='Last'?'Prev':(ops[loop.start] as InLoopOp).code==='Rewind'?'Next':loop.reverse?'IndexPrev':'IndexNext',p1:loop.cursor,p2:loop.top});
@@ -71,11 +71,13 @@ export function finishInLoops(ops:InLoopEndSink,loops:readonly WhereInLoop[],exi
   const loop=loops[i]!,start=ops[loop.start] as InLoopOp,guard=ops[loop.nullGuard] as InLoopOp;
   if((start.code!=='IndexRewind'&&start.code!=='IndexLast'&&start.code!=='Rewind'&&start.code!=='Last')||guard.code!=='IsNull')throw new Error('IN level lost positioning ownership');
   ops[loop.start]={...start,p2:i===0?exit:advances[i-1]!};
-  // NULL goes directly to movement, including past a LEFT unopened guard.
+  // Initial JumpHere precedes LEFT IfNotOpen. Only EARLYOUT retargets
+  // IsNull past IfNoHope (and the LEFT guard): affinity was bypassed.
   for(const address of loop.nullGuards){
    const fieldGuard=ops[address] as InLoopOp;
    if(fieldGuard.code!=='IsNull')throw new Error('IN level lost NULL ownership');
-   ops[address]={...fieldGuard,p2:advances[i]!+(leftJoin?1:0)+((ops[loop.nullGuards.at(-1)!+1] as InLoopOp|undefined)?.code==='IndexSeekHit'?1:0)};
+   const early=(ops[loop.nullGuards.at(-1)!+1] as InLoopOp|undefined)?.code==='IndexSeekHit';
+   ops[address]={...fieldGuard,p2:advances[i]!+(early?(leftJoin?2:1):0)};
   }
  }
  return advances.at(-1)??exit;

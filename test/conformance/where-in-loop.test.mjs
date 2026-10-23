@@ -14,6 +14,18 @@ test('vector aiMap fields share movement and every NULL guard skips that row',()
   assert.equal(ops.filter(op=>op.code==='IndexNext'||op.code==='IndexPrev').length,1);
  }
 });
+test('LEFT NULL continuation retains initial JumpHere unless EARLYOUT retargets it',()=>{
+ for(const left of [false,true])for(const early of [false,true])for(const reverse of [false,true]){
+  const ops=[],prefix=early?{p1:7,keys:[8],affinities:['integer'],keyInfo:{}}:undefined;
+  const loop=beginInVectorLoop(ops,71,[{target:89,field:1},{target:90,field:0}],reverse,false,prefix);
+  const advance=finishInLoops(ops,[loop],999,left);
+  const movement=advance+(left?1:0)+(early?1:0);
+  for(const address of loop.nullGuards)assert.equal(ops[address].p2,early?movement:advance);
+  assert.equal(ops[movement].code,reverse?'IndexPrev':'IndexNext');
+  if(left)assert.deepEqual(ops[advance],{code:'IfNotOpen',p1:71,p2:movement+1});
+  if(early)assert.equal(ops[movement-1].code,'IndexIfNoHope');
+ }
+});
 // Inputs stand for already-unique Btree records, not SQL evaluation.
 function run(sets,reverses){
  const ops=[],loops=sets.map((_,i)=>beginInLoop(ops,i,i,reverses[i]));

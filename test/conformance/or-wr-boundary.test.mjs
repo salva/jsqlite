@@ -579,44 +579,44 @@ test('WR secondary primary-miss targets exact arm advancement',async()=>withDb(c
 // Supplemental scoped persistent miss injection, not corrupt-file oracle parity.
 test('WR persistent primary misses skip rows and reset repositions normally',async()=>withDb(capture.variants[0],async db=>{
  const sql='SELECT k,n FROM w WHERE a=1 OR b=2 OR (a=3 AND n>200)';
- const st=db.prepare(sql).statement,original=IndexCursor.prototype.seek;let probes=0;
+ const st=db.prepare(sql).statement,original=IndexCursor.prototype.seekExact;let probes=0;
  const read=async()=>{const rows=[];while(await st.step()==='row')rows.push([st.column(0),st.column(1)]);return rows};
  try{
   const expected=await read();assert.ok(expected.length>0);st.reset();
-  IndexCursor.prototype.seek=function(...args){probes++;original.apply(this,args);return false};
+  IndexCursor.prototype.seekExact=function(...args){probes++;original.apply(this,args);return false};
   assert.deepEqual(await read(),[]);assert.ok(probes>0);
   // Also exercise CURSOR_INVALID: no cached primary record may leak to body.
   st.reset();probes=0;
-  IndexCursor.prototype.seek=function(...args){probes++;original.apply(this,args);this.clearPosition();return false};
+  IndexCursor.prototype.seekExact=function(...args){probes++;original.apply(this,args);this.clearPosition();return false};
   assert.deepEqual(await read(),[]);assert.ok(probes>0);
-  IndexCursor.prototype.seek=original;st.reset();assert.deepEqual(await read(),expected);
- }finally{IndexCursor.prototype.seek=original;st.finalize()}
+  IndexCursor.prototype.seekExact=original;st.reset();assert.deepEqual(await read(),expected);
+ }finally{IndexCursor.prototype.seekExact=original;st.finalize()}
 }));
 
 // vdbe.c Found/NotFound aborts before publishing existence/cache/jump on rc error.
 test('WR primary probe error preserves identity before branch and reset',async()=>withDb(capture.variants[0],async db=>{
  const st=db.prepare('SELECT k,n FROM w WHERE a=1 OR b=2 OR (a=3 AND n>200)').statement;
- const original=IndexCursor.prototype.seek,close=PrivateKeyVmCursor.prototype.close;
+ const original=IndexCursor.prototype.seekExact,close=PrivateKeyVmCursor.prototype.close;
  const marker=new Error('supplemental primary seek failure'),secondary=new Error('secondary probe cleanup');let reached=0;
  const closed=new Map();
  try{
   PrivateKeyVmCursor.prototype.close=function(){closed.set(this,(closed.get(this)??0)+1);close.call(this);throw secondary};
-  IndexCursor.prototype.seek=function(...args){original.apply(this,args);reached++;throw marker};
+  IndexCursor.prototype.seekExact=function(...args){original.apply(this,args);reached++;throw marker};
   await assert.rejects(st.step(),e=>e===marker);assert.equal(reached,1);
   assert.ok(closed.size>0);assert.ok([...closed.values()].every(n=>n===1),'failed probe detaches typed owners once');
   await assert.rejects(st.step(),e=>e===marker);assert.equal(reached,1,'failed VM must not resume another arm');
   assert.ok([...closed.values()].every(n=>n===1));
-  IndexCursor.prototype.seek=original;PrivateKeyVmCursor.prototype.close=close;
+  IndexCursor.prototype.seekExact=original;PrivateKeyVmCursor.prototype.close=close;
   assert.throws(()=>st.reset(),e=>e===marker);st.reset();
   assert.equal(await st.step(),'row');
   st.reset();
-  IndexCursor.prototype.seek=function(...args){original.apply(this,args);throw marker};
+  IndexCursor.prototype.seekExact=function(...args){original.apply(this,args);throw marker};
   await assert.rejects(st.step(),e=>e===marker);
-  IndexCursor.prototype.seek=original;
+  IndexCursor.prototype.seekExact=original;
   assert.throws(()=>st.finalize(),e=>e===marker);
   await assert.rejects(st.step(),e=>e.kind==='misuse');
 
- }finally{IndexCursor.prototype.seek=original;PrivateKeyVmCursor.prototype.close=close;try{st.finalize()}catch(e){assert.equal(e.kind,'misuse')}}
+ }finally{IndexCursor.prototype.seekExact=original;PrivateKeyVmCursor.prototype.close=close;try{st.finalize()}catch(e){assert.equal(e.kind,'misuse')}}
 
 }));
 

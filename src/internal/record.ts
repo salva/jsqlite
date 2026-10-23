@@ -30,6 +30,14 @@ export function decodeVarint(bytes: Uint8Array, offset: number, end = bytes.byte
     throw new RecordFormatError("invalid-bounds", "invalid varint bounds");
   }
 
+  // util.c:sqlite3GetVarint's one/two-byte branches dominate record
+  // headers. Keep bounds checks at the read boundary (C relies on padding).
+  if (offset < end) {
+    const first = bytes[offset]!;
+    if (first < 0x80) return { value: BigInt(first), length: 1 };
+    if (offset + 1 < end && bytes[offset + 1]! < 0x80)
+      return { value: BigInt(((first & 0x7f) << 7) | bytes[offset + 1]!), length: 2 };
+  }
   let value = 0n;
   for (let i = 0; i < 8; i++) {
     const position = offset + i;
@@ -79,6 +87,58 @@ export interface DecodedRecord {
   readonly values: readonly RawRecordValue[];
 }
 
+/** vdbe.c OP_Column's movement-invalidated cursor record cache.
+ * Its owner discards the cache before moving/reusing its cursor. */
+export class CursorRecord {
+  #record: Uint8Array | undefined;
+  #headerOffset = 0;
+  #headerLength = 0;
+  #payloadOffset = 0;
+  #fields: {serial: bigint; start: number; length: number}[] = [];
+  #values = new Map<number, RawRecordValue>();
+  readonly payload: () => Uint8Array;
+  readonly encoding: DatabaseEncoding;
+  constructor(payload: () => Uint8Array, encoding: DatabaseEncoding) { this.payload = payload; this.encoding = encoding; }
+  field(index: number): RawRecordValue | undefined {
+    if (!this.#record) {
+      const reader = new RawRecordReader(this.payload(), this.encoding);
+      this.#record = reader.record;
+      this.#headerLength = reader.headerLength;
+      this.#headerOffset = decodeVarint(this.#record, 0).length;
+      this.#payloadOffset = this.#headerLength;
+    }
+    // OP_Column parses preceding serial headers, not preceding values.
+    while (this.#fields.length <= index && this.#headerOffset < this.#headerLength) {
+      const serial = decodeVarint(this.#record, this.#headerOffset, this.#headerLength);
+      const length = Number(serialLength(serial.value));
+      if (length > this.#record.length - this.#payloadOffset) throw new RecordFormatError("truncated-payload", "record serial value exceeds available payload");
+      // OP_Column requires complete payload consumption at header exhaustion,
+      // before publishing the terminal field or its offset transition. Unlike
+      // generic unpacking, trailing payload is corruption on this path.
+      if (this.#headerOffset + serial.length === this.#headerLength &&
+          this.#payloadOffset + length !== this.#record.length) {
+        throw new RecordFormatError("invalid-header", "record header does not consume the complete payload");
+      }
+      this.#fields.push({serial: serial.value, start: this.#payloadOffset, length});
+      this.#headerOffset += serial.length;
+      this.#payloadOffset += length;
+    }
+    const field = this.#fields[index];
+    if (!field) return undefined;
+    let value = this.#values.get(index);
+    if (!value) {
+      value = decodeSerial(field.serial, this.#record.subarray(field.start, field.start + field.length), this.encoding);
+      this.#values.set(index, value);
+    }
+    return value;
+  }
+  last(): RawRecordValue | undefined {
+    // Determine the final ordinal without materializing intervening values.
+    this.field(Number.MAX_SAFE_INTEGER);
+    return this.field(this.#fields.length - 1);
+  }
+}
+
 /** Incremental view of a packed record. Consumers such as index-key comparison
  * can stop after a decisive field without reading unrelated serial values. */
 export class RawRecordReader {
@@ -104,21 +164,48 @@ export class RawRecordReader {
 
   get payloadLength(): number { return this.#payloadOffset - this.headerLength; }
 
-  /** Decode the next field, borrowing TEXT/BLOB bytes from `record`. */
-  next(): RawRecordValue | null {
-    if (this.#headerOffset >= this.headerLength) return null;
-    const serial = decodeVarint(this.record, this.#headerOffset, this.headerLength);
-    const nextHeaderOffset = this.#headerOffset + serial.length;
-    const lengthBig = serialLength(serial.value);
-    const remaining = BigInt(this.record.byteLength - this.#payloadOffset);
-    if (lengthBig > remaining) throw new RecordFormatError("truncated-payload", "record serial value exceeds available payload");
-    const length = Number(lengthBig);
-    const payload = this.record.subarray(this.#payloadOffset, this.#payloadOffset + length);
-    const value = decodeSerial(serial.value, payload, this.encoding);
-    this.#headerOffset = nextHeaderOffset;
+  // Number-sized serial classification mirrors upstream u32 serial_type.
+  // Larger varints still pass serialLength's exact bounded validation first.
+  serialNumber = 0;
+  get serialType(): bigint { return BigInt(this.serialNumber); }
+  fieldOffset = 0;
+  fieldLength = 0;
+
+  /** RecordCompareWithSkip's idx1/d1 transition, without materializing a value. */
+  advance(): boolean {
+    if (this.#headerOffset >= this.headerLength) return false;
+    const byte = this.record[this.#headerOffset]!;
+    let serial: number;
+    let headerBytes: number;
+    let length: number;
+    if (byte < 0x80) {
+      serial = byte; headerBytes = 1;
+      if (byte === 10 || byte === 11) throw new RecordFormatError("reserved-serial-type", "reserved serial type");
+      length = byte < 5 ? byte : byte === 5 ? 6 : byte < 8 ? 8 : byte < 10 ? 0 : Math.floor((byte - 12) / 2);
+    } else {
+      const decoded = decodeVarint(this.record, this.#headerOffset, this.headerLength);
+      length = Number(serialLength(decoded.value));
+      serial = Number(decoded.value); headerBytes = decoded.length;
+    }
+    if (length > this.record.byteLength - this.#payloadOffset) throw new RecordFormatError("truncated-payload", "record serial value exceeds available payload");
+    this.serialNumber = serial;
+    this.fieldOffset = this.#payloadOffset;
+    this.fieldLength = length;
+    this.#headerOffset += headerBytes;
     this.#payloadOffset += length;
-    return value;
+    return true;
   }
+
+  /** vdbeRecordDecodeInt: valid only for serial1–6,8,9. */
+  integer(): bigint {
+    if (this.serialNumber === 8 || this.serialNumber === 9) return BigInt(this.serialNumber - 8);
+    return signedBigEndianAt(this.record, this.fieldOffset, this.fieldLength);
+  }
+  value(): RawRecordValue {
+    return decodeSerial(this.serialType, this.record.subarray(this.fieldOffset, this.fieldOffset + this.fieldLength), this.encoding);
+  }
+  /** Decode the next field, borrowing TEXT/BLOB bytes from `record`. */
+  next(): RawRecordValue | null { return this.advance() ? this.value() : null; }
 }
 
 function serialLength(serialType: bigint): bigint {
@@ -133,10 +220,20 @@ function serialLength(serialType: bigint): bigint {
 }
 
 function signedBigEndian(bytes: Uint8Array): bigint {
+  return signedBigEndianAt(bytes, 0, bytes.length);
+}
+function signedBigEndianAt(bytes: Uint8Array, start: number, length: number): bigint {
+  // vdbeaux.c ONE/TWO/THREE/FOUR_BYTE_INT: exact signed 32-bit
+  // arithmetic, then widen. Wider serial types retain the 64-bit path.
+  if (length > 0 && length <= 4) {
+    let value = (bytes[start]! << 24) >> 24;
+    for (let i = 1; i < length; i++) value = value * 256 + bytes[start + i]!;
+    return BigInt(value);
+  }
   let value = 0n;
-  for (const byte of bytes) value = (value << 8n) | BigInt(byte);
-  const bits = BigInt(bytes.byteLength * 8);
-  return bytes.byteLength !== 0 && (bytes[0]! & 0x80) !== 0 ? value - (1n << bits) : value;
+  for (let i = 0; i < length; i++) value = (value << 8n) | BigInt(bytes[start + i]!);
+  const bits = BigInt(length * 8);
+  return length !== 0 && (bytes[start]! & 0x80) !== 0 ? value - (1n << bits) : value;
 }
 
 function unsignedBigEndian(bytes: Uint8Array): bigint {

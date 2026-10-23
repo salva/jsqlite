@@ -398,9 +398,13 @@ compatibility credit.
   keys for per-barrier match tracking and unmatched output; built-in PK collation,
   sort order and database encoding are retained. Two-source rowid-LHS/WR-RHS
   RIGHT/FULL also supports represented selected matched index access with complete
-  physical PK extraction and a shared primary reader on matched and fresh-drain
-  scans; missing secondary PK references continue rather than exposing a neighbouring
-  primary row. WR-LHS/multiple-WR selected
+  physical PK extraction and independently positioned selected/primary/drain
+  cursors; the shared primary-reader contract is retained on matched and fresh-drain
+  scans. Missing secondary PK references continue rather than exposing a neighbouring
+  primary row. Record fields are decoded on demand, with cache invalidation before
+  physical movement (including EOF), null-extension and reuse; demanded terminal
+  header/payload disagreement reports corruption before publishing the field.
+  Unvisited payload corruption is not promised eager detection. WR-LHS/multiple-WR selected
   layouts remain fallback. This does not imply arbitrary
   joined aggregate/window/compound admission.
 - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression

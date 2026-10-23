@@ -23,8 +23,9 @@ interface Page { number: number; bytes: Uint8Array; type: number; cells: number[
 interface PayloadCell { payloadLength: number; local: Uint8Array; overflowPage: number | null; pageNumber: number; cellOffset: number; }
 interface TableEntry extends PayloadCell { rowid: bigint; }
 interface IndexEntry extends PayloadCell {}
-interface IndexAncestor { pageNumber: number; childIndex: number; }
+interface IndexAncestor { pageNumber: number; childIndex: number; page: Page; }
 interface IndexPosition {
+  page: Page;
   entry: IndexEntry;
   pageNumber: number;
   cellIndex: number;
@@ -209,40 +210,65 @@ export class BtreeDatabase {
     };
     return descend(root, 0, new Set());
   }
-  indexSeek(root: number, compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"):
+  indexSeek(root: number, compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le", current: IndexPosition | null = null, exactMatch = false):
     { position: IndexPosition | null; exact: boolean } {
+    this.assertOpen();
+    // BtCursor.apPage/pPage: retain initialized pages only on this cursor path.
+    const retained = new Map(current?.ancestors.map(a => [a.pageNumber, a.page]));
+    if (current) retained.set(current.pageNumber, current.page);
     const descend = (pgno: number, depth: number, path: Set<number>, ancestors: readonly IndexAncestor[]):
       { position: IndexPosition | null; exact: boolean } => {
       if (depth >= this.maxBtreeDepth) throw new BtreeLimitError("maxBtreeDepth");
       if (path.has(pgno)) corrupt("b-tree cycle");
       path.add(pgno);
       try {
-        const page = this.page(pgno, [0x02, 0x0a]);
-        const cells = page.cells.map((offset) => this.#payloadCell(page, offset, false));
+        const page = retained.get(pgno) ?? this.page(pgno, [0x02, 0x0a]);
+        // btree.c sqlite3BtreeIndexMoveto parses the probed cell, not
+        // every payload on the page. Retain pointer validation in page(),
+        // but decode payload headers only for binary-search probes/results.
+        const cells = page.cells;
         const at = (cellIndex: number): IndexPosition =>
-          ({ entry: cells[cellIndex]!, pageNumber: pgno, cellIndex, ancestors });
+          ({ entry: this.#payloadCell(page, cells[cellIndex]!, false), page, pageNumber: pgno, cellIndex, ancestors });
         let lo = 0, hi = cells.length;
         // Seek opcodes compare an unpacked prefix, not necessarily a unique
         // full key. An equal interior separator is a real index entry but is
         // not the boundary: equal prefixes may also live in its child. Match
         // vdbe.c SeekGE/SeekLE default_rc bias through IndexMoveto descent.
         while (lo < hi) {
-          const mid = (lo + hi) >>> 1, comparison = compareCurrentToTarget(this.payload(cells[mid]!));
+          const mid = (lo + hi) >>> 1, comparison = compareCurrentToTarget(this.payload(this.#payloadCell(page, cells[mid]!, false)));
+          // IndexMoveto default_rc0 returns the matched interior/leaf cell
+          // immediately. Boundary seeks must still descend equal prefixes.
+          if (exactMatch && comparison === 0) return { position: at(mid), exact: true };
           if (comparison < 0 || (comparison === 0 && bias === "le")) lo = mid + 1; else hi = mid;
         }
-        const result = (cellIndex: number) => ({ position: at(cellIndex), exact: compareCurrentToTarget(this.payload(cells[cellIndex]!)) === 0 });
+        const result = (cellIndex: number) => {
+          const position = at(cellIndex);
+          return { position, exact: compareCurrentToTarget(this.payload(position.entry)) === 0 };
+        };
         if (page.type === 0x0a) {
           const index = bias === "ge" ? lo : lo - 1;
           return index >= 0 && index < cells.length ? result(index) : { position: null, exact: false };
         }
         const child = lo < cells.length ? be32(page.bytes, page.cells[lo]!) : page.rightChild!;
-        const nested = descend(child, depth + 1, path, [...ancestors, { pageNumber: pgno, childIndex: lo }]);
+        const nested = descend(child, depth + 1, path, [...ancestors, { pageNumber: pgno, childIndex: lo, page }]);
         if (nested.position !== null) return nested;
         if (bias === "ge" && lo < cells.length) return result(lo);
         if (bias === "le" && lo > 0) return result(lo - 1);
         return { position: null, exact: false };
       } finally { path.delete(pgno); }
     };
+    // btree.c:cursorOnLastPage / sqlite3BtreeIndexMoveto. Only the
+    // rightmost leaf can bypass the root, and prefix boundary semantics
+    // require a strictly smaller first key (an equal prefix may precede it).
+    if (current && current.ancestors.every(ancestor =>
+      ancestor.childIndex === ancestor.page.cells.length)) {
+      const page = current.page;
+      if (page.type === 0x0a && page.cells.length > 0 && current.ancestors.length > 0 &&
+          compareCurrentToTarget(this.payload(this.#payloadCell(page, page.cells[0]!, false))) < 0) {
+        return descend(current.pageNumber, current.ancestors.length,
+          new Set(current.ancestors.map(ancestor => ancestor.pageNumber)), current.ancestors);
+      }
+    }
     return descend(root, 0, new Set(), []);
   }
   indexBoundary(root: number, direction: "first" | "last"): IndexPosition | null {
@@ -257,32 +283,33 @@ export class BtreeDatabase {
       if (page.type === 0x0a) {
         if (page.cells.length === 0) return null;
         const cellIndex = direction === "first" ? 0 : page.cells.length - 1;
-        return { entry: this.#payloadCell(page, page.cells[cellIndex]!, false), pageNumber: pgno, cellIndex, ancestors };
+        return { entry: this.#payloadCell(page, page.cells[cellIndex]!, false), page, pageNumber: pgno, cellIndex, ancestors };
       }
       const childIndex = direction === "first" ? 0 : page.cells.length;
       const child = childIndex < page.cells.length ? be32(page.bytes, page.cells[childIndex]!) : page.rightChild!;
-      return this.#indexBoundary(child, direction, [...ancestors, { pageNumber: pgno, childIndex }], path);
+      return this.#indexBoundary(child, direction, [...ancestors, { pageNumber: pgno, childIndex, page }], path);
     } finally { path.delete(pgno); }
   }
   indexMove(position: IndexPosition, direction: "next" | "previous"): IndexPosition | null {
-    const page = this.page(position.pageNumber, [0x02, 0x0a]);
+    this.assertOpen();
+    const page = position.page;
     if (position.cellIndex < 0 || position.cellIndex >= page.cells.length
         || page.cells[position.cellIndex] !== position.entry.cellOffset) corrupt("index cursor position changed");
     const at = (owner: Page, cellIndex: number, ancestors: readonly IndexAncestor[]): IndexPosition => ({
-      entry: this.#payloadCell(owner, owner.cells[cellIndex]!, false), pageNumber: owner.number, cellIndex, ancestors,
+      entry: this.#payloadCell(owner, owner.cells[cellIndex]!, false), page: owner, pageNumber: owner.number, cellIndex, ancestors,
     });
     if (page.type === 0x02) {
       const childIndex = direction === "next" ? position.cellIndex + 1 : position.cellIndex;
       const child = childIndex < page.cells.length ? be32(page.bytes, page.cells[childIndex]!) : page.rightChild!;
       return this.#indexBoundary(child, direction === "next" ? "first" : "last",
-        [...position.ancestors, { pageNumber: page.number, childIndex }],
+        [...position.ancestors, { pageNumber: page.number, childIndex, page }],
         new Set([page.number, ...position.ancestors.map((entry) => entry.pageNumber)]));
     }
     const adjacent = direction === "next" ? position.cellIndex + 1 : position.cellIndex - 1;
     if (adjacent >= 0 && adjacent < page.cells.length) return at(page, adjacent, position.ancestors);
     for (let depth = position.ancestors.length - 1; depth >= 0; depth--) {
       const ancestor = position.ancestors[depth]!;
-      const parent = this.page(ancestor.pageNumber, [0x02]);
+      const parent = ancestor.page;
       if (direction === "next" && ancestor.childIndex < parent.cells.length)
         return at(parent, ancestor.childIndex, position.ancestors.slice(0, depth));
       if (direction === "previous" && ancestor.childIndex > 0)
@@ -457,8 +484,15 @@ export class IndexCursor extends CursorBase<IndexEntry> {
   override previous(): boolean {
     return this.#set(this.#indexPosition === null ? null : this.database.indexMove(this.#indexPosition, "previous"));
   }
+  /** OP_Found/NotFound default_rc0: any exact matching entry suffices.
+   * Misses retain the existing GE boundary; callers must test the result. */
+  seekExact(compareCurrentToTarget: (payload: Uint8Array) => number): boolean {
+    const result = this.database.indexSeek(this.#root, compareCurrentToTarget, "ge", this.#indexPosition, true);
+    this.#set(result.position);
+    return result.exact;
+  }
   seek(compareCurrentToTarget: (payload: Uint8Array) => number, bias: "ge" | "le"): boolean {
-    const result = this.database.indexSeek(this.#root, compareCurrentToTarget, bias);
+    const result = this.database.indexSeek(this.#root, compareCurrentToTarget, bias, this.#indexPosition);
     this.#set(result.position);
     return result.exact;
   }
