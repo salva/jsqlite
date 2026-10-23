@@ -481,8 +481,11 @@ and declared-index quality admission plus native setup/run/output cost primitive
 are available but not enrolled. Immutable automatic cost candidates, ready-key/
 covering/KeyInfo descriptors and independent standalone Bloom descriptors are also
 available through explicit internal enable/proof inputs; none is an executable
-WhereLoop or SQL plan. Source-safe build-predicate production, native automatic-first
-insertion/pruning and actual smallouter solver integration remain missing. The
+WhereLoop or SQL plan. With the matching resolved owner, descriptors retain native
+single-table partial-build predicates: virtual terms, other-source columns,
+subqueries, volatile functions and unsafe outer-join provenance are excluded.
+Native automatic-first insertion/pruning and actual smallouter solver integration
+remain missing. The
 smallouter helper alone grants no selection credit. Collation/multipage boundary
 coverage and full consumer/resource acceptance remain pending;
 [primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.

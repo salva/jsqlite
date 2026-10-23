@@ -18,6 +18,7 @@ import {whereKeyStats} from "./stat4-estimate.ts";
 import {stat4SkipScanRange} from "./stat4-skipscan.ts";
 import {KeyInfo,type BuiltinCollation,type KeyTerm} from "./comparison.ts";
 import type {DatabaseEncoding} from "./record.ts";
+import {builtinFunction} from "./functions.ts";
 
 export type SourceMask=bigint;
 export type LogicalEstimate=bigint;
@@ -147,12 +148,38 @@ export interface AutomaticIndexDescriptor {
   * null is the rowid tail; WITHOUT ROWID tables instead retain PK columns. */
  readonly fields:readonly (ColumnNode|null)[];
  readonly keyInfo:KeyInfo;readonly prereq:SourceMask;readonly bloom:boolean;
+ readonly buildPredicates:readonly WhereTerm[];
+}
+/** expr.c sqlite3ExprIsSingleTableConstraint(bAllowSubq=0), including its
+ * eCode=3 table-constant walker. Masks alone cannot exclude SELECT/random(). */
+export function automaticIndexBuildPredicate(term:WhereTerm,resolved:ResolvedSelect,ordinal:number):boolean {
+ const source=resolved.sources[ordinal];
+ if(!source||term.virtual||source.leftOfRightJoin)return false;
+ if(source.joinFromLeft.left){if(!term.outerOn||term.joinOwner!==ordinal)return false;}
+ else if(term.outerOn)return false;
+ const on=term.outerOn||term.origin.kind==="join-on"||term.origin.kind==="using";
+ if(on&&term.joinOwner!==null&&term.joinOwner!==undefined&&term.joinOwner<ordinal&&resolved.sources[term.joinOwner]?.leftOfRightJoin)return false;
+ const visit=(tree:ExprReduction):boolean=>{
+  const alias=resolved.aliasUses?.get(tree);if(alias)return visit(alias);
+  if(tree.signature.startsWith("select ::=")||resolved.aggregateUses?.has(tree)||resolved.windows.some(window=>window.owner.reduction===tree))return false;
+  for(const use of resolved.columnUses)if(use.expression===tree){
+   if(use.selectDepth!==0||(use.mergedSources??[use]).some(ref=>ref.source!==source))return false;
+  }
+  if(tree.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")||tree.signature==="expr ::= CTIME_KW"){
+   const token=tree.children.find(child=>child.kind==="terminal");
+   const definition=token?.kind==="terminal"?builtinFunction(dequotedName(token.value.text)):undefined;
+   if(!definition||!definition.flags.some(flag=>flag==="constant"||flag==="slow-changing"))return false;
+  }
+  if(tree.signature.includes("RAISE")||((tree.signature==="expr ::= ID|INDEXED|JOIN_KW"||tree.signature.includes(" DOT "))&&!columnUse(resolved,tree)))return false;
+  return tree.children.every(child=>child.kind!=="reduction"||visit(child));
+ };
+ return term.expression.reduction?.kind==="reduction"&&visit(term.expression.reduction as ExprReduction);
 }
 /** constructAutomaticIndex's all-ready key expansion and covering layout.
- * Build predicates remain residual until a source-safe expression proof is
- * supplied by the consumer; omitting an optional partial-build predicate is
- * safe, but does not grant disableTerm credit. No persistent IndexNode exists. */
-export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,clause:WhereClause,notReady:SourceMask,needed:ReadonlySet<NeededColumn>,encoding:DatabaseEncoding):AutomaticIndexDescriptor|null {
+ * A resolved owner supplies source-safe partial-build predicates separately
+ * from driving keys; they never grant disableTerm credit. Without that owner
+ * predicates remain residual. No persistent IndexNode exists. */
+export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,clause:WhereClause,notReady:SourceMask,needed:ReadonlySet<NeededColumn>,encoding:DatabaseEncoding,resolved?:ResolvedSelect):AutomaticIndexDescriptor|null {
  const {source,sourceOrdinal}=candidate,table=source.table;
  notReady|=sourceBit(sourceOrdinal);
  if(table.kind!=="table"||(candidate.prereq&notReady)!==0n||!clause.terms.includes(candidate.seed)||!termCanDriveAutomaticIndex(candidate.seed,source,sourceOrdinal,notReady))return null;
@@ -178,7 +205,8 @@ export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,claus
  if(!table.withoutRowid)fields.push(null);
  const terms:KeyTerm[]=fields.map((_,i)=>({collation:i<keys.length?keys[i]!.collation:"binary"}));
  const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:fields.length,terms});
- return freeze({kind:"automatic-index",candidate,keys:Object.freeze(keys),fields:Object.freeze(fields),keyInfo,prereq,bloom:keys.some(key=>key.affinity!=="text")});
+ const buildPredicates=resolved?.sources[sourceOrdinal]===source?clause.terms.filter(term=>automaticIndexBuildPredicate(term,resolved,sourceOrdinal)):[];
+ return freeze({kind:"automatic-index",candidate,keys:Object.freeze(keys),fields:Object.freeze(fields),keyInfo,prereq,bloom:keys.some(key=>key.affinity!=="text"),buildPredicates:Object.freeze(buildPredicates)});
 }
 export interface StandaloneBloomDescriptor {
  readonly kind:"standalone-bloom";readonly loop:BtreeWhereLoop;

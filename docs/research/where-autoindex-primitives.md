@@ -69,9 +69,9 @@ deduplication, covering field layout and KeyInfo are represented by immutable
 `automaticIndexDescriptor`, independent of persistent IndexNode. Candidate gates
 and native costs are exposed by `automaticIndexCandidates` with explicit internal
 context; `automaticIndexPathEligible` checks prereqs and LogEst outerRows>=3.
-Neither function inserts executable loops. Optional partial-build predicates are
-not yet produced; residual ownership remains with callers. This omission is an
-implementation gap against the full brief, not a platform justification.
+Neither function inserts executable loops. The later predicate extension below
+supersedes the initial omission of partial-build predicates; residual disabling
+remains separate from safe build filtering.
 
 Independent `standaloneBloomDescriptors` follows selected persistent paths,
 stat1-prefix break, caller-owned SELFCULL proof, EQ/IS and repeated-search
@@ -85,12 +85,35 @@ The native receipts are reused, not recaptured. Typed SQL results remain correct
 but automatic absent/collision still execute8256 tableNext and zero index seeks.
 No runtime feature credit follows from this descriptor test pass.
 
+## Single-table build predicate extension
+
+`automaticIndexBuildPredicate` translates expr.c's single-table constraint
+restrictions and eCode=3 walker: LEFT requires target-owned OuterON, other
+OuterON and left-of-RIGHT targets reject; earlier left-of-RIGHT ON owners reject.
+The walker follows resolved aliases, exact column source/depth (including merged
+uses), rejects SELECTs, aggregate/window/RAISE and volatile/unknown calls, and
+accepts registered constant or slow-changing calls as resolve.c EP_ConstFunc does.
+Descriptor `buildPredicates` is frozen and populated only with its matching
+resolved source owner. No expression evaluation or disableTerm credit occurs.
+The native bAllowSubq=0 branch rejects even uncorrelated SELECTs, independently
+of dependency masks or variableSelect. Tests use actual parsed/resolved SQL in
+all encodings and verify descriptor publication separately from residual ownership.
+
+Initial test failed because RIGHT ON terms require analyzeWhere(includeRightTerms=true),
+not the default fallback clause. After correcting that fixture, focused test
+passed but typecheck found selectDepth belongs to ResolvedColumnUse, not merged
+ResolvedColumnRef. The fix checks depth on the producer and source on its refs;
+no cast or weakened gate was used. Failed evidence: proc-1799f34bb733,
+proc-a1c7ed728b3d and proc-d00c8c93eee5 under this card's process evidence.
+Final checked chain runs `node --experimental-strip-types --test test/conformance/where-plan-analysis.test.mjs test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check` then the four-receipt replay loop: **324/324, zero failures/skips**, typecheck/diff check/replays exit0. Exact output:
+`work:///cards/card-s-j-a/processes/proc-29efad98474c/stdout.log`.
+No fresh native capture or SQL runtime feature pass is claimed.
+
 ## Remaining acceptance work
 
 Immutable proposals and independent standalone descriptors are available, but
 native automatic-first loop insertion/pruning and actual smallouter solver
-integration, source-safe build-predicate production and runtime enrollment are
-not delivered. Continue complete source-derived NOT INDEXED/forced,
+integration and runtime enrollment are not delivered. Continue complete source-derived NOT INDEXED/forced,
 affinity/unready/outer/covering gates and collation/multipage packed boundary
 regressions. Current new prefix fixtures use numeric keys, not collation tests.
 Filter VM diagnostics/counters and measured runtime faults/cancel/deadline,

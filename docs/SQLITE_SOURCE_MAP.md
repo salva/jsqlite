@@ -25,7 +25,12 @@ EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
 requiring selected-path stat1, selfcull proof, equality and repeated-search cost.
 Foundation tests cover explicit disabled gates and all-encoding descriptor layouts.
 These are internal immutable proposals, not executable loops: native insertion/
-pruning, source-safe build predicates and runtime enrollment remain missing.
+pruning and runtime enrollment remain missing.
+`expr.c:sqlite3ExprIsSingleTableConstraint/sqlite3ExprIsTableConstant` →
+`automaticIndexBuildPredicate` and descriptor `buildPredicates`, using resolved
+column/alias/function owners and native outer-join rules. Tests:
+`where-plan-analysis.test.mjs` (all-encoding local/other-source, alias, subquery,
+volatile/stable function, virtual and LEFT/RIGHT provenance controls).
 
 ### Scalar comparison affinity
 

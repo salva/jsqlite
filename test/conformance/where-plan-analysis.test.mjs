@@ -8,6 +8,39 @@ const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:t
 // Synthetic schema carries build.c/schema.ts default estimates, not ad-hoc planner costs.
 // sqlite3DefaultRowEst: nRowLogEst=200, equality prefixes33/32; row widths use szEst.
 function schema(encoding='utf-8',withoutRowid=false,aNotNull=false){const id=col('id','INTEGER',{primaryKeyPosition:1}),a=col('a','TEXT',{collation:'NOCASE',notNull:aNotNull}),b=col('b','REAL'),blob=col('blob','BLOB');const t={nRowLogEst:200,hasStat1:false,integerPrimaryKey:withoutRowid?null:id,szTabRow:sqliteLogEst(BigInt(([id,a,b,blob].reduce((n,c)=>n+c.szEst,0)+(withoutRowid?0:1))*4)),kind:'table',name:'t',tableName:'t',rootPage:2,sql:'',columns:Object.freeze([id,a,b,blob]),indexes:[],withoutRowid,primaryKey:Object.freeze([id]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])};const i={rowLogEst:Object.freeze([200,33,32]),szIdxRow:sqliteLogEst(BigInt((a.szEst+b.szEst+id.szEst)*4)),hasStat1:false,unordered:false,noSkipScan:false,kind:'index',name:'i_ab',tableName:'t',rootPage:3,sql:'',table:t,terms:Object.freeze([{column:a,expression:null,expressionSql:null,descending:false,collation:'NOCASE',nulls:null},{column:b,expression:null,expressionSql:null,descending:true,collation:null,nulls:null}].map(Object.freeze)),unique:false,origin:'create',physical:null};i.physical=physicalIndex(i,encoding);const iblob={...i,rowLogEst:Object.freeze([200,33]),szIdxRow:sqliteLogEst(BigInt((blob.szEst+id.szEst)*4)),name:'i_blob',rootPage:4,terms:Object.freeze([Object.freeze({column:blob,expression:null,expressionSql:null,descending:false,collation:null,nulls:null})]),physical:null};iblob.physical=physicalIndex(iblob,encoding);t.indexes.push(i,iblob);Object.freeze(t.indexes);return {tables:new Map([['t',t]]),t,i,iblob,id,a,b,blob};}
+test('automatic partial-build predicates use the source-owned table-constant walker',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);
+  const cases=[
+   ['SELECT o.id FROM t o WHERE o.b>0',0,true],
+   ['SELECT o.id FROM t o WHERE abs(o.b)>0',0,true],
+   ['SELECT o.id FROM t o WHERE sqlite_version()>o.a',0,true],
+   ['SELECT o.id FROM t o WHERE random()>o.b',0,false],
+   ['SELECT o.id FROM t o WHERE (SELECT 1)>o.b',0,false],
+   ['SELECT o.id FROM t o CROSS JOIN t u WHERE u.b>o.b',0,false],
+   ['SELECT o.id FROM t o LEFT JOIN t u ON u.b>0 WHERE u.b>1',1,false],
+   ['SELECT o.id FROM t o LEFT JOIN t u ON u.b>0',1,true],
+   ['SELECT o.id FROM t o LEFT JOIN t u ON u.b>0',0,false],
+   ['SELECT o.id FROM t o RIGHT JOIN t u ON o.b>0',0,false],
+   ['SELECT abs(o.b) AS v FROM t o WHERE v>0',0,true],
+  ];
+  for(const [sql,ordinal,expected] of cases){
+   const plan=resolve(sql,s),terms=analyzeWhere(plan,true).clause.terms;
+   const owning=sql.includes('WHERE')?terms.find(term=>!term.virtual&&term.origin.kind==='where'):terms.find(term=>!term.virtual);
+   assert.equal(wherePlanning.automaticIndexBuildPredicate(owning,plan,ordinal),expected,`${encoding}: ${sql}`);
+   assert.equal(wherePlanning.automaticIndexBuildPredicate({...owning,virtual:true},plan,ordinal),false);
+  }
+  const plan=resolve('SELECT o.id,u.id FROM t o JOIN t u ON u.b=o.b WHERE u.id>0 AND random()>u.b',s);
+  const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(source,1,clause,context)[0];
+  const descriptor=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set(),encoding,plan);
+  assert.equal(descriptor.buildPredicates.length,1);
+  assert.ok(Object.isFrozen(descriptor.buildPredicates));
+  assert.equal(wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set(),encoding).buildPredicates.length,0);
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);
