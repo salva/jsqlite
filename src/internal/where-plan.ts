@@ -196,7 +196,10 @@ export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,claus
  }
  if(!keys.length)return null;
  const fields:(ColumnNode|null)[]=keys.map(key=>key.column);
- const highNeeded=table.columns.slice(63).some(column=>needed.has(column));
+ // resolve.c includes driving expressions in colUsed, independently of
+ // caller-requested output/covering columns. A high driving key therefore
+ // sets the shared high-column bit even when needed is empty.
+ const highNeeded=clause.terms.some(term=>term.left?.source===source&&term.left.columnIndex>=63)||table.columns.slice(63).some(column=>needed.has(column));
  for(let i=0;i<table.columns.length;i++){
   const column=table.columns[i]!;
   // Native colUsed bit63 expands every high column, including a driving key.

@@ -492,9 +492,12 @@ ordinary Btree candidate builder through an explicit internal lowering-capabilit
 opt-in (`CandidateOptions.automaticIndex`). Automatic loops are inserted before
 zero-setup alternatives, participate in native declared-equality replacement and
 cost pruning, and reach the solver's actual smallouter gate. No SQL caller opts
-in, so unlowered loops cannot displace executable SQL plans. Ready-key/covering/
-KeyInfo descriptors and independent standalone Bloom descriptors retain explicit
-readiness/proof inputs. Native output adjustment now publishes immutable
+in, so unlowered loops cannot displace executable SQL plans. Automatic ready-key/
+covering/KeyInfo descriptors retain high-column colUsed expansion from driving
+expressions even with empty caller covering requests; native bit63 expansion
+includes duplicate high-key payload fields (see
+[primitive evidence](research/where-autoindex-primitives.md)). Automatic and
+independent standalone Bloom descriptors retain explicit readiness/proof inputs. Native output adjustment now publishes immutable
 `selfCulling` on ordinary loops from unused, exact-local nonvirtual terms, with
 null-rejecting operator gates on outer targets. `standaloneBloomDescriptors(path,
 enabled)` consumes that semantic owner directly; callers cannot inject a separate

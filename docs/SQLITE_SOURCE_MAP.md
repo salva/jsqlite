@@ -60,7 +60,12 @@ limits: [primitive evidence](research/where-autoindex-primitives.md).
 `where-plan-foundation.test.mjs` (declared-key stat1 threshold, readiness,
 EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
 `constructAutomaticIndex` ready-key/dedup/covering layout →
-`automaticIndexDescriptor`; automatic proposal gates/cost templates →
+`automaticIndexDescriptor`; `resolve.c:sqlite3ExprColUsed` driving-expression
+high-bit ownership is retained independently of caller covering requests (high
+key expands every column>=63, including a duplicate key payload). Regression:
+`where-plan-foundation.test.mjs` high driving column controls; native witness
+and boundary in [primitive evidence](research/where-autoindex-primitives.md).
+Automatic proposal gates/cost templates →
 `automaticIndexCandidates`; smallouter readiness/threshold →
 `automaticIndexPathEligible` and actual `wherePathSolver`.
 `whereLoopOutputAdjust` unused/exact-local/outer-safe branches → `outputAdjust`

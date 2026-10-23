@@ -457,6 +457,28 @@ for added fields, not PK collation/direction order. Focused3/3:
 No exercised divergence or runtime credit. High-column mask aliasing and
 production schema resolution are not established by these synthetic fixtures.
 
+High-column follow-up found and repaired a descriptor divergence: caller
+`needed` can be empty while the driving expression itself sets native colUsed
+bit63. Before repair fields were [c63,c65] for WR instead of native
+[c63,c63,c64,c65]. `resolve.c:sqlite3ExprColUsed` owns this bit independently
+of output coverage. Descriptor now derives the bit from analyzed target-column
+terms as well as explicit needed columns. Six rowid/WR × encoding controls
+retain intentional duplicate payload and correct KeyInfo sizes4/5.
+Red3/3 evidence: `work:///cards/card-s-j-a/processes/proc-3cbe1052f2b5/stdout.log`
+(the sequential inspection command exited0 despite failed tests). Green6/6:
+`work:///cards/card-s-j-a/processes/proc-83cbec67ba1c/stdout.log`.
+Fresh pinned-amalgamation public EXPLAIN witness:
+`work:///cards/card-s-j-a/processes/proc-2c581f20eeac/stdout.log` verifies SourceID
+and 66 INTEGER column tables, query `SELECT count(*) FROM t o CROSS JOIN t u
+ON u.c63=o.c0`, WR PK(c65) and ordinary rowid cases. OpenAutoindex/MakeRecord
+sizes are4 WR/5 rowid; WR physical table offsets reflect PK-first storage,
+not logical column ordinals. Empty-table count returns typed INTEGER0; this
+witness proves layout, not build/probe runtime parity. Initial witness harness
+mistook query's (rows,counters) tuple for rows and failed with TypeError
+(proc-ae2b4117ffa8); corrected without production changes. Implicit high PK
+without any high referenced expression remains a distinct upstream boundary;
+no arbitrary high-column runtime enrollment is claimed.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

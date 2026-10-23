@@ -128,6 +128,20 @@ for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: automat
  assert.equal(all.prereq,6n);
 });
 
+for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const withoutRowid of [false,true])test(`${encoding}: automatic high driving column expands colUsed covering alias WR=${withoutRowid}`,()=>{
+ const {source,b}=fixture();
+ const columns=Object.freeze(Array.from({length:66},(_,i)=>Object.freeze({...b,name:`c${i}`})));
+ source.table.columns=columns;source.table.indexes=[];
+ source.table.withoutRowid=withoutRowid;source.table.primaryKey=Object.freeze(withoutRowid?[columns[65]]:[]);
+ const eq=term(1,source,columns[63],63,'eq',{prereqRight:2n});
+ const clause=whereClause([eq]),candidate=automaticIndexCandidates(source,0,clause,automaticContext)[0];
+ const d=automaticIndexDescriptor(candidate,clause,0n,new Set(),encoding);
+ // resolve.c records the driving expression in colUsed even if no result
+ // column is requested. where.c expands bit63 including the key itself.
+ assert.deepEqual(d.fields,[columns[63],columns[63],columns[64],columns[65],...(withoutRowid?[]:[null])]);
+ assert.equal(d.keyInfo.totalFieldCount,withoutRowid?4:5);
+});
+
 test('standalone Bloom consumes output-adjustment SELFCULL and selected-path boundaries',()=>{
  const {source,a,b,index}=fixture();source.table.hasStat1=true;source.table.nRowLogEst=100;
  const eq=term(1,source,a,0,'is',{outerOn:true,joinOwner:0});
