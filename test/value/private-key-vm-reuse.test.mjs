@@ -14,7 +14,7 @@ test('packed OpenEphemeral retains KeyInfo on reuse and replaces it on growth',a
    {code:'OpenEphemeral',p1:0,keyInfo:changed,p4KeyInfo:changed}];
   for(const [text,id] of [['a',1n],['B',2n],['z',3n]]){
    ops.push({code:'String',p1:text,p2:1},{code:'Integer',p1:id,p2:2},{code:'Integer',p1:9n,p2:3},
-    {code:'MakeRecord',p1:1,p2:Math.max(2,width),p3:4},{code:'IdxInsert',p1:0,p2:4,consumeRecord:true});
+    {code:'MakeRecord',p1:1,p2:width,p3:4},{code:'IdxInsert',p1:0,p2:4,consumeRecord:true});
   }
   const start=ops.length;
   ops.push({code:'Rewind',p1:0,p2:start+4},{code:'Column',p1:0,p2:5,p3:0},{code:'ResultRow',p1:5,p2:1},{code:'Next',p1:0,p2:start+1},{code:'Halt'});

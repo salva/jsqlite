@@ -692,6 +692,23 @@ No production change; no native oracle capture, comparator identity inspection,
 resource-refund measurement or rekey permission inferred. Callers needing changed
 comparison must not assume same-width OpenEphemeral adopts its new descriptor.
 
+Short-key restriction is now repaired, superseding the open question above.
+Native btree.c btreeMoveto unpacks actual field count and rejects only zero or
+beyond nAllField; BtreeInsert nMem=0 uses that path. vdbeaux RecordUnpack explicitly
+tests fewer fields than nKeyField+1. Removed TS writer's totalFieldCount equality,
+retaining nonempty guard and unpacker's maximum-width check, shared moveto,
+page-local comparison, scratch admission and cleanup. Reuse test now really
+inserts width1 against retained width2 across3 encodings twice/reset; passes.
+`short-key-witness.c` includes pinned amalgamation, SQLITE_DEBUG build, width2
+NOCASE KeyInfo and three one-field records: native accepts and traverses a,B,z,
+3 bytes each, proc-a005a5ebd6b7. First witness omitted BtreeBeginTrans (SQL BEGIN
+alone deferred), assertion failure proc-7721ef8fbc05; corrected witness transaction,
+not native product defect. No public SQL reachability, mixed-width prefix-equality,
+all-types or short-key balance fault parity claim. Witness compile: cc -O0
+-DSQLITE_DEBUG -I$SAIVAGE_CARD_WORK_ROOT/oracle-build/build
+ docs/research/short-key-witness.c -lm -ldl -lpthread -o
+ $SAIVAGE_CARD_WORK_ROOT/short-key/witness (then execute).
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

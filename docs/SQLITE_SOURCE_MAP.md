@@ -849,6 +849,11 @@ these branches, not general storage/complexity parity.
   ephemeral handles through the existing private cursor primitive. `where.c`
   LEFT match/NullRow completion → shared LEFT loops with retained cursor readiness;
   `vdbe.c` OpenEphemeral/OpenDup initialize independent null-row handles;
+  `btree.c` btreeMoveto/Insert + `vdbeaux.c` RecordUnpack actual nField map
+  to the private packed writer's nonempty/maximum-width (not exact-width)
+  admission. Short-record retained-KeyInfo regression: `private-key-vm-reuse.test.mjs`;
+  pinned debug amalgamation witness and qualifications in
+  [primitive evidence](research/where-autoindex-primitives.md), `short-key-witness.c`.
   Rewind/Next publish empty/exhausted flags; SeekRowid clears after integer seek;
   NullRow/Column/Rowid/IfNullRow consume handle-local state without deleting
   shared records. Clear/sort preserve flags while invalidating positions.

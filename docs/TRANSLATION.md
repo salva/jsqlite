@@ -478,6 +478,9 @@ first/last/next/previous/column owners,
 including empty/nullRow handling; no decoded-row adapter is involved.
 OpenEphemeral reuse clears content but retains existing KeyInfo for non-growing
 width, as upstream does; it is not a rekey operation. Growth installs new KeyInfo.
+Packed insertion accepts nonempty records narrower than retained KeyInfo, using
+actual unpacked field count for positioning (native btreeMoveto); it does not
+pad missing fields or require totalFieldCount equality.
 Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter

@@ -1541,7 +1541,9 @@ export class PrivateBlobkeyCursor {
       await ops.savePeers(t,this,control);
       await control.checkpoint(owned.length);
       key=unpackRecordKey(owned,this.#info,life,{defaultRc:0,caller:"record"});
-      if(key.nField!==this.#info.totalFieldCount)throw new Error("equal writer requires full KeyInfo key");
+      // btreeMoveto uses actual RecordUnpack nField, not nAllField. Reused
+      // OpenEphemeral can retain wider KeyInfo; unpack already bounds width.
+      if(key.nField===0)throw new Error("index writer requires a nonempty key");
       const result=await this.#moveto(key,control,false);
       this.#overflowValid=false;
       if(result.res===0&&result.state==="VALID"){
