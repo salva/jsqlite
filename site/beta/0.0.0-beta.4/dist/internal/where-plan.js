@@ -1,0 +1,2539 @@
+import { metadataWhereLoops } from "./where-metadata-loops.js";
+import { jsonWhereLoops } from "./where-json-loops.js";
+// Immutable WHERE candidate and path foundation.
+// Directly shaped by SQLite 3.53.4 whereInt.h and where.c whereScanNext,
+// whereLoopInsert/whereLoopAddBtree[Index]/wherePathSolver. It deliberately
+// publishes no opcodes: lowering consumes the retained admissions unchanged.
+import { whereOrCollect, whereOrInsert, whereOrAccumulate } from "./where-or-cost.js";
+import { SqlParseError } from "./parse.js";
+import { resolvedExpressionAffinity, resolvedExpressionCollation } from "./resolve.js";
+import { sqliteAsciiFold } from "./sqlite-case.js";
+import { sqliteLogEst, integerPrimaryKeyColumn } from "./schema.js";
+import { Stat4Probe } from "./stat4-probe.js";
+import { whereKeyStats } from "./stat4-estimate.js";
+import { stat4SkipScanRange } from "./stat4-skipscan.js";
+export const ROWID_NEEDED = Object.freeze({ kind: "rowid" });
+export class WherePlanningUnsupportedError extends Error {
+    classification = "temporary";
+    constructor(message) { super(message); this.name = "WherePlanningUnsupportedError"; }
+}
+const freeze = (value) => Object.freeze(value);
+export function sourceBit(ordinal) { if (!Number.isSafeInteger(ordinal) || ordinal < 0)
+    throw new RangeError("invalid source ordinal"); return 1n << BigInt(ordinal); }
+export function whereClause(terms, outer = null) { return freeze({ split: "and", terms: Object.freeze([...terms]), outer }); }
+function numericAffinity(affinity) { return affinity === "integer" || affinity === "real" || affinity === "numeric"; }
+/** expr.c sqlite3CompareAffinity: literals have no expression affinity. If
+ * both operands have affinity, only same-class TEXT/TEXT or numeric/numeric
+ * comparisons retain it; mixed classes compare with BLOB (none). */
+function comparisonAffinity(column, rhs) { if (rhs === null)
+    return column.affinity; if (numericAffinity(column.affinity) || numericAffinity(rhs))
+    return "numeric"; return "blob"; }
+/** sqlite3IndexAffinityOk. BLOB comparison affinity is index-compatible;
+ * otherwise the index must belong to the same TEXT or numeric class. */
+function affinityOk(field, affinity) { return affinity === "blob" || (affinity === "text" ? field.affinity === "text" : numericAffinity(field.affinity)); }
+function bound(operator) { return operator === "eq" || operator === "is" || operator === "is-null" || operator === "in" ? "equality" : operator === "gt" ? "lower-exclusive" : operator === "ge" ? "lower-inclusive" : operator === "lt" ? "upper-exclusive" : "upper-inclusive"; }
+function indexedOperandIdentity(term) { const reduction = term.expression.reduction; if (!reduction || reduction.kind !== "reduction")
+    return null; const children = exprChildren(reduction); const operand = term.originalIndexedOperand === "left" ? children[0] : children[1]; return operand ? expressionStructuralIdentity(asExpr(operand), true) : null; }
+const admissionCache = new WeakMap();
+/** whereScanNext's compatibility gate. Original operand orientation and the
+ * already-resolved original-order collation are retained rather than rebuilt. */
+export function admitIndexConstraint(term, physical, fieldOrdinal) {
+    let byPhysical = admissionCache.get(term);
+    if (!byPhysical) {
+        byPhysical = new WeakMap();
+        admissionCache.set(term, byPhysical);
+    }
+    let byOrdinal = byPhysical.get(physical);
+    if (!byOrdinal) {
+        byOrdinal = new Map();
+        byPhysical.set(physical, byOrdinal);
+    }
+    if (byOrdinal.has(fieldOrdinal))
+        return byOrdinal.get(fieldOrdinal);
+    const field = physical.fields[fieldOrdinal], keyInfoTerm = physical.keyInfo.terms[fieldOrdinal];
+    if ((term.virtualNull && field?.column?.notNull) || !field || !keyInfoTerm || field.role === "stored-column" || term.operator === null || !term.outerJoinSafe.mayDrive) {
+        byOrdinal.set(fieldOrdinal, null);
+        return null;
+    }
+    const expressionMatch = term.left?.source.table === physical.index.table && term.left?.columnIndex === -2 && field.expression !== null && indexedOperandIdentity(term) === expressionStructuralIdentity(field.expression, true);
+    if (field.role === "rowid-tail" ? !(term.left?.source.table === physical.index.table && (term.left.rowid || term.left.column && isIntegerPrimaryKeyAlias(physical.index.table, term.left.column))) : field.column ? term.left?.column !== field.column : !expressionMatch) {
+        byOrdinal.set(fieldOrdinal, null);
+        return null;
+    }
+    let comparison;
+    if (term.operator === "is-null")
+        comparison = freeze({ kind: "is-null" });
+    else {
+        const affinity = field.role === "rowid-tail" ? "numeric" : field.column ? comparisonAffinity(field.column, term.rightAffinity) : "blob";
+        if ((field.column && !affinityOk(field.column, affinity)) || term.effectiveCollation !== field.collation) {
+            byOrdinal.set(fieldOrdinal, null);
+            return null;
+        }
+        comparison = freeze({ kind: "comparison", affinity, collation: term.effectiveCollation });
+    }
+    const admission = freeze({ term, physicalIndex: physical, fieldOrdinal, field, keyInfoTerm, operator: term.operator, originalIndexedOperand: term.originalIndexedOperand, comparison, bound: bound(term.operator) });
+    byOrdinal.set(fieldOrdinal, admission);
+    return admission;
+}
+function isIntegerPrimaryKeyAlias(table, column) { return column === null && !table.withoutRowid || column !== null && integerPrimaryKeyColumn(table) === column; }
+function fieldMatchesColumn(physical, field, wanted) { return wanted !== null && field.column === wanted || (field.role === "rowid-tail" && isIntegerPrimaryKeyAlias(physical.index.table, wanted)); }
+function orderContribution(physical, equality, order, ordinal) {
+    // where.c:5289: bUnordered indexes provide no physical order proof,
+    // even when stat1 still permits equality and skip-scan admission.
+    if (physical.index.unordered)
+        return { count: 0, reverse: false };
+    const relevant = order.filter(item => item.sourceOrdinal === ordinal);
+    if (!relevant.length || relevant.some(item => item.nulls != null && item.nulls !== (item.descending ? "last" : "first")))
+        return { count: 0, reverse: false };
+    let direction = null, count = 0, requested = 0, fieldOrdinal = 0;
+    // where.c:wherePathSatisfiesOrderBy (eqOpMask): EQ/IS/ISNULL
+    // may be skipped to reach later ORDER terms. IN is not a fixed column:
+    // it must itself match the next ORDER term or the suffix is not ordered.
+    while (fieldOrdinal < equality.length) {
+        const field = physical.fields[fieldOrdinal], admission = equality[fieldOrdinal];
+        const wanted = relevant[requested];
+        if (wanted && fieldMatchesColumn(physical, field, wanted.column) && field.collation === wanted.collation) {
+            if (!admission || admission.operator === "in") {
+                const reverse = field.descending !== wanted.descending;
+                if (direction !== null && direction !== reverse)
+                    return { count, reverse: direction };
+                direction = reverse;
+            }
+            requested++;
+            count++;
+        }
+        else if (!admission || admission.operator === "in")
+            return { count, reverse: direction ?? false };
+        fieldOrdinal++;
+    }
+    for (; requested < relevant.length; requested++, fieldOrdinal++) {
+        const field = physical.fields[fieldOrdinal], wanted = relevant[requested];
+        if (!field || !fieldMatchesColumn(physical, field, wanted.column) || field.collation !== wanted.collation)
+            break;
+        const reverse = field.descending !== wanted.descending;
+        if (direction !== null && direction !== reverse)
+            break;
+        direction = reverse;
+        count++;
+    }
+    return { count, reverse: direction ?? false };
+}
+function admissionOrder(a, b) { const ap = a.term.prereqRight, bp = b.term.prereqRight; if (ap !== bp)
+    return ap < bp ? -1 : 1; return a.bound.localeCompare(b.bound) || a.term.id - b.term.id; }
+function makeCapability(index, physical, equality, lower, upper, ordinal, needed, order) { const nSkip = equality.filter(a => a === null).length, constrained = equality.length - nSkip + (lower || upper ? 1 : 0), ordering = orderContribution(physical, equality, order, ordinal), hasRowidTail = physical.fields.some(field => field.role === "rowid-tail"), rowidAlias = index.table.primaryKey.length === 1 && isIntegerPrimaryKeyAlias(index.table, index.table.primaryKey[0]), covering = [...needed].every(need => need === ROWID_NEEDED ? hasRowidTail : physical.fields.some(field => field.column === need) || (!index.table.withoutRowid && rowidAlias && index.table.primaryKey.includes(need))); return freeze({ inSeekScan: equality.some(slot => slot?.inSeekScan), index, physicalIndex: physical, nEq: equality.length, nSkip, equalitySlots: Object.freeze([...equality]), lower, upper, constrainedFields: constrained, orderTermsSatisfied: ordering.count, reverse: ordering.reverse, covering, needsTableLookup: !covering, rowidEquality: null, rowidLower: null, rowidUpper: null }); }
+/** whereLoopAddBtreeIndex proposes alternatives rather than choosing the first
+ * term. Each equality chain and each applicable lower/upper pair retains its
+ * own exact admissions and prerequisite mask for whereLoopInsert/path solving. */
+/** where.c:constraintCompatibleWithOuterJoin, represented LEFT tranche.
+ * Both sPk rowid exploration and persistent fields share this target proof. */
+function leftTargetCompatible(term, source, ordinal) {
+    return !source.joinFromLeft.left || (term.outerOn === true && term.joinOwner === ordinal);
+}
+function* capabilities(index, terms, ordinal, needed, order, targetSource, skipScan, inSeekScan, proposalScan) {
+    const physical = index.physical;
+    if (!physical)
+        return;
+    // where.c:3588: secondary recursion includes physical key tails; primary
+    // recursion stops at nKeyCol. The physical-tail limit does not depend
+    // on WHERE_SKIPSCAN; ordinary equalities consume tails as well.
+    const fieldCount = index.origin !== "primary-key" ? physical.fields.length : physical.declaredFieldCount;
+    // Source proposals suspend at insertion for ordinary and OR builders.
+    // Each recursive frame owns its insertion return; child DONE is ignored.
+    function* visit(field, equality) {
+        if (field >= fieldCount) {
+            yield makeCapability(index, physical, equality, null, null, ordinal, needed, order);
+            return;
+        }
+        const scanField = physical.fields[field];
+        const target = proposalScan && (scanField.column || scanField.role === "rowid-tail") ? freeze({ source: proposalScan.source, sourceOrdinal: ordinal, column: scanField.column, columnIndex: scanField.role === "rowid-tail" ? -1 : proposalScan.source.table.columns.indexOf(scanField.column), rowid: scanField.role === "rowid-tail" }) : null;
+        const matches = target && proposalScan ? scanWhereTerms(proposalScan.clause, target, proposalScan.resolved, term => term.operator !== null && (term.prereqRight & sourceBit(ordinal)) === 0n) : terms;
+        const admit = (term) => {
+            let useSeekScan = false;
+            // Transitive matches retain the original semantic admission contract.
+            // Changing the physical target is not permission to revive an unsafe term.
+            if (!term.outerJoinSafe.mayDrive)
+                return null;
+            // constraintCompatibleWithOuterJoin: nullable LEFT target requires its
+            // own outer ON carrier, stable even in borrowed one-term clauses.
+            if (!leftTargetCompatible(term, targetSource, ordinal))
+                return null;
+            // where.c:3364–3409. With an accumulated iteration multiplier >=2,
+            // an unfavorable IN estimate continues the term scan (it must not emit
+            // the equality proposal or recurse). The distinct WHERE_IN_SEEKSCAN
+            // alternative at multiplier<2 is fenced until its consuming machinery lands.
+            if (term.operator === "in" && index.hasStat1) {
+                const size = BigInt(index.rowLogEst[0] ?? 99);
+                if (size >= 10n) {
+                    let multiplier = 0n;
+                    for (let i = 0; i < equality.length; i++) {
+                        const slot = equality[i];
+                        multiplier += slot === null ? BigInt((index.rowLogEst[i] ?? 99) - (index.rowLogEst[i + 1] ?? 23)) + 5n : slot.operator === "in" ? literalInLogEst(slot.term) : 0n;
+                    }
+                    const nIn = literalInLogEst(term), logK = nIn <= 10n ? 0n : BigInt(sqliteLogEst(nIn) - 33), logSize = size <= 10n ? 0n : BigInt(sqliteLogEst(size) - 33);
+                    if (BigInt(index.rowLogEst[field] ?? 23) + logK + 10n - (nIn + logSize) < 0n) {
+                        // multiplier>=2: source continues. Below2 source owns
+                        // WHERE_IN_SEEKSCAN (earlyout/order flags and SeekScan lowering).
+                        // Source optimization control: admit flag only below multiplier2.
+                        // Explicitly disabled optimization retains residual IN on valid
+                        // prefix alternatives; skipped slots already increase multiplier.
+                        if (multiplier >= 2n || !inSeekScan)
+                            return null;
+                        useSeekScan = true;
+                    }
+                }
+            }
+            // indexColumnNotNull: declared columns own nullability; expression fields
+            // remain nullable. WO_IS is not WO_ISNULL and must remain eligible.
+            if ((term.operator === "is-null" || term.virtualNull) && scanField.column?.notNull)
+                return null;
+            // whereLoopAddBtreeIndex removes all range bits from bUnordered opMask.
+            if (index.unordered && (term.operator === "gt" || term.operator === "ge" || term.operator === "lt" || term.operator === "le"))
+                return null;
+            if (!target || term.left?.source === target.source && term.left.columnIndex === target.columnIndex)
+                return (() => { const admission = admitIndexConstraint(term, physical, field); return admission && useSeekScan ? freeze({ ...admission, inSeekScan: true }) : admission; })();
+            // whereScanNext borrowed scalar admission. Keep original term/RHS provenance;
+            // physical target is the index field, not a fabricated term.left.
+            if (!term.operator || term.operator === "in")
+                return null; // IN requires its existing admission contract.
+            let comparison;
+            if (term.operator === "is-null")
+                comparison = freeze({ kind: "is-null" });
+            else {
+                if (term.effectiveCollation !== scanField.collation)
+                    return null;
+                const affinity = comparisonAffinity(scanField.column, term.rightAffinity);
+                if (!affinityOk(scanField.column, affinity))
+                    return null;
+                comparison = freeze({ kind: "comparison", affinity, collation: scanField.collation });
+            }
+            return freeze({ term, physicalIndex: physical, fieldOrdinal: field, field: scanField, keyInfoTerm: physical.keyInfo.terms[field], operator: term.operator, originalIndexedOperand: term.originalIndexedOperand, comparison, bound: bound(term.operator) });
+        };
+        if (proposalScan) {
+            // where.c:3284,3580–3613: ordinary skip and OR frames share source
+            // insertion ordering; the enclosing insertion rc owns the next
+            // scan transition; decrement-to-zero is still SQLITE_OK. Recursive
+            // return is ignored by C. Resume frames lazily using their own insertion
+            // rc, not a global DONE inferred from the counter or a child return.
+            for (const term of matches) {
+                const admission = admit(term);
+                if (!admission)
+                    continue;
+                if (admission.bound === "equality") {
+                    const prefix = [...equality, admission];
+                    const restore = proposalScan.sampleEnter?.(admission, equality);
+                    try {
+                        yield makeCapability(index, physical, prefix, null, null, ordinal, needed, order);
+                        const rc = proposalScan.result.ok;
+                        if (field + 1 < fieldCount) {
+                            if (prefix.length > 3)
+                                proposalScan.progressCheck?.();
+                            yield* visit(field + 1, prefix);
+                        }
+                        proposalScan.result.ok = rc; // C deliberately ignores the recursive return.
+                        if (!rc)
+                            break;
+                    }
+                    finally {
+                        restore?.();
+                    }
+                }
+                else if (admission.bound.startsWith("lower")) {
+                    yield makeCapability(index, physical, equality, admission, null, ordinal, needed, order);
+                    const rc = proposalScan.result.ok;
+                    // WHERE_BTM_LIMIT recursion permits upper bounds only, restarting
+                    // the field scan after the lower-only proposal is inserted.
+                    for (const upperTerm of target ? scanWhereTerms(proposalScan.clause, target, proposalScan.resolved, t => (t.operator === "lt" || t.operator === "le") && (t.prereqRight & sourceBit(ordinal)) === 0n) : terms.filter(t => t.operator === "lt" || t.operator === "le")) {
+                        const upper = admit(upperTerm);
+                        if (upper) {
+                            yield makeCapability(index, physical, equality, admission, upper, ordinal, needed, order);
+                            if (!proposalScan.result.ok)
+                                break;
+                        }
+                    }
+                    proposalScan.result.ok = rc;
+                    if (!rc)
+                        break;
+                }
+                else {
+                    yield makeCapability(index, physical, equality, null, admission, ordinal, needed, order);
+                    if (!proposalScan.result.ok)
+                        break;
+                }
+            }
+            // Skip recursion runs after ordinary scan termination even on DONE.
+            // Its resize assigns enclosing rc=OK; the child return is ignored.
+            yield* skip();
+            return;
+        }
+        function* skip() {
+            // where.c:3614–3650: only a leading run of null slots, before final
+            // declared key. No fabricated SQL-NULL equality or physical-tail key.
+            if (skipScan && equality.every(a => a === null) && field + 1 < physical.declaredFieldCount && index.hasStat1 && !index.noSkipScan && (index.rowLogEst[field + 1] ?? 0) >= 42) {
+                // whereLoopResize's successful nullable-slot allocation sets rc=OK
+                // even when the preceding insertion returned DONE. Immutable frames
+                // own restoration of slots/output; only insertion feedback is mutable.
+                if (proposalScan)
+                    proposalScan.result.ok = true;
+                yield* visit(field + 1, [...equality, null]);
+                if (proposalScan)
+                    proposalScan.result.ok = true;
+            }
+        }
+        const admissions = [...matches].map(admit).filter((item) => item !== null).sort(admissionOrder);
+        for (const equal of admissions.filter(item => item.bound === "equality"))
+            yield* visit(field + 1, [...equality, equal]);
+        const lowers = admissions.filter(item => item.bound.startsWith("lower")), uppers = admissions.filter(item => item.bound.startsWith("upper"));
+        if (!lowers.length && !uppers.length) {
+            if (equality.some(a => a !== null) || equality.length === 0)
+                yield makeCapability(index, physical, equality, null, null, ordinal, needed, order);
+        }
+        else
+            for (const lower of lowers.length ? lowers : [null])
+                for (const upper of uppers.length ? uppers : [null])
+                    yield makeCapability(index, physical, equality, lower, upper, ordinal, needed, order);
+        yield* skip();
+    }
+    yield* visit(0, []);
+}
+/** expr.c:sqlite3ExprCompare identity for the represented expression-index
+ * grammar. Compare the generated parse structure, not reconstructed SQL text.
+ * Parentheses are transparent; source/join provenance remains on WhereTerm. */
+export function expressionStructuralIdentity(expression, skipTopCollate = false) {
+    const root = expression.reduction;
+    if (!root || root.kind !== "reduction")
+        return "";
+    const identity = (value) => {
+        if (value.kind === "terminal") {
+            const token = value.value;
+            if (!token || token.kind === "space" || token.kind === "comment")
+                return "";
+            if (token.kind === "integer") {
+                const raw = token.text.replaceAll("_", "");
+                try {
+                    let n;
+                    if (/^0x/i.test(raw)) {
+                        n = BigInt(raw);
+                        if (n > 0x7fffffffffffffffn && n <= 0xffffffffffffffffn)
+                            n -= 0x10000000000000000n;
+                    }
+                    else
+                        n = BigInt(raw);
+                    if (n >= -0x8000000000000000n && n <= 0x7fffffffffffffffn)
+                        return `integer(${n})`;
+                }
+                catch { /* retain token identity */ }
+            }
+            const text = token.kind === "id" || token.kind === "keyword" ? sqliteAsciiFold(token.text) : token.text;
+            return `t(${token.kind}:${JSON.stringify(text)})`;
+        }
+        if (value.signature === "expr ::= LP expr RP")
+            return identity(exprChildren(value)[0]);
+        // expr.c TK_IS/TK_ISNOT with literal NULL become TK_ISNULL/TK_NOTNULL.
+        // Schema predicates and analyzed WHERE nodes must compare the same opcode.
+        const nullOperand = notNullTarget(asExpr(value));
+        if (nullOperand?.reduction)
+            return `notnull(${identity(nullOperand.reduction)})`;
+        return `r(${value.signature}:${value.children.map(identity).filter(Boolean).join(",")})`;
+    };
+    const comparable = skipTopCollate && root.signature.startsWith("expr ::= expr COLLATE") ? exprChildren(root)[0] : root;
+    return identity(comparable);
+}
+function directExprReductions(value) { if (value.kind !== "reduction")
+    return []; const out = []; for (const child of value.children) {
+    if (child.kind !== "reduction")
+        continue;
+    if (child.signature.startsWith("expr ::="))
+        out.push(child);
+    else if (!child.signature.startsWith("select ::="))
+        out.push(...directExprReductions(child));
+} return out; }
+function isNullLiteral(expression) { return expression.tokens.length === 1 && sqliteAsciiFold(expression.tokens[0].text) === "null"; }
+/** expr.c:sqlite3ExprImpliesExpr TK_NOTNULL consumes its unary pLeft.
+ * Both generated postfix forms and IS NOT NULL production denote that node. */
+function notNullTarget(expression) {
+    const root = expression.reduction;
+    if (!root || root.kind !== "reduction")
+        return null;
+    const r = unwrap(root), es = exprChildren(r);
+    if (r.signature === "expr ::= expr ISNULL|NOTNULL" || r.signature === "expr ::= expr NOT NULL") {
+        return asExpr(r).tokens.at(-1)?.text.toUpperCase() === "ISNULL" ? null : asExpr(es[0]);
+    }
+    if (r.signature !== "expr ::= expr IS NOT expr")
+        return null;
+    return es[1] && isNullLiteral(asExpr(unwrap(es[1]))) ? asExpr(es[0]) : null;
+}
+/** expr.c:exprImpliesNotNull represented branches. When uncertain this returns
+ * false, preserving whereUsablePartialIndex's correctness-first admission. */
+function simpleColumnName(expression) { const r = expression.reduction; if (!r || r.kind !== "reduction")
+    return null; const u = unwrap(r); if (!(u.signature === "expr ::= ID|INDEXED|JOIN_KW" || u.signature.startsWith("expr ::= nm DOT nm")))
+    return null; const ids = asExpr(u).tokens.filter(t => t.kind === "id" || t.kind === "keyword"); return ids.length ? sqliteAsciiFold(ids.at(-1).text) : null; }
+function partialProofIdentity(resolved, source) {
+    return (query, target) => {
+        const name = simpleColumnName(target), r = query.reduction;
+        if (name === null || !r || r.kind !== "reduction")
+            return false;
+        const plain = unwrap(r);
+        if (simpleColumnName(asExpr(plain)) === null)
+            return false;
+        const use = resolved.columnUses.find(item => item.selectDepth === 0 && item.expression === plain);
+        if (!use || use.source !== source)
+            return false;
+        const column = use.columnIndex < 0 ? null : source.table.columns[use.columnIndex];
+        return column !== null && column !== undefined && sqliteAsciiFold(column.name) === name;
+    };
+}
+function exprImpliesNotNull(expression, target, sameResolvedExpression, seenNot = false) {
+    if (sameResolvedExpression(expression, target))
+        return !isNullLiteral(target);
+    const r = expression.reduction;
+    if (!r || r.kind !== "reduction")
+        return false; /* exprImpliesNotNull walks only immediate Expr operands. The SELECT beneath IN must not contribute its result expression as an operand of TK_IN. */
+    const es = exprChildren(r).map(asExpr), sig = r.signature;
+    const propagatesBoth = sig.includes(" EQ|NE ") || sig.includes(" LT|GT|GE|LE ") || sig.includes(" PLUS|MINUS ") || sig.includes(" BITOR|LSHIFT|RSHIFT ") || sig.includes(" CONCAT ");
+    if (propagatesBoth)
+        seenNot = true;
+    // expr.c:exprImpliesNotNull has no TK_AND/TK_OR cases. Top-level AND
+    // splitting belongs to analyzeWhere. Never infer non-NULL through Boolean
+    // operands: NULL AND false is false, NULL OR true is true.
+    if (sig === "expr ::= expr AND expr")
+        return false;
+    // Bounded true-only OR proof compensates for absent upstream OR-derived
+    // terms: every arm must independently prove the same target. It is NOT
+    // valid beneath NOT/non-NULL contexts. See TRANSLATION R1 correction.
+    if (sig === "expr ::= expr OR expr")
+        return !seenNot && es.length === 2 && es.every(e => exprImpliesNotNull(e, target, sameResolvedExpression, false));
+    if (sig === "expr ::= expr in_op LP select RP") {
+        const negated = r.children.some(child => child.kind === "reduction" && child.signature === "in_op ::= NOT IN");
+        return !seenNot && !negated && !!es[0] && exprImpliesNotNull(es[0], target, sameResolvedExpression, true);
+    }
+    if (sig === "expr ::= expr in_op LP exprlist RP")
+        return exprImpliesNotNull(es[0], target, sameResolvedExpression, true);
+    if (sig === "expr ::= expr between_op expr AND expr") {
+        const negated = r.children.some(child => child.kind === "reduction" && child.signature === "between_op ::= NOT BETWEEN");
+        if (seenNot || negated)
+            return false;
+        return es.slice(1).some(e => exprImpliesNotNull(e, target, sameResolvedExpression, true)) || exprImpliesNotNull(es[0], target, sameResolvedExpression, true);
+    }
+    if (propagatesBoth || sig.includes(" STAR|SLASH|REM ") || sig.includes(" BITAND|BITOR|LSHIFT|RSHIFT "))
+        return es.some(e => exprImpliesNotNull(e, target, sameResolvedExpression, seenNot));
+    if (sig === "expr ::= LP expr RP" || sig === "expr ::= expr COLLATE ID|STRING" || sig === "expr ::= PLUS|MINUS expr")
+        return !!es[0] && exprImpliesNotNull(es[0], target, sameResolvedExpression, seenNot);
+    if (sig === "expr ::= NOT expr" || sig === "expr ::= BITNOT expr")
+        return !!es[0] && exprImpliesNotNull(es[0], target, sameResolvedExpression, true);
+    if ((sig === "expr ::= expr IS expr" || sig === "expr ::= expr IS NOT expr") && !seenNot) {
+        const truth = expression.tokens.at(-1);
+        if (truth && ["true", "false"].includes(sqliteAsciiFold(truth.text)) && sig === "expr ::= expr IS expr")
+            return !!es[0] && exprImpliesNotNull(es[0], target, sameResolvedExpression, true);
+    }
+    return false;
+}
+function isIntegerZero(expression) { const r = expression.reduction; if (!r || r.kind !== "reduction")
+    return false; if (r.signature === "expr ::= LP expr RP" || r.signature === "expr ::= PLUS|MINUS expr") {
+    const es = exprChildren(r);
+    return es.length === 1 && isIntegerZero(asExpr(es[0]));
+} if (r.signature !== "expr ::= term")
+    return false; const term = r.children.find((child) => child.kind === "reduction" && child.signature.startsWith("term ::=")); if (!term || term.signature !== "term ::= INTEGER")
+    return false; const token = asExpr(term).tokens[0]; if (!token)
+    return false; try {
+    return BigInt(token.text.replaceAll("_", "")) === 0n;
+}
+catch {
+    return false;
+} }
+function iifCondition(expression) { const r = expression.reduction; if (!r || r.kind !== "reduction")
+    return null; const es = directExprReductions(r); if (r.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")) {
+    const name = expression.tokens[0] && sqliteAsciiFold(expression.tokens[0].text);
+    if (name !== "iif" && name !== "if")
+        return null;
+    if (es.length === 2)
+        return asExpr(es[0]);
+    if (es.length === 3 && (isNullLiteral(asExpr(es[2])) || isIntegerZero(asExpr(es[2])) || sqliteAsciiFold(asExpr(es[2]).tokens[0]?.text ?? "") === "false"))
+        return asExpr(es[0]);
+    return null;
+} if (r.signature === "expr ::= CASE case_operand case_exprlist case_else END") {
+    const operand = r.children.find((child) => child.kind === "reduction" && child.signature.startsWith("case_operand ::="));
+    if (operand?.signature !== "case_operand ::=")
+        return null;
+    const hasElse = r.children.some(child => child.kind === "reduction" && child.signature === "case_else ::= ELSE expr");
+    if (es.length !== 2 + (hasElse ? 1 : 0))
+        return null;
+    if (!hasElse || isNullLiteral(asExpr(es[2])) || isIntegerZero(asExpr(es[2])) || sqliteAsciiFold(asExpr(es[2]).tokens[0]?.text ?? "") === "false")
+        return asExpr(es[0]);
+} return null; }
+function exprImpliesExpr(query, predicate, sameResolvedExpression) { if (sameResolvedExpression(query, predicate))
+    return true; const pr = predicate.reduction; if (pr?.kind === "reduction" && pr.signature === "expr ::= expr OR expr" && directExprReductions(pr).some(e => exprImpliesExpr(query, asExpr(e), sameResolvedExpression)))
+    return true; const target = notNullTarget(predicate), queryTarget = notNullTarget(query); if (target !== null && queryTarget !== null && sameResolvedExpression(queryTarget, target))
+    return true; if (target !== null && exprImpliesNotNull(query, target, sameResolvedExpression))
+    return true; const condition = iifCondition(query); return condition !== null && exprImpliesExpr(condition, predicate, sameResolvedExpression); }
+function splitExpressionAnd(expression, out) { const reduction = expression.reduction; if (reduction?.kind === "reduction" && reduction.signature === "expr ::= expr AND expr") {
+    for (const child of exprChildren(reduction))
+        splitExpressionAnd(asExpr(child), out);
+}
+else
+    out.push(expression); }
+/** where.c:whereUsablePartialIndex conservative represented branch. Exact
+ * sqlite3ExprCompare identity is accepted. Wider OR/NOT-NULL implication is
+ * uncertainty and omits the candidate rather than risking incomplete rows. */
+function usablePartialIndex(index, terms, source, ordinal, resolved) {
+    if (!index.partialWhere)
+        return true;
+    if (source.leftOfRightJoin || !resolved)
+        return false;
+    const sameResolvedExpression = partialProofIdentity(resolved, source);
+    const required = [];
+    splitExpressionAnd(index.partialWhere, required);
+    const bit = sourceBit(ordinal);
+    return required.every(predicate => terms.some(term => !term.virtual && (term.prereqAll & bit) !== 0n && exprImpliesExpr(term.expression, predicate, sameResolvedExpression) && (!source.joinFromLeft.left || (term.origin.kind === "join-on" && term.origin.rightSource === ordinal))));
+}
+/** where.c:indexMightHelpWithOrderBy tests usefulness before full proof. */
+function indexMightHelpWithOrderBy(index, ordinal, table, order) {
+    return table.kind === 'table' && !index?.unordered && order.some(term => term.sourceOrdinal === ordinal && (isIntegerPrimaryKeyAlias(table, term.column) || !!index?.physical?.fields.some(field => field.role === "declared" && fieldMatchesColumn(index.physical, field, term.column))));
+}
+/** expr.c:2899 sqlite3ExprIsInteger with pParse=0: EP_IntValue only,
+ * unary signs recurse; parentheses are transparent parse nodes. Do not use
+ * runtime INTEGER conversion or constant folding to manufacture EP_IntValue. */
+function exprInteger32(value) {
+    if (value.signature === "expr ::= LP expr RP")
+        return exprInteger32(exprChildren(value)[0]);
+    if (value.signature === "expr ::= PLUS|MINUS expr") {
+        const child = exprInteger32(exprChildren(value)[0]);
+        if (child === null)
+            return null;
+        return value.children.some(c => c.kind === "terminal" && c.value.text === "-") ? -child : child;
+    }
+    if (value.signature !== "expr ::= term")
+        return null;
+    const term = value.children.find(c => c.kind === "reduction");
+    if (term?.kind !== "reduction" || term.signature !== "term ::= INTEGER")
+        return null;
+    const token = term.children.find(c => c.kind === "terminal");
+    if (token?.kind !== "terminal")
+        return null;
+    try {
+        const n = BigInt(token.value.text.replaceAll("_", ""));
+        return n >= 0n && n <= 2147483647n ? n : null;
+    }
+    catch {
+        return null;
+    }
+}
+/** where.c:3037 whereLoopOutputAdjust. Cardinality is adjusted after run
+ * costing, before insertion; residual predicates do not reduce physical work.
+ * Likelihood/truthProb producers are not yet represented. TERM_HEURTRUTH
+ * feeds builder-owned HIGHTRUTH/second-pass state (where.c3519/7086). SELFCULL only feeds the
+ * unsupported Bloom-filter generation path (where.c6606), not this costing. */
+function outputAdjust(loop, clause, budget) {
+    const truth = budget.truth ??= ({ high: new Set(), heuristic: new Set(), secondPass: false });
+    const cap = loop.capability, used = cap ? [...cap.equalitySlots.filter((a) => a !== null).map(a => a.term), cap.lower?.term, cap.upper?.term, cap.rowidEquality?.term, cap.rowidLower?.term, cap.rowidUpper?.term].filter((t) => !!t) : [];
+    const self = sourceBit(loop.sourceOrdinal), allowed = loop.prereq | self;
+    let rows = loop.outputRows, reduce = 0n;
+    for (const term of clause.terms) {
+        if (term.virtual || (term.prereqAll & ~allowed) !== 0n || (term.prereqAll & self) === 0n)
+            continue;
+        if (used.some(t => t === term || t.parentId === term.id))
+            continue;
+        budget.progressCheck?.(); // where.c:3060, after unused-term proof, before output reduction.
+        rows--;
+        if ((term.operator === "eq" || term.operator === "is") && !truth.high.has(term)) {
+            // sqlite3ExprIsInteger tests the syntactic right operand, not the indexed
+            // orientation. Only literal +/- integer leaves qualify, not folded math.
+            const root = term.expression.reduction, rhs = root?.kind === "reduction" ? expressionOperand(root, 1) : undefined;
+            const smallValue = rhs ? exprInteger32(rhs) : null, small = smallValue !== null && smallValue >= -1n && smallValue <= 1n;
+            const k = small ? 10n : 20n;
+            if (reduce < k) {
+                truth.heuristic.add(term);
+                reduce = k;
+            }
+        }
+    }
+    if (loop.source.table.kind !== 'table')
+        throw new Error('physical output adjustment on module');
+    const limit = BigInt(loop.source.table.nRowLogEst) - reduce;
+    return rows > limit ? limit : rows;
+}
+function insertWhereLoop(loop, source, sourceOrdinal, clause, options, loops, budget, completion) {
+    if (source.table.kind !== 'table')
+        throw new Error('physical insertion on module');
+    const table = source.table;
+    const candidate = freeze({ ...loop, outputRows: loop.kind === "multi-or" ? loop.outputRows : outputAdjust(loop, clause, budget), sortIdentity: loop.kind === "multi-or" ? 0 : indexMightHelpWithOrderBy(loop.capability?.index ?? null, sourceOrdinal, source.table, options.orderBy) ? (loop.capability?.index ? table.indexes.indexOf(loop.capability.index) + 2 : 1) : 0 });
+    if (options.orSet) {
+        const cap = loop.capability, nLTerm = loop.kind === "multi-or" ? 1 : cap ? cap.nEq + Number(!!cap.lower) + Number(!!cap.upper) + Number(!!cap.rowidEquality) + Number(!!cap.rowidLower) + Number(!!cap.rowidUpper) : 0;
+        if (budget.remaining === 0n) {
+            completion.done = true;
+            return whereOrCollect(options.orSet, budget, nLTerm, { prereq: 0n, rRun: 0n, nOut: 0n });
+        }
+        budget.remaining--;
+        const adjusted = whereLoopAdjustCost(options.ordinaryLoops ? [...options.ordinaryLoops, ...loops] : loops, candidate);
+        if (nLTerm)
+            whereOrInsert(options.orSet, adjusted.prereq, adjusted.runCost, adjusted.outputRows);
+        return true;
+    }
+    return whereLoopInsert(loops, candidate, budget, options.ordinaryLoops);
+}
+/** where.c:3290/3490/3601: each equality proposal owns the extracted
+ * prefix through insertion and recursion. NOTFOUND leaves the inherited valid
+ * prefix untouched; IN restores it for every member. A child cannot publish
+ * its prefix into a sibling, including generator close and thrown work checks. */
+function sampleFrames(index, probe) {
+    const counts = [];
+    const enter = (admission, equality) => {
+        const slot = equality.length, valid = probe?.nRecValid, active = probe?.nField, length = counts.length;
+        try {
+            const hasMultiplier = equality.some(a => a === null || a.operator === "in" && literalInLogEst(a.term) !== 0n);
+            counts[slot] = probe && index.stat4 && slot < index.stat4.nSampleCol && !hasMultiplier ? sampleEquality(index, probe, admission, slot) : null;
+        }
+        catch (error) {
+            if (probe) {
+                probe.nRecValid = valid;
+                probe.nField = active;
+            }
+            counts.length = length;
+            throw error;
+        }
+        return () => { if (probe) {
+            probe.nRecValid = valid;
+            probe.nField = active;
+        } counts.length = length; };
+    };
+    return { counts, enter };
+}
+/** Direct invocation of the same AddBtreeIndex production/insertion owners.
+ * Unlike AddBtree, this starts at the recursive template, not its full scan. */
+export function btreeIndexLoops(source, sourceOrdinal, index, clause, options) {
+    const loops = [], budget = options.planBudget ?? { remaining: 21000n }, completion = options.completion ?? { done: false }, result = { ok: true };
+    completion.done = false;
+    const own = [];
+    if (!options.resolved)
+        for (let wc = clause; wc; wc = wc.outer)
+            for (const term of wc.terms)
+                if (term.left?.source === source && term.outerJoinSafe.mayDrive && leftTargetCompatible(term, source, sourceOrdinal))
+                    own.push(term);
+    const sampleProbe = index.stat4?.nSample && index.physical ? new Stat4Probe(index.physical.keyInfo, () => budget.progressCheck?.(), budget.reserveProbe, budget.reprepare) : undefined;
+    const frames = sampleFrames(index, sampleProbe);
+    try {
+        for (const cap of whereLoopAddBtreeIndex(index, own, sourceOrdinal, options.neededColumns, options.orderBy, source, options.skipScan !== false, options.inSeekScan !== false, options.resolved ? { clause, resolved: options.resolved, source, result, progressCheck: budget.progressCheck, sampleEnter: frames.enter } : undefined)) {
+            result.ok = insertWhereLoop(indexCandidate(cap, source, sourceOrdinal, index, clause, { ...options, planBudget: budget, sampleProbe, sampleCounts: options.resolved ? frames.counts : undefined }), source, sourceOrdinal, clause, options, loops, budget, completion);
+        }
+    }
+    finally {
+        sampleProbe?.release();
+    }
+    completion.done = !result.ok;
+    return Object.freeze(loops);
+}
+function indexCandidate(cap, source, sourceOrdinal, index, clause, options) {
+    const selected = [...cap.equalitySlots, cap.lower, cap.upper].filter((a) => a !== null), prereq = selected.reduce((mask, admission) => mask | admission.term.prereqRight, options.sourcePrereq ?? 0n), estimate = indexLoopEstimate(index, cap, source, clause, options.resolved, options.sampleProbe, options.planBudget, options.sampleCounts), owned = clause.terms.filter(term => (term.prereqAll & sourceBit(sourceOrdinal)) !== 0n);
+    return freeze({ source, sourceOrdinal, prereq, capability: cap, kind: "index", indexRowSize: BigInt(index.szIdxRow), setupCost: 0n, runCost: estimate.run, outputRows: estimate.rows, terms: Object.freeze(owned) });
+}
+/** whereLoopAddBtree's deterministic no-stat candidate subset. */
+export function btreeLoops(source, sourceOrdinal, clause, options) {
+    if (source.table.kind !== 'table')
+        throw new Error("module dispatched to physical candidate builder");
+    const table = source.table;
+    if (options.forcedIndex && options.notIndexed)
+        throw new WherePlanningUnsupportedError("INDEXED BY and NOT INDEXED conflict");
+    if (options.forcedIndex && options.forcedIndex.table !== source.table)
+        throw new WherePlanningUnsupportedError("forced index does not belong to source table");
+    // build.c:sqlite3KeyInfoOfIndex deactivates unknown-CollSeq indexes;
+    // where.c:wherePathSolver reports no query solution for forced use.
+    const missingCollation = (index) => index.layout?.fields.find(field => !["binary", "nocase", "rtrim"].includes(field.collation))?.collation;
+    if (options.forcedIndex && !options.forcedIndex.physical) {
+        if (missingCollation(options.forcedIndex))
+            throw new SqlParseError("no query solution");
+        throw new WherePlanningUnsupportedError(`unsupported physical index layout: ${options.forcedIndex.name}`);
+    }
+    // WITHOUT ROWID's primary index is storage, not an optional access path.
+    const primary = source.table.withoutRowid ? source.table.indexes.find(index => index.origin === "primary-key") : undefined;
+    if (primary && !primary.physical) {
+        const collation = missingCollation(primary);
+        if (collation)
+            throw new SqlParseError(`no such collation sequence: ${collation}`);
+    }
+    const completion = options.completion ?? { done: false };
+    completion.done = false;
+    const sourcePrereq = options.sourcePrereq ?? 0n;
+    const scanOrder = options.orderBy.length === 1 && options.orderBy[0].sourceOrdinal === sourceOrdinal && isIntegerPrimaryKeyAlias(source.table, options.orderBy[0].column) ? options.orderBy[0] : null;
+    const scanCapability = freeze({ index: null, physicalIndex: null, nEq: 0, nSkip: 0, equalitySlots: Object.freeze([]), lower: null, upper: null, constrainedFields: 0, orderTermsSatisfied: scanOrder ? 1 : 0, reverse: scanOrder?.descending ?? false, covering: true, needsTableLookup: false, rowidEquality: null, rowidLower: null, rowidUpper: null });
+    // whereScanNext walks pWC then pOuter for constraint lookup. Keep the
+    // clause-local residual inventory separate: outer constraints are not owned
+    // by this arm, and outer OR parents must not trigger recursive exploration.
+    const scanTerms = [], seenTerms = new Set();
+    if (!options.orSet)
+        for (let wc = clause; wc; wc = wc.outer)
+            for (const term of wc.terms)
+                if (!seenTerms.has(term)) {
+                    seenTerms.add(term);
+                    scanTerms.push(term);
+                }
+    const owned = clause.terms.filter(term => (term.prereqAll & sourceBit(sourceOrdinal)) !== 0n), own = options.orSet ? [] : scanTerms.filter(term => term.left?.source === source && term.outerJoinSafe.mayDrive && leftTargetCompatible(term, source, sourceOrdinal)), scan = freeze({ source, sourceOrdinal, prereq: sourcePrereq, capability: scanCapability, kind: "table-scan", setupCost: 0n, runCost: BigInt(table.nRowLogEst) + 16n - (source.table.indexes.some(index => !!index.stat4?.nSample) ? 2n : 0n), outputRows: BigInt(table.nRowLogEst), terms: Object.freeze(owned) });
+    // where.c:4035 uses the real primary index for WITHOUT ROWID, never sPk.
+    // NOT INDEXED suppresses optional secondary indexes, not physical storage.
+    const loops = [], budget = options.planBudget ?? { remaining: 21000n };
+    const insert = (loop) => insertWhereLoop(loop, source, sourceOrdinal, clause, options, loops, budget, completion);
+    if (!options.forcedIndex && !source.table.withoutRowid && !insert(scan))
+        return Object.freeze(loops);
+    // A successful scan insertion is OK even when it consumed the last slot.
+    if (!options.orSet && budget.remaining === 0n)
+        return Object.freeze(loops);
+    const rowid = own.filter(term => term.left?.rowid && term.operator !== null && term.operator !== "is-null").sort((a, b) => a.prereqRight < b.prereqRight ? -1 : a.prereqRight > b.prereqRight ? 1 : a.id - b.id), rowEquals = rowid.filter(term => term.operator === "eq" || term.operator === "is"), rowLowers = rowid.filter(term => term.operator === "gt" || term.operator === "ge"), rowUppers = rowid.filter(term => term.operator === "lt" || term.operator === "le");
+    const rowOrder = options.orderBy.length === 1 && options.orderBy[0].sourceOrdinal === sourceOrdinal && isIntegerPrimaryKeyAlias(source.table, options.orderBy[0].column) ? options.orderBy[0] : null;
+    function* rowCostTerms(upperOnly = false) {
+        // Suspend semantic admission at each proposal, including the enclosing
+        // upper-only restart. Exhaustion closes both for-of iterators.
+        const mask = (term) => upperOnly ? term.operator === "lt" || term.operator === "le" : !!term.operator && ["eq", "is", "gt", "ge", "lt", "le"].includes(term.operator);
+        const target = freeze({ source, sourceOrdinal, column: null, columnIndex: -1, rowid: true });
+        const direct = function* () {
+            for (let wc = clause; wc; wc = wc.outer)
+                for (const term of wc.terms)
+                    if (term.left?.source === source && term.left.rowid && mask(term))
+                        yield term;
+        };
+        // whereScanInit(sPk,-1) leaves zCollName null: no comparison affinity or
+        // collseq filtering, but equivalence expansion/reverse-cycle proof applies.
+        const candidates = options.resolved ? scanWhereTerms(clause, target, options.resolved, mask) : direct();
+        for (const term of candidates) {
+            if ((term.prereqRight & sourceBit(sourceOrdinal)) !== 0n)
+                continue;
+            if (!term.outerJoinSafe.mayDrive || !leftTargetCompatible(term, source, sourceOrdinal))
+                continue;
+            yield term;
+        }
+    }
+    // where.c4835 excludes RIGHT/FULL, not LEFT: ON arms retain ownership
+    // through orArmClause; WhereEnd owns final LEFT null extension.
+    if (!source.table.withoutRowid && !options.forcedIndex && (options.orSet || rowEquals.length || rowLowers.length || rowUppers.length)) {
+        const make = (term) => term && term.operator ? freeze({ term, operator: term.operator, originalIndexedOperand: term.originalIndexedOperand, bound: bound(term.operator) }) : null, propose = (rowEq, rowLower, rowUpper) => { const rowidCovering = [...options.neededColumns].every(need => need === ROWID_NEEDED), used = [rowEq, rowLower, rowUpper].filter((x) => !!x), cap = freeze({ index: null, physicalIndex: null, nEq: 0, nSkip: 0, equalitySlots: Object.freeze([]), lower: null, upper: null, constrainedFields: 1, orderTermsSatisfied: rowOrder ? 1 : 0, reverse: rowOrder?.descending ?? false, covering: rowidCovering, needsTableLookup: !rowidCovering, rowidEquality: make(rowEq), rowidLower: make(rowLower), rowidUpper: make(rowUpper) }); return insert(freeze({ source, sourceOrdinal, prereq: used.reduce((m, t) => m | t.prereqRight, sourcePrereq), capability: cap, kind: "rowid", indexRowSize: 3n, setupCost: 0n, runCost: logEstAdd(BigInt(table.nRowLogEst) <= 10n ? 0n : BigInt(sqliteLogEst(BigInt(table.nRowLogEst)) - 33), (rowEq ? 0n : rangeRows(BigInt(table.nRowLogEst), !!rowLower, !!rowUpper)) + 16n), outputRows: rowEq ? 0n : rangeRows(BigInt(table.nRowLogEst), !!rowLower, !!rowUpper), terms: Object.freeze(owned) })); };
+        {
+            // sPk uses whereLoopAddBtreeIndex: insert current lower before restarting
+            // upper-only scan, then resume stored term order. No Cartesian inventory.
+            rowCost: for (const term of rowCostTerms()) {
+                if (term.operator === "eq" || term.operator === "is") {
+                    if (!propose(term, null, null))
+                        return Object.freeze(loops);
+                }
+                else if (term.operator === "gt" || term.operator === "ge") {
+                    const rc = propose(null, term, null);
+                    for (const upper of rowCostTerms(true)) {
+                        if (upper.operator !== "lt" && upper.operator !== "le")
+                            continue;
+                        if (!propose(null, term, upper))
+                            break;
+                    }
+                    // sPk uses the same ignored recursive upper return as real indexes.
+                    completion.done = !rc;
+                    if (!rc)
+                        return Object.freeze(loops);
+                }
+                else if (term.operator === "lt" || term.operator === "le") {
+                    if (!propose(null, null, term))
+                        return Object.freeze(loops);
+                }
+            }
+        }
+    }
+    // AddBtree continues from successful sPk into real indexes even at zero.
+    if (!options.orSet && budget.remaining === 0n)
+        return Object.freeze(loops);
+    const indexResult = { ok: true };
+    indexes: for (const index of source.table.indexes) {
+        const physicalPrimary = source.table.withoutRowid && index.origin === "primary-key";
+        if (options.notIndexed && !physicalPrimary)
+            continue;
+        if (options.forcedIndex && index !== options.forcedIndex)
+            continue;
+        if (!usablePartialIndex(index, clause.terms, source, sourceOrdinal, options.resolved))
+            continue;
+        const sampleProbe = index.stat4?.nSample && index.physical ? new Stat4Probe(index.physical.keyInfo, () => budget.progressCheck?.(), budget.reserveProbe, budget.reprepare) : undefined;
+        const frames = sampleFrames(index, sampleProbe);
+        try {
+            for (const cap of indexProposals(!!options.forcedIndex, indexResult, index, own, sourceOrdinal, options.neededColumns, options.orderBy, source, options.skipScan !== false, options.inSeekScan !== false, options.resolved ? { clause, resolved: options.resolved, source, result: indexResult, progressCheck: budget.progressCheck, sampleEnter: frames.enter } : undefined)) {
+                indexResult.ok = true;
+                if (!options.forcedIndex && !physicalPrimary && !index.partialWhere && cap.constrainedFields === 0 && !indexMightHelpWithOrderBy(index, sourceOrdinal, source.table, options.orderBy) && (!cap.covering || index.unordered || index.szIdxRow >= source.table.szTabRow))
+                    continue;
+                if (!insert(indexCandidate(cap, source, sourceOrdinal, index, clause, { ...options, planBudget: budget, sampleProbe, sampleCounts: options.resolved ? frames.counts : undefined }))) {
+                    indexResult.ok = false;
+                }
+            }
+        }
+        finally {
+            sampleProbe?.release();
+        }
+        completion.done = !indexResult.ok;
+        if (completion.done)
+            return Object.freeze(loops);
+    }
+    // whereLoopAddOr. Copied cost builders share the construction budget;
+    // physical branch choice is deliberately absent from the published union.
+    // where.c4835 excludes RIGHT/FULL, not LEFT: ON arms retain ownership
+    // through orArmClause; WhereEnd owns final LEFT null extension.
+    // AddOr has no INDEXED BY veto: recursive AddBtree retains the forced index.
+    // Non-single vector arms use the existing AND-owned field analysis below;
+    // splitting fields again in the OR clause would duplicate their ownership.
+    if (!options.notIndexed && !source.joinFromLeft?.right && !source.joinFromLeft?.outer && !source.leftOfRightJoin) {
+        for (const parent of clause.terms) {
+            const info = parent.info;
+            if (info?.kind !== "or" || (info.indexable & sourceBit(sourceOrdinal)) === 0n)
+                continue;
+            const sum = { a: [] };
+            let first = true;
+            for (const arm of info.clause.terms.filter(term => !term.virtual)) {
+                const armClause = orArmClause(arm, sourceOrdinal, clause, info.clause);
+                if (!armClause)
+                    continue;
+                const current = { a: [] }, armCompletion = { done: false };
+                btreeLoops(source, sourceOrdinal, armClause, { ...options, orderBy: [], planBudget: budget, orSet: current, completion: armCompletion, ordinaryLoops: options.ordinaryLoops ? [...options.ordinaryLoops, ...loops] : loops });
+                if (armCompletion.done) {
+                    completion.done = true;
+                    return Object.freeze(loops);
+                }
+                if (!whereOrAccumulate(sum, current, first, logEstAdd))
+                    break;
+                first = false;
+                // Last successful arm remains OK at zero; publication owns DONE.
+            }
+            for (const cost of sum.a) {
+                if (!insert(freeze({ source, sourceOrdinal, kind: "multi-or", orInfo: info, capability: null, sortIdentity: 0, prereq: cost.prereq, setupCost: 0n, runCost: cost.rRun + 1n, outputRows: cost.nOut, terms: Object.freeze([parent]) })))
+                    return Object.freeze(loops);
+            }
+            if (!options.orSet && budget.remaining === 0n)
+                break;
+        }
+    }
+    if (!options.orSet && options.forcedIndex && !loops.some(loop => loop.kind === "index" || loop.kind === "multi-or"))
+        throw new WherePlanningUnsupportedError(`forced index is unusable: ${options.forcedIndex.name}`);
+    return Object.freeze(loops);
+}
+/** where.c:whereLoopAddOr arm dispatch. Native tempWC carries one matching
+ * stored orientation. This bounded immutable representation groups an original
+ * direct term with its immediate commuted children: only the orientation for
+ * the target drives access, while original identity survives child consumption.
+ * AND info owns its clause; the OR clause is not an outer constraint scope.
+ * Grouping is not a claim of general proposal-count or cost parity. */
+export function orArmClause(arm, sourceOrdinal, outer, owned) {
+    if (arm.info?.kind === "and")
+        return arm.info.clause;
+    const terms = [arm, ...(owned?.terms.filter(term => term.parentId === arm.id) ?? [])];
+    return terms.some(term => term.left?.sourceOrdinal === sourceOrdinal) ? whereClause(terms, outer) : null;
+}
+/** wherecode.c Case 5 constructs xN AND w, distinct from whereLoopAddOr's
+ * cost exploration. Only original indexable enclosing terms enter w. The
+ * original parent predicate remains owned by the common body. Represented
+ * terms have no TERM_CODED/TERM_SLICE state (row vectors are not admitted).
+ * Do not borrow pOuter unfiltered: EP_Subquery must never be an arm key. */
+export function orRuntimeArmClause(arm, sourceOrdinal, outer, owned) {
+    const hasSubquery = (value) => value.kind === 'reduction' &&
+        (value.signature.startsWith('select ::=') || value.children.some(hasSubquery));
+    const factored = [];
+    if (!arm.outerOn) {
+        for (const term of outer.terms) {
+            if (term.virtual || term.outerOn || term.operator === null)
+                continue;
+            if (term.expression.reduction && hasSubquery(term.expression.reduction))
+                continue;
+            factored.push(term);
+        }
+    }
+    const scope = whereClause(factored);
+    if (arm.info?.kind === 'and')
+        return whereClause(arm.info.clause.terms, scope);
+    const terms = [arm, ...(owned?.terms.filter(term => term.parentId === arm.id) ?? [])];
+    return terms.some(term => term.left?.sourceOrdinal === sourceOrdinal) ? whereClause(terms, scope) : null;
+}
+/** build.c:sqlite3DefaultRowEst, analyze.c:analysisLoader: the slots
+ * after slot zero are absolute prefix cardinalities, not decrements. */
+function rangeRows(rows, lower, upper, virtualLower = false) {
+    // whereRangeScanEst: clamp nNew before choosing min(nOut-boundCount,nNew).
+    const bounds = BigInt(Number(lower) + Number(upper));
+    if (bounds === 0n)
+        return rows;
+    const adjusted = rows - 20n * (bounds - (virtualLower ? 1n : 0n)) - (bounds === 2n ? 20n : 0n);
+    const nNew = adjusted < 10n ? 10n : adjusted;
+    return rows - bounds < nNew ? rows - bounds : nNew;
+}
+/** Literal scalar IN list cardinality, where.c:3360. Count immediate
+ * semantic list entries, not nested expression commas or distinct values. */
+function literalInLogEst(term) {
+    // where.c:3334: SELECT RHS uses the native 25-row tuning estimate, not
+    // result execution or a fabricated expression list. Scalar first branch;
+    // vector repeated-term multiplicity is not admitted by this carrier yet.
+    if (term.inSelectRhs)
+        return 46n;
+    const root = term.expression.reduction;
+    const list = root?.kind === "reduction" ? root.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::=")) : undefined;
+    const n = list?.kind === "reduction" ? directExprReductions(list).length : 0;
+    if (n === 0)
+        throw new Error("IN admission requires a nonempty expression list");
+    return BigInt(sqliteLogEst(BigInt(n)));
+}
+/** whereEqualScanEst/whereInScanEst: unavailable is fallback, not NULL. */
+function sampleOperand(a) {
+    const root = a.term.expression.reduction;
+    return root?.kind === "reduction" ? exprChildren(root)[a.originalIndexedOperand === "left" ? 1 : 0] : undefined;
+}
+function sampleSet(probe, a, slot, expr = sampleOperand(a)) {
+    if (a.operator === "is-null" || a.term.virtualNull) {
+        probe.setLiteral(slot, null);
+        return true;
+    }
+    return probe.setExpression(slot, expr, a.field.column?.affinity ?? "blob");
+}
+function sampleEquality(index, probe, a, slot) {
+    if (probe.nRecValid < slot)
+        return null;
+    const one = (expr) => {
+        if (slot + 1 >= index.physical.fields.length)
+            return 1n;
+        if (!sampleSet(probe, a, slot, expr))
+            return null;
+        probe.nRecValid = slot + 1;
+        probe.nField = slot + 1;
+        return whereKeyStats(index.stat4, probe, false).equal;
+    };
+    if (a.operator !== "in")
+        return one(sampleOperand(a));
+    const root = a.term.expression.reduction;
+    const list = root?.kind === "reduction" ? root.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::=")) : undefined;
+    if (!list)
+        return null;
+    const valid = probe.nRecValid, active = probe.nField;
+    let total = 0n;
+    for (const expr of directExprReductions(list)) {
+        try {
+            const n = one(expr);
+            if (n === null)
+                return null;
+            total = BigInt.asUintN(64, total + n);
+        }
+        finally {
+            probe.nRecValid = valid;
+            probe.nField = active;
+        }
+    }
+    const max = logEstToInt(BigInt(index.rowLogEst[0] ?? 99));
+    return total > max ? max : total;
+}
+// util.c sqlite3LogEstToInt. Required by IN's clamp, not nRowEst0.
+function logEstToInt(n) {
+    let x = n % 10n;
+    n /= 10n;
+    if (x >= 5n)
+        x -= 2n;
+    else if (x >= 1n)
+        x -= 1n;
+    if (n > 60n)
+        return (1n << 63n) - 1n;
+    return n >= 3n ? (x + 8n) << (n - 3n) : (x + 8n) >> (3n - n);
+}
+/** whereRangeScanEst's known-prefix scalar KeyStats branch. */
+function sampleRange(index, probe, cap, rows) {
+    if (!cap.lower && !cap.upper)
+        return rows;
+    const valid = probe.nRecValid, active = probe.nField;
+    let lower = cap.lower, upper = cap.upper, lo = 0n, hi = index.stat4.nRowEst0, li = -2, ui = -1;
+    try {
+        probe.nField = valid;
+        if (cap.nEq) {
+            const a = whereKeyStats(index.stat4, probe, false);
+            lo = a.less;
+            hi = BigInt.asUintN(64, a.less + a.equal);
+        }
+        if (cap.physicalIndex.fields[cap.nEq].descending)
+            [lower, upper] = [upper, lower];
+        if (lower && sampleSet(probe, lower, cap.nEq)) {
+            probe.nField = cap.nEq + 1;
+            const a = whereKeyStats(index.stat4, probe, false);
+            li = a.sample;
+            const n = BigInt.asUintN(64, a.less + ((lower.operator === "gt" || lower.operator === "le") ? a.equal : 0n));
+            if (n > lo)
+                lo = n;
+            rows--;
+            lower = null;
+        }
+        if (upper && sampleSet(probe, upper, cap.nEq)) {
+            probe.nField = cap.nEq + 1;
+            const a = whereKeyStats(index.stat4, probe, true);
+            ui = a.sample;
+            const n = BigInt.asUintN(64, a.less + ((upper.operator === "gt" || upper.operator === "le") ? a.equal : 0n));
+            if (n < hi)
+                hi = n;
+            rows--;
+            upper = null;
+        }
+        let next = hi > lo ? BigInt(sqliteLogEst(hi - lo)) - (li === ui ? 20n : 0n) : 10n;
+        if (next < rows)
+            rows = next;
+        return rangeRows(rows, !!lower, !!upper, !!lower?.term.virtualNull);
+    }
+    finally {
+        probe.nField = active;
+        probe.nRecValid = valid;
+    }
+}
+function indexLoopEstimate(index, cap, source, clause, resolved, probe, budget, counts) {
+    const estimates = index.rowLogEst;
+    const size = BigInt(estimates[0] ?? 99), logSize = size <= 10n ? 0n : BigInt(sqliteLogEst(size) - 33);
+    let rows = size, inMul = 0n;
+    const valid = probe?.nRecValid, active = probe?.nField;
+    if (probe && !counts) {
+        probe.nRecValid = 0;
+        probe.nField = 0;
+    }
+    try {
+        for (let i = 0; i < cap.nEq; i++) {
+            const admission = cap.equalitySlots[i];
+            if (admission === null) {
+                const nIter = BigInt((estimates[i] ?? 99) - (estimates[i + 1] ?? 23));
+                rows -= nIter;
+                inMul += nIter + 5n;
+                continue;
+            }
+            if (!admission)
+                throw new Error("missing equality slot");
+            const saved = rows, nIn = admission.operator === "in" ? literalInLogEst(admission.term) : 0n;
+            const nOut = inMul === 0n && probe && index.stat4 && i < index.stat4.nSampleCol ? (counts ? counts[i] ?? null : sampleEquality(index, probe, admission, i)) : null;
+            if (nOut) {
+                rows = BigInt(sqliteLogEst(nOut));
+                if (i === 0 && rows + 10n > size && budget) {
+                    const truth = budget.truth ??= { high: new Set(), heuristic: new Set(), secondPass: false };
+                    truth.high.add(admission.term);
+                    if (truth.heuristic.has(admission.term))
+                        truth.secondPass = true;
+                }
+                if (rows > saved)
+                    rows = saved;
+                rows -= nIn;
+            }
+            else {
+                rows += BigInt((estimates[i + 1] ?? 23) - (estimates[i] ?? 99));
+                if (admission.operator === "is-null")
+                    rows += 10n;
+            }
+            if (admission.operator === "in") {
+                inMul += literalInLogEst(admission.term);
+            }
+        }
+        // where.c:whereRangeScanEst/whereRangeAdjust: each bound reduces by 20,
+        // paired default bounds subtract another 20, clamp to 10 and at most
+        // saved_nOut minus the number of bounds. Not a 10/20 total reduction.
+        if (probe && index.stat4?.nSample && cap.nEq < index.stat4.nSampleCol && (cap.lower || cap.upper)) {
+            if (probe.nRecValid === cap.nEq)
+                rows = sampleRange(index, probe, cap, rows);
+            else {
+                // whereRangeScanEst: invalid prefix uses scalar sample counts, not
+                // KeyStats. A paired one-sample interval deliberately retains fallback.
+                const lower = cap.lower ? sampleOperand(cap.lower) : undefined, upper = cap.upper ? sampleOperand(cap.upper) : undefined;
+                const estimate = stat4SkipScanRange({ probe, samples: index.stat4.samples, column: cap.nEq,
+                    affinity: cap.physicalIndex.fields[cap.nEq].column?.affinity ?? "blob",
+                    ...(lower ? { lower } : {}), ...(upper ? { upper } : {}) });
+                rows = estimate.done ? rows - BigInt(estimate.adjust) : rangeRows(rows, !!cap.lower, !!cap.upper, !!cap.lower?.term.virtualNull);
+            }
+        }
+        else
+            rows = rangeRows(rows, !!cap.lower, !!cap.upper, !!cap.lower?.term.virtualNull);
+        const ratio = 15n * BigInt(index.szIdxRow) / BigInt(index.table.szTabRow);
+        const idx = cap.constrainedFields === 0 ? rows + 1n + ratio : logEstAdd(logSize, rows + 1n + ratio);
+        let lookup = rows + 16n;
+        if (cap.constrainedFields === 0 && cap.needsTableLookup && resolved) {
+            // where.c:4258–4278 and expr.c:exprIdxCover: stop at the FIRST
+            // noncovered clause term. Other cursors do not require this table lookup.
+            for (const term of clause.terms) {
+                const root = term.expression.reduction;
+                if (!root || root.kind !== "reduction")
+                    break;
+                const covered = resolved.columnUses.filter(use => use.source === source && reductionContains(root, use.expression)).every(use => use.columnIndex < 0 ? cap.physicalIndex.fields.some(field => field.role === "rowid-tail") :
+                    cap.physicalIndex.fields.some(field => fieldMatchesColumn(cap.physicalIndex, field, source.table.columns[use.columnIndex])));
+                if (!covered)
+                    break;
+                lookup -= term.operator === "eq" || term.operator === "is" ? 20n : 1n;
+            }
+        }
+        return { run: (cap.needsTableLookup ? logEstAdd(idx, lookup) : idx) + inMul, rows: rows + inMul };
+    }
+    finally {
+        if (probe) {
+            probe.nRecValid = valid;
+            probe.nField = active;
+        }
+    }
+}
+/** where.c:whereSortingCost, ordinary ORDER BY (no LIMIT/DISTINCT). */
+function sortCost(rows, columns, orderTerms, ordered) {
+    let cost = rows + BigInt(sqliteLogEst(BigInt(Math.floor((columns + 59) / 30))));
+    if (ordered > 0)
+        cost += BigInt(sqliteLogEst(BigInt(Math.floor((orderTerms - ordered) * 100 / orderTerms))) - 66);
+    return cost + (rows <= 10n ? 0n : BigInt(sqliteLogEst(rows) - 33));
+}
+/** Internal source owner, shared by AddBtree and direct recursion controls.
+ * Yields insertion templates; callers return insertion status through result. */
+export const whereLoopAddBtreeIndex = capabilities;
+/** where.c:4242–4295 inserts eligible full-index alternatives before
+ * constrained recursion, even when an equality depends on a later cursor.
+ * Otherwise a WR primary loses its prerequisite-free storage scan. */
+function* indexProposals(forced, result, ...args) {
+    const [index, , ordinal, needed, order] = args;
+    const physical = index.physical;
+    // where.c uses already-owned column coverage only after structural gates.
+    // Do not consume needed-column iterators for an excluded full-scan path.
+    const structural = !!physical && (forced || index.table.withoutRowid || !!index.partialWhere || indexMightHelpWithOrderBy(index, ordinal, index.table, order));
+    const coveringPossible = !!physical && !index.unordered && index.szIdxRow < index.table.szTabRow;
+    const scan = structural || coveringPossible ? makeCapability(index, physical, [], null, null, ordinal, needed, order) : null;
+    const eligible = !!scan && (structural || scan.covering);
+    if (eligible) {
+        yield scan;
+        // where.c4290: full scan DONE breaks the index loop, unlike recursive
+        // children whose return is intentionally ignored by their parent frame.
+        if (!result.ok)
+            return;
+    }
+    for (const cap of whereLoopAddBtreeIndex(...args))
+        if (cap.constrainedFields !== 0 || !eligible)
+            yield cap;
+}
+/** where.c:whereLoopCheaperProperSubset / whereLoopAdjustCost: compare
+ * admitted terms and index coverage, including case 2 across indexes. The
+ * template is adjusted against loops inserted before it, never future loops. */
+function properSubset(weak, strong) {
+    const a = weak.capability, b = strong.capability;
+    if (weak.kind !== "index" || strong.kind !== "index" || !a || !b)
+        return false;
+    if (weak.runCost > strong.runCost && weak.outputRows > strong.outputRows)
+        return false;
+    if (a.index === b.index && a.nEq < b.nEq && a.nSkip === 0 && b.nSkip === 0)
+        return true;
+    const terms = (cap) => [...cap.equalitySlots, cap.lower, cap.upper].filter((x) => x !== null).map(x => x.term);
+    const left = terms(a), right = terms(b);
+    if (left.length >= right.length || b.nSkip > a.nSkip || (a.covering && !b.covering))
+        return false;
+    return left.every(term => right.includes(term));
+}
+export function whereLoopInsertCandidates(loops, budget = { remaining: 21000n }) {
+    const inserted = [];
+    for (const candidate of loops)
+        if (!whereLoopInsert(inserted, candidate, budget))
+            break;
+    return inserted;
+}
+/** whereLoopAdjustCost reads the enclosing ordinary pLoops, including in
+ * cost-only copied builders. It never inserts a branch physical choice. */
+function whereLoopAdjustCost(inserted, candidate) {
+    let template = candidate;
+    if (candidate.kind === "index")
+        for (const previous of inserted) {
+            if (previous.sourceOrdinal !== template.sourceOrdinal || previous.kind !== "index")
+                continue;
+            if (properSubset(previous, template))
+                template = freeze({ ...template, runCost: template.runCost < previous.runCost ? template.runCost : previous.runCost, outputRows: template.outputRows < previous.outputRows - 1n ? template.outputRows : previous.outputRows - 1n });
+            else if (properSubset(template, previous))
+                template = freeze({ ...template, runCost: template.runCost > previous.runCost ? template.runCost : previous.runCost, outputRows: template.outputRows > previous.outputRows + 1n ? template.outputRows : previous.outputRows + 1n });
+        }
+    return template;
+}
+/** false is SQLITE_DONE; dropped and replaced templates still return OK. */
+function whereLoopInsert(inserted, candidate, budget, ordinaryLoops = []) {
+    if (budget.remaining === 0n)
+        return false;
+    budget.remaining--;
+    let template = candidate;
+    template = whereLoopAdjustCost([...ordinaryLoops, ...inserted], template);
+    // whereLoopFindLesser: null means discard; list end means append.
+    const lesser = (start) => {
+        for (let i = start; i < inserted.length; i++) {
+            const old = inserted[i];
+            if (old.sourceOrdinal !== template.sourceOrdinal || (old.sortIdentity ?? 0) !== (template.sortIdentity ?? 0))
+                continue;
+            if ((old.setupCost !== 0n && template.setupCost !== 0n && old.setupCost !== template.setupCost) || old.setupCost < template.setupCost)
+                throw new Error("WHERE setup invariant");
+            if ((old.prereq & template.prereq) === old.prereq && old.setupCost <= template.setupCost && old.runCost <= template.runCost && old.outputRows <= template.outputRows)
+                return null;
+            if ((old.prereq & template.prereq) === template.prereq && old.runCost >= template.runCost && old.outputRows >= template.outputRows)
+                return i;
+        }
+        return inserted.length;
+    };
+    const at = lesser(0);
+    if (at === null)
+        return true;
+    if (at < inserted.length) {
+        let tail = at + 1;
+        while (tail < inserted.length) {
+            const remove = lesser(tail);
+            if (remove === null || remove === inserted.length)
+                break;
+            inserted.splice(remove, 1);
+            tail = remove;
+        }
+        inserted[at] = template;
+    }
+    else
+        inserted.push(template);
+    return true;
+}
+/** Exact port of util.c:sqlite3LogEstAdd for bigint LogEst units. */
+export function logEstAdd(a, b) { const x = [10n, 10n, 9n, 9n, 8n, 8n, 7n, 7n, 7n, 6n, 6n, 6n, 5n, 5n, 5n, 4n, 4n, 4n, 4n, 3n, 3n, 3n, 3n, 3n, 3n, 2n, 2n, 2n, 2n, 2n, 2n, 2n]; if (a < b)
+    return logEstAdd(b, a); const d = a - b; if (d > 49n)
+    return a; if (d > 31n)
+    return a + 1n; return a + x[Number(d)]; }
+/** where.c:computeMxChoice default, without the unrepresented star heuristic. */
+export function wherePathChoiceWidth(sourceCount) { return sourceCount <= 1 ? 1 : sourceCount === 2 ? 5 : 12; }
+/** where.c:5835ff. Ordered traversal, unsorted accumulators and bounded slots. */
+// Case5's recursive SrcList excludes already-positioned enclosing sources.
+// Original source ordinals remain stable here: initialReady represents those
+// outer sources, never remaining/unpositioned sources. Normal planning uses0.
+export function wherePathSolver(candidates, sourceCount, maxChoices = wherePathChoiceWidth(sourceCount), orderTerms = 0, resultColumns = 1, sortRows = null, initialReady = 0n) {
+    if (!Number.isSafeInteger(maxChoices) || maxChoices < 1)
+        throw new RangeError("invalid WHERE choice width");
+    let paths = [freeze({ loops: Object.freeze([]), ready: initialReady, reverse: 0n, rows: 0n, cost: 0n, unsortedCost: 0n, orderTermsSatisfied: orderTerms && sourceCount ? null : 0 })];
+    // where.c:5812: indexed production loops always carry their immutable width.
+    const indexedWidth = (loop) => { if (loop.indexRowSize === undefined)
+        throw new Error("indexed WHERE loop missing row width"); return loop.indexRowSize; };
+    const noBetter = (candidate, baseline) => candidate.kind !== "index" || baseline.kind !== "index" || indexedWidth(candidate) >= indexedWidth(baseline);
+    for (let depth = 0; depth < sourceCount; depth++) {
+        const next = [];
+        let worst = 0, mxCost = 0n, mxUnsort = 0n;
+        for (const path of paths)
+            for (const group of candidates)
+                for (const loop of group) {
+                    const bit = sourceBit(loop.sourceOrdinal);
+                    if (path.ready & bit || (loop.prereq & ~path.ready) !== 0n)
+                        continue;
+                    let unsorted = loop.runCost + path.rows;
+                    if (loop.setupCost !== 0n)
+                        unsorted = logEstAdd(loop.setupCost, unsorted);
+                    unsorted = logEstAdd(unsorted, path.unsortedCost);
+                    const ready = path.ready | bit, rows = path.rows + loop.outputRows;
+                    // where.c:wherePathSatisfiesOrderBy: an IPK equality is WHERE_ONEROW,
+                    // so it cannot disrupt the ordering delivered by a later loop. Retain
+                    // unknown ordering until that producer is visited; do not infer uniqueness
+                    // from a statistical nOut of zero. Once all ORDER terms are matched by
+                    // an outer loop, inner iteration cannot unmatch them (source obSat==obDone).
+                    // Partial joined proofs remain conservative.
+                    const singleton = (item) => item.kind === "rowid" && item.capability?.rowidEquality !== null && item.capability?.rowidEquality !== undefined;
+                    const ordered = path.orderTermsSatisfied === null
+                        ? (path.loops.every(singleton)
+                            ? (loop.capability?.orderTermsSatisfied ?? 0) > 0 && (depth === sourceCount - 1 || (loop.capability?.orderTermsSatisfied ?? 0) === orderTerms) ? (loop.capability?.orderTermsSatisfied ?? 0) : singleton(loop) && depth < sourceCount - 1 ? null : 0
+                            : 0)
+                        : path.orderTermsSatisfied;
+                    let cost = unsorted;
+                    if (ordered !== null && ordered < orderTerms)
+                        cost = logEstAdd(unsorted, sortCost(sortRows ?? rows, resultColumns, orderTerms, ordered)) + 3n;
+                    else
+                        unsorted -= 2n;
+                    const proposal = freeze({ loops: Object.freeze([...path.loops, loop]), ready, reverse: path.reverse | (loop.capability?.reverse ? bit : 0n), rows, cost, unsortedCost: unsorted, orderTermsSatisfied: ordered });
+                    let slot = next.findIndex(old => old.ready === ready && ((old.orderTermsSatisfied === null) === (proposal.orderTermsSatisfied === null) || depth === sourceCount - 1));
+                    if (slot < 0) {
+                        if (next.length >= maxChoices && (cost > mxCost || (cost === mxCost && unsorted >= mxUnsort)))
+                            continue;
+                        slot = next.length < maxChoices ? next.length : worst;
+                    }
+                    else {
+                        const old = next[slot];
+                        if (old.cost < cost || (old.cost === cost && old.rows < rows) || (old.cost === cost && old.rows === rows && old.unsortedCost < unsorted) || (old.cost === cost && old.rows === rows && old.unsortedCost === unsorted && noBetter(loop, old.loops[depth])))
+                            continue;
+                    }
+                    next[slot] = proposal;
+                    if (next.length >= maxChoices) {
+                        worst = 0;
+                        mxCost = next[0].cost;
+                        mxUnsort = next[0].rows;
+                        for (let i = 1; i < next.length; i++) {
+                            const old = next[i];
+                            if (old.cost > mxCost || (old.cost === mxCost && old.unsortedCost > mxUnsort)) {
+                                worst = i;
+                                mxCost = old.cost;
+                                mxUnsort = old.unsortedCost;
+                            }
+                        }
+                    }
+                }
+        paths = next;
+    }
+    // where.c:6168: exhausted construction leaves no complete path: SQLITE_ERROR,
+    // not an unsupported SQL construct (public prepare maps SqlParseError to1).
+    if (paths.length !== 1)
+        throw new SqlParseError("no query solution");
+    return paths[0];
+}
+function exprChildren(node) { return node.children.filter((x) => x.kind === "reduction" && x.signature.startsWith("expr ::=")); }
+/** Project the parser carrier's Expr child without allocating an inventory.
+ * where.c:3090 reads pExpr->pRight. No memo: borrowed mutable carriers must
+ * remain live, including after the output-adjustment progress callback. */
+function expressionOperand(node, ordinal) {
+    for (const child of node.children)
+        if (child.kind === "reduction" && child.signature.startsWith("expr ::=")) {
+            if (ordinal-- === 0)
+                return child;
+        }
+    return undefined;
+}
+function asExpr(node) { const tokens = []; const collect = (x) => { if (x.kind === "terminal") {
+    if (x.value)
+        tokens.push(x.value);
+}
+else
+    x.children.forEach(collect); }; collect(node); return Object.freeze({ kind: "tokens", tokens: Object.freeze(tokens), reduction: node }); }
+function unwrap(node) { let at = node; while (at.signature === "expr ::= LP expr RP" || at.signature.startsWith("expr ::= expr COLLATE")) {
+    const child = exprChildren(at)[0];
+    if (!child)
+        break;
+    at = child;
+} return at; }
+/** expr.c:sqlite3ExprSkipCollateAndLikely, with parse.y parentheses as
+ * transparent carriers. Resolved builtin likely/unlikely/likelihood calls
+ * carry EP_Unlikely upstream; do not skip arbitrary function arguments. */
+function skipCollateAndLikely(node, resolved) {
+    // C resolveAlias has already replaced identifiers before this loop. In TS,
+    // follow that carrier at every step, including function-list arguments.
+    const copied = (value) => {
+        let at = unwrap(value);
+        while (resolved.aliasUses?.has(at))
+            at = unwrap(resolved.aliasUses.get(at));
+        return at;
+    };
+    let at = copied(node);
+    while (at.signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")) {
+        const token = at.children.find(x => x.kind === "terminal");
+        const name = token?.kind === "terminal" ? dequotedName(token.value.text) : "";
+        if (!["likely", "unlikely", "likelihood"].includes(name))
+            break;
+        const list = at.children.find((x) => x.kind === "reduction" && x.signature.startsWith("exprlist ::="));
+        const args = [];
+        const collect = (part) => {
+            for (const child of part.children)
+                if (child.kind === "reduction") {
+                    if (child.signature.startsWith("expr ::="))
+                        args.push(child);
+                    else
+                        collect(child);
+                }
+        };
+        if (list)
+            collect(list);
+        if (args.length !== (name === "likelihood" ? 2 : 1))
+            break;
+        at = copied(args[0]);
+    }
+    return producedExpressionTree(at, v => singletonInProduction(andProduction(v)));
+}
+function dequotedName(text, fold = true) {
+    const quote = text[0], end = quote === "[" ? "]" : quote;
+    if (quote === '"' || quote === "'" || quote === "`" || quote === "[") {
+        // util.c sqlite3Dequote stops at the first unescaped closing delimiter.
+        // A CAST typetoken may include trailing size/name text after that quote.
+        let value = "";
+        for (let i = 1; i < text.length; i++) {
+            if (text[i] === end) {
+                if (text[i + 1] !== end)
+                    break;
+                value += end;
+                i++;
+            }
+            else
+                value += text[i];
+        }
+        text = value;
+    }
+    return fold ? sqliteAsciiFold(text) : text;
+}
+function explicitExprCollation(node, resolved) { const alias = resolved.aliasUses?.get(node); if (alias)
+    return explicitExprCollation(alias, resolved); if (node.signature.startsWith("expr ::= expr COLLATE")) {
+    const token = node.children.filter(x => x.kind === "terminal").at(-1);
+    const name = token?.kind === "terminal" ? dequotedName(token.value.text) : "";
+    return name === "binary" || name === "nocase" || name === "rtrim" ? name : null;
+} for (const child of node.children) {
+    if (child.kind !== "reduction" || child.signature.startsWith("select ::="))
+        continue;
+    const found = explicitExprCollation(child, resolved);
+    if (found)
+        return found;
+} return null; }
+function reductionContains(root, needle) { return root === needle || root.children.some(x => x.kind === "reduction" && reductionContains(x, needle)); }
+function columnUse(resolved, node) { let plain = unwrap(node); while (resolved.aliasUses?.has(plain))
+    plain = unwrap(resolved.aliasUses.get(plain)); return resolved.columnUses.find(use => use.selectDepth === 0 && use.expression === plain); }
+// resolve.c lookupName replaces FULL merged names with TK_FUNCTION coalesce.
+// whereexpr.c:exprMightBeIndexed accepts TK_COLUMN, not its first constituent.
+function binding(resolved, node) { const use = columnUse(resolved, node); if (!use || use.mergedSources)
+    return null; const column = use.columnIndex < 0 ? null : use.source.table.columns[use.columnIndex] ?? null; return freeze({ source: use.source, sourceOrdinal: resolved.sources.indexOf(use.source), column, columnIndex: use.columnIndex, rowid: use.columnIndex < 0 }); }
+/** whereexpr.c:exprMightBeIndexed: recursive uses are dependencies, not
+ * ordinary bindings. A non-column operand may bind only an actual expression
+ * field on the exact source whose uses it contains. -2 is XN_EXPR, not rowid. */
+function indexedBinding(resolved, node) {
+    const direct = binding(resolved, node);
+    if (direct)
+        return direct;
+    const mask = prereq(resolved, node);
+    if (mask === 0n)
+        return null;
+    const identity = expressionStructuralIdentity(asExpr(unwrap(node)), true);
+    for (const [sourceOrdinal, source] of resolved.sources.entries()) {
+        if (mask !== sourceBit(sourceOrdinal))
+            continue;
+        if (source.table.kind === 'table' && source.table.indexes.some(index => index.physical?.fields.some(field => field.expression !== null && expressionStructuralIdentity(field.expression, true) === identity)))
+            return freeze({ source, sourceOrdinal, column: null, columnIndex: -2, rowid: false });
+    }
+    return null;
+}
+function selectInLoopRhs(resolved, node, prereqRight) {
+    if (node.signature !== "expr ::= expr in_op LP select RP" || node.children.some(child => child.kind === 'reduction' && child.signature === 'in_op ::= NOT IN'))
+        return undefined;
+    const reduction = node.children.find((child) => child.kind === 'reduction' && child.signature.startsWith('select ::='));
+    const select = reduction?.semantic;
+    if (!select)
+        return undefined;
+    const find = (owner) => {
+        if (owner.source === select)
+            return owner;
+        for (const child of owner.nested) {
+            const found = find(child);
+            if (found)
+                return found;
+        }
+        for (const arm of owner.compoundArms ?? []) {
+            const found = find(arm);
+            if (found)
+                return found;
+        }
+        return undefined;
+    };
+    const plan = find(resolved);
+    if (!plan)
+        throw new Error('IN SELECT lost its resolved identity');
+    const expression = asExpr(node), lhs = exprChildren(node)[0];
+    return freeze({ kind: 'select', demand: 'loop', select, resolved: plan, expression,
+        parameterOccurrences: Object.freeze(asExpr(reduction).tokens.filter(token => token.kind === 'variable')),
+        prereq: prereqRight, scalar: plan.result.length === 1 && lhs?.signature !== "expr ::= LP nexprlist COMMA expr RP",
+        correlated: plan.correlated, unique: true, skipNull: true });
+}
+function rhsPrereq(resolved, node, orientation, operator) {
+    const children = exprChildren(node);
+    if (operator !== "in")
+        return operator === "is-null" ? 0n : children[orientation === "left" ? 1 : 0] ? prereq(resolved, children[orientation === "left" ? 1 : 0]) : 0n;
+    // IN's RHS is an exprlist (not a direct expr child). Visit every reduction
+    // except the LHS so a dependency in any list member cannot disappear.
+    const lhs = children[0];
+    let mask = 0n;
+    for (const child of node.children)
+        if (child.kind === "reduction" && child !== lhs)
+            mask |= prereq(resolved, child);
+    return mask;
+}
+// whereexpr.c ExprUsageFull's bVarSelect is independent of the source mask.
+export function termHasCorrelatedSelect(resolved, node) {
+    const plans = new Map();
+    const remember = (plan) => { plans.set(plan.source, plan); for (const child of plan.nested)
+        remember(child); for (const arm of plan.compoundArms ?? [])
+        remember(arm); };
+    remember(resolved);
+    const visit = (tree) => {
+        const plan = plans.get(tree.semantic);
+        if (plan && plan !== resolved && plan.correlated)
+            return true;
+        const alias = resolved.aliasUses?.get(tree);
+        return !!alias && visit(alias) || tree.children.some(child => child.kind === 'reduction' && visit(child));
+    };
+    return visit(node);
+}
+// expr.c sqlite3ExprCoveredByIndex/exprIdxCover: only this cursor's columns
+// matter, and the expression walker does not descend into SELECTs.
+export function termCoveredByIndex(resolved, node, source, physical) {
+    const visit = (tree) => {
+        if (tree.signature.startsWith('select ::='))
+            return true;
+        const alias = resolved.aliasUses?.get(tree);
+        if (alias)
+            return visit(alias);
+        for (const use of resolved.columnUses)
+            if (use.expression === tree)
+                for (const ref of use.mergedSources ?? [use]) {
+                    if (ref.source !== source)
+                        continue;
+                    const column = source.table.columns[ref.columnIndex];
+                    if (!physical.fields.some(field => fieldMatchesColumn(physical, field, column ?? null)))
+                        return false;
+                }
+        return tree.children.every(child => child.kind !== 'reduction' || visit(child));
+    };
+    return visit(node);
+}
+function prereq(resolved, node) {
+    // whereexpr.c:ExprUsageFull/exprSelectUsage uses the enclosing MaskSet:
+    // child-local cursor identities have no bit there. Correlated carriers live
+    // on the child NameContext, not in the parent's depth-zero columnUses.
+    const bitFor = (source) => { const at = resolved.sources.indexOf(source); return at < 0 ? 0n : sourceBit(at); };
+    const plans = new Map();
+    const remember = (plan) => { plans.set(plan.source, plan); for (const child of plan.nested)
+        remember(child); for (const arm of plan.compoundArms ?? [])
+        remember(arm); };
+    remember(resolved);
+    const selectUsage = (plan) => {
+        let mask = 0n;
+        // Match exprSelectUsage's owning clauses, not LIMIT/OFFSET or every
+        // unrelated resolved child. Nested SELECTs are reached from these roots.
+        const expressions = [...plan.source.result, ...plan.source.groupBy,
+            ...plan.source.orderBy.map(term => term.expr), plan.source.where,
+            plan.source.having, ...plan.sources.flatMap(source => [source.on, ...(source.arguments ?? [])])];
+        for (const expression of expressions)
+            if (expression?.reduction?.kind === 'reduction')
+                mask |= usage(plan, expression.reduction);
+        const derived = plan.source.from.derived;
+        if (derived) {
+            const child = plans.get(derived.select);
+            if (child)
+                mask |= selectUsage(child);
+        }
+        for (const arm of plan.compoundArms ?? [])
+            mask |= selectUsage(arm);
+        return mask;
+    };
+    const usage = (owner, root) => {
+        let mask = 0n;
+        for (const use of owner.columnUses)
+            if (reductionContains(root, use.expression))
+                for (const ref of use.mergedSources ?? [use])
+                    mask |= bitFor(ref.source);
+        for (const [alias, value] of owner.aliasUses ?? [])
+            if (reductionContains(root, alias))
+                mask |= usage(owner, value);
+        const walk = (tree) => {
+            const child = plans.get(tree.semantic);
+            if (child) {
+                mask |= selectUsage(child);
+                return;
+            }
+            for (const value of tree.children)
+                if (value.kind === 'reduction')
+                    walk(value);
+        };
+        walk(root);
+        return mask;
+    };
+    return usage(resolved, node);
+}
+// exprAnalyze's opMask admits WO_SINGLE only when operand usage is disjoint.
+// Keep binding/operator evidence for residuals; it is not indexable evidence.
+/** whereexpr.c:termIsEquivalence (default SQLITE_Transitive enabled).
+ * This flag belongs to semantic analysis, independently of single-index
+ * admission. It is not permission to substitute a transitive seek operand. */
+function termEquivalence(resolved, draft) {
+    if (draft.operator !== "eq" && draft.operator !== "is")
+        return false;
+    if (draft.origin.kind === "join-on" && draft.origin.join === "left")
+        return false;
+    // resolveAlias copies result expression and its flags before analysis.
+    const aliasOperand = (node) => {
+        let at = node;
+        for (;;) {
+            const alias = resolved.aliasUses?.get(at);
+            if (alias) {
+                at = alias;
+                continue;
+            }
+            if (at.signature === "expr ::= LP expr RP") {
+                const child = exprChildren(at)[0];
+                if (child) {
+                    at = child;
+                    continue;
+                }
+            }
+            return at;
+        }
+    };
+    const hasCollate = (carrier) => {
+        const node = aliasOperand(carrier);
+        return node.signature.startsWith("expr ::= expr COLLATE") || node.children.some(child => child.kind === "reduction" && (child.signature.startsWith("expr ::=") || child.signature.startsWith("exprlist ::=") || child.signature.startsWith("nexprlist ::=")) && hasCollate(child));
+    };
+    if (hasCollate(draft.node))
+        return false;
+    if (draft.operator === "is" && resolved.sources.length >= 2 && resolved.sources[0]?.leftOfRightJoin)
+        return false;
+    const children = exprChildren(draft.node), lhs = children[0], rhs = children[1];
+    if (!lhs || !rhs)
+        return false;
+    const left = aliasOperand(lhs), right = aliasOperand(rhs);
+    const a = resolvedExpressionAffinity(left, resolved) ?? "blob", b = resolvedExpressionAffinity(right, resolved) ?? "blob";
+    if (a !== b && (!numericAffinity(a) || !numericAffinity(b)))
+        return false;
+    return sqliteAsciiFold(resolvedExpressionCollation(left, resolved) ?? "binary") === sqliteAsciiFold(resolvedExpressionCollation(right, resolved) ?? "binary");
+}
+/** where.c:whereScanNext column equivalence visitation. Acceptance callback
+ * owns opMask/index affinity/collation admission; yielded terms retain their
+ * original RHS and binding provenance. Not a rewritten index constraint. */
+export function* scanWhereTerms(clause, target, resolved, accept) {
+    const slots = [target];
+    const same = (a, b) => a.sourceOrdinal === b.sourceOrdinal && a.columnIndex === b.columnIndex;
+    const rhs = (term, skipCollate) => {
+        const root = term.expression.reduction;
+        if (!root || root.kind !== "reduction")
+            return null;
+        const children = exprChildren(root);
+        let node = children[term.originalIndexedOperand === "right" ? 0 : 1];
+        // parse.y parentheses retain the expression opcode, not a wrapper. Remove
+        // only those carriers before testing raw TK_COLUMN; keep COLLATE intact.
+        while (node) {
+            if (node.signature === "expr ::= LP expr RP") {
+                node = exprChildren(node)[0];
+                continue;
+            }
+            // resolve.c resolveAlias copies the expression opcode, not TK_ID. Keep
+            // its COLLATE/function carrier for raw reverse-cycle inspection.
+            const alias = resolved.aliasUses?.get(node);
+            if (!alias)
+                break;
+            node = alias;
+        }
+        // Expansion skips COLLATE; reverse-cycle proof tests the raw TK_COLUMN.
+        if (skipCollate && node)
+            node = skipCollateAndLikely(node, resolved);
+        return node && !node.signature.startsWith("expr ::= expr COLLATE") ? binding(resolved, node) : null;
+    };
+    for (let i = 0; i < slots.length; i++) {
+        for (let wc = clause; wc; wc = wc.outer) {
+            for (const term of wc.terms) {
+                if (!term.left || !same(term.left, slots[i]))
+                    continue;
+                // Expression-index fields require ExprCompareSkip, not sentinel equality.
+                if (target.columnIndex === -2)
+                    continue;
+                if (i > 0 && term.outerOn)
+                    continue;
+                if (term.equivalence && slots.length < 11) {
+                    const right = rhs(term, true);
+                    if (right && !slots.some(slot => same(slot, right)))
+                        slots.push(right);
+                }
+                if (!accept(term))
+                    continue;
+                if (term.operator === "eq" || term.operator === "is") {
+                    const rawRight = rhs(term, false);
+                    if (rawRight && same(rawRight, target))
+                        continue;
+                }
+                yield term;
+            }
+        }
+    }
+}
+function singleIndexMask(term) {
+    return term.operator && term.left && (term.prereqRight & sourceBit(term.left.sourceOrdinal)) === 0n ? sourceBit(term.left.sourceOrdinal) : 0n;
+}
+function splitAnd(node, out, resolved) {
+    // parse.y LP expr RP returns the same Expr; unlike COLLATE it is not an
+    // opcode that WhereSplit must preserve as an unsplit residual term.
+    let at = node;
+    while (at.signature === "expr ::= LP expr RP") {
+        const child = exprChildren(at)[0];
+        if (!child)
+            break;
+        at = child;
+    }
+    const inspected = skipCollateAndLikely(at, resolved);
+    if (inspected.signature === "expr ::= expr AND expr") {
+        for (const child of exprChildren(inspected))
+            splitAnd(child, out, resolved);
+    }
+    else
+        out.push(at);
+}
+/** parse.y PExprIsNull inspects the already-produced child opcode after signs. */
+/** AddCollateToken attaches pLeft directly, without EP_Propagate. */
+function parseHasFunc(v) {
+    if (v.kind !== "reduction" || v.signature === "expr ::= expr COLLATE ID|STRING")
+        return false;
+    return v.signature.includes(" PTR ") || v.signature.startsWith("expr ::= expr likeop expr") || v.signature.startsWith("expr ::= ID") && v.signature.includes(" LP ") || v.children.some(parseHasFunc);
+}
+function carriesSelect(v) {
+    return v.kind === "reduction" && (v.signature.startsWith("select ::=") || v.children.some(carriesSelect));
+}
+function andProduction(node) {
+    const parens = (v) => v.signature === "expr ::= LP expr RP" ? parens(exprChildren(v)[0]) : v;
+    const producedFalse = new WeakSet();
+    // ExprFunction sets EP_HasFunc; ExprSetHeightAndFlags propagates it.
+    const hasFunc = parseHasFunc;
+    const emptyIn = (n) => {
+        if (n.signature !== "expr ::= expr in_op LP exprlist RP")
+            return n;
+        const list = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::="));
+        const op = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("in_op ::="));
+        const lhs = exprChildren(n)[0];
+        if (!lhs || list?.kind !== "reduction" || op?.kind !== "reduction" || directExprReductions(list).length !== 0)
+            return n;
+        const hasSelect = (v) => v.kind === "reduction" && (v.signature.startsWith("select ::=") || v.children.some(hasSelect));
+        if (hasSelect(lhs))
+            return n; // SELECT-carried flags not yet proved.
+        const value = emptyInProduction(n);
+        if (producesEmptyInTruth(n) && !op.signature.includes("NOT"))
+            producedFalse.add(value);
+        return value;
+    };
+    const foldNullLiteral = (n) => literalNullProduction(n, producedAnd, v => producedFalse.add(v));
+    const producedAnd = (n) => {
+        n = foldNullLiteral(emptyIn(distinctFromProduction(parens(n))));
+        if (n.signature !== "expr ::= expr AND expr")
+            return n;
+        const es = exprChildren(n).map(producedAnd);
+        // sqlite3ExprAnd checks immediate EP_IsFalse, not integer truth.
+        // EP_HasFunc prevents deleting either child. SELECT flags unproved.
+        const unsafe = (v) => hasFunc(v) || carriesSelect(v);
+        if (es.some(e => producedFalse.has(e)) && !es.some(unsafe)) {
+            const seed = asExpr(n).tokens[0];
+            const zero = { kind: "reduction", rule: 0, signature: "expr ::= term", children: [{ kind: "reduction", rule: 0, signature: "term ::= INTEGER", children: [{ kind: "terminal", tokenId: 0, value: { ...seed, kind: "integer", text: "0" } }] }] };
+            producedFalse.add(zero);
+            return zero;
+        }
+        let i = 0;
+        return { ...n, children: n.children.map(c => c.kind === "reduction" && c.signature.startsWith("expr ::=") ? es[i++] : c) };
+    };
+    return producedAnd(node);
+}
+/** Produce units before descent so transient AND IsFalse stays in its owner. */
+function producedExpressionTree(v, produce) {
+    if (v.kind !== "reduction" || v.signature.startsWith("select ::="))
+        return v;
+    const next = v.signature.startsWith("expr ::=") ? produce(v) : v;
+    const children = next.children.map(c => producedExpressionTree(c, produce));
+    return children.some((c, i) => c !== next.children[i]) ? { ...next, children } : next;
+}
+function literalNullProduction(node, produce = v => literalNullProduction(v), onFalse) {
+    node = nullIsProduction(node);
+    if (node.signature !== "expr ::= expr ISNULL|NOTNULL" && node.signature !== "expr ::= expr NOT NULL")
+        return node;
+    const initial = exprChildren(node)[0];
+    if (!initial)
+        return node;
+    const producedLeft = producedExpressionTree(initial, produce);
+    let child = producedLeft;
+    const normalize = (v) => { while (v.signature === "expr ::= LP expr RP")
+        v = exprChildren(v)[0]; return produce(v); };
+    child = normalize(child);
+    while (child.signature === "expr ::= PLUS|MINUS expr")
+        child = normalize(exprChildren(child)[0]);
+    const tokens = asExpr(child).tokens;
+    if (tokens.length !== 1 || !["integer", "float", "string", "blob"].includes(tokens[0].kind)) {
+        return producedLeft === initial ? node : { ...node, children: node.children.map(c => c === initial ? producedLeft : c) };
+    }
+    const isFalse = asExpr(node).tokens.at(-1)?.text.toUpperCase() === "ISNULL";
+    const value = { ...tokens[0], kind: "integer", text: isFalse ? "0" : "1" };
+    const result = { kind: "reduction", rule: 0, signature: "expr ::= term", children: [{ kind: "reduction", rule: 0, signature: "term ::= INTEGER", children: [{ kind: "terminal", tokenId: 0, value }] }] };
+    if (isFalse)
+        onFalse?.(result);
+    return result;
+}
+function nullIsProduction(node) {
+    node = distinctFromProduction(node);
+    if (node.signature !== "expr ::= expr IS expr" && node.signature !== "expr ::= expr IS NOT expr")
+        return node;
+    const es = exprChildren(node);
+    let rhs = es[1];
+    while (rhs?.signature === "expr ::= LP expr RP")
+        rhs = exprChildren(rhs)[0];
+    if (!rhs || !isNullLiteral(asExpr(rhs)))
+        return node;
+    const seed = asExpr(node).tokens[0];
+    return { ...node, signature: "expr ::= expr ISNULL|NOTNULL", children: [es[0], { kind: "terminal", tokenId: 0, value: { ...seed, kind: "keyword", text: node.signature.includes("IS NOT") ? "NOTNULL" : "ISNULL" } }] };
+}
+function distinctFromProduction(n) {
+    const op = n.signature === "expr ::= expr IS NOT DISTINCT FROM expr" ? "IS" : n.signature === "expr ::= expr IS DISTINCT FROM expr" ? "IS NOT" : null;
+    if (op === null)
+        return n;
+    const es = exprChildren(n), tokens = n.children.filter(c => c.kind === "terminal");
+    const is = tokens[0];
+    if (is.kind !== "terminal")
+        return n;
+    return { ...n, signature: `expr ::= expr ${op} expr`, children: op === "IS" ? [es[0], is, es[1]] : [es[0], is, { ...is, kind: "terminal", value: { ...is.value, kind: "keyword", text: "NOT" } }, es[1]] };
+}
+function singletonInProduction(n, produce = andProduction) {
+    const parens = (n) => n.signature === "expr ::= LP expr RP" ? parens(exprChildren(n)[0]) : n;
+    if (n.signature !== "expr ::= expr in_op LP exprlist RP")
+        return n;
+    const list = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::="));
+    const op = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("in_op ::="));
+    if (list?.kind !== "reduction" || op?.kind !== "reduction")
+        return n;
+    const values = directExprReductions(list), lhs = exprChildren(n)[0];
+    if (values.length !== 1 || !lhs)
+        return n;
+    // C parser has produced every descendant before exprIsConst and UPLUS.
+    // Traverse expression containers, but never SELECT scopes.
+    const rhs = producedExpressionTree(values[0], produce), leaf = parens(rhs), tokens = asExpr(leaf).tokens;
+    // exprNodeIsConstant(mode=1) continues through ordinary operators
+    // and walks their children; it does not evaluate arithmetic. Keep
+    // mode=1 TK_VARIABLE continues (DDL modes 4/5 differ). Retained
+    // token and assigned-slot identity is checked later by same().
+    // Keep ID/column/function/SELECT admission unproved here.
+    const constant = (v) => {
+        // Constant walking observes parser-produced empty-IN replacement,
+        // not the discarded raw lhs. Reuse that semantic producer.
+        v = distinctFromProduction(produce(parens(v)));
+        const ts = asExpr(v).tokens;
+        // TK_ID converts to TK_TRUEFALSE before name resolution in this
+        // parser-time mode1 walk; EP_Quoted must prevent that conversion.
+        if (v.signature === "expr ::= ID|INDEXED|JOIN_KW" && ts.length === 1 && /^(true|false)$/i.test(ts[0].text))
+            return true;
+        if (ts.length === 1)
+            return ["integer", "float", "string", "blob", "variable"].includes(ts[0].kind) || ts[0].text.toUpperCase() === "NULL";
+        const es = exprChildren(v);
+        const ordinary = v.signature.startsWith("expr ::= CAST LP expr AS ") || v.signature === "expr ::= PLUS|MINUS expr" || v.signature === "expr ::= BITNOT expr" || /^expr ::= expr (PLUS|MINUS|STAR|SLASH|REM|CONCAT|BITAND|BITOR|LSHIFT|RSHIFT)(\|[^ ]+)* expr$/.test(v.signature);
+        // TK_CASE pLeft is optional; x.pList appends ordered WHEN/THEN
+        // expressions and optional ELSE. Walk every expression, not results.
+        if (v.signature === "expr ::= LP nexprlist COMMA expr RP")
+            return directExprReductions(v).every(constant);
+        if (v.signature === "expr ::= CASE case_operand case_exprlist case_else END") {
+            const values = directExprReductions(v);
+            return values.length >= 2 && values.every(constant);
+        }
+        // Nonempty TK_IN owns pLeft plus x.pList; singleton constant
+        // production becomes EQ/UPLUS with the same child obligations. SELECT-backed IN
+        // is deliberately excluded: exprIsConst installs SelectWalkFail.
+        if (v.signature === "expr ::= expr in_op LP exprlist RP") {
+            const list = v.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::="));
+            const values = list?.kind === "reduction" ? directExprReductions(list) : [];
+            return es.length === 1 && values.length >= 1 && constant(es[0]) && values.every(constant);
+        }
+        // TK_BETWEEN owns pLeft plus a two-element x.pList. Its optional
+        // NOT parent does not change the constant walk's child obligations.
+        if (v.signature === "expr ::= expr between_op expr AND expr")
+            return es.length === 3 && es.every(constant);
+        const booleanOrComparison = ["expr ::= expr ISNULL|NOTNULL", "expr ::= expr NOT NULL", "expr ::= NOT expr", "expr ::= expr EQ|NE expr", "expr ::= expr LT|GT|GE|LE expr", "expr ::= expr AND expr", "expr ::= expr OR expr", "expr ::= expr IS expr", "expr ::= expr IS NOT expr", "expr ::= expr COLLATE ID|STRING"].includes(v.signature);
+        return (ordinary || booleanOrComparison) && es.length > 0 && es.every(constant);
+    };
+    if (!constant(rhs))
+        return n;
+    if (parens(lhs).signature === "expr ::= LP nexprlist COMMA expr RP")
+        return n;
+    const token = (text, kind) => ({ kind: "terminal", tokenId: 0, value: { ...tokens[0], kind, text } });
+    const plus = { kind: "reduction", rule: 0, signature: "expr ::= PLUS|MINUS expr", children: [token("+", "punct"), rhs] };
+    const eq = { kind: "reduction", rule: 0, signature: "expr ::= expr EQ|NE expr", children: [lhs, token("=", "punct"), plus] };
+    return op.signature.includes("NOT") ? { kind: "reduction", rule: 0, signature: "expr ::= NOT expr", children: [token("NOT", "keyword"), eq] } : eq;
+}
+function emptyInProduction(node) {
+    if (node.signature !== "expr ::= expr in_op LP exprlist RP")
+        return node;
+    const list = node.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::="));
+    const lhs = exprChildren(node)[0], op = node.children.find(c => c.kind === "reduction" && c.signature.startsWith("in_op ::="));
+    if (!lhs || list?.kind !== "reduction" || op?.kind !== "reduction" || directExprReductions(list).length !== 0)
+        return node;
+    const hasSelect = (part) => part.kind === "reduction" && (part.signature.startsWith("select ::=") || part.children.some(hasSelect));
+    if (hasSelect(lhs))
+        return node;
+    const negative = op.signature.includes("NOT"), seed = asExpr(node).tokens[0];
+    const constant = { kind: "reduction", rule: 0, signature: "expr ::= ID|INDEXED|JOIN_KW", children: [{ kind: "terminal", tokenId: 0, value: { ...seed, kind: "id", text: negative ? "true" : "false" } }] };
+    if (producesEmptyInTruth(node))
+        return constant;
+    const operator = negative ? "OR" : "AND";
+    return { kind: "reduction", rule: 0, signature: `expr ::= expr ${operator} expr`, children: [constant, { kind: "terminal", tokenId: 0, value: { ...seed, kind: "keyword", text: operator } }, lhs] };
+}
+function producesEmptyInTruth(node) {
+    if (node.signature !== "expr ::= expr in_op LP exprlist RP")
+        return false;
+    const list = node.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::="));
+    const lhs = exprChildren(node)[0];
+    if (!lhs || list?.kind !== "reduction" || directExprReductions(list).length !== 0)
+        return false;
+    const unsafe = (v) => parseHasFunc(v) || carriesSelect(v);
+    return !unsafe(lhs);
+}
+function comparisonOperator(node, resolved) {
+    const text = node.children.filter(x => x.kind === "terminal").map(x => x.kind === "terminal" ? sqliteAsciiFold(x.value.text) : "").join(" ");
+    if (node.signature.startsWith("expr ::= expr EQ|NE expr"))
+        return text.includes("!=") || text.includes("<>") ? null : "eq";
+    if (node.signature.startsWith("expr ::= expr LT|GT|GE|LE expr"))
+        return text.includes(">=") ? "ge" : text.includes("<=") ? "le" : text.includes(">") ? "gt" : "lt";
+    if (node.signature === "expr ::= expr in_op LP select RP") {
+        const rhs = selectInLoopRhs(resolved, node, rhsPrereq(resolved, node, 'left', 'in'));
+        return rhs?.scalar ? 'in' : null;
+    }
+    if (node.signature === "expr ::= expr in_op LP exprlist RP")
+        return node.children.some(x => x.kind === "reduction" && x.signature === "in_op ::= NOT IN") ? null : "in";
+    if (node.signature === "expr ::= expr IS expr" || node.signature === "expr ::= expr IS NOT DISTINCT FROM expr") {
+        const rhs = exprChildren(node)[1];
+        // resolve.c TK_IS resolves a skipped ID/TRUEFALSE RHS to TK_TRUTH.
+        if (rhs) {
+            const truth = skipCollateAndLikely(rhs, resolved), tokens = asExpr(truth).tokens;
+            if (producesEmptyInTruth(truth) || truth.signature === "expr ::= ID|INDEXED|JOIN_KW" && tokens.length === 1 && /^(true|false)$/i.test(tokens[0].text) && !binding(resolved, truth))
+                return null;
+        }
+        let raw = rhs;
+        while (raw?.signature === "expr ::= LP expr RP")
+            raw = exprChildren(raw)[0];
+        if (raw && isNullLiteral(asExpr(raw)))
+            return "is-null";
+        return "is";
+    }
+    if (node.signature === "expr ::= expr ISNULL|NOTNULL" && !text.includes("notnull"))
+        return "is-null";
+    return null;
+}
+function reverseOperator(op) { return op === "lt" ? "gt" : op === "le" ? "ge" : op === "gt" ? "lt" : op === "ge" ? "le" : op; }
+function effectiveCollation(left, right, resolved) {
+    // expr.c sqlite3BinaryCompareCollSeq: explicit flags take precedence,
+    // then visit operand expression collations, not just their column bindings.
+    return explicitExprCollation(left, resolved) ?? explicitExprCollation(right, resolved) ??
+        sqliteAsciiFold(resolvedExpressionCollation(left, resolved) ?? resolvedExpressionCollation(right, resolved) ?? "binary");
+}
+/** whereexpr.c sqlite3WhereSplit/exprAnalyze subset. It consumes resolved
+ * expression identity and is the only production constructor for WhereTerm. */
+export function analyzeWhere(resolved, includeRightTerms = false) { return analyzeClause(resolved, includeRightTerms); }
+function analyzeClause(resolved, includeRightTerms, input, outer = null, split = "and", orOwner = null) {
+    if (!includeRightTerms && resolved.sources.some(source => source.joinFromLeft.right || source.joinFromLeft.outer || source.leftOfRightJoin))
+        return freeze({ clause: whereClause([]), plannerEligible: false, fallback: "right-full" });
+    const specs = [];
+    if (resolved.source.where?.reduction?.kind === "reduction") {
+        const parts = [];
+        splitAnd(resolved.source.where.reduction, parts, resolved);
+        for (const node of parts)
+            specs.push({ node, origin: { kind: "where" } });
+    }
+    resolved.sources.forEach((source, index) => { if (source.on?.reduction?.kind !== "reduction")
+        return; const parts = []; splitAnd(source.on.reduction, parts, resolved); for (const node of parts)
+        specs.push({ node, origin: { kind: "join-on", rightSource: index, join: source.joinFromLeft.left ? "left" : "inner" } }); });
+    if (input) {
+        specs.length = 0;
+        specs.push(...input);
+    }
+    const drafts = [];
+    for (const spec of specs) {
+        const node = skipCollateAndLikely(spec.node, resolved), origin = spec.origin;
+        let op = comparisonOperator(node, resolved);
+        const children = exprChildren(node), originalLeftNode = children[0] ?? node, originalRightNode = children[1] ?? node, originalLeft = indexedBinding(resolved, originalLeftNode), originalRight = indexedBinding(resolved, originalRightNode), all = prereq(resolved, node);
+        let leftNode = originalLeftNode, rightNode = originalRightNode, left = originalLeft, orientation = "left";
+        if (!left && originalRight && op && op !== "in") {
+            orientation = "right";
+            op = reverseOperator(op);
+            leftNode = originalRightNode;
+            rightNode = originalLeftNode;
+            left = originalRight;
+        }
+        const rightUse = rhsPrereq(resolved, node, orientation, op), leftUse = prereq(resolved, leftNode);
+        const isLeft = origin.kind === "join-on" && origin.join === "left", mayDrive = op !== null && !!left && (rightUse & leftUse) === 0n && !(rightUse & sourceBit(left.sourceOrdinal)) && !(isLeft && left.sourceOrdinal < origin.rightSource), coll = op === "is-null" ? null : effectiveCollation(originalLeftNode, originalRightNode, resolved), parentId = drafts.length;
+        const parent = { node, origin, operator: op, left, rightNode, orientation, prereqAll: all, prereqRight: rightUse, collation: coll, parentId: null, childIds: [], virtual: false, outerJoinSafe: { mayDrive, mayOmitResidual: !isLeft } };
+        drafts.push(parent);
+        // whereexpr.c1494: TERM_SLICE retains the original IN expression and
+        // resolved SELECT identity. Only the field binding is scalarized.
+        const vectorRhs = selectInLoopRhs(resolved, node, rhsPrereq(resolved, node, 'left', 'in'));
+        if (split === 'and' && vectorRhs && !vectorRhs.scalar && !vectorRhs.select.hasCompound && !vectorRhs.resolved.windows.length && originalLeftNode.signature === 'expr ::= LP nexprlist COMMA expr RP') {
+            const fields = [];
+            const collect = (value) => { if (value.kind !== 'reduction')
+                return; if (value.signature.startsWith('expr ::=')) {
+                fields.push(value);
+                return;
+            } value.children.forEach(collect); };
+            originalLeftNode.children.forEach(collect);
+            if (fields.length === vectorRhs.resolved.result.length)
+                for (const [inField, field] of fields.entries()) {
+                    const binding = indexedBinding(resolved, field), childId = drafts.length;
+                    const right = vectorRhs.resolved.result[inField].expression.reduction;
+                    if (!binding || right?.kind !== 'reduction')
+                        continue;
+                    parent.childIds.push(childId);
+                    drafts.push({ node, inField, inRhs: vectorRhs, origin, parentId, childIds: [], virtual: true, operator: 'in', left: binding, rightNode: right, orientation: 'left', prereqAll: all, prereqRight: vectorRhs.prereq, collation: explicitExprCollation(field, resolved) ?? explicitExprCollation(right, vectorRhs.resolved) ?? sqliteAsciiFold(resolvedExpressionCollation(field, resolved) ?? resolvedExpressionCollation(right, vectorRhs.resolved) ?? 'binary'), outerJoinSafe: { mayDrive: !(isLeft && binding.sourceOrdinal < origin.rightSource) && !(vectorRhs.prereq & sourceBit(binding.sourceOrdinal)), mayOmitResidual: false } });
+                }
+        }
+        // whereexpr.c1290: AND-owned BETWEEN creates ordered GE/LE children.
+        // Keep the parent residual; virtual children own only access constraints.
+        if (split === "and" && node.signature === "expr ::= expr between_op expr AND expr" && !node.children.some(c => c.kind === "reduction" && c.signature === "between_op ::= NOT BETWEEN") && children.length === 3) {
+            for (const [i, operator] of ["ge", "le"].entries()) {
+                const rhs = children[i + 1], seed = asExpr(node).tokens[0];
+                const range = { kind: "reduction", rule: 0, signature: "expr ::= expr LT|GT|GE|LE expr", children: [originalLeftNode, { kind: "terminal", tokenId: 0, value: { ...seed, kind: "punct", text: i === 0 ? ">=" : "<=" } }, rhs] };
+                const childId = drafts.length, use = prereq(resolved, rhs);
+                parent.childIds.push(childId);
+                drafts.push({ node: range, origin: { kind: "derived", parentTerm: parentId, reason: "range" }, operator, left: originalLeft, rightNode: rhs, orientation: "left", prereqAll: prereq(resolved, range), prereqRight: use, collation: effectiveCollation(originalLeftNode, rhs, resolved), parentId, childIds: [], virtual: true, outerJoinSafe: { mayDrive: !!originalLeft && (use & leftUse) === 0n && !(isLeft && originalLeft.sourceOrdinal < origin.rightSource), mayOmitResidual: !isLeft } });
+            }
+        }
+        // whereexpr.c1331: linked x>NULL virtual range, not SQL x>NULL.
+        const notNull = expressionStructuralIdentity(asExpr(node)).startsWith("notnull(");
+        if (notNull && originalLeft && originalLeft.columnIndex >= 0 && originalLeft.column && (originalLeft.source.table.kind !== 'table' || !isIntegerPrimaryKeyAlias(originalLeft.source.table, originalLeft.column)) && !isLeft) {
+            const seed = asExpr(node).tokens[0];
+            const nil = { kind: "reduction", rule: 0, signature: "expr ::= term", children: [{ kind: "reduction", rule: 0, signature: "term ::= NULL|FLOAT|BLOB", children: [{ kind: "terminal", tokenId: 0, value: { ...seed, kind: "keyword", text: "NULL" } }] }] };
+            const range = { kind: "reduction", rule: 0, signature: "expr ::= expr LT|GT|GE|LE expr", children: [originalLeftNode, { kind: "terminal", tokenId: 0, value: { ...seed, kind: "punct", text: ">" } }, nil] };
+            const childId = drafts.length;
+            parent.childIds.push(childId);
+            drafts.push({ node: range, origin: { kind: "derived", parentTerm: parentId, reason: "range" }, operator: "gt", left: originalLeft, rightNode: nil, orientation: "left", prereqAll: all, prereqRight: 0n, collation: effectiveCollation(originalLeftNode, nil, resolved), parentId, childIds: [], virtual: true, virtualNull: true, outerJoinSafe: { mayDrive: true, mayOmitResidual: true } });
+        }
+        // whereexpr.c:exprAnalyze creates a virtual commuted child when both
+        // operands are indexable columns. It retains original expression collation
+        // but owns independent left binding and RHS prerequisites. Exact ordinary
+        // driveable children may consume their parent; virtual means no independent
+        // residual test, not a prohibition on disableTerm propagation. LEFT ON stays
+        // conservative, and the carrier separately gates full prerequisite readiness.
+        if (originalLeft && originalRight && op && op !== "in") {
+            const childId = drafts.length, childOp = reverseOperator(op), childLeft = orientation === "left" ? originalRight : originalLeft, childRightNode = orientation === "left" ? originalLeftNode : originalRightNode, childRightUse = prereq(resolved, childRightNode), childLeftUse = prereq(resolved, orientation === "left" ? originalRightNode : originalLeftNode), childMayDrive = (childRightUse & childLeftUse) === 0n && (childRightUse & sourceBit(childLeft.sourceOrdinal)) === 0n && !(isLeft && childLeft.sourceOrdinal < origin.rightSource);
+            parent.childIds.push(childId);
+            drafts.push({ node, origin: { kind: "derived", parentTerm: parentId, reason: "commuted" }, operator: childOp, left: childLeft, rightNode: childRightNode, orientation: orientation === "left" ? "right" : "left", prereqAll: all, prereqRight: childRightUse, collation: coll, parentId, childIds: [], virtual: true, outerJoinSafe: { mayDrive: childMayDrive, mayOmitResidual: !isLeft && childMayDrive } });
+        }
+    }
+    // whereexpr.c splits all base terms before exprAnalyze appends virtual
+    // children. Preserve that boundary (RightJoinLoop stops there), remapping
+    // parent/child IDs rather than exposing interleaved construction order.
+    const ordered = [...drafts.filter(draft => !draft.virtual), ...drafts.filter(draft => draft.virtual)];
+    const ids = new Map(ordered.map((draft, id) => [drafts.indexOf(draft), id]));
+    const outerOn = (draft) => draft.parentId !== null ? outerOn(drafts[draft.parentId]) : draft.origin.kind === "join-on" && draft.origin.join === "left";
+    const joinOwner = (draft) => draft.parentId !== null ? joinOwner(drafts[draft.parentId]) : draft.origin.kind === "join-on" ? draft.origin.rightSource : null;
+    const terms = ordered.map((draft, id) => ({ variableSelect: termHasCorrelatedSelect(resolved, draft.node), id, inField: draft.inField, inSelectRhs: draft.inRhs ?? (draft.node.signature === 'expr ::= expr in_op LP select RP' ? selectInLoopRhs(resolved, draft.node, rhsPrereq(resolved, draft.node, 'left', 'in')) : undefined), expression: asExpr(draft.node), origin: draft.origin.kind === 'derived' ? { ...draft.origin, parentTerm: ids.get(draft.origin.parentTerm) } : draft.origin, operator: draft.operator, virtualNull: !!draft.virtualNull, outerOn: outerOn(draft), joinOwner: joinOwner(draft), equivalence: termEquivalence(resolved, draft.parentId !== null ? { ...draft, origin: drafts[draft.parentId].origin } : draft), left: draft.left, rightAffinity: resolvedExpressionAffinity(draft.rightNode, draft.inRhs?.resolved ?? resolved) ?? null, effectiveCollation: draft.collation, originalIndexedOperand: draft.orientation, prereqRight: draft.prereqRight, prereqAll: draft.prereqAll, parentId: draft.parentId === null ? null : ids.get(draft.parentId), childIds: Object.freeze(draft.childIds.map(child => ids.get(child))), virtual: draft.virtual, outerJoinSafe: freeze(draft.outerJoinSafe) }));
+    const clause = { split, terms, outer };
+    const combined = [];
+    let orIndexable = (1n << BigInt(resolved.sources.length)) - 1n;
+    for (const term of terms) {
+        const node = unwrap(ordered[term.id].node), origin = ordered[term.id].origin;
+        if (node.signature === "expr ::= expr OR expr") {
+            const parts = [];
+            const collect = (n) => { const u = skipCollateAndLikely(n, resolved); if (u.signature === "expr ::= expr OR expr")
+                for (const child of exprChildren(u))
+                    collect(child);
+            else
+                parts.push(n); };
+            collect(node);
+            const child = analyzeClause(resolved, includeRightTerms, parts.map(node => ({ node, origin })), null, "or", clause).clause;
+            let indexable = (1n << BigInt(resolved.sources.length)) - 1n;
+            for (const arm of child.terms.filter(t => !t.virtual)) {
+                const alternatives = [arm, ...child.terms.filter(t => t.parentId === arm.id)];
+                let mask = 0n;
+                for (const alt of alternatives) {
+                    if (alt.info?.kind === "and")
+                        for (const sub of alt.info.clause.terms) {
+                            if (sub.operator && sub.left)
+                                mask |= sourceBit(sub.left.sourceOrdinal);
+                        }
+                    else
+                        mask |= singleIndexMask(alt);
+                }
+                indexable &= mask;
+            }
+            Object.assign(term, { info: freeze({ kind: "or", parentTerm: term, clause: child, indexable }) });
+            const same = (x, y) => {
+                // exprCompare compares resolved TK_COLUMN iTable/iColumn, not the
+                // original qualifier spelling. COLLATE remains a distinct node.
+                const parens = (n) => {
+                    // resolveAlias duplicates the complete expression before ExprCompare.
+                    const alias = resolved.aliasUses?.get(n);
+                    if (alias)
+                        return parens(alias);
+                    return n.signature === "expr ::= LP expr RP" ? parens(exprChildren(n)[0]) : n;
+                };
+                x = parens(x);
+                y = parens(y);
+                // parse.y mutates an existing TK_UPLUS root to the outer sign,
+                // rather than attaching another unary node. Preserve UMINUS children.
+                const unarySign = (n) => {
+                    if (n.signature !== "expr ::= PLUS|MINUS expr")
+                        return n;
+                    let child = unarySign(parens(exprChildren(n)[0]));
+                    if (child.signature === "expr ::= PLUS|MINUS expr" && asExpr(child).tokens[0]?.text === "+")
+                        child = exprChildren(child)[0];
+                    return { ...n, children: [n.children[0], child] };
+                };
+                x = unarySign(x);
+                y = unarySign(y);
+                // parse.y routes DISTINCT FROM aliases through sqlite3PExprIs
+                // with TK_IS/TK_ISNOT. Normalize the semantic production, not SQL text.
+                x = distinctFromProduction(x);
+                y = distinctFromProduction(y);
+                // parse.y empty IN replaces a function-free lhs with lower-case
+                // TK_TRUEFALSE. EP_HasFunc preserves lhs via AND/OR instead; do not
+                // claim that replacement for function, PTR-function or SELECT carriers.
+                const nullTest = (n) => {
+                    n = nullIsProduction(n);
+                    const es = exprChildren(n);
+                    if (es.length === 1 && (n.signature === "expr ::= expr ISNULL|NOTNULL" || n.signature === "expr ::= expr NOT NULL"))
+                        return { op: asExpr(n).tokens.at(-1)?.text.toUpperCase() === "ISNULL" ? "ISNULL" : "NOTNULL", child: es[0] };
+                    return null;
+                };
+                const producedAnd = andProduction;
+                x = producedAnd(x);
+                y = producedAnd(y);
+                // parse.y singleton IN with a constant RHS and scalar LHS produces
+                // EQ(lhs, UPLUS(rhs)), optionally wrapped in NOT. Prove literal
+                // constants here; function/compound constant admission needs its walker.
+                x = singletonInProduction(x, v => producedAnd(distinctFromProduction(v)));
+                y = singletonInProduction(y, v => producedAnd(distinctFromProduction(v)));
+                // parse.y BETWEEN produces a TK_BETWEEN with ordered two-item list,
+                // then an optional TK_NOT parent. Normalize the semantic wrapper,
+                // not Boolean value equivalence or reassociation of its children.
+                const between = (n) => {
+                    if (n.signature !== "expr ::= expr between_op expr AND expr")
+                        return n;
+                    const op = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("between_op ::="));
+                    if (op?.kind !== "reduction" || !op.signature.includes("NOT"))
+                        return n;
+                    const base = { ...n, children: n.children.map(c => c === op ? { ...op, signature: "between_op ::= BETWEEN", children: op.children.filter(v => v.kind !== "terminal" || v.value.text.toUpperCase() !== "NOT") } : c) };
+                    const token = op.children.find(c => c.kind === "terminal" && c.value.text.toUpperCase() === "NOT");
+                    return token ? { ...n, signature: "expr ::= NOT expr", children: [token, base] } : n;
+                };
+                x = between(x);
+                y = between(y);
+                // parse.y applies a NOT parent after constructing nonempty IN.
+                // Restrict this proof to multi-item scalar lists: empty lists and
+                // singleton constant lists have separate semantic production branches.
+                const notIn = (n) => {
+                    if (n.signature !== "expr ::= expr in_op LP exprlist RP")
+                        return n;
+                    const op = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("in_op ::="));
+                    const list = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("exprlist ::="));
+                    if (op?.kind !== "reduction" || !op.signature.includes("NOT") || list?.kind !== "reduction" || directExprReductions(list).length < 2)
+                        return n;
+                    const token = op.children.find(c => c.kind === "terminal" && c.value.text.toUpperCase() === "NOT");
+                    const base = { ...n, children: n.children.map(c => c === op ? { ...op, signature: "in_op ::= IN", children: op.children.filter(v => v !== token) } : c) };
+                    return token ? { ...n, signature: "expr ::= NOT expr", children: [token, base] } : n;
+                };
+                x = notIn(x);
+                y = notIn(y);
+                // sqlite3PExprIs removes a NULL RHS and delegates to PExprIsNull.
+                // Compare the produced unary opcode and its child, not grammar aliases.
+                x = andProduction(x);
+                y = andProduction(y);
+                const xn = nullTest(x), yn = nullTest(y);
+                if (xn || yn)
+                    return !!xn && !!yn && xn.op === yn.op && same(xn.child, yn.child);
+                const containsSelect = (n) => n.kind === "reduction" && (n.signature.startsWith("select ::=") || n.children.some(containsSelect));
+                if (containsSelect(x) || containsSelect(y))
+                    return false;
+                if (x.signature.startsWith("expr ::= expr COLLATE") || y.signature.startsWith("expr ::= expr COLLATE")) {
+                    if (x.signature !== y.signature)
+                        return false;
+                    const name = (n) => { const t = n.children[n.children.length - 1]; return t?.kind === "terminal" ? dequotedName(t.value.text) : null; };
+                    if (name(x) !== name(y))
+                        return false;
+                    const xchild = exprChildren(x)[0], ychild = exprChildren(y)[0];
+                    return !!xchild && !!ychild && same(xchild, ychild);
+                }
+                else {
+                    const xb = binding(resolved, x), yb = binding(resolved, y);
+                    if (xb || yb)
+                        return !!xb && !!yb && xb.source === yb.source && xb.columnIndex === yb.columnIndex;
+                }
+                // resolve.c lookupName converts unbound, unquoted true/false IDs to
+                // TK_TRUEFALSE without rewriting zToken. ExprCompare uses strcmp for
+                // that opcode (not the function/collation case-insensitive branch).
+                // Resolved columns above retain their own owner/column identity.
+                const booleanToken = (n) => {
+                    if (n.signature !== "expr ::= ID|INDEXED|JOIN_KW")
+                        return null;
+                    const token = asExpr(n).tokens[0];
+                    return token && /^(true|false)$/i.test(token.text) ? token.text : null;
+                };
+                const xbool = booleanToken(x), ybool = booleanToken(y);
+                if (xbool !== null || ybool !== null)
+                    return xbool !== null && xbool === ybool;
+                if (x.signature.startsWith("expr ::= CAST") || y.signature.startsWith("expr ::= CAST")) {
+                    if (x.signature !== y.signature)
+                        return false;
+                    // parse.y passes typetoken to ExprAlloc(dequote=1); ExprCompare
+                    // uses strcmp for TK_CAST, unlike function/collation names.
+                    const typeToken = (n) => {
+                        const type = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("typetoken ::="));
+                        if (!type || type.kind !== "reduction")
+                            return null;
+                        const tokens = asExpr(type).tokens;
+                        // The production carries parse.y's exact byte span, including trivia.
+                        // Synthetic reductions without it retain only provable single tokens.
+                        const raw = typeof type.semantic === "string" ? type.semantic : tokens.length === 0 ? "" : tokens.length === 1 ? tokens[0].text : null;
+                        return raw === null ? null : dequotedName(raw, false);
+                    };
+                    const xt = typeToken(x), yt = typeToken(y), xc = exprChildren(x)[0], yc = exprChildren(y)[0];
+                    return xt !== null && xt === yt && !!xc && !!yc && same(xc, yc);
+                }
+                const xtokens = asExpr(x).tokens, ytokens = asExpr(y).tokens;
+                if (xtokens.length === 1 && ytokens.length === 1 && xtokens[0].kind === "integer" && ytokens[0].kind === "integer") {
+                    // parse.y INTEGER / sqlite3ExprInt32 uses sqlite3GetInt32, not int64
+                    // runtime numeric conversion. Decimal parsing retains its prefix rule.
+                    const intValue = (text) => {
+                        // GetInt32 stops at the first non-digit in both bases (including
+                        // underscores), unlike runtime sqlite3DecOrHexToI64 conversion.
+                        const hex = /^0[xX][0-9a-fA-F]+/.exec(text), digits = hex ? hex[0] : /^[0-9]+/.exec(text)?.[0];
+                        if (!digits)
+                            return null;
+                        const value = BigInt(digits);
+                        return value <= 2147483647n ? value : null;
+                    };
+                    const xv = intValue(xtokens[0].text), yv = intValue(ytokens[0].text);
+                    return xv !== null || yv !== null ? xv !== null && yv !== null && xv === yv : xtokens[0].text === ytokens[0].text;
+                }
+                // parse.y STAR and omitted exprlist both call ExprFunction with null list.
+                const emptyFunction = (n) => {
+                    if (n.signature !== "expr ::= ID|INDEXED|JOIN_KW LP STAR RP")
+                        return n;
+                    return { ...n, signature: "expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP", children: [n.children[0], n.children[1], { kind: "reduction", rule: 0, signature: "distinct ::=", children: [] }, { kind: "reduction", rule: 0, signature: "exprlist ::=", children: [] }, n.children[3]] };
+                };
+                x = emptyFunction(x);
+                y = emptyFunction(y);
+                // parse.y likeop constructs a function node with pattern,lhs[,escape], then NOT.
+                const infixFunction = (n) => {
+                    if (!n.signature.startsWith("expr ::= expr likeop expr"))
+                        return n;
+                    const op = n.children.find(c => c.kind === "reduction" && c.signature.startsWith("likeop ::="));
+                    if (!op || op.kind !== "reduction")
+                        return n;
+                    const name = op.children.find(c => c.kind === "terminal" && c.value.text.toUpperCase() !== "NOT");
+                    if (!name || name.kind !== "terminal")
+                        return n;
+                    const es = exprChildren(n), args = [es[1], es[0], ...es.slice(2)];
+                    let list = { kind: "reduction", rule: 0, signature: "nexprlist ::= expr", children: [args[0]] };
+                    const punct = (text) => ({ ...name, value: { ...name.value, kind: "punct", text } });
+                    for (const arg of args.slice(1))
+                        list = { kind: "reduction", rule: 0, signature: "nexprlist ::= nexprlist COMMA expr", children: [list, punct(","), arg] };
+                    const fn = { kind: "reduction", rule: 0, signature: "expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP", children: [name, punct("("), { kind: "reduction", rule: 0, signature: "distinct ::=", children: [] }, { kind: "reduction", rule: 0, signature: "exprlist ::= nexprlist", children: [list] }, punct(")")] };
+                    return op.signature.includes("NOT") ? { kind: "reduction", rule: 0, signature: "expr ::= NOT expr", children: [op.children[0], fn] } : fn;
+                };
+                x = infixFunction(x);
+                y = infixFunction(y);
+                // sqlite3ExprFunction dequotes its name before ExprCompare's
+                // case-insensitive TK_FUNCTION token check. Other terminals keep
+                // their own semantics (including DISTINCT and list order).
+                if (x.signature.startsWith("expr ::= ID") && x.signature.includes(" LP ") && y.signature === x.signature) {
+                    const normalize = (n) => ({ ...n, children: n.children.map((c, i) => i === 0 && c.kind === "terminal" ? { ...c, value: { ...c.value, kind: "id", text: dequotedName(c.value.text) } } : c) });
+                    const nx = normalize(x), ny = normalize(y);
+                    if (nx.children[0]?.kind === "terminal" && ny.children[0]?.kind === "terminal" && nx.children[0].value.text !== ny.children[0].value.text)
+                        return false;
+                    x = nx;
+                    y = ny;
+                }
+                const xc = exprChildren(x), yc = exprChildren(y);
+                if (xc.length || yc.length || [...x.children, ...y.children].some(c => c.kind === "reduction" && !c.signature.startsWith("expr ::="))) {
+                    if (x.signature !== y.signature || xc.length !== yc.length)
+                        return false;
+                    // exprCompareList compares argument/list elements in stored order.
+                    // Walk grammar carriers, delegating expression nodes back to resolved
+                    // comparison rather than comparing their original qualified spelling.
+                    if ([...x.children, ...y.children].some(c => c.kind === "reduction" && !c.signature.startsWith("expr ::="))) {
+                        const carrier = (a, b) => {
+                            if (a.kind !== b.kind)
+                                return false;
+                            if (a.kind === "terminal" && b.kind === "terminal")
+                                return a.value.kind === b.value.kind && (a.value.kind === "id" || a.value.kind === "keyword" ? sqliteAsciiFold(a.value.text) === sqliteAsciiFold(b.value.text) : a.value.text === b.value.text);
+                            if (a.kind !== "reduction" || b.kind !== "reduction")
+                                return false;
+                            if (a.signature.startsWith("expr ::=") && b.signature.startsWith("expr ::="))
+                                return same(a, b);
+                            // parse.y distinct semantic value only sets EP_Distinct for
+                            // DISTINCT; ALL and the empty production leave identical flags.
+                            if (a.signature.startsWith("distinct ::=") && b.signature.startsWith("distinct ::="))
+                                return a.signature.includes("DISTINCT") === b.signature.includes("DISTINCT");
+                            if (a.signature !== b.signature || a.children.length !== b.children.length)
+                                return false;
+                            return a.children.every((c, i) => carrier(c, b.children[i]));
+                        };
+                        return x.children.length === y.children.length && x.children.every((c, i) => carrier(c, y.children[i]));
+                    }
+                    // tokenize.c maps !=/<> to TK_NE and =/== to TK_EQ;
+                    // parse.y stores that opcode, not the operator's source spelling.
+                    const terminals = (n) => n.children.filter(c => c.kind === "terminal").map(c => c.kind === "terminal" ? (c.value.text === "!=" || c.value.text === "<>" ? "TK_NE" : c.value.text === "=" || c.value.text === "==" ? "TK_EQ" : sqliteAsciiFold(c.value.text)) : "").join("|");
+                    if (terminals(x) !== terminals(y))
+                        return false;
+                    return xc.every((n, i) => same(n, yc[i]));
+                }
+                // Anonymous variables at different token positions own distinct slots.
+                const xt = asExpr(x).tokens, yt = asExpr(y).tokens;
+                if (xt.some(t => t.text === "?") || yt.some(t => t.text === "?"))
+                    return x === y;
+                return expressionStructuralIdentity(asExpr(x)) === expressionStructuralIdentity(asExpr(y));
+            };
+            // whereNthSubterm / whereCombineDisjuncts: two original arms only.
+            const arms = child.terms.filter(t => !t.virtual);
+            if (indexable !== 0n && child.terms.length === 2) {
+                const subterms = (arm) => arm.info?.kind === "and" ? arm.info.clause.terms : [arm];
+                const allowed = new Set(["eq", "lt", "le", "gt", "ge"]);
+                for (const one of subterms(arms[0]))
+                    for (const two of subterms(arms[1])) {
+                        // whereCombineDisjuncts tests eOperator WO_EQ/LT/LE/GT/GE, not
+                        // the retained SQL operator. AND allowedOp cursor masks may include
+                        // overlapping terms whose analyzed eOperator is only WO_EQUIV/zero.
+                        if (singleIndexMask(one) === 0n || singleIndexMask(two) === 0n)
+                            continue;
+                        if (!one.operator || !two.operator || !allowed.has(one.operator) || !allowed.has(two.operator))
+                            continue;
+                        const ops = [one.operator, two.operator];
+                        if (!ops.every(op => ["eq", "lt", "le"].includes(op)) && !ops.every(op => ["eq", "gt", "ge"].includes(op)))
+                            continue;
+                        if (one.originalIndexedOperand !== two.originalIndexedOperand)
+                            continue;
+                        const a = one.expression.reduction, b = two.expression.reduction, ac = exprChildren(a), bc = exprChildren(b);
+                        if (ac.length !== 2 || bc.length !== 2)
+                            continue;
+                        if (!same(ac[0], bc[0]) || !same(ac[1], bc[1]))
+                            continue;
+                        const normalized = (one.operator === two.operator ? one.operator : ops.some(op => op === "lt" || op === "le") ? "le" : "ge");
+                        // Our retained expression keeps the original operands even when analysis
+                        // commutes a right-indexed term. Convert the operator back at this seam;
+                        // analyzing it again then produces the same normalized necessary bound.
+                        const op = (one.originalIndexedOperand === "right" ? reverseOperator(normalized) : normalized), text = { eq: "=", lt: "<", le: "<=", gt: ">", ge: ">=" }[op];
+                        const node = { ...a, signature: op === "eq" ? "expr ::= expr EQ|NE expr" : "expr ::= expr LT|GT|GE|LE expr", children: a.children.map(x => x.kind === "terminal" ? { ...x, value: { ...x.value, text } } : x) };
+                        const analyzed = analyzeClause(resolved, includeRightTerms, [{ node, origin }]).clause;
+                        const base = terms.length + combined.length;
+                        for (const derived of analyzed.terms)
+                            combined.push(freeze({ ...derived, id: base + derived.id, virtual: true, parentId: derived.parentId === null ? null : base + derived.parentId, childIds: Object.freeze(derived.childIds.map(id => base + id)) }));
+                    }
+            }
+            // exprAnalyzeOrTerm case 1: candidate cursor mask follows copied/virtual
+            // EQ orientations. Physical IN admission remains the ordinary IN contract.
+            const originals = child.terms.filter(t => !t.virtual);
+            let chngToIN = indexable;
+            for (const arm of originals) {
+                const orientations = [arm, ...child.terms.filter(t => t.parentId === arm.id)];
+                let mask = 0n;
+                for (const alt of orientations)
+                    if (alt.operator === "eq" && singleIndexMask(alt) !== 0n && alt.left)
+                        mask |= sourceBit(alt.left.sourceOrdinal);
+                chngToIN &= mask;
+            }
+            let previousCursor = null;
+            for (let attempt = 0; attempt < 2 && chngToIN !== 0n; attempt++) {
+                const candidate = child.terms.find(t => t.operator === "eq" && t.left && t.left.sourceOrdinal !== previousCursor && (chngToIN & sourceBit(t.left.sourceOrdinal)) !== 0n);
+                if (!candidate?.left)
+                    break;
+                previousCursor = candidate.left.sourceOrdinal;
+                const candidateExprs = exprChildren(candidate.expression.reduction);
+                const candidateLhs = candidateExprs[candidate.originalIndexedOperand === "right" ? 1 : 0];
+                const selected = [];
+                let ok = true;
+                // The pinned TERM_OK pass visits every stored entry, including copied
+                // originals and virtual commutations. Other cursors clear their mark;
+                // column/affinity failures do not stop the pass or reorder its entries.
+                for (const oriented of child.terms) {
+                    if (oriented.left?.sourceOrdinal !== previousCursor)
+                        continue;
+                    if (oriented.left.columnIndex !== candidate.left.columnIndex) {
+                        ok = false;
+                        continue;
+                    }
+                    const es = exprChildren(oriented.expression.reduction);
+                    const lhs = es[oriented.originalIndexedOperand === "right" ? 1 : 0], rhs = es[oriented.originalIndexedOperand === "right" ? 0 : 1];
+                    // XN_EXPR is shared by every expression field, not a column identity.
+                    // exprAnalyzeOrTerm requires sqlite3ExprCompare(...,-1)==0 here.
+                    if (candidate.left.columnIndex === -2 && !same(lhs, candidateLhs)) {
+                        ok = false;
+                        continue;
+                    }
+                    const rightAffinity = resolvedExpressionAffinity(rhs, resolved), leftAffinity = resolvedExpressionAffinity(lhs, resolved);
+                    if (rightAffinity !== undefined && rightAffinity !== leftAffinity) {
+                        ok = false;
+                        continue;
+                    }
+                    selected.push(oriented);
+                }
+                if (!ok)
+                    continue;
+                // TERM_OK entries are appended in stored clause order, not arm choice order.
+                const chosen = child.terms.filter(t => selected.includes(t));
+                const operands = (t) => exprChildren(t.expression.reduction);
+                const last = chosen.at(-1);
+                const lhs = operands(last)[last.originalIndexedOperand === "right" ? 1 : 0];
+                const seed = asExpr(node).tokens[0];
+                const punct = (text) => ({ kind: "terminal", tokenId: 0, value: { ...seed, kind: "punct", text } });
+                let list = { kind: "reduction", rule: 0, signature: "nexprlist ::= expr", children: [operands(chosen[0])[chosen[0].originalIndexedOperand === "right" ? 0 : 1]] };
+                for (const entry of chosen.slice(1))
+                    list = { kind: "reduction", rule: 0, signature: "nexprlist ::= nexprlist COMMA expr", children: [list, punct(","), operands(entry)[entry.originalIndexedOperand === "right" ? 0 : 1]] };
+                const inNode = { kind: "reduction", rule: 0, signature: "expr ::= expr in_op LP exprlist RP", children: [lhs, { kind: "reduction", rule: 0, signature: "in_op ::= IN", children: [{ kind: "terminal", tokenId: 0, value: { ...seed, kind: "keyword", text: "IN" } }] }, punct("("), { kind: "reduction", rule: 0, signature: "exprlist ::= nexprlist", children: [list] }, punct(")")] };
+                const derived = analyzeClause(resolved, includeRightTerms, [{ node: inNode, origin }]).clause.terms[0];
+                const id = terms.length + combined.length;
+                combined.push(freeze({ ...derived, id, virtual: true, parentId: term.id }));
+                Object.assign(term, { childIds: Object.freeze([...term.childIds, id]) });
+                break;
+            }
+        }
+        else if (split === "or" && orIndexable !== 0n && singleIndexMask(term) === 0n) {
+            const parts = [];
+            splitAnd(node, parts, resolved);
+            const child = analyzeClause(resolved, includeRightTerms, parts.map(node => ({ node, origin })), orOwner).clause;
+            Object.assign(term, { info: freeze({ kind: "and", clause: child }) });
+        }
+        if (split === "or" && orIndexable !== 0n) {
+            // exprAnalyzeOrTerm: copied originals defer their mask to the virtual
+            // commuted child; non-single AND masks use allowed single operators.
+            if (term.info?.kind === "and" || singleIndexMask(term) === 0n) {
+                let mask = 0n;
+                if (term.info?.kind === "and")
+                    for (const sub of term.info.clause.terms)
+                        if (sub.operator && sub.left)
+                            mask |= sourceBit(sub.left.sourceOrdinal);
+                orIndexable &= mask;
+            }
+            else if (term.virtual || term.childIds.length === 0) {
+                let mask = singleIndexMask(term);
+                if (term.virtual && term.parentId !== null) {
+                    const parent = terms[term.parentId];
+                    mask |= singleIndexMask(parent);
+                }
+                orIndexable &= mask;
+            }
+        }
+        freeze(term);
+    }
+    terms.push(...combined);
+    Object.freeze(terms);
+    return freeze({ clause: freeze(clause), plannerEligible: true, fallback: null });
+}
+/** wherecode.c:sqlite3WhereRightJoinLoop pSubWhere. Our analyzer represents
+ * virtual commutations but no TERM_SLICE/WO_ROWVAL terms (row values are not
+ * admitted). Stop at the first virtual term, not merely skip it. ON/USING
+ * ownership never becomes an unmatched residual. */
+export function rightJoinResidual(resolved, ordinal) {
+    if (resolved.sources[ordinal].leftOfRightJoin)
+        return Object.freeze([]);
+    const ready = (1n << BigInt(ordinal + 1)) - 1n, out = [];
+    for (const term of analyzeWhere(resolved, true).clause.terms) {
+        if (term.virtual)
+            break;
+        if ((term.prereqAll & ~ready) !== 0n)
+            continue;
+        if (term.origin.kind !== "where")
+            continue;
+        out.push(term);
+    }
+    return Object.freeze(out);
+}
+function publishTruth(truth) { return freeze({ high: Object.freeze([...(truth?.high ?? [])]), heuristic: Object.freeze([...(truth?.heuristic ?? [])]), secondPass: truth?.secondPass ?? false }); }
+/** Publish the lowering handoff without asking a caller to reconstruct either
+ * term eligibility or INDEXED BY/NOT INDEXED gates. */
+const activeWhereBudgets = new WeakSet();
+export function planWhere(resolved, request) {
+    const budget = request.planBudget ?? { remaining: 20000n };
+    const nested = activeWhereBudgets.has(budget), remaining = budget.remaining, truth = budget.truth;
+    activeWhereBudgets.add(budget);
+    let completed = false;
+    try {
+        const result = planWhereInvocation(resolved, { ...request, planBudget: budget });
+        completed = true;
+        return result;
+    }
+    finally {
+        // whereBeginError/whereInfoFree discard failed clause-local analysis. Keep
+        // only successful outer publication; nested use always restores its owner.
+        if (nested || !completed) {
+            budget.remaining = remaining;
+            if (truth)
+                budget.truth = truth;
+            else
+                delete budget.truth;
+        }
+        if (!nested)
+            activeWhereBudgets.delete(budget);
+    }
+}
+function planWhereInvocation(resolved, request) {
+    // whereBegin initializes sWLB before access-path/fallback branches. Each
+    // invocation owns fresh analysis even when it does not enter AddAll.
+    const planBudget = request.planBudget ?? { remaining: 20000n };
+    const initialLimit = planBudget.constructionLimit ?? 20000n;
+    planBudget.remaining = initialLimit;
+    planBudget.truth = { high: new Set(), heuristic: new Set(), secondPass: false };
+    // RIGHT/FULL is statement-wide fallback and never participates in W1/W2.
+    const hasRightFull = resolved.sources.some(source => source.joinFromLeft.right || source.joinFromLeft.outer || source.leftOfRightJoin);
+    if (hasRightFull) {
+        const analysis = analyzeWhere(resolved);
+        return freeze({ analysis, truth: publishTruth(planBudget.truth), path: null, plannerCandidates: 0, plannerPaths: 0 });
+    }
+    // Represented WITHOUT ROWID layouts participate through their synthetic
+    // primary-index owner and physical secondary descriptors.
+    const analysis = analyzeWhere(resolved);
+    const buildAll = () => {
+        const ordinaryLoops = [];
+        let joinBarrier = 0n;
+        return resolved.sources.map((source, ordinal) => {
+            planBudget.remaining += 1000n;
+            const prefix = (1n << BigInt(ordinal)) - 1n;
+            if (source.joinFromLeft.left)
+                joinBarrier |= prefix | sourceBit(ordinal);
+            if (source.joinFromLeft.cross)
+                joinBarrier |= prefix;
+            const sourcePrereq = joinBarrier & ~sourceBit(ordinal);
+            if (source.table.kind === 'metadata-module') {
+                const added = whereLoopInsertCandidates(metadataWhereLoops(resolved, source, request.externalAvailable ?? new Set(), sourcePrereq), planBudget);
+                ordinaryLoops.push(...added);
+                return added;
+            }
+            if (source.table.kind === 'json-module') {
+                if (source.indexedBy !== null)
+                    throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);
+                // whereLoopAddVirtualOne inserts every successful BestIndex template via
+                // whereLoopInsert, just like AddBtree. Share dominance and builder budget;
+                // raw virtual templates are not automatically retained path candidates.
+                const added = whereLoopInsertCandidates(jsonWhereLoops(resolved, source, request.externalAvailable ?? new Set(), sourcePrereq), planBudget);
+                ordinaryLoops.push(...added);
+                return added;
+            }
+            if (source.table.kind !== 'table')
+                throw new WherePlanningUnsupportedError('module requires its Filter producer');
+            const forced = source.indexedBy === null ? null : source.table.indexes.find(index => sqliteAsciiFold(index.name) === sqliteAsciiFold(source.indexedBy)) ?? null;
+            if (source.indexedBy !== null && !forced)
+                throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);
+            const added = btreeLoops(source, ordinal, analysis.clause, { forcedIndex: forced, notIndexed: source.notIndexed || request.excludedIndexSources?.has(ordinal) === true, sourcePrereq, neededColumns: request.neededColumns[ordinal] ?? new Set(), orderBy: request.orderBy, resolved, planBudget, ordinaryLoops });
+            ordinaryLoops.push(...added);
+            return added;
+        });
+    };
+    let groups = buildAll();
+    if (planBudget.truth.secondPass) {
+        planBudget.remaining = initialLimit;
+        planBudget.progressCheck?.();
+        groups = buildAll();
+    }
+    const unsorted = wherePathSolver(groups, resolved.sources.length, wherePathChoiceWidth(resolved.sources.length));
+    // where.c:whereInterstageHeuristic. Equality/NULL/IN-constrained leading
+    // loops in the first solution prohibit unconstrained scans in the ordered
+    // solver; stop at the first non-equality loop. This is not hot-equality
+    // suppression: it acts only after the first solver selected a search.
+    if (request.orderBy.length)
+        for (const loop of unsorted.loops) {
+            if (!(loop.capability?.nEq || loop.capability?.rowidEquality))
+                break;
+            groups = groups.map((group, ordinal) => ordinal === loop.sourceOrdinal ? group.filter(candidate => candidate.kind !== "table-scan" && (candidate.kind !== "index" || candidate.capability.constrainedFields !== 0)) : group);
+        }
+    const path = request.orderBy.length ? wherePathSolver(groups, resolved.sources.length, wherePathChoiceWidth(resolved.sources.length), request.orderBy.length, resolved.result.length, unsorted.rows + 1n) : unsorted;
+    return freeze({ analysis, truth: publishTruth(planBudget.truth), path, plannerCandidates: groups.reduce((sum, group) => sum + group.length, 0), plannerPaths: path.loops.length });
+}
+/** SELECT resolver owns alias/ordinal precedence. Only a complete resolved
+ * direct-column ORDER list may authorize this bounded physical-order proof.
+ * Expression aliases retain the sorter; no token-spelling reconstruction. */
+export function resolvedWhereOrder(resolved) {
+    const requirements = [];
+    for (const [index, term] of resolved.source.orderBy.entries()) {
+        const resultIndex = resolved.orderResultColumns[index], expression = resultIndex != null ? resolved.result[resultIndex]?.expression : term.expr;
+        if (!expression?.reduction || expression.reduction.kind !== "reduction")
+            return Object.freeze([]);
+        const node = expression.reduction, use = columnUse(resolved, node);
+        // Result columns expanded from star still carry exact resolver ownership.
+        const result = resultIndex != null ? resolved.result[resultIndex] : null;
+        const source = use?.source ?? (result?.resolution === "direct" ? result.source : null), columnIndex = use?.columnIndex ?? result?.columnIndex;
+        if (!source || columnIndex == null)
+            return Object.freeze([]);
+        const column = columnIndex < 0 ? null : source.table.columns[columnIndex];
+        if (column === undefined || column === null && source.table.kind === 'table' && source.table.withoutRowid)
+            return Object.freeze([]);
+        const override = term.expr.reduction?.kind === "reduction" ? explicitExprCollation(term.expr.reduction, resolved) : null;
+        const collation = override ?? explicitExprCollation(node, resolved) ?? sqliteAsciiFold(column?.collation ?? "binary");
+        if (collation !== "binary" && collation !== "nocase" && collation !== "rtrim")
+            return Object.freeze([]);
+        requirements.push(freeze({ sourceOrdinal: resolved.sources.indexOf(source), column, descending: term.descending, collation, nulls: term.nulls }));
+    }
+    return Object.freeze(requirements);
+}
+// wherecode.c disableTerm: invocation-local CODED and virtual-child accounting.
+// Only exact admitted scalar constraints reach this carrier; remaining truth
+// stays with the branch consumer. No mutation of published WHERE terms.
+export function branchConsumedTerms(loop, clause, ready) {
+    const coded = new Set(), remaining = new Map();
+    const cap = loop.capability;
+    if (!cap)
+        return coded;
+    const terms = clause.terms;
+    const disable = (term) => {
+        if (coded.has(term) || (term.prereqAll & ~ready) !== 0n || !term.outerJoinSafe.mayOmitResidual)
+            return;
+        coded.add(term);
+        if (term.parentId === null)
+            return;
+        const parent = terms.find(t => t.id === term.parentId);
+        if (!parent)
+            return;
+        const count = (remaining.get(parent) ?? parent.childIds.length) - 1;
+        remaining.set(parent, count);
+        if (count === 0)
+            disable(parent);
+    };
+    for (const admission of [...cap.equalitySlots, cap.lower, cap.upper, cap.rowidEquality, cap.rowidLower, cap.rowidUpper]) {
+        if (!admission)
+            continue;
+        // Planner admission owns affinity/collation equivalence; no represented
+        // row-value slice or lossy expression constraints are admitted here.
+        disable(admission.term);
+    }
+    return coded;
+}
