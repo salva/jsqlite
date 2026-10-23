@@ -519,6 +519,17 @@ source-based expectations pass (proc-836d646b5f3a). No production divergence or
 speculative patch. These are descriptor/EXPLAIN controls, not generated-key
 packed execution, build expression lifetime or populated SQL parity.
 
+Merged-USING follow-up:12 encoding/join controls resolve generated c2 ownership
+as left for INNER/LEFT, right for RIGHT, and both for FULL, following pinned
+resolve.c lookupName's pFJMatch/coalesce branches. `automaticIndexBuildPredicate`
+accepts abs(c2)>0 only for its single semantic owner; FULL merged use is never
+single-table constant. This tests source identity and build safety, not runtime
+RIGHT/FULL auto admission. Initial fixture omitted includeRightTerms and got
+empty RIGHT terms (proc-58b5ac70455b/proc-bf9a2d887a78); corrected explicit
+analysis seam passes (proc-3573035b4102), no product change or runtime opt-in.
+These controls do not independently establish exact merged descriptor field
+layout or native populated parity.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

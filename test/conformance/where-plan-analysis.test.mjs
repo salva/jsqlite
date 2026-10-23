@@ -140,6 +140,26 @@ test('automatic generated driving keys retain collation affinity and high-key al
  }
 });
 
+test('generated USING references keep covering ownership separate from build safety',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const join of ['INNER','LEFT','RIGHT','FULL']){
+  const s=schema(encoding,true),expression=resolve('SELECT 1',s).result[0].expression;
+  const columns=Object.freeze(Array.from({length:66},(_,i)=>Object.freeze({...col(`c${i}`,'INTEGER'),...(i===2?{generatedExpr:expression,generatedStorage:'stored'}:{})})));
+  s.t.columns=columns;s.t.primaryKey=Object.freeze([columns[65]]);s.t.indexes=[];
+  const plan=resolve(`SELECT c2 FROM t o ${join} JOIN t u USING(c1,c2) WHERE abs(c2)>0`,s);
+  const clause=analyzeWhere(plan,{includeRightTerms:true}).clause;
+  const use=plan.columnUses.find(use=>use.expression===plan.result[0].expression.reduction);
+  assert.ok(use);
+  const owners=(use.mergedSources??[use]).map(ref=>plan.sources.indexOf(ref.source));
+  assert.deepEqual(owners,join==='FULL'?[0,1]:join==='RIGHT'?[1]:[0]);
+  const residual=clause.terms.find(term=>!term.virtual&&term.origin.kind==='where');
+  assert.ok(residual,JSON.stringify({join,terms:clause.terms.map(t=>[t.origin,t.virtual])}));
+  // FULL's coalesce is not table-constant; RIGHT's drain-side restrictions
+  // and LEFT nullable-side restrictions are independent of covering bits.
+  assert.equal(wherePlanning.automaticIndexBuildPredicate(residual,plan,0),join==='INNER'||join==='LEFT');
+  assert.equal(wherePlanning.automaticIndexBuildPredicate(residual,plan,1),join==='RIGHT');
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);
