@@ -24,6 +24,11 @@ function cell(s,i){const type=s.columnType(i),v=s.column(i);
 function metadata(s){return Array.from({length:s.columnCount},(_,i)=>{const m=s.columnMetadata(i);return {name:m.name,declType:m.declaredType,database:m.database,table:m.table,origin:m.origin}})}
 async function rows(s){const out=[];while(await s.step()==='row')out.push(Array.from({length:s.columnCount},(_,i)=>cell(s,i)));return out}
 const residual=JSON.parse(fs.readFileSync(new URL('./cases/right-residual.json',import.meta.url),'utf8'));
+for(const enc of Object.keys(corpus.fixtures))for(const join of ['LEFT','RIGHT','FULL'])for(const guard of ['0','NULL'])
+test(`predicate AND rejects before RHS ${enc}/${join}/${guard}`,()=>withDb(enc,async db=>{
+ const s=db.prepare(`SELECT a.rowid,b.rowid FROM a ${join} JOIN b ON (${guard} AND json_extract('bad','$')=1)`).statement;
+ try{const first=await rows(s);assert.equal(first.length,join==='LEFT'?4:join==='RIGHT'?3:7);assert.ok(first.every(row=>row.some(c=>c.type==='null')));s.reset();assert.deepEqual(await rows(s),first)}finally{s.finalize()}
+}));
 for(const c of residual.cases)test(`R4 residual ${c.encoding}/${c.id}`,()=>withDb(c.encoding,async db=>{
  const s=db.prepare(c.sql).statement;try{assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);s.reset();assert.deepEqual(await rows(s),c.native.first.rows)}finally{s.finalize()}
 }));

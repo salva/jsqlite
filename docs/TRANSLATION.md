@@ -573,7 +573,13 @@ coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 
 Ordinary comma/CROSS/INNER/LEFT and represented repeated/mixed rowid RIGHT/FULL
 barriers are admitted at the documented gates. ON belongs to match testing; LEFT null extension precedes
-WHERE. RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
+WHERE. Joined predicate AND rejection follows `expr.c:sqlite3ExprIfFalse`:
+FALSE/NULL exits before the next conjunct, with `exprEvalRhsFirst` postponing
+the sole subquery-bearing operand. Value-producing booleans retain three-valued
+evaluation; callers retain one patched rejection continuation. Native error/reset
+and unchanged FULL gate receipts are in [[card:card-k-e]] status; independent
+acceptance of this delta remains open.
+RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
 or the complete typed WITHOUT ROWID primary key (KeyInfo order/collation/encoding).
 The RHS interior reads the primary reader, positioned by deferred selected access
 or the active drain key; covering-only RHS binding stays disabled as in pinned

@@ -655,7 +655,13 @@ nested/compound children; `vdbe.ts` RIGHT fallback filters prereq against its
 positioned prefix. Prepare/error-phase and finite coverage:
 [JSON evidence](research/recursive-join/json-right-full-evidence.md).
 Per-barrier RIGHT/FULL state; selected expression/partial/covering/
-WITHOUT ROWID paths, not optimizer completeness. Genuine IPK/rowid proof and
+WITHOUT ROWID paths, not optimizer completeness.
+`expr.c:sqlite3ExprIfFalse(TK_AND)/exprEvalRhsFirst` → joined
+`vdbe.ts:compilePredicate`: FALSE/NULL conjunct rejection before the next
+operand, sole-subquery operand postponed, shared caller-patched failure exit.
+`right-residual.test.mjs` covers error suppression and reset across LEFT/RIGHT/FULL
+and encodings; [[card:card-k-e]] status retains native and author gate evidence.
+Genuine IPK/rowid proof and
 complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
 sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit
 `scan.loopStart` including DeferredSeek before projecting a new row. WR NOT INDEXED

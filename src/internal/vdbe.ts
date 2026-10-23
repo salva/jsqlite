@@ -4511,7 +4511,49 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(carrier.reduction.signature==='expr ::= expr AND expr')return {kind:'binary',op:'AND',left:predicateTree(carrier.children[0]!),right:predicateTree(carrier.children[1]!)};
     return resolveTree(expressionFromReduction(carrier.reduction),carrier.reduction);
   };
-  const compilePredicate=(expression:SelectNode['where'])=>{if(!expression?.reduction)return undefined;const value=compileExpressionTree(predicateTree(resolvedExpressionCarrier(expanded,expression.reduction as Reduction)),ops,allocate,parameters,compileJoinSubquery),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0,residual:true});return at;};
+  const compilePredicate=(expression:SelectNode['where'])=>{
+    if(!expression?.reduction)return undefined;
+    const tree=predicateTree(resolvedExpressionCarrier(expanded,expression.reduction as Reduction));
+    // expr.c sqlite3ExprIfFalse(TK_AND, SQLITE_JUMPIFNULL): reject the
+    // left conjunct before evaluating the right, including NULL. Keep value
+    // expressions on compileExpressionTree's three-valued boolean path.
+    const failures:number[]=[];
+    const hasSubquery=(node:Expression):boolean=>{
+      switch(node.kind){
+        case 'scalar-subquery':case 'in-subquery':return true;
+        case 'binary':return hasSubquery(node.left)||hasSubquery(node.right);
+        case 'unary':case 'cast':case 'collate':return hasSubquery(node.value);
+        case 'column':return !!node.generated&&hasSubquery(node.generated);
+        case 'call':return node.args.some(hasSubquery);
+        case 'aggregate':return node.args.some(hasSubquery)||!!node.filter&&hasSubquery(node.filter)||node.orderBy.some(term=>hasSubquery(term.expression));
+        case 'vector':return node.fields.some(hasSubquery);
+        case 'in-list':return hasSubquery(node.left)||node.values.some(hasSubquery);
+        case 'between':return hasSubquery(node.value)||hasSubquery(node.lower)||hasSubquery(node.upper);
+        case 'case':return !!node.operand&&hasSubquery(node.operand)||node.pairs.some(pair=>pair.some(hasSubquery))||!!node.otherwise&&hasSubquery(node.otherwise);
+        default:return false;
+      }
+    };
+    const reject=(node:Expression):void=>{
+      if(node.kind==='binary'&&node.op==='AND'){
+        // exprEvalRhsFirst: postpone the only subquery-bearing operand.
+        const reverse=hasSubquery(node.left)&&!hasSubquery(node.right);
+        reject(reverse?node.right:node.left);reject(reverse?node.left:node.right);return;
+      }
+      const value=compileExpressionTree(node,ops,allocate,parameters,compileJoinSubquery);
+      const first=failures.length===0;
+      failures.push(ops.length);ops.push({code:'IfNot',p1:value,p2:0,residual:first});
+    };
+    if(tree.kind!=='binary'||tree.op!=='AND'){
+      const value=compileExpressionTree(tree,ops,allocate,parameters,compileJoinSubquery),at=ops.length;
+      ops.push({code:'IfNot',p1:value,p2:0,residual:true});return at;
+    }
+    reject(tree);
+    const success=ops.length;ops.push({code:'Goto',p2:0});
+    const at=ops.length;ops.push({code:'Goto',p2:0});
+    for(const pc of failures)(ops[pc] as {p2:number}).p2=at;
+    (ops[success] as {p2:number}).p2=ops.length;
+    return at;
+  };
   // wherecode.c code_outer_join_constraints: compile-time TERM_CODED
   // belongs to this WHERE invocation, not the immutable analysis or a scan.
   const whereTerms=analyzeWhere(expanded,true).clause.terms.filter(term=>!term.virtual&&term.origin.kind==='where');
