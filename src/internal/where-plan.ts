@@ -16,7 +16,8 @@ import {statisticsForIndex,sqliteLogEst,integerPrimaryKeyColumn} from "./schema.
 import {Stat4Probe} from "./stat4-probe.ts";
 import {whereKeyStats} from "./stat4-estimate.ts";
 import {stat4SkipScanRange} from "./stat4-skipscan.ts";
-import type {BuiltinCollation,KeyTerm} from "./comparison.ts";
+import {KeyInfo,type BuiltinCollation,type KeyTerm} from "./comparison.ts";
+import type {DatabaseEncoding} from "./record.ts";
 
 export type SourceMask=bigint;
 export type LogicalEstimate=bigint;
@@ -99,6 +100,118 @@ export function automaticIndexCosts(size:LogicalEstimate,ephemeral=false,costMul
  const logSize=size<=10n?0n:BigInt(sqliteLogEst(size)-33);
  const setup=logSize+size+(ephemeral?-25n:28n)+costMultiplier;
  return freeze({setupCost:setup<0n?0n:setup,runCost:logEstAdd(logSize,43n),outputRows:43n});
+}
+export interface AutomaticIndexCandidate {
+ readonly kind:"automatic-index-candidate";
+ readonly source:ResolvedSource;
+ readonly sourceOrdinal:number;
+ readonly seed:WhereTerm;
+ readonly prereq:SourceMask;
+ readonly setupCost:LogicalEstimate;
+ readonly runCost:LogicalEstimate;
+ readonly outputRows:LogicalEstimate;
+}
+/** Caller-owned source flags absent from the physical TableNode. All are
+ * explicit so omission cannot silently admit an OR/correlated/recursive build. */
+export interface AutomaticIndexContext {
+ readonly enabled:boolean;readonly orOptimization:boolean;readonly rightJoinDrain:boolean;
+ readonly orSubclause:boolean;readonly correlated:boolean;readonly recursive:boolean;
+ readonly ephemeral:boolean;readonly costMultiplier:bigint;readonly sourcePrereq:SourceMask;
+}
+/** whereLoopAddBtree automatic proposals precede ordinary Btree proposals.
+ * This returns immutable cost templates, not executable WhereLoops: until the
+ * lowering owner opts in they cannot displace an executable scan. */
+export function automaticIndexCandidates(source:ResolvedSource,ordinal:number,clause:WhereClause,context:AutomaticIndexContext):readonly AutomaticIndexCandidate[] {
+ if(!context.enabled||context.orOptimization||context.rightJoinDrain||context.orSubclause||context.correlated||context.recursive||source.indexedBy!==null||source.notIndexed||source.joinFromLeft.right||source.table.kind!=="table")return Object.freeze([]);
+ const result:AutomaticIndexCandidate[]=[],self=sourceBit(ordinal);
+ const costs=automaticIndexCosts(BigInt(source.table.nRowLogEst),context.ephemeral,context.costMultiplier);
+ for(const term of clause.terms){
+  if((term.prereqRight&self)!==0n||!termCanDriveAutomaticIndex(term,source,ordinal,0n))continue;
+  result.push(freeze({kind:"automatic-index-candidate",source,sourceOrdinal:ordinal,seed:term,prereq:context.sourcePrereq|term.prereqRight,...costs}));
+ }
+ return Object.freeze(result);
+}
+/** wherePathSolver's smallouter admission, in LogEst units (<1.25 runs).
+ * Used before descriptor publication, not a proxy for a lowering capability. */
+export function automaticIndexPathEligible(candidate:AutomaticIndexCandidate,ready:SourceMask,outerRows:LogicalEstimate):boolean {
+ return outerRows>=3n&&(candidate.prereq&~ready)===0n&&(ready&sourceBit(candidate.sourceOrdinal))===0n;
+}
+export interface AutomaticIndexKey {
+ readonly column:ColumnNode;readonly columnIndex:number;readonly term:WhereTerm;
+ readonly affinity:ColumnNode["affinity"];readonly collation:BuiltinCollation;
+}
+export interface AutomaticIndexDescriptor {
+ readonly kind:"automatic-index";readonly candidate:AutomaticIndexCandidate;
+ readonly keys:readonly AutomaticIndexKey[];
+ /** Record fields: driving keys, covering columns in table order, then rowid.
+  * null is the rowid tail; WITHOUT ROWID tables instead retain PK columns. */
+ readonly fields:readonly (ColumnNode|null)[];
+ readonly keyInfo:KeyInfo;readonly prereq:SourceMask;readonly bloom:boolean;
+}
+/** constructAutomaticIndex's all-ready key expansion and covering layout.
+ * Build predicates remain residual until a source-safe expression proof is
+ * supplied by the consumer; omitting an optional partial-build predicate is
+ * safe, but does not grant disableTerm credit. No persistent IndexNode exists. */
+export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,clause:WhereClause,notReady:SourceMask,needed:ReadonlySet<NeededColumn>,encoding:DatabaseEncoding):AutomaticIndexDescriptor|null {
+ const {source,sourceOrdinal}=candidate,table=source.table;
+ notReady|=sourceBit(sourceOrdinal);
+ if(table.kind!=="table"||(candidate.prereq&notReady)!==0n||!clause.terms.includes(candidate.seed)||!termCanDriveAutomaticIndex(candidate.seed,source,sourceOrdinal,notReady))return null;
+ const keys:AutomaticIndexKey[]=[],seen=new Set<ColumnNode>();let prereq=candidate.prereq;
+ // Native idxCols aliases columns>=63 to bit63 for driving-key dedup.
+ let highColumn=false;
+ for(const term of clause.terms){
+  if(!termCanDriveAutomaticIndex(term,source,sourceOrdinal,notReady))continue;
+  const left=term.left!,column=left.column!;
+  if(seen.has(column)||(left.columnIndex>=63&&highColumn))continue;
+  if(term.effectiveCollation===null)return null;
+  keys.push(freeze({column,columnIndex:left.columnIndex,term,affinity:column.affinity,collation:term.effectiveCollation}));
+  seen.add(column);if(left.columnIndex>=63)highColumn=true;prereq|=term.prereqRight;
+ }
+ if(!keys.length)return null;
+ const fields:(ColumnNode|null)[]=keys.map(key=>key.column);
+ const highNeeded=table.columns.slice(63).some(column=>needed.has(column));
+ for(let i=0;i<table.columns.length;i++){
+  const column=table.columns[i]!;
+  // Native colUsed bit63 expands every high column, including a driving key.
+  if((i>=63&&highNeeded)||(!seen.has(column)&&(needed.has(column)||(table.withoutRowid&&table.primaryKey.includes(column))))){fields.push(column);seen.add(column);}
+ }
+ if(!table.withoutRowid)fields.push(null);
+ const terms:KeyTerm[]=fields.map((_,i)=>({collation:i<keys.length?keys[i]!.collation:"binary"}));
+ const keyInfo=new KeyInfo({encoding,totalFieldCount:fields.length,keyFieldCount:fields.length,terms});
+ return freeze({kind:"automatic-index",candidate,keys:Object.freeze(keys),fields:Object.freeze(fields),keyInfo,prereq,bloom:keys.some(key=>key.affinity!=="text")});
+}
+export interface StandaloneBloomDescriptor {
+ readonly kind:"standalone-bloom";readonly loop:BtreeWhereLoop;
+ readonly equality:readonly (IndexConstraintAdmission|RowidConstraint)[];
+ readonly bytes:number;readonly requiresTableCursor:true;
+}
+/** whereCheckIfBloomFilterIsUseful runs on the selected path, independently
+ * of automatic candidates. selfCulling contains WHERE_SELFCULL proofs from
+ * output adjustment (not guessed from a nonempty term list). No SQL caller
+ * supplies these proofs yet, so these descriptors cannot enable a filter. */
+export function standaloneBloomDescriptors(path:WherePath,selfCulling:ReadonlySet<WhereLoop>,enabled:boolean):readonly StandaloneBloomDescriptor[] {
+ const result:StandaloneBloomDescriptor[]=[];let searches=0n;
+ if(!enabled||path.loops.length<2)return Object.freeze(result);
+ for(let i=0;i<path.loops.length;i++){
+  const loop=path.loops[i]!,table=loop.source.table;
+  if(table.kind!=="table"||!table.hasStat1)break;
+  if(i>0&&(loop.kind==="index"||loop.kind==="rowid")&&selfCulling.has(loop)){
+   const cap=loop.capability;
+   const equality:readonly (IndexConstraintAdmission|RowidConstraint)[]=loop.kind==="rowid"
+    ? cap?.rowidEquality?[cap.rowidEquality]:[]
+    : cap&&cap.nSkip===0?cap.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null):[];
+   // WHERE_COLUMN_EQ is set by native WO_EQ|WO_IS producers.
+   if(equality.length&&equality.some(slot=>slot.operator==="eq"||slot.operator==="is")&&searches>BigInt(table.nRowLogEst)){
+    let n=BigInt(table.nRowLogEst)%10n,x=BigInt(table.nRowLogEst)/10n;
+    if(n>=5n)n-=2n;else if(n>=1n)n-=1n;
+    const population=x>60n?0x7fffffffffffffffn:x>=3n?(n+8n)<<(x-3n):(n+8n)>>(3n-x);
+    const bytes=Number(population<10000n?10000n:population>10000000n?10000000n:population);
+    result.push(freeze({kind:"standalone-bloom",loop,equality:Object.freeze([...equality]),bytes,requiresTableCursor:true}));
+   }
+  }
+  searches+=loop.outputRows;
+ }
+ return Object.freeze(result);
 }
 function bound(operator:WhereOperator):IndexConstraintAdmission["bound"] {return operator==="eq"||operator==="is"||operator==="is-null"||operator==="in"?"equality":operator==="gt"?"lower-exclusive":operator==="ge"?"lower-inclusive":operator==="lt"?"upper-exclusive":"upper-inclusive"}
 function indexedOperandIdentity(term:WhereTerm):string|null {if(term.indexedIdentity!==undefined)return term.indexedIdentity;const reduction=term.expression.reduction;if(!reduction||reduction.kind!=="reduction")return null;const children=exprChildren(reduction);const operand=term.originalIndexedOperand==="left"?children[0]:children[1];return operand?expressionStructuralIdentity(asExpr(operand),true):null;}

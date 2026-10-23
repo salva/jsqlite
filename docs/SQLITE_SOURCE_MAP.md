@@ -16,9 +16,16 @@ and exact Found/IN ownership. Tests: `private-bloom*.test.mjs`,
 `where-plan.ts:columnIsGoodAutomaticIndexCandidate/termCanDriveAutomaticIndex`;
 `whereLoopAddBtree` cost formula → `automaticIndexCosts`. Tests:
 `where-plan-foundation.test.mjs` (declared-key stat1 threshold, readiness,
-EQ/IS, affinity and outer provenance, ephemeral tuning/clamp). These exports
-are not yet candidate production or selection.
-Automatic/standalone descriptors and runtime enrollment remain absent.
+EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
+`constructAutomaticIndex` ready-key/dedup/covering layout →
+`automaticIndexDescriptor`; automatic proposal gates/cost templates →
+`automaticIndexCandidates`; smallouter readiness/threshold →
+`automaticIndexPathEligible` (not yet the solver caller).
+`whereCheckIfBloomFilterIsUseful` → independent `standaloneBloomDescriptors`,
+requiring selected-path stat1, selfcull proof, equality and repeated-search cost.
+Foundation tests cover explicit disabled gates and all-encoding descriptor layouts.
+These are internal immutable proposals, not executable loops: native insertion/
+pruning, source-safe build predicates and runtime enrollment remain missing.
 
 ### Scalar comparison affinity
 

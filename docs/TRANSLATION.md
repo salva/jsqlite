@@ -478,9 +478,14 @@ primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter
 state. No SQL producer currently emits them. Source-owned automatic driving-term
 and declared-index quality admission plus native setup/run/output cost primitives
-are available but not enrolled. Candidate/standalone descriptors, insertion/smallouter
-integration, collation/multipage boundary coverage and full consumer/resource acceptance remain
-pending; [primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.
+are available but not enrolled. Immutable automatic cost candidates, ready-key/
+covering/KeyInfo descriptors and independent standalone Bloom descriptors are also
+available through explicit internal enable/proof inputs; none is an executable
+WhereLoop or SQL plan. Source-safe build-predicate production, native automatic-first
+insertion/pruning and actual smallouter solver integration remain missing. The
+smallouter helper alone grants no selection credit. Collation/multipage boundary
+coverage and full consumer/resource acceptance remain pending;
+[primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.
 [Executable boundary and pending private work contract](research/where-autoindex-boundary.md)
 provide native negative-bit/collision and semantic controls, not runtime acceptance.
 The [beta.4 two-axis inventory](research/where-beta4-admission.md) is historical

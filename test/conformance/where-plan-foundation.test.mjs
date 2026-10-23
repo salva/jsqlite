@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {physicalRowidIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
-import {columnIsGoodAutomaticIndexCandidate,termCanDriveAutomaticIndex,automaticIndexCosts,admitIndexConstraint,btreeLoops,sourceBit,whereClause,wherePathSolver,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
+import {standaloneBloomDescriptors,automaticIndexCandidates,automaticIndexDescriptor,automaticIndexPathEligible,columnIsGoodAutomaticIndexCandidate,termCanDriveAutomaticIndex,automaticIndexCosts,admitIndexConstraint,btreeLoops,sourceBit,whereClause,wherePathSolver,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
 
 const expression={tokens:[],reduction:null};
 function fixture(){
@@ -16,6 +16,59 @@ function fixture(){
  return {a,b,table,index,source};
 }
 function term(id,source,column,columnIndex,operator,extra={}){return Object.freeze({id,expression,origin:{kind:'where'},operator,left:{source,sourceOrdinal:0,column,columnIndex,rowid:false},rightAffinity:column.affinity,effectiveCollation:column.collation?.toLowerCase()??'binary',originalIndexedOperand:'left',prereqRight:0n,prereqAll:sourceBit(0),parentId:null,childIds:Object.freeze([]),virtual:false,outerJoinSafe:Object.freeze({mayDrive:true,mayOmitResidual:true}),...extra});}
+
+const automaticContext={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+
+test('automatic candidate gates and smallouter admission stay independent of executable plans',()=>{
+ const {source,b}=fixture(),eq=term(1,source,b,1,'eq',{prereqRight:2n}),clause=whereClause([eq]);
+ const candidates=automaticIndexCandidates(source,0,clause,automaticContext);
+ assert.equal(candidates.length,1);assert.equal(candidates[0].seed,eq);
+ assert.equal(automaticIndexPathEligible(candidates[0],2n,2n),false);
+ assert.equal(automaticIndexPathEligible(candidates[0],2n,3n),true);
+ assert.equal(automaticIndexPathEligible(candidates[0],0n,100n),false);
+ assert.equal(automaticIndexPathEligible(candidates[0],3n,100n),false);
+ for(const flag of ['orOptimization','rightJoinDrain','orSubclause','correlated','recursive'])assert.equal(automaticIndexCandidates(source,0,clause,{...automaticContext,[flag]:true}).length,0);
+ assert.equal(automaticIndexCandidates(source,0,clause,{...automaticContext,enabled:false}).length,0);
+ for(const change of [{notIndexed:true},{indexedBy:'forced'}])assert.equal(automaticIndexCandidates({...source,...change},0,clause,automaticContext).length,0);
+ assert.equal(automaticIndexCandidates(source,0,whereClause([{...eq,prereqRight:1n}]),automaticContext).length,0);
+ assert.ok(btreeLoops(source,0,clause,{forcedIndex:null,neededColumns:new Set(),orderBy:[]}).every(loop=>loop.kind!=='automatic-index'));
+});
+
+for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: automatic descriptor expands ready deduplicated keys and covering fields`,()=>{
+ const {source,a,b}=fixture();
+ // No existing index: both columns can now drive an automatic key.
+ source.table.indexes=[];
+ const first=term(1,source,b,1,'eq',{prereqRight:2n}),duplicate=term(2,source,b,1,'is',{prereqRight:2n});
+ const second=term(3,source,a,0,'eq',{prereqRight:4n});
+ const clause=whereClause([first,duplicate,second]),candidate=automaticIndexCandidates(source,0,clause,automaticContext)[0];
+ const limited=automaticIndexDescriptor(candidate,clause,4n,new Set([a]),encoding);
+ assert.deepEqual(limited.keys.map(key=>key.term),[first]);
+ assert.deepEqual(limited.fields,[b,a,null]);
+ assert.equal(limited.prereq,2n);assert.equal(limited.bloom,true);
+ const all=automaticIndexDescriptor(candidate,clause,0n,new Set([a]),encoding);
+ assert.deepEqual(all.keys.map(key=>key.term),[first,second]);
+ assert.deepEqual(all.fields,[b,a,null]);assert.equal(all.prereq,6n);
+ assert.equal(all.keys[1].collation,'nocase');assert.equal(all.keyInfo.encoding,encoding);
+ assert.equal(all.keyInfo.terms[1].collation,'nocase');
+ assert.ok(Object.isFrozen(all)&&Object.isFrozen(all.keys)&&Object.isFrozen(all.fields));
+ assert.equal(automaticIndexDescriptor(candidate,clause,2n,new Set(),encoding),null);
+});
+
+test('standalone Bloom is independent: selected persistent path, stat1 search threshold and selfcull proof',()=>{
+ const {source,a,index}=fixture();source.table.hasStat1=true;source.table.nRowLogEst=100;
+ const eq=term(1,source,a,0,'is');
+ const loop=btreeLoops(source,0,whereClause([eq]),{forcedIndex:index,neededColumns:new Set(),orderBy:[]})[0];
+ const outer={...loop,sourceOrdinal:1,outputRows:101n};
+ const path={loops:[outer,loop]};
+ assert.equal(standaloneBloomDescriptors(path,new Set(),true).length,0);
+ const descriptors=standaloneBloomDescriptors(path,new Set([loop]),true);
+ assert.equal(descriptors.length,1);assert.equal(descriptors[0].loop,loop);
+ assert.equal(descriptors[0].equality[0].term,eq);assert.equal(descriptors[0].bytes,10000);
+ assert.equal(descriptors[0].requiresTableCursor,true);
+ assert.equal(standaloneBloomDescriptors(path,new Set([loop]),false).length,0);
+ outer.outputRows=100n;assert.equal(standaloneBloomDescriptors(path,new Set([loop]),true).length,0);
+ source.table.hasStat1=false;assert.equal(standaloneBloomDescriptors(path,new Set([loop]),true).length,0);
+});
 
 test('automatic driving admission follows declared-key statistics, affinity and readiness',()=>{
  const {a,b,source,index}=fixture();

@@ -62,14 +62,35 @@ is44, not43; retained outerOn=true remains an ON carrier despite an origin
 change. Tests were corrected to the source contracts, not production bypasses.
 Baseline SQL work remains scans; no runtime feature pass is claimed.
 
+## Candidate/descriptor extension
+
+Pinned constructAutomaticIndex's clause-order ready key expansion, column-bit
+deduplication, covering field layout and KeyInfo are represented by immutable
+`automaticIndexDescriptor`, independent of persistent IndexNode. Candidate gates
+and native costs are exposed by `automaticIndexCandidates` with explicit internal
+context; `automaticIndexPathEligible` checks prereqs and LogEst outerRows>=3.
+Neither function inserts executable loops. Optional partial-build predicates are
+not yet produced; residual ownership remains with callers. This omission is an
+implementation gap against the full brief, not a platform justification.
+
+Independent `standaloneBloomDescriptors` follows selected persistent paths,
+stat1-prefix break, caller-owned SELFCULL proof, EQ/IS and repeated-search
+threshold; it retains table-cursor requirement and native bounded allocation size.
+No SQL caller supplies these proofs/enables descriptors. Native WO_EQ|WO_IS,
+not just WO_EQ, is the flag producer relevant to the standalone test.
+
+Checked command: `node --experimental-strip-types --test test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check`, followed by the four unchanged receipt replays, chained on success. **56/56**, no failures/skips; typecheck/diff check and all four replays exit0. Full output:
+`work:///cards/card-s-j-a/processes/proc-88107b1a3140/stdout.log`.
+The native receipts are reused, not recaptured. Typed SQL results remain correct
+but automatic absent/collision still execute8256 tableNext and zero index seeks.
+No runtime feature credit follows from this descriptor test pass.
+
 ## Remaining acceptance work
 
-No candidate/standalone descriptor was delivered here, and no SQL
-runtime feature credit is claimed. Driving-term/column-quality and cost
-primitives are now available, but the producer, costs/insertion/pruning
-and smallouter gate with immutable ready-term/covering/KeyInfo descriptor and
-explicit disabled-until-lowered consumer seam. Standalone Bloom admission must
-remain independent. Follow with complete source-derived NOT INDEXED/forced,
+Immutable proposals and independent standalone descriptors are available, but
+native automatic-first loop insertion/pruning and actual smallouter solver
+integration, source-safe build-predicate production and runtime enrollment are
+not delivered. Continue complete source-derived NOT INDEXED/forced,
 affinity/unready/outer/covering gates and collation/multipage packed boundary
 regressions. Current new prefix fixtures use numeric keys, not collation tests.
 Filter VM diagnostics/counters and measured runtime faults/cancel/deadline,
