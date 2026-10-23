@@ -5,7 +5,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import {openFixture} from './public-api-adapter.mjs';
 import {closeTestServer} from './close-test-server.mjs';
-import {BtreeDatabase} from '../../src/internal/btree.ts';
+import {observeDownstreamStart} from './downstream-start-observer.mjs';
 const corpus=JSON.parse(fs.readFileSync(new URL('./cases/repeated-right-full.json',import.meta.url),'utf8'));
 async function withDb(enc,fn,options){
  const fixture=corpus.fixtures[enc];const bytes=fs.readFileSync(new URL(`./fixtures/${fixture.path}`,import.meta.url));
@@ -31,24 +31,27 @@ for(const c of residual.cases)test(`R5 residual ${c.encoding}/${c.id}`,()=>withD
  const s=db.prepare(c.sql).statement;try{assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);s.reset();assert.deepEqual(await rows(s),c.native.first.rows)}finally{s.finalize()}
 }));
 // Sequential, finally-restored observation of actual physical positioning.
-// ON is always false: all three unmatched RHS rows must position downstream
-// before the correlated scalar can reject any of them.
-for(const enc of Object.keys(corpus.fixtures))test(`R5 early drain positioning ${enc}`,()=>withDb(enc,async db=>{
+// ON is always false. Scan controls retain all three downstream starts.
+// Unforced c_k equality seeks for b.k=1,3 only; b.k=NULL takes the
+// pre-seek IsNull LEFT continuation (wherecode.c codeAllEqualityTerms).
+// The later correlated scalar still waits for the downstream binding.
+for(const enc of Object.keys(corpus.fixtures))for(const scan of [false,true])test(`R5 early drain positioning ${enc}/${scan?'scan':'unforced'}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id==='scalar-left');
- const original=BtreeDatabase.prototype.tableScanCursor;let downstream=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4){const first=cursor.first;cursor.first=function(){downstream++;return first.call(this)}}return cursor};
- const s=db.prepare(c.sql).statement;
- try{assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,3,'later correlation waits for downstream positioning');s.reset();downstream=0;assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,3)}
- finally{s.finalize();BtreeDatabase.prototype.tableScanCursor=original}
+ const sql=scan?c.sql.replace('c z ON','c z NOT INDEXED ON'):c.sql;
+ const count=scan?3:2;
+ let downstream=0;const restore=observeDownstreamStart(()=>{downstream++});
+ const s=db.prepare(sql).statement;
+ try{assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,count,'later correlation waits for downstream positioning');s.reset();downstream=0;assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,count)}
+ finally{s.finalize();restore()}
  const reuse=db.prepare('SELECT 1').statement;try{assert.equal(await reuse.step(),'row');assert.equal(reuse.column(0),1n)}finally{reuse.finalize()}
 }));
-for(const enc of Object.keys(corpus.fixtures))test(`R5 selected drain first error cleanup ${enc}`,()=>withDb(enc,async db=>{
+for(const enc of Object.keys(corpus.fixtures))for(const scan of [false,true])test(`R5 selected drain first error cleanup ${enc}/${scan?'scan':'unforced'}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id==='scalar-left');
- const original=BtreeDatabase.prototype.tableScanCursor;let entered=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4)cursor.first=function(){entered++;throw new Error('R5 injected downstream positioning failure')};return cursor};
- const s=db.prepare(c.sql).statement;let first;
+ const sql=scan?c.sql.replace('c z ON','c z NOT INDEXED ON'):c.sql;
+ let entered=0;const restore=observeDownstreamStart(()=>{entered++;throw new Error('R5 injected downstream positioning failure')});
+ const s=db.prepare(sql).statement;let first;
  try{await assert.rejects(s.step(),error=>{first=error;return true});assert.equal(entered,1);await assert.rejects(s.step(),error=>error===first);assert.equal(entered,1);assert.throws(()=>s.reset(),error=>error===first)}
- finally{BtreeDatabase.prototype.tableScanCursor=original;s.finalize()}
+ finally{restore();s.finalize()}
  const retry=db.prepare(c.sql).statement;try{assert.deepEqual(await rows(retry),c.native.first.rows)}finally{retry.finalize()}
 }));
 

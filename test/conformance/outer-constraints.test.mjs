@@ -5,7 +5,7 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import {openFixture} from './public-api-adapter.mjs';
 import {closeTestServer} from './close-test-server.mjs';
-import {BtreeDatabase} from '../../src/internal/btree.ts';
+import {observeDownstreamStart} from './downstream-start-observer.mjs';
 const corpus=JSON.parse(fs.readFileSync(new URL('./cases/repeated-right-full.json',import.meta.url),'utf8'));
 async function withDb(enc,fn,options){
  const fixture=corpus.fixtures[enc];const bytes=fs.readFileSync(new URL(`./fixtures/${fixture.path}`,import.meta.url));
@@ -28,34 +28,37 @@ for(const c of residual.cases)test(`R6 residual ${c.encoding}/${c.id}`,()=>withD
  const s=db.prepare(c.sql).statement;try{assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);s.reset();assert.deepEqual(await rows(s),c.native.first.rows)}finally{s.finalize()}
 }));
 // Sequential, finally-restored observation of actual physical positioning.
-// ON is always false, so downstream c may start only for ready RHS rowid=2.
+// Ready b.rowid=2 rejection precedes c on both matched and drain paths.
 for(const enc of Object.keys(corpus.fixtures))test(`R6 matched rejection positioning ${enc}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id==='right-inner');
- const original=BtreeDatabase.prototype.tableScanCursor;let downstream=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4){const first=cursor.first;cursor.first=function(){downstream++;return first.call(this)}}return cursor};
+ let downstream=0;const restore=observeDownstreamStart(()=>{downstream++});
  const s=db.prepare(c.sql).statement;
  try{assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,1,'ready rejection precedes downstream positioning');s.reset();downstream=0;assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,1)}
- finally{s.finalize();BtreeDatabase.prototype.tableScanCursor=original}
+ finally{s.finalize();restore()}
  const reuse=db.prepare('SELECT 1').statement;try{assert.equal(await reuse.step(),'row');assert.equal(reuse.column(0),1n)}finally{reuse.finalize()}
 }));
-for(const enc of Object.keys(corpus.fixtures))test(`R6 selected continuation first error cleanup ${enc}`,()=>withDb(enc,async db=>{
+for(const enc of Object.keys(corpus.fixtures))for(const scan of [false,true])test(`R6 selected continuation first error cleanup ${enc}/${scan?'scan':'unforced'}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id==='right-inner');
- const original=BtreeDatabase.prototype.tableScanCursor;let entered=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4)cursor.first=function(){entered++;throw new Error('R6 injected downstream positioning failure')};return cursor};
- const s=db.prepare(c.sql).statement;let first;
+ const sql=scan?c.sql.replace('c z ON','c z NOT INDEXED ON'):c.sql;
+ let entered=0;const restore=observeDownstreamStart(()=>{entered++;throw new Error('R6 injected downstream positioning failure')});
+ const s=db.prepare(sql).statement;let first;
  try{await assert.rejects(s.step(),error=>{first=error;return true});assert.equal(entered,1);await assert.rejects(s.step(),error=>error===first);assert.equal(entered,1);assert.throws(()=>s.reset(),error=>error===first)}
- finally{BtreeDatabase.prototype.tableScanCursor=original;s.finalize()}
+ finally{restore();s.finalize()}
  const retry=db.prepare(c.sql).statement;try{assert.deepEqual(await rows(retry),c.native.first.rows)}finally{retry.finalize()}
 }));
-// Matched ON hits rejected by ready WHERE must not position c. Deferred
-// correlations and LTORJ must keep their interior work; all counts include drains.
-for(const enc of Object.keys(corpus.fixtures))for(const [id,count] of [['full-inner',1],['full-left',1],['scalar',4],['exists',6],['ltorj',7]])test(`R6 owning positioning ${enc}/${id}`,()=>withDb(enc,async db=>{
+// ON ownership is retained. Scan controls keep the original physical counts.
+// Selected c_k equality has an IsNull guard before SeekGE: scalar has b keys
+// 1,1,3,NULL (three seeks); FULL EXISTS adds two synthetic NULL b rows
+// (still three seeks). No c seek is needed for those NULL continuations.
+// Native typed rows/metadata remain identical; all counts include drains.
+for(const enc of Object.keys(corpus.fixtures))for(const scan of [false,true])for(const [id,scanCount,selectedCount] of [['full-inner',1,1],['full-left',1,1],['scalar',4,3],['exists',6,3],['ltorj',7,7]])test(`R6 owning positioning ${enc}/${id}/${scan?'scan':'unforced'}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id===id);
- const original=BtreeDatabase.prototype.tableScanCursor;let downstream=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4){const first=cursor.first;cursor.first=function(){downstream++;return first.call(this)}}return cursor};
- const s=db.prepare(c.sql).statement;
+ const count=scan?scanCount:selectedCount;
+ const sql=scan?c.sql.replace('c z ON','c z NOT INDEXED ON'):c.sql;
+ let downstream=0;const restore=observeDownstreamStart(()=>{downstream++});
+ const s=db.prepare(sql).statement;
  try{for(let pass=0;pass<2;pass++){assert.deepEqual(metadata(s),c.native.columns);assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,count);s.reset();downstream=0;}}
- finally{s.finalize();BtreeDatabase.prototype.tableScanCursor=original}
+ finally{s.finalize();restore()}
 }));
 // LTORJ count7 = four normal a rows + two FULL synthetic b rows +
 // one unmatched b drain invocation; suppression must not prune any at b.
