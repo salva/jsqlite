@@ -124,8 +124,9 @@ not executed safety guarantees. Empty skip bodies are inventory, not coverage.
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
 all-encoding cases and public scan controls. Actual runtime work assertions await
 the implementation dependency through [[card:card-s-a]]. Missing parameterized
-rebind/reprepare fixtures, independently obtained error/corrupt/off-path captures,
-raw native hash/type-flag controls, and executable resource fault drivers remain
-required; this document explicitly does not close the entire accepted brief or
+rebind/reprepare fixtures and independently obtained error/corrupt/off-path captures
+remain required; raw native hash/type-flag controls are now supplied by the C
+witness above. Production resource fault execution remains pending. This document
+explicitly does not close the entire accepted brief or
 beta.5. File60/batch600, original workloads and caps are unchanged. No WR/MOST
 reacceptance or entire-product compatibility claim.
