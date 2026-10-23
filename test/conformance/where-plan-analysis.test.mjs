@@ -3,6 +3,10 @@ import {substituteResolvedColumns,qualifyResolvedSource,spliceResolvedFirstSourc
 import * as wherePlanning from '../../src/internal/where-plan.ts';
 import {parseSql} from '../../src/internal/parse.ts';import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {analyzeWhere,rightJoinResidual,btreeLoops,sourceBit,wherePathSolver,wherePathChoiceWidth,logEstAdd,planWhere,ROWID_NEEDED,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
+import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/private-blobkey-pages.ts';
+import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
+import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
+import {Mem} from '../../src/internal/mem.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
 const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:type==='TEXT'?'text':type==='REAL'?'real':type==='BLOB'?'blob':'integer',szEst:columnTypeEstimate(type).szEst,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:[],...extra});
 // Synthetic schema carries build.c/schema.ts default estimates, not ad-hoc planner costs.
@@ -203,6 +207,42 @@ test('automatic rowid equality cannot drive keys even beside ordinary equality o
     const d=wherePlanning.automaticIndexDescriptor(candidates[0],clause,0n,new Set([s.id]),encoding,plan);
     assert.deepEqual(d.keys.map(key=>key.columnIndex),[2]);assert.deepEqual(d.fields,[s.b,null]);
    }
+  }
+ }
+});
+
+test('generated IPK descriptor composes with packed prefix edges and identity reads',async()=>{
+ const control={async checkpoint(){}};
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const storage of ['stored','virtual']){
+  const s=schema(encoding),expression=resolve('SELECT 1',s).result[0].expression;
+  const columns=Object.freeze(Array.from({length:4},(_,i)=>col(`c${i}`,'INTEGER',i===2?{generatedExpr:expression,generatedStorage:storage}:i===0?{primaryKeyPosition:1}:{})));
+  s.t.columns=columns;s.t.primaryKey=Object.freeze([columns[0]]);s.t.integerPrimaryKey=columns[0];s.t.indexes=[];
+  const plan=resolve('SELECT u.c0 FROM t o CROSS JOIN t u ON u.c1=o.c1 WHERE abs(u.c2)>0',s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([columns[0]]),encoding,plan);
+  assert.deepEqual(d.fields,[columns[1],columns[0],columns[2],columns[3],null]);
+  for(let reset=0;reset<2;reset++){
+   const limits={maxEntries:200,maxKeyBytes:10000,maxBytes:1000000},budget=new PrivateStateByteBudget(limits.maxBytes);
+   const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits),vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,d.keyInfo,limits),d.keyInfo);
+   const key=new Mem(),out=new Mem();key.setInt64(2n);
+   try{
+    // Record serial-type1 in each field; IPK payload and identity tail agree.
+    // Three groups make GT/LT exercise neighbors rather than just EOF.
+    for(let id=2;id<122;id++){const prefix=id<12?1:id<112?2:3;await vm.insert(Uint8Array.from([6,1,1,1,1,1,prefix,id,1,7,id]),control);}
+    for(const [op,id] of [['SeekGE',12],['SeekGT',112],['SeekLE',111],['SeekLT',11]]){
+     assert.equal(await vm.seekBound([key],op,control),true);
+     for(const field of [1,4]){await vm.column(field,out,control);assert.equal(out.integerValue(),BigInt(id));}
+    }
+    assert.equal(await vm.seekBound([key],'SeekGE',control),true);
+    for(let id=12;id<112;id++){
+     assert.equal(await vm.boundJump([key],'IdxGT',control),false);
+     for(const field of [1,4]){await vm.column(field,out,control);assert.equal(out.integerValue(),BigInt(id));}
+     assert.equal(await vm.next(control),true);
+    }
+    assert.equal(await vm.boundJump([key],'IdxGT',control),true);
+   }finally{key.release();out.release();vm.close();arena.close();}
+   assert.equal(budget.usedBytes,0);
   }
  }
 });

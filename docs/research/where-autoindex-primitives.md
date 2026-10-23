@@ -556,6 +556,17 @@ where.c termCanDriveIndex leftCol<0 branch matches TS; no product patch.
 Focused author evidence proc-0109255a541d. These are candidate/descriptor tests,
 not selected-plan equivalence: native can prefer the existing rowid lookup.
 
+Descriptor/packed composition: generated IPK ALLBITS descriptor KeyInfo feeds
+PrivateBlobkeyPages/Cursor/PrivateKeyVmCursor directly,12 fresh executions
+(encoding × storage ×2 owner rebuilds),120 five-field records, three prefix
+groups. GE/GT/LE/LT edge identities and100 duplicate-prefix steps read matching
+IPK payload/identity tail; IdxGT exits the group and disposal refunds budget.
+Focused proc-f8b910700624 passes without production change. Record bytes are
+synthetic integer serial-type1; generated values are supplied, not evaluated.
+Owner rebuild is primitive lifecycle coverage, not public statement reset.
+Existing native layout witness proc-6d50258132d1 applies; no fresh populated
+oracle, encoding-sensitive TEXT, VM lowering or runtime feature credit.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
