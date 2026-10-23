@@ -1,6 +1,7 @@
 """Native-first selected RHS malformed controls; binds exact mutations."""
 import ctypes as C, pathlib, json, sys, importlib.util, hashlib
-root, out, lib, work = map(pathlib.Path, sys.argv[1:])
+root, out, lib, work = map(pathlib.Path, sys.argv[1:5])
+three_source = '--three-source' in sys.argv[5:]
 work.mkdir(parents=True, exist_ok=True)
 spec = importlib.util.spec_from_file_location('oracle', root/'test/conformance/capture-index-planner.py')
 m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
@@ -23,6 +24,8 @@ for enc in ['utf8', 'utf16le', 'utf16be']:
     for join in ['RIGHT JOIN', 'FULL JOIN']:
         for hint in ['', ' INDEXED BY m_abc']:
             base = f'SELECT l.id,r.id FROM m l NOT INDEXED {join} m r{hint} ON r.a=l.a AND r.b=1'
+            if three_source:
+                base += ' CROSS JOIN m z NOT INDEXED WHERE z.id=1'
             for mode, sql in [('required', base), ('offpath', base+' LIMIT 0'), ('scan', base.replace('m r'+hint+' ON', 'm r NOT INDEXED ON')), ('capacity', base.replace('r.b=1', 'r.b>=1'))]:
                 assert d.sqlite3_open_v2(str(fixture if mode == 'capacity' else path).encode(), C.byref(db), 1, None) == 0
                 st = C.c_void_p(); assert d.sqlite3_prepare_v2(db, sql.encode(), -1, C.byref(st), None) == 0

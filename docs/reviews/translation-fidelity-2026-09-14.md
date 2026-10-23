@@ -1,11 +1,14 @@
 ## RIGHT/FULL matched persistent access (bounded author repair)
 
-The prior blanket matched-pass planner bypass is replaced for two physical rowid
-tables at one RIGHT/FULL barrier without USING/NATURAL. Source-order prerequisites
+The prior blanket matched-pass planner bypass is replaced for up to three physical
+rowid tables with exactly one RIGHT/FULL barrier without USING/NATURAL. Source-order prerequisites
 and RHS-owned outer ON admission feed the existing index caller; physical selected
 index tail identity enters the match set before WHERE, without forcing deferred
-primary lookup. Shared drain still uses the primary reader. Wider/WR/module
-matched planning remains bypassed, not credited by scan/drain tests. Native and
+primary lookup. Shared drain still uses the primary reader. Repeated barriers,
+wider/WR/module matched planning remains bypassed, not credited by scan/drain tests.
+Qualified expression-index leaves now retain resolved source ownership while nested
+COLLATE remains structural. [Three-source source/caller argument and controls](../research/three-source-matched-evidence.md)
+extend current implementation, not prior independent acceptance. Native and
 public three-encoding typed/metadata/error/reset/access evidence and remaining
 limits: [repair evidence](../research/right-matched-evidence.md). G73-1 now has
 representative native-first selected RHS corrupt required/off-path controls and

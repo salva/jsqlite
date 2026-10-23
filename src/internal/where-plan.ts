@@ -38,7 +38,7 @@ export interface SelectInLoopRhs {
  readonly unique:true;
  readonly skipNull:true;
 }
-export interface WhereTerm {readonly variableSelect?:boolean;readonly inField?:number|undefined;readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
+export interface WhereTerm {readonly variableSelect?:boolean;readonly inField?:number|undefined;readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly indexedIdentity?:string|undefined;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
 export type WhereTermInfo={readonly kind:"or";readonly parentTerm:WhereTerm;readonly clause:WhereClause;readonly indexable:SourceMask}|{readonly kind:"and";readonly clause:WhereClause};
 export interface WhereClause {readonly split:"and"|"or";readonly terms:readonly WhereTerm[];readonly outer:WhereClause|null}
 export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:ColumnNode["affinity"];readonly collation:BuiltinCollation}|{readonly kind:"is-null"};
@@ -67,7 +67,7 @@ function comparisonAffinity(column:ColumnNode,rhs:ColumnNode["affinity"]|null):C
  * otherwise the index must belong to the same TEXT or numeric class. */
 function affinityOk(field:ColumnNode,affinity:ColumnNode["affinity"]):boolean {return affinity==="blob"||(affinity==="text"?field.affinity==="text":numericAffinity(field.affinity))}
 function bound(operator:WhereOperator):IndexConstraintAdmission["bound"] {return operator==="eq"||operator==="is"||operator==="is-null"||operator==="in"?"equality":operator==="gt"?"lower-exclusive":operator==="ge"?"lower-inclusive":operator==="lt"?"upper-exclusive":"upper-inclusive"}
-function indexedOperandIdentity(term:WhereTerm):string|null {const reduction=term.expression.reduction;if(!reduction||reduction.kind!=="reduction")return null;const children=exprChildren(reduction);const operand=term.originalIndexedOperand==="left"?children[0]:children[1];return operand?expressionStructuralIdentity(asExpr(operand),true):null;}
+function indexedOperandIdentity(term:WhereTerm):string|null {if(term.indexedIdentity!==undefined)return term.indexedIdentity;const reduction=term.expression.reduction;if(!reduction||reduction.kind!=="reduction")return null;const children=exprChildren(reduction);const operand=term.originalIndexedOperand==="left"?children[0]:children[1];return operand?expressionStructuralIdentity(asExpr(operand),true):null;}
 const admissionCache=new WeakMap<WhereTerm,WeakMap<PhysicalIndex,Map<number,IndexConstraintAdmission|null>>>();
 /** whereScanNext's compatibility gate. Original operand orientation and the
  * already-resolved original-order collation are retained rather than rebuilt. */
@@ -231,10 +231,11 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
 /** expr.c:sqlite3ExprCompare identity for the represented expression-index
  * grammar. Compare the generated parse structure, not reconstructed SQL text.
  * Parentheses are transparent; source/join provenance remains on WhereTerm. */
-export function expressionStructuralIdentity(expression:ExprNode,skipTopCollate=false):string {
+export function expressionStructuralIdentity(expression:ExprNode,skipTopCollate=false,columnIdentity?:(node:ExprReduction)=>string|null):string {
  const root=expression.reduction;if(!root||root.kind!=="reduction")return "";
  const identity=(value:LemonValue<SqlToken>):string=>{
   if(value.kind==="terminal"){const token=value.value;if(!token||token.kind==="space"||token.kind==="comment")return "";if(token.kind==="integer"){const raw=token.text.replaceAll("_","");try{let n:bigint;if(/^0x/i.test(raw)){n=BigInt(raw);if(n>0x7fffffffffffffffn&&n<=0xffffffffffffffffn)n-=0x10000000000000000n;}else n=BigInt(raw);if(n>=-0x8000000000000000n&&n<=0x7fffffffffffffffn)return `integer(${n})`;}catch{/* retain token identity */}}const text=token.kind==="id"||token.kind==="keyword"?sqliteAsciiFold(token.text):token.text;return `t(${token.kind}:${JSON.stringify(text)})`;}
+  const column=columnIdentity?.(value);if(column!==null&&column!==undefined)return column;
   if(value.signature==="expr ::= LP expr RP")return identity(exprChildren(value)[0]!);
   // expr.c TK_IS/TK_ISNOT with literal NULL become TK_ISNULL/TK_NOTNULL.
   // Schema predicates and analyzed WHERE nodes must compare the same opcode.
@@ -873,12 +874,18 @@ function binding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null 
 /** whereexpr.c:exprMightBeIndexed: recursive uses are dependencies, not
  * ordinary bindings. A non-column operand may bind only an actual expression
  * field on the exact source whose uses it contains. -2 is XN_EXPR, not rowid. */
+// expr.c sqlite3ExprCompare substitutes the query cursor for schema cursor -1.
+// Resolve each leaf before discarding qualification; another alias of the same
+// table must not become the indexed source merely because names match.
+function indexedExpressionIdentity(resolved:ResolvedSelect,node:ExprReduction,source:ResolvedSource):string {
+ return expressionStructuralIdentity(asExpr(node),true,part=>{if(!['expr ::= ID|INDEXED|JOIN_KW','expr ::= nm DOT nm','expr ::= nm DOT nm DOT nm'].includes(part.signature))return null;const use=binding(resolved,part);if(!use)return null;if(use.source!==source)return `other-source(${use.sourceOrdinal},${use.columnIndex})`;return `r(expr ::= ID|INDEXED|JOIN_KW:t(id:${JSON.stringify(sqliteAsciiFold(use.column?.name??'rowid'))}))`;});
+}
 function indexedBinding(resolved:ResolvedSelect,node:ExprReduction):ColumnBinding|null {
  const direct=binding(resolved,node);if(direct)return direct;
  const mask=prereq(resolved,node);if(mask===0n)return null;
- const identity=expressionStructuralIdentity(asExpr(unwrap(node)),true);
  for(const [sourceOrdinal,source] of resolved.sources.entries()){
   if(mask!==sourceBit(sourceOrdinal))continue;
+  const identity=indexedExpressionIdentity(resolved,unwrap(node),source);
   if(source.table.kind==='table'&&source.table.indexes.some(index=>index.physical?.fields.some(field=>field.expression!==null&&expressionStructuralIdentity(field.expression,true)===identity)))return freeze({source,sourceOrdinal,column:null,columnIndex:-2,rowid:false});
  }
  return null;
@@ -1296,7 +1303,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
  const outerOn=(draft:Draft):boolean=>draft.parentId!==null?outerOn(drafts[draft.parentId]!):draft.origin.kind==="join-on"&&draft.origin.join==="left";
  const joinOwner=(draft:Draft):number|null=>draft.parentId!==null?joinOwner(drafts[draft.parentId]!):draft.origin.kind==="join-on"?draft.origin.rightSource:null;
- const terms:WhereTerm[]=ordered.map((draft,id)=>({variableSelect:termHasCorrelatedSelect(resolved,draft.node),id,inField:draft.inField,inSelectRhs:draft.inRhs??(draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined),expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,draft.inRhs?.resolved??resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
+ const terms:WhereTerm[]=ordered.map((draft,id)=>({variableSelect:termHasCorrelatedSelect(resolved,draft.node),id,inField:draft.inField,inSelectRhs:draft.inRhs??(draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined),expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,draft.inRhs?.resolved??resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,indexedIdentity:draft.left?.columnIndex===-2?indexedExpressionIdentity(resolved,exprChildren(draft.node)[draft.orientation==='left'?0:1]!,draft.left.source):undefined,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  const clause:WhereClause={split,terms,outer};
  const combined:WhereTerm[]=[];
  let orIndexable=(1n<<BigInt(resolved.sources.length))-1n;
@@ -1652,19 +1659,27 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
  const planBudget:WherePlanBudget=request.planBudget??{remaining:20000n};
  const initialLimit=planBudget.constructionLimit??20000n;planBudget.remaining=initialLimit;planBudget.truth={high:new Set(),heuristic:new Set(),secondPass:false};
  // whereLoopAddAll's LTORJ/RIGHT prerequisites retain the physical order
- // across this single two-source barrier. Wider layouts keep fallback.
+ // across one barrier with up to three physical rowid sources. Wider
+ // layouts keep fallback; repeated RIGHT barriers are not admitted here.
  const hasRightFull=resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin);
- const rowidRight=hasRightFull&&resolved.sources.length===2&&resolved.sources[1]!.joinFromLeft.right&&resolved.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid)&&!resolved.sources.some(source=>source.using);
+ const rowidRight=hasRightFull&&resolved.sources.length<=3&&resolved.sources.filter(source=>source.joinFromLeft.right).length===1&&resolved.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid)&&!resolved.sources.some(source=>source.using);
  if(hasRightFull&&!rowidRight){const analysis=analyzeWhere(resolved);return freeze({analysis,truth:publishTruth(planBudget.truth),path:null,plannerCandidates:0,plannerPaths:0});}
  // Represented WITHOUT ROWID layouts participate through their synthetic
  // primary-index owner and physical secondary descriptors.
  const rawAnalysis=analyzeWhere(resolved,rowidRight);
  // whereScanNext/termCanDriveIndex: outer ON drives only its RHS. The
  // bounded path keeps WHERE post-extension (no non-null WHERE proofs).
- const analysis=rowidRight?freeze({...rawAnalysis,clause:whereClause(rawAnalysis.clause.terms.map(term=>freeze({...term,outerJoinSafe:freeze({mayDrive:term.outerJoinSafe.mayDrive&&term.joinOwner===1&&term.left?.sourceOrdinal===1,mayOmitResidual:false})})))}):rawAnalysis;
+ const analysis=rowidRight?freeze({...rawAnalysis,clause:whereClause(rawAnalysis.clause.terms.map(term=>freeze({...term,outerJoinSafe:freeze({mayDrive:term.outerJoinSafe.mayDrive&&term.joinOwner!==null&&term.joinOwner!==undefined&&term.left?.sourceOrdinal===term.joinOwner,mayOmitResidual:false})})))}):rawAnalysis;
 
  const buildAll=()=>{const ordinaryLoops:WhereLoop[]=[];
- let joinBarrier=0n;return resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000n;const prefix=(1n<<BigInt(ordinal))-1n;if(rowidRight)joinBarrier|=prefix;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);if(source.table.kind==='metadata-module'){const added=whereLoopInsertCandidates(metadataWhereLoops(resolved,source,request.externalAvailable??new Set(),sourcePrereq),planBudget);ordinaryLoops.push(...added);return added;}if(source.table.kind==='json-module'){
+ let joinBarrier=0n,firstPastRight=false,hasRightCross=false;return resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000n;const prefix=(1n<<BigInt(ordinal))-1n;if(rowidRight){
+ // whereLoopAddAll: mPrereq/mPrior and bFirstPastRJ retain the
+ // semantic RIGHT operand and LTORJ/CROSS ordering restrictions.
+ if(firstPastRight||source.joinFromLeft.left||source.joinFromLeft.right||source.joinFromLeft.cross||source.leftOfRightJoin){
+  if(source.leftOfRightJoin||source.joinFromLeft.cross)hasRightCross=true;
+  joinBarrier|=prefix;firstPastRight=source.joinFromLeft.right;
+ }else if(!hasRightCross)joinBarrier=0n;
+ }else{if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;}const sourcePrereq=joinBarrier&~sourceBit(ordinal);if(source.table.kind==='metadata-module'){const added=whereLoopInsertCandidates(metadataWhereLoops(resolved,source,request.externalAvailable??new Set(),sourcePrereq),planBudget);ordinaryLoops.push(...added);return added;}if(source.table.kind==='json-module'){
  if(source.indexedBy!==null)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);
  // whereLoopAddVirtualOne inserts every successful BestIndex template via
  // whereLoopInsert, just like AddBtree. Share dominance and builder budget;

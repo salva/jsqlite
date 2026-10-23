@@ -554,9 +554,10 @@ separates SQL semantics from selected work with concrete witness predicates on7d
 W174/S16/V19 applicability and a substantive finite MOST recommendation. It retains
 scalar/vector/correlated IN owners. The former main RIGHT/FULL bypass is now bounded:
 `where.c:constraintCompatibleWithOuterJoin/whereUsablePartialIndex/whereLoopAddAll`
-→ `where-plan.ts:analyzeWhere/usablePartialIndex/planWhere`: one two-rowid-source
-RIGHT/FULL barrier, source-order prerequisite, RHS-owned outer ON admission,
-WHERE retained post-extension. Wider layouts retain the old bypass.
+→ `where-plan.ts:analyzeWhere/usablePartialIndex/planWhere`: up to three physical
+rowid sources with exactly one RIGHT/FULL barrier, source-order prerequisite,
+RHS-owned outer ON admission, WHERE retained post-extension. Repeated barriers,
+wider/WR/module matched layouts retain the bypass.
 `where.c:7394ff` / `wherecode.c:2740ff` pRJ →
 `vdbe.ts:compileInnerTableSelect`: selected physical index rowid tail feeds the
 exact match set before WHERE, independent of deferred primary lookup; unmatched
@@ -568,6 +569,18 @@ pRJ selected RHS identity and vdbe.c interrupt/error/cleanup path to representat
 corrupt required/off-path reads, post-selected execution controls, match-set capacity
 and saved-first-error/refund/reuse assertions across encodings.
 [Evidence and bounded tradeoffs](research/right-matched-evidence.md).
+Three-physical-source implementation (independent entire-delta review open) →
+`three-source-red-capture.py` / `three-source-native.json` /
+`three-source-right.test.mjs`; representative selected cleanup/corruption →
+`right-matched-safety-capture.py --three-source` /
+`three-source-safety-native.json` / `right-matched-safety.test.mjs`.
+[Source/caller ordering argument and open gates](research/three-source-matched-evidence.md);
+not an extension of prior independent two-source acceptance.
+`expr.c:sqlite3ExprCompare` → `where-plan.ts:indexedExpressionIdentity/indexedBinding`
+and immutable `WhereTerm.indexedIdentity` → `admitIndexConstraint`: resolve query
+column leaves against the indexed source, preserving nested COLLATE/structure.
+Qualified expression and wrong-alias controls map to `three-source-right.test.mjs`;
+nested-COLLATE negative coverage remains in `run-advanced-index-ts.test.mjs`.
 No mechanical family-count credit,
 whole-query guarantee or final ROOT acceptance is implied.
 

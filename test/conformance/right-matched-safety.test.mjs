@@ -11,15 +11,15 @@ import {expandAndResolveSelect} from '../../src/internal/resolve.ts';
 import {parseSql} from '../../src/internal/parse.ts';
 import {planWhere} from '../../src/internal/where-plan.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
-const native=JSON.parse(fs.readFileSync(new URL('../../docs/research/right-matched-safety-native.json',import.meta.url)));
+const corpora=[['two-source','right-matched-safety-native.json'],['three-source','three-source-safety-native.json']].map(([layout,file])=>({layout,native:JSON.parse(fs.readFileSync(new URL('../../docs/research/'+file,import.meta.url)))}));
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 async function rows(s){const result=[];while(await s.step()==='row')result.push(Array.from({length:s.columnCount},(_,i)=>s.columnType(i)==='null'?{type:'null'}:{type:s.columnType(i),value:String(s.column(i))}));return result;}
 async function saved(s,error,finish){await assert.rejects(s.step(),e=>e===error);assert.throws(()=>s[finish](),e=>e===error);}
-for(const variant of native.variants)test(`selected RIGHT/FULL safety ${variant.encoding}`,async()=>{
+for(const {layout,native} of corpora)for(const variant of native.variants)test(`selected RIGHT/FULL safety ${layout} ${variant.encoding}`,async()=>{
  const bytes=fs.readFileSync(new URL('./fixtures/'+variant.fixture,import.meta.url));assert.equal(sha(bytes),variant.sha256);
  assert.equal(bytes[variant.offset],variant.original);const corrupt=Buffer.from(bytes);corrupt[variant.offset]=0;assert.equal(sha(corrupt),variant.corruptSha256);
  const storage=ImmutableStorage.open(bytes);
- try{const schema=loadSchemaGraph({[storageOwner]:storage});for(const c of variant.cases.filter(c=>c.mode!=='capacity').filter(c=>c.mode!=='scan')){const resolved=expandAndResolveSelect(parseSql(c.sql).statement,schema),p=planWhere(resolved,{neededColumns:resolved.sources.map(s=>new Set(s.table.columns)),orderBy:[]});assert.ok(p.path);assert.deepEqual(p.path.loops.map(l=>l.sourceOrdinal),[0,1]);assert.equal(p.path.loops[1].capability.index?.name,'m_abc',c.sql);}}finally{storage.close();}
+ try{const schema=loadSchemaGraph({[storageOwner]:storage});for(const c of variant.cases.filter(c=>c.mode!=='capacity').filter(c=>c.mode!=='scan')){const resolved=expandAndResolveSelect(parseSql(c.sql).statement,schema),p=planWhere(resolved,{neededColumns:resolved.sources.map(s=>new Set(s.table.columns)),orderBy:[]});assert.ok(p.path);assert.deepEqual(p.path.loops.map(l=>l.sourceOrdinal),layout==='three-source'?[0,1,2]:[0,1]);assert.equal(p.path.loops[1].capability.index?.name,'m_abc',c.sql);}}finally{storage.close();}
  const server=http.createServer((q,r)=>{const data=q.url==='/bad'?corrupt:bytes;r.writeHead(200,{'Content-Length':data.length});r.end(data);});await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const request=path=>new Request(`http://127.0.0.1:${server.address().port}/${path}`);
  const connections=[];const open=async(path,options)=>{const db=await openFixture(request(path),options);connections.push(db);return db;};
@@ -38,7 +38,7 @@ for(const variant of native.variants)test(`selected RIGHT/FULL safety ${variant.
   // Native successful scan control also proves the separate unmatched drain.
   const db=await open('good');
   for(const join of ['RIGHT JOIN','FULL JOIN'])for(const hint of ['', ' INDEXED BY m_abc']){
-   const sql=`SELECT l.id,r.id FROM m l NOT INDEXED ${join} m r${hint} ON r.a=l.a AND r.b=1`;
+   const sql=`SELECT l.id,r.id FROM m l NOT INDEXED ${join} m r${hint} ON r.a=l.a AND r.b=1`+(layout==='three-source'?' CROSS JOIN m z NOT INDEXED WHERE z.id=1':'');
    const control=db.prepare(sql).statement,expected=await rows(control);assert.ok(privateAccounting(control).indexSeeks>0);assert.ok(privateAccounting(control).tableNext>=5,JSON.stringify(privateAccounting(control)));assert.ok(expected.some(row=>row[0].type==='null'),'unmatched RHS drain emits preserved rows');control.finalize();refunded();
    for(const mode of ['cancel','deadline','work'])for(const finish of ['reset','finalize']){
     const s=db.prepare(sql).statement;assert.equal(await s.step(),'row');assert.ok(privateAccounting(s).indexSeeks>0);assert.ok([...budgets].some(b=>b.usedBytes>0),'matched identity owns bytes before interruption');

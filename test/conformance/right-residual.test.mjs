@@ -31,19 +31,26 @@ for(const c of residual.cases)test(`R4 residual ${c.encoding}/${c.id}`,()=>withD
 // ON is always false, so downstream c may start only for ready RHS rowid=2.
 for(const enc of Object.keys(corpus.fixtures))test(`R4 early drain positioning ${enc}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id==='early-control');
- const original=BtreeDatabase.prototype.tableScanCursor;let downstream=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4){const first=cursor.first;cursor.first=function(){downstream++;return first.call(this)}}return cursor};
+ const original=BtreeDatabase.prototype.tableScanCursor,indexOriginal=BtreeDatabase.prototype.indexCursor;let downstream=0;
+ const observe=cursor=>{const first=cursor.first;cursor.first=function(){downstream++;return first.call(this)};return cursor};
+ BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);return root===4?observe(cursor):cursor};
+ // The selected matched pass scans c's covering index (root7), whereas
+ // fallback/drain may use its table (root4). Count the actual positioning
+ // owner on either route; neither may begin before the ready RHS test.
+ BtreeDatabase.prototype.indexCursor=function(root){const cursor=indexOriginal.call(this,root);return root===7?observe(cursor):cursor};
  const s=db.prepare(c.sql).statement;
  try{assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,1,'ready rejection precedes downstream positioning');s.reset();downstream=0;assert.deepEqual(await rows(s),c.native.first.rows);assert.equal(downstream,1)}
- finally{s.finalize();BtreeDatabase.prototype.tableScanCursor=original}
+ finally{s.finalize();BtreeDatabase.prototype.tableScanCursor=original;BtreeDatabase.prototype.indexCursor=indexOriginal}
  const reuse=db.prepare('SELECT 1').statement;try{assert.equal(await reuse.step(),'row');assert.equal(reuse.column(0),1n)}finally{reuse.finalize()}
 }));
 for(const enc of Object.keys(corpus.fixtures))test(`R4 selected drain first error cleanup ${enc}`,()=>withDb(enc,async db=>{
  const c=residual.cases.find(c=>c.encoding===enc&&c.id==='early-control');
- const original=BtreeDatabase.prototype.tableScanCursor;let entered=0;
- BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);if(root===4)cursor.first=function(){entered++;throw new Error('R4 injected downstream positioning failure')};return cursor};
+ const original=BtreeDatabase.prototype.tableScanCursor,indexOriginal=BtreeDatabase.prototype.indexCursor;let entered=0;
+ const inject=cursor=>{cursor.first=function(){entered++;throw new Error('R4 injected downstream positioning failure')};return cursor};
+ BtreeDatabase.prototype.tableScanCursor=function(root){const cursor=original.call(this,root);return root===4?inject(cursor):cursor};
+ BtreeDatabase.prototype.indexCursor=function(root){const cursor=indexOriginal.call(this,root);return root===7?inject(cursor):cursor};
  const s=db.prepare(c.sql).statement;let first;
  try{await assert.rejects(s.step(),error=>{first=error;return true});assert.equal(entered,1);await assert.rejects(s.step(),error=>error===first);assert.equal(entered,1);assert.throws(()=>s.reset(),error=>error===first)}
- finally{BtreeDatabase.prototype.tableScanCursor=original;s.finalize()}
+ finally{BtreeDatabase.prototype.tableScanCursor=original;BtreeDatabase.prototype.indexCursor=indexOriginal;s.finalize()}
  const retry=db.prepare(c.sql).statement;try{assert.deepEqual(await rows(retry),c.native.first.rows)}finally{retry.finalize()}
 }));

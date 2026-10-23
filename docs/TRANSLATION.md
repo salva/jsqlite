@@ -562,8 +562,8 @@ WHERE. RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
 or the complete typed WITHOUT ROWID primary key (KeyInfo order/collation/encoding).
 The RHS interior reads the primary reader, positioned by deferred selected access
 or the active drain key; covering-only RHS binding stays disabled as in pinned
-`where.c`. Two physical rowid tables separated by one RIGHT/FULL barrier (without
-USING/NATURAL) participate in matched persistent-index planning: LTORJ/RIGHT
+`where.c`. Up to three physical rowid tables with exactly one RIGHT/FULL barrier
+(without USING/NATURAL) participate in matched persistent-index planning: LTORJ/RIGHT
 prerequisites retain source order, outer ON admits only its RHS, and WHERE stays
 post-match/null-extension. The match set takes physical rowid from the selected
 index tail before WHERE, independently of deferred primary fetch. Wider barriers,
@@ -572,6 +572,12 @@ not selected-access credit. No algorithm substitution or platform necessity is
 claimed. Representative selected-RHS corrupt required/off-path and post-selected
 execution/match-capacity cleanup controls are retained, not exhaustive composition
 coverage. [Source comparison and bounded controls](research/right-matched-evidence.md).
+The current three-source implementation extends the prior independently accepted
+two-source boundary, but its entire-delta acceptance remains open.
+[Source/caller ordering argument, expression identity and native controls](research/three-source-matched-evidence.md).
+Expression-index query leaves resolve against the designated source before schema
+identity comparison; another alias cannot become that source. Nested COLLATE and
+operator/function structure remain part of identity (no algebraic equivalence).
 See
 [WR source and finite evidence](research/recursive-join/wr-right-full-evidence.md).
 Arbitrary
