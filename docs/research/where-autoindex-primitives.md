@@ -539,6 +539,15 @@ old failure proc-5cec6c01ce2c. Fresh SourceID-checked native EXPLAIN4 aliases
 confirms OpenAutoindex/MakeRecord2: proc-a989c1cf9993. No populated execution
 or SQL enrollment claimed; ordinary non-IPK fields and WR ownership unchanged.
 
+IPK/generated interaction:24 encoding/storage/width/reference controls confirm
+ALLBITS still emits physical IPK payload plus the separate identity tail.
+Caller-needed IPK normalization must not remove generated ALLBITS payload.
+Fresh8-case pinned SourceID-checked DDL/EXPLAIN agrees: records2 without target
+generated reference versus5/67 for4/66-column tables with it, stored and virtual.
+Focused test and witness: `work:///cards/card-s-j-a/processes/proc-6d50258132d1/stdout.log`.
+No production divergence found; no patch justified. These are exact descriptor
+layout/EXPLAIN controls, not populated packed-record or public runtime proof.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

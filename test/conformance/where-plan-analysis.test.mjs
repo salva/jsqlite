@@ -173,6 +173,21 @@ test('automatic rowid aliases use one identity tail not a duplicate IPK payload'
  }
 });
 
+test('automatic generated ALLBITS retains IPK payload independently of rowid tail',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const storage of ['stored','virtual'])for(const width of [4,66])for(const generated of [false,true]){
+  const s=schema(encoding),expression=resolve('SELECT 1',s).result[0].expression;
+  const columns=Object.freeze(Array.from({length:width},(_,i)=>Object.freeze({...col(`c${i}`,'INTEGER'),...(i===2?{generatedExpr:expression,generatedStorage:storage}:{}),...(i===0?{primaryKeyPosition:1}:{})})));
+  s.t.columns=columns;s.t.primaryKey=Object.freeze([columns[0]]);s.t.integerPrimaryKey=columns[0];s.t.indexes=[];
+  const plan=resolve(`SELECT u.c0 FROM t o CROSS JOIN t u ON u.c1=o.c1${generated?' WHERE abs(u.c2)>0':''}`,s);
+  const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(source,1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([columns[0]]),encoding,plan);
+  assert.deepEqual(d.fields,generated?[columns[1],...columns.filter((_,i)=>i!==1),null]:[columns[1],null]);
+  assert.equal(d.keyInfo.totalFieldCount,generated?width+1:2);
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);
