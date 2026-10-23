@@ -437,6 +437,14 @@ prerequisite union. Focused1/1 (12 orientation/encoding/frontier combinations):
 `work:///cards/card-s-j-a/processes/proc-ef5269a60ea4/stdout.log`.
 No exercised admission divergence or production repair; these do not establish
 all multi-column/collation combinations or SQL enrollment.
+Conflicting-collation follow-up uses explicit RTRIM on the initially unready
+v equality, NOCASE on the ready o equality, both operand orientations and
+three encodings. Expansion chooses NOCASE with v unready and RTRIM with all
+sources ready, in both descriptor key and KeyInfo. Native
+sqlite3ExprCompareCollSeq/BinaryCompareCollSeq and TS original-expression
+collation retention across virtual commutation were compared. Focused1/1
+(12 combinations): process proc-a80a8eb02a8e, exit0. No exercised divergence;
+this is admission-only evidence, not residual omission or runtime enrollment.
 
 ## Remaining acceptance work
 

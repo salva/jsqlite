@@ -63,6 +63,23 @@ test('automatic ready commuted duplicates retain first eligible key provenance',
  }
 });
 
+test('automatic conflicting collations follow first ready term through commutation',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const reversed of [false,true]){
+  const s=schema(encoding);
+  const predicate=reversed?'v.b COLLATE RTRIM=u.b AND o.b COLLATE NOCASE=u.b':'u.b=v.b COLLATE RTRIM AND u.b=o.b COLLATE NOCASE';
+  const plan=resolve(`SELECT u.id FROM t o CROSS JOIN t u CROSS JOIN t v WHERE ${predicate}`,s);
+  const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidates=wherePlanning.automaticIndexCandidates(source,1,clause,context);
+  const ready=candidates.find(c=>(c.prereq&sourceBit(2))===0n);assert.ok(ready);
+  for(const [notReady,expected] of [[sourceBit(2),'nocase'],[0n,'rtrim']]){
+   const d=wherePlanning.automaticIndexDescriptor(ready,clause,notReady,new Set(),encoding,plan);
+   assert.equal(d.keys.length,1);assert.equal(d.keys[0].collation,expected);
+   assert.equal(d.keyInfo.terms[0].collation,expected);
+  }
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);
