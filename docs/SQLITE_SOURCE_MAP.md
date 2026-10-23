@@ -1,5 +1,15 @@
 # SQLite source map
 
+### Scalar comparison affinity
+
+`expr.c:codeCompare/binaryCompareP5/sqlite3CompareAffinity` →
+`vdbe.ts:compileExpressionTree` scalar Binary emission uses the shared two-operand
+`comparisonAffinity` owner, as vector fields already do. Joined resolved column
+metadata survives to this consumer; comparison temporaries, not stored/projected
+cells, receive affinity. Controls: `scalar-comparison-affinity.test.mjs` and
+native-FIRST forward/reverse multikey LEFT joins with NOCASE/NULL/duplicates,
+all encodings/reset. [Finite repair evidence](research/scalar-comparison-affinity.md).
+
 ### Persistent cursor demand and comparison primitives
 
 `btree.c:sqlite3BtreeIndexMoveto`, `cursorOnLastPage`, movement parent pages →

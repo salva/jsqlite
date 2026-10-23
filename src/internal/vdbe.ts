@@ -2491,7 +2491,9 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
     // comparisons are otherwise evaluated eagerly (unlike predicate context).
     const literalDecides=expression.left.kind==="literal"&&typeof expression.left.value==="bigint"&&((expression.op==="AND"&&expression.left.value===0n)||(expression.op==="OR"&&expression.left.value!==0n));
     if((expression.op==="AND"||expression.op==="OR")&&(predicateContext||literalDecides)) { const r=allocate(),guard=ops.length;ops.push({code:"ShortCircuit",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:r,jump:0});const right=emit(expression.right);ops.push({code:"Boolean",kind:expression.op.toLowerCase() as "and"|"or",p1:left,p2:right,p3:r});(ops[guard] as {jump:number}).jump=ops.length;return r; }
-    const right=emit(expression.right),r=allocate(),affinity=expressionAffinity(expression.left)??expressionAffinity(expression.right);ops.push({code:"Binary",op:expression.op,p1:left,p2:right,p3:r,collation:binaryCollation(expression.left,expression.right),...(affinity?{affinity}:{})});return r;
+    // expr.c:codeCompare/binaryCompareP5 combines both operand affinities;
+    // TEXT = INTEGER must compare numerically, not stringify the integer.
+    const right=emit(expression.right),r=allocate(),affinity=comparisonAffinity(expressionAffinity(expression.left),expressionAffinity(expression.right));ops.push({code:"Binary",op:expression.op,p1:left,p2:right,p3:r,collation:binaryCollation(expression.left,expression.right),affinity});return r;
   }
   if(expression.kind==="call") {
     if(expression.name==="coalesce"||expression.name==="ifnull") {

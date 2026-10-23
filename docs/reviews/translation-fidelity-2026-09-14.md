@@ -1,3 +1,13 @@
+## Scalar comparison affinity correction
+
+The scalar Binary emitter now uses both operand affinities from resolved bindings,
+matching `expr.c:codeCompare/binaryCompareP5/sqlite3CompareAffinity`; the former
+left-biased selection incorrectly compared TEXT '01' with INTEGER1 as text.
+The shared helper and joined binding metadata were already correct. Vector
+fields already used this helper. Native-FIRST cross-affinity LEFT join and
+scalar/reset controls are recorded in [finite evidence](../research/scalar-comparison-affinity.md).
+This is author repair evidence, not full expression-lowering or autoindex credit.
+
 ## RIGHT/FULL matched persistent access (bounded independent acceptance)
 
 Outer-ON conjunction lowering now consumes ordered WhereSplit base terms,

@@ -253,9 +253,13 @@ admission: forward native plan indexes both keys and applies NUMERIC Affinity
 before Filter/SeekGE; reverse excludes the incompatible TEXT numeric-comparison
 key, indexes only payload, has no Bloom and retains the numeric equality residual
 after seek. Both alternatives produce2080 typed rows (2048 matches) twice in all
-encodings. The existing public companion is deliberately authoritative: reverse
-currently FAILS (1056 rows in UTF8; '01' matches missing). Do not skip this fixture,
-replace native expectations, or claim cross-affinity/runtime feature acceptance.
+encodings. The existing public companion remains authoritative: the original
+491669df baseline failed reverse (1056 rows in UTF8; '01' matches missing).
+The scalar emitter's left-biased affinity selection is repaired by consuming
+both affiliations through sqlite3CompareAffinity semantics; forward/reverse
+now pass the unchanged native-FIRST expectations. [Repair evidence and limits](scalar-comparison-affinity.md).
+Do not skip this fixture, replace native expectations, or infer runtime
+automatic-index/Bloom feature acceptance.
 See [[card:card-s-a-c]] current status for exact evidence and correction scope.
 
 ## Remaining acceptance obligations

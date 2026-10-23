@@ -587,8 +587,13 @@ AND/OR/NOT rejection follows the mutually recursive
 propagate through nested boolean operands, with `exprEvalRhsFirst` postponing
 the sole subquery-bearing operand. Value-producing booleans retain three-valued
 evaluation; callers retain one patched rejection continuation. Leaf predicates
-still use the existing expression compiler; this is not full specialized
-comparison/TRUTH/BETWEEN branch-lowering credit. Native typed error/reset and
+use the existing expression compiler. Scalar comparisons combine both operand
+affinities via `expr.c:codeCompare/binaryCompareP5/sqlite3CompareAffinity`, just
+as vector fields do: either numeric column affinity selects NUMERIC; two
+nonnumeric affiliated operands select no conversion; a sole affinity wins.
+This preserves original projected storage values and applies conversion only
+to comparison temporaries. [Cross-affinity repair evidence](research/scalar-comparison-affinity.md).
+This is not full specialized comparison/TRUTH/BETWEEN branch-lowering credit. Native typed error/reset and
 unchanged FULL gate receipts are in [[card:card-k-e]] status; bounded independent acceptance is attributed to parent
 [[card:card-s]] status51 (G84/K-f35), not general expression-lowering closure.
 RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
