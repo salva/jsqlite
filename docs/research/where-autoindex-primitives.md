@@ -43,11 +43,30 @@ Reset rebuilds filters. No public API option or SQL producer emits these opcodes
 - `node --experimental-strip-types --test test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck`: 46/46, zero skips, typecheck exit0. Output `work:///cards/card-s-j-a/processes/proc-833cca1c19a3/stdout.log`. Coverage includes existing exact membership/lifecycle tests; new all-encoding empty/before/after and duplicate numeric prefix edges, both VM traversal directions/reset, filter VM absent/collision/reset, allocation H−1/H/H+1 and interrupted allocation with independent surviving filter.
 - Four unchanged native-first red receipts were replayed against current TS using `for case in absent collision empty-inner standalone; do node --experimental-strip-types docs/research/where-autoindex-baseline.mjs "$SAIVAGE_CARD_WORK_ROOT/red-$case/native.json" || exit; done`: exit0, typed row comparisons remain correct, but plan/work gap remains. Output `work:///cards/card-s-j-a/processes/proc-5383472031c0/stdout.log`. Native receipts and identities remain in accepted status v1. This command is not a new capture or runtime feature pass.
 
+## Admission primitive extension
+
+The follow-on change translates actual pinned `where.c:832–924,4060–4120`
+into `where-plan.ts` exports `columnIsGoodAutomaticIndexCandidate`,
+`termCanDriveAutomaticIndex`, and `automaticIndexCosts`. Declared index keys
+own the stat1 >20 rejection; implicit covering/rowid suffixes do not. EQ/IS,
+source identity, real notReady frontier, outer-ON owner/flags and shared
+comparison/index-affinity gate precede column quality. EP_OuterON survives
+commuted provenance; it is not reconstructed from origin alone. Native
+estLog/LogEstAdd and ordinary +28 / ephemeral −25 setup tuning are retained.
+These primitives are not descriptor production, loop insertion or enrollment.
+
+Verification command: `node --experimental-strip-types --test test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check`, followed by unchanged four-receipt baseline replay, all chained on success. **51/51**, no failures/skips, typecheck/diff check and all four replays exit0. Output:
+`work:///cards/card-s-j-a/processes/proc-b0266bba0991/stdout.log`.
+Two intermediate test failures were incorrect expectations: LogEstAdd(0,43)
+is44, not43; retained outerOn=true remains an ON carrier despite an origin
+change. Tests were corrected to the source contracts, not production bypasses.
+Baseline SQL work remains scans; no runtime feature pass is claimed.
+
 ## Remaining acceptance work
 
-No candidate/admission/standalone descriptor was delivered here, and no SQL
-runtime feature credit is claimed. Next concrete work is the native where.c
-termCanDriveIndex/columnIsGoodIndexCandidate producer, costs/insertion/pruning
+No candidate/standalone descriptor was delivered here, and no SQL
+runtime feature credit is claimed. Driving-term/column-quality and cost
+primitives are now available, but the producer, costs/insertion/pruning
 and smallouter gate with immutable ready-term/covering/KeyInfo descriptor and
 explicit disabled-until-lowered consumer seam. Standalone Bloom admission must
 remain independent. Follow with complete source-derived NOT INDEXED/forced,

@@ -66,6 +66,40 @@ function comparisonAffinity(column:ColumnNode,rhs:ColumnNode["affinity"]|null):C
 /** sqlite3IndexAffinityOk. BLOB comparison affinity is index-compatible;
  * otherwise the index must belong to the same TEXT or numeric class. */
 function affinityOk(field:ColumnNode,affinity:ColumnNode["affinity"]):boolean {return affinity==="blob"||(affinity==="text"?field.affinity==="text":numericAffinity(field.affinity))}
+/** where.c:columnIsGoodIndexCandidate: inspect declared keys, not payload
+ * or implicit rowid/PK suffixes. This primitive does not enroll SQL loops. */
+export function columnIsGoodAutomaticIndexCandidate(table:IndexNode["table"],column:ColumnNode):boolean {
+ for(const index of table.indexes){
+  const position=index.terms.findIndex(term=>term.column===column);
+  if(position===0)return false;
+  if(position>0&&index.hasStat1&&(index.rowLogEst[position+1]??0)>20)return false;
+ }
+ return true;
+}
+/** where.c:termCanDriveIndex. Candidate enumeration uses notReady=0 and
+ * separately excludes self-dependent RHS; construction uses its real frontier. */
+export function termCanDriveAutomaticIndex(term:WhereTerm,source:ResolvedSource,ordinal:number,notReady:SourceMask):boolean {
+ const left=term.left;
+ if(source.table.kind!=="table"||left?.source!==source||left.sourceOrdinal!==ordinal)return false;
+ if(term.operator!=="eq"&&term.operator!=="is")return false;
+ if(source.joinFromLeft.right)return false;
+ if(source.joinFromLeft.left||source.leftOfRightJoin){
+  const on=term.outerOn===true||term.origin.kind==="join-on"||term.origin.kind==="using";
+  if(!on||term.joinOwner!==ordinal)return false;
+  if(source.joinFromLeft.left&&!term.outerOn)return false;
+ }
+ if(!term.outerJoinSafe.mayDrive||(term.prereqRight&notReady)!==0n)return false;
+ if(left.columnIndex<0||left.rowid||left.column===null||source.table.columns[left.columnIndex]!==left.column)return false;
+ if(!affinityOk(left.column,comparisonAffinity(left.column,term.rightAffinity)))return false;
+ return columnIsGoodAutomaticIndexCandidate(source.table,left.column);
+}
+/** whereLoopAddBtree estimates. estLog takes a LogEst population. Multiplier
+ * is in LogEst units as in ApplyCostMultiplier. No planner enrollment occurs. */
+export function automaticIndexCosts(size:LogicalEstimate,ephemeral=false,costMultiplier=0n):Readonly<{setupCost:LogicalEstimate;runCost:LogicalEstimate;outputRows:LogicalEstimate}> {
+ const logSize=size<=10n?0n:BigInt(sqliteLogEst(size)-33);
+ const setup=logSize+size+(ephemeral?-25n:28n)+costMultiplier;
+ return freeze({setupCost:setup<0n?0n:setup,runCost:logEstAdd(logSize,43n),outputRows:43n});
+}
 function bound(operator:WhereOperator):IndexConstraintAdmission["bound"] {return operator==="eq"||operator==="is"||operator==="is-null"||operator==="in"?"equality":operator==="gt"?"lower-exclusive":operator==="ge"?"lower-inclusive":operator==="lt"?"upper-exclusive":"upper-inclusive"}
 function indexedOperandIdentity(term:WhereTerm):string|null {if(term.indexedIdentity!==undefined)return term.indexedIdentity;const reduction=term.expression.reduction;if(!reduction||reduction.kind!=="reduction")return null;const children=exprChildren(reduction);const operand=term.originalIndexedOperand==="left"?children[0]:children[1];return operand?expressionStructuralIdentity(asExpr(operand),true):null;}
 const admissionCache=new WeakMap<WhereTerm,WeakMap<PhysicalIndex,Map<number,IndexConstraintAdmission|null>>>();

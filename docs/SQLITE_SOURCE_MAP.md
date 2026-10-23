@@ -12,6 +12,12 @@ dispatch; zero-filled native Blob allocation → charged internal FilterInit.
 and exact Found/IN ownership. Tests: `private-bloom*.test.mjs`,
 `private-key-vm-bound.test.mjs`, `private-key-vm-prefix-dispatch.test.mjs`.
 [Evidence and pending gates](research/where-autoindex-primitives.md).
+`where.c:columnIsGoodIndexCandidate/termCanDriveIndex` →
+`where-plan.ts:columnIsGoodAutomaticIndexCandidate/termCanDriveAutomaticIndex`;
+`whereLoopAddBtree` cost formula → `automaticIndexCosts`. Tests:
+`where-plan-foundation.test.mjs` (declared-key stat1 threshold, readiness,
+EQ/IS, affinity and outer provenance, ephemeral tuning/clamp). These exports
+are not yet candidate production or selection.
 Automatic/standalone descriptors and runtime enrollment remain absent.
 
 ### Scalar comparison affinity

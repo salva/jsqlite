@@ -476,8 +476,10 @@ existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/I
 Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter
-state. No SQL producer currently emits them. Candidate/admission descriptors,
-collation/multipage boundary coverage and full consumer/resource acceptance remain
+state. No SQL producer currently emits them. Source-owned automatic driving-term
+and declared-index quality admission plus native setup/run/output cost primitives
+are available but not enrolled. Candidate/standalone descriptors, insertion/smallouter
+integration, collation/multipage boundary coverage and full consumer/resource acceptance remain
 pending; [primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.
 [Executable boundary and pending private work contract](research/where-autoindex-boundary.md)
 provide native negative-bit/collision and semantic controls, not runtime acceptance.

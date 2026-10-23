@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {physicalRowidIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
-import {admitIndexConstraint,btreeLoops,sourceBit,whereClause,wherePathSolver,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
+import {columnIsGoodAutomaticIndexCandidate,termCanDriveAutomaticIndex,automaticIndexCosts,admitIndexConstraint,btreeLoops,sourceBit,whereClause,wherePathSolver,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
 
 const expression={tokens:[],reduction:null};
 function fixture(){
@@ -16,6 +16,41 @@ function fixture(){
  return {a,b,table,index,source};
 }
 function term(id,source,column,columnIndex,operator,extra={}){return Object.freeze({id,expression,origin:{kind:'where'},operator,left:{source,sourceOrdinal:0,column,columnIndex,rowid:false},rightAffinity:column.affinity,effectiveCollation:column.collation?.toLowerCase()??'binary',originalIndexedOperand:'left',prereqRight:0n,prereqAll:sourceBit(0),parentId:null,childIds:Object.freeze([]),virtual:false,outerJoinSafe:Object.freeze({mayDrive:true,mayOmitResidual:true}),...extra});}
+
+test('automatic driving admission follows declared-key statistics, affinity and readiness',()=>{
+ const {a,b,source,index}=fixture();
+ assert.equal(columnIsGoodAutomaticIndexCandidate(source.table,a),false);
+ assert.equal(columnIsGoodAutomaticIndexCandidate(source.table,b),true);
+ const eq=term(1,source,b,1,'eq',{prereqRight:2n});
+ assert.equal(termCanDriveAutomaticIndex(eq,source,0,0n),true);
+ assert.equal(termCanDriveAutomaticIndex(eq,source,0,2n),false);
+ assert.equal(termCanDriveAutomaticIndex({...eq,operator:'is'},source,0,0n),true);
+ for(const operator of ['in','is-null','gt'])assert.equal(termCanDriveAutomaticIndex({...eq,operator},source,0,0n),false);
+ assert.equal(termCanDriveAutomaticIndex({...eq,left:{...eq.left,columnIndex:-1,rowid:true}},source,0,0n),false);
+ assert.equal(termCanDriveAutomaticIndex({...eq,outerJoinSafe:{mayDrive:false}},source,0,0n),false);
+ // Numeric comparison cannot be implemented by a TEXT automatic key.
+ const textTerm=term(2,source,a,0,'eq',{rightAffinity:'integer'});
+ assert.equal(termCanDriveAutomaticIndex(textTerm,source,0,0n),false);
+ index.hasStat1=true;index.rowLogEst=[200,33,21];
+ assert.equal(columnIsGoodAutomaticIndexCandidate(source.table,b),false);
+ index.rowLogEst=[200,33,20];
+ assert.equal(columnIsGoodAutomaticIndexCandidate(source.table,b),true);
+ const left={...source,joinFromLeft:{...source.joinFromLeft,left:true}};
+ const on={...eq,left:{...eq.left,source:left},origin:{kind:'join-on',rightSource:0,join:'left'},joinOwner:0,outerOn:true};
+ assert.equal(termCanDriveAutomaticIndex(on,left,0,0n),true);
+ assert.equal(termCanDriveAutomaticIndex({...on,outerOn:false},left,0,0n),false);
+ assert.equal(termCanDriveAutomaticIndex({...on,joinOwner:1},left,0,0n),false);
+ assert.equal(termCanDriveAutomaticIndex({...on,origin:{kind:'where'}},left,0,0n),true); // commuted terms retain EP_OuterON independently of origin
+ assert.equal(termCanDriveAutomaticIndex({...on,origin:{kind:'where'},outerOn:false},left,0,0n),false);
+});
+
+test('automatic costs retain source setup tuning and saturation without enrollment',()=>{
+ assert.deepEqual(automaticIndexCosts(0n),{setupCost:28n,runCost:44n,outputRows:43n});
+ assert.deepEqual(automaticIndexCosts(0n,true),{setupCost:0n,runCost:44n,outputRows:43n});
+ assert.deepEqual(automaticIndexCosts(200n),{setupCost:271n,runCost:53n,outputRows:43n});
+ assert.equal(automaticIndexCosts(200n,true).setupCost,218n);
+ assert.equal(automaticIndexCosts(200n,false,10n).setupCost,281n);
+});
 
 test('physical descriptor and composite admission preserve exact identities',()=>{
  const {a,b,index,source}=fixture(),physical=index.physical;assert.ok(physical);assert.equal(physical.index,index);assert.equal(physical.fields[0].column,a);assert.equal(physical.fields[2].role,'rowid-tail');assert.equal(physical.keyInfo.totalFieldCount,3);assert.equal(physical.keyInfo.keyFieldCount,3);
