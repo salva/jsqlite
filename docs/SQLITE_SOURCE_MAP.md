@@ -556,8 +556,14 @@ scalar/vector/correlated IN owners. The former main RIGHT/FULL bypass is now bou
 `where.c:constraintCompatibleWithOuterJoin/whereUsablePartialIndex/whereLoopAddAll`
 → `where-plan.ts:analyzeWhere/usablePartialIndex/planWhere`: up to three physical
 rowid sources with exactly one RIGHT/FULL barrier, source-order prerequisite,
-RHS-owned outer ON admission, WHERE retained post-extension. Repeated barriers,
-wider/WR/module matched layouts retain the bypass.
+RHS-owned outer ON admission, WHERE retained post-extension. Two-source physical
+rowid-LHS/WR-RHS pairs also participate: `wherecode.c:2175–2186` →
+`emitWrPrimaryPosition` exact primary NotFound/continue and selected complete PK
+reads → existing typed match set; `wr-matched-capture.py` / `wr-matched-native.json`
+/ `wr-matched-index.test.mjs` map forced/unforced matched and fresh-drain controls,
+three encodings; `wr-matched-controls.test.mjs` maps post-selected lifecycle errors.
+[Decision and finite author evidence](research/wr-matched-evidence.md), independent
+acceptance open. Repeated barriers, wider/WR-LHS/multiple-WR/module matched layouts retain the bypass.
 `where.c:7394ff` / `wherecode.c:2740ff` pRJ →
 `vdbe.ts:compileInnerTableSelect`: selected physical index rowid tail feeds the
 exact match set before WHERE, independent of deferred primary lookup; unmatched

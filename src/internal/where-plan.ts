@@ -1659,10 +1659,12 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
  const planBudget:WherePlanBudget=request.planBudget??{remaining:20000n};
  const initialLimit=planBudget.constructionLimit??20000n;planBudget.remaining=initialLimit;planBudget.truth={high:new Set(),heuristic:new Set(),secondPass:false};
  // whereLoopAddAll's LTORJ/RIGHT prerequisites retain the physical order
- // across one barrier with up to three physical rowid sources. Wider
+ // across one barrier with up to three physical rowid sources, or a
+ // two-source rowid LHS / WITHOUT ROWID RHS pair. Wider
  // layouts keep fallback; repeated RIGHT barriers are not admitted here.
  const hasRightFull=resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin);
- const rowidRight=hasRightFull&&resolved.sources.length<=3&&resolved.sources.filter(source=>source.joinFromLeft.right).length===1&&resolved.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid)&&!resolved.sources.some(source=>source.using);
+ const boundedWrRight=resolved.sources.length===2&&resolved.sources[0]!.table.kind==='table'&&!resolved.sources[0]!.table.withoutRowid&&resolved.sources[1]!.table.kind==='table'&&resolved.sources[1]!.table.withoutRowid&&resolved.sources[1]!.joinFromLeft.right;
+ const rowidRight=hasRightFull&&resolved.sources.length<=3&&resolved.sources.filter(source=>source.joinFromLeft.right).length===1&&(resolved.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid)||boundedWrRight)&&!resolved.sources.some(source=>source.using);
  if(hasRightFull&&!rowidRight){const analysis=analyzeWhere(resolved);return freeze({analysis,truth:publishTruth(planBudget.truth),path:null,plannerCandidates:0,plannerPaths:0});}
  // Represented WITHOUT ROWID layouts participate through their synthetic
  // primary-index owner and physical secondary descriptors.

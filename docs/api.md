@@ -396,7 +396,10 @@ compatibility credit.
   NOT INDEXED guards remain unchanged. This does not expand aggregate admission
   or promise optimizer parity. WITHOUT ROWID RIGHT/FULL uses complete typed primary
   keys for per-barrier match tracking and unmatched output; built-in PK collation,
-  sort order and database encoding are retained. This does not imply arbitrary
+  sort order and database encoding are retained. Two-source rowid-LHS/WR-RHS
+  RIGHT/FULL also supports represented selected matched index access with complete
+  physical PK extraction and a shared primary reader; WR-LHS/multiple-WR selected
+  layouts remain fallback. This does not imply arbitrary
   joined aggregate/window/compound admission.
 - ORDER BY supports multiple terms, alias/ordinal/identical-result/source-expression
   precedence, built-in collation, ASC/DESC and NULLS FIRST/LAST. DISTINCT uses

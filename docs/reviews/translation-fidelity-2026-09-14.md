@@ -5,7 +5,11 @@ rowid tables with exactly one RIGHT/FULL barrier without USING/NATURAL. Source-o
 and RHS-owned outer ON admission feed the existing index caller; physical selected
 index tail identity enters the match set before WHERE, without forcing deferred
 primary lookup. Shared drain still uses the primary reader. Repeated barriers,
-wider/WR/module matched planning remains bypassed, not credited by scan/drain tests.
+wider/WR-LHS/multiple-WR/module matched planning remains bypassed, not credited by scan/drain tests.
+A bounded two-source rowid-LHS/WR-RHS pair now admits selected access (author
+validation, independent acceptance open). Pinned wherecode.c2175 exact primary
+positioning and complete secondary PK extraction feed existing typed Found/IdxInsert;
+[decision and evidence](../research/wr-matched-evidence.md).
 Qualified expression-index leaves now retain resolved source ownership while nested
 COLLATE remains structural. [Three-source source/caller argument and controls](../research/three-source-matched-evidence.md)
 documents the extension independently accepted in [[card:card-s]]

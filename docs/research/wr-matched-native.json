@@ -1,0 +1,3780 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "8c8b2447ac51cc76d370160cf86f17f1f52b207d5c397a12673c74783f9a7ce7",
+  "cases": [
+    {
+      "encoding": "utf8",
+      "name": "right-unforced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "right-forced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r INDEXED BY wr_c ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "right-not-indexed",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r NOT INDEXED ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "right-scan",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON +r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SCAN r USING INDEX wr_c",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "right-no-match",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b AND l.id=-1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "right-where",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b WHERE r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "right-on",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b AND r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-unforced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-forced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r INDEXED BY wr_c ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-not-indexed",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r NOT INDEXED ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-scan",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON +r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SCAN r USING INDEX wr_c LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-no-match",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b AND l.id=-1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-where",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b WHERE r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf8",
+      "name": "full-on",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b AND r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-unforced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-forced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r INDEXED BY wr_c ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-not-indexed",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r NOT INDEXED ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-scan",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON +r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SCAN r USING INDEX wr_c",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-no-match",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b AND l.id=-1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-where",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b WHERE r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "right-on",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b AND r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-unforced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-forced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r INDEXED BY wr_c ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-not-indexed",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r NOT INDEXED ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-scan",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON +r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SCAN r USING INDEX wr_c LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-no-match",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b AND l.id=-1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-where",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b WHERE r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "name": "full-on",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b AND r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-unforced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-forced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r INDEXED BY wr_c ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-not-indexed",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r NOT INDEXED ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-scan",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON +r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SCAN r USING INDEX wr_c",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-no-match",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b AND l.id=-1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-where",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b WHERE r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "right-on",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED RIGHT JOIN wr r ON r.c=l.b AND r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-unforced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-forced",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r INDEXED BY wr_c ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-not-indexed",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r NOT INDEXED ON r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-scan",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON +r.c=l.b ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SCAN r USING INDEX wr_c LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-no-match",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b AND l.id=-1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-where",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b WHERE r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?)",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "name": "full-on",
+      "sql": "SELECT l.id,r.a,r.b FROM m l NOT INDEXED FULL JOIN wr r ON r.c=l.b AND r.b=1 ORDER BY r.a,r.b,l.id",
+      "fixtureSha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "rows": [
+        [
+          {
+            "type": "integer",
+            "value": "2"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "4"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "1"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "416c706861"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "616c706861"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "3"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "integer",
+            "value": "5"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "62657461"
+          },
+          {
+            "type": "integer",
+            "value": "1"
+          }
+        ],
+        [
+          {
+            "type": "null"
+          },
+          {
+            "type": "text",
+            "utf8Hex": "67616d6d61"
+          },
+          {
+            "type": "integer",
+            "value": "2"
+          }
+        ]
+      ],
+      "eqp": [
+        "SCAN l",
+        "SEARCH r USING INDEX wr_c (c=?) LEFT-JOIN",
+        "RIGHT-JOIN wr",
+        "SCAN r USING INDEX wr_c",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ]
+    }
+  ]
+}
