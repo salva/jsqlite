@@ -24,6 +24,19 @@ test('synchronous register search key releases only its descriptor',()=>{
 });
 
 const bytes = (...values) => Uint8Array.from(values);
+test('UTF16 endian loops preserve offset ownership and source boundary cases',()=>{
+  const cases=[ [[],[]], [[0],[0]], [[0xd800],[0xed,0xa0,0x80]], [[0xdc00],[0xed,0xb0,0x80]], [[0xd800,0x41],[0xf0,0x90,0x81,0x81]], [[0xdc00,0x41],[0xf0,0x90,0x81,0x81]], [[0xd83d,0xde00,0],[0xf0,0x9f,0x98,0x80,0]] ];
+  for(const encoding of ['utf-16le','utf-16be'])for(const [units,expected] of cases)for(const odd of [false,true]){
+    const backing=new Uint8Array(5+2*units.length+Number(odd));backing.fill(0xa5);
+    const input=backing.subarray(2,backing.length-3);
+    units.forEach((u,i)=>{input[2*i]=encoding==='utf-16le'?u&255:u>>8;input[2*i+1]=encoding==='utf-16le'?u>>8:u&255});
+    const before=backing.slice(),result=sqliteUtf16ToUtf8(input,encoding);
+    assert.deepEqual([...result],expected);assert.deepEqual(backing,before);
+    assert.equal(result.buffer.byteLength,4*units.length+1);
+    assert.equal(new Uint8Array(result.buffer)[result.length],0);
+    input.fill(0);assert.deepEqual([...result],expected);
+  }
+});
 function integer(value) { const mem = new Mem(); mem.setInt64(BigInt(value)); return mem; }
 function real(value) { const mem = new Mem(); mem.setDouble(value); return mem; }
 function intReal(value) { const mem = new Mem(); mem.setIntReal(BigInt(value)); return mem; }
