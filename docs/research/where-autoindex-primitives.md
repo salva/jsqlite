@@ -680,6 +680,18 @@ no measured shared refund/public SQL concurrency or fresh native capture.
 Existing #privateControl and #halt ordering inspected; no diagnostic architecture
 or patched globals added.
 
+OpenEphemeral KeyInfo follow-up disproves stale-info defect hypothesis: pinned
+vdbe.c4570–4598 clears reused tree WITHOUT assigning pKeyInfo; only allocateCursor
+branch installs new KeyInfo. TS matches. Regression original width2 NOCASE ASC,
+reopen width1/2/3 BINARY DESC: reuse keeps a,B,z; growth yields z,a,B.3 encodings
+twice/reset and pre-reopen stale record absence pass. Initial width1 packed record
+was shorter than retained KeyInfo totalFieldCount, rejected by current full-key
+writer (proc-c7d3cccfe702); fixture corrected to retained width, not a product fix
+or proof of native short-record insertion parity. Focused proc-a1aa748b8561 passes.
+No production change; no native oracle capture, comparator identity inspection,
+resource-refund measurement or rekey permission inferred. Callers needing changed
+comparison must not assume same-width OpenEphemeral adopts its new descriptor.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
