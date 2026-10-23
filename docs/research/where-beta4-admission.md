@@ -1,4 +1,10 @@
-# WHERE family inventory and staged admission — current delivered assessment
+# WHERE family inventory — historical beta.4 delivered assessment
+
+**Applicability:** this document preserves the7d9 proposal and its evidence, not current
+runtime guidance. The current bounded beta.5 decision is
+[automatic-index/Bloom admission](where-autoindex-admission.md), including changed
+71ad/e00e attribution and selected matched-route boundaries. Read statements below
+as that historical input's assessment, not a renewed MOST recommendation.
 
 Architecture proposal for [[card:card-s-a-a]] / [[card:card-s-a]]. This replaces the earlier scalar-IN-first and seven-of-twelve proposal as current guidance; historical reasoning and R1 remain in accepted status v8/v9 and [goal review v4](record:///review.md?card=card-s-a&v=4). No compatibility percentage or automatic family-count threshold is proposed.
 

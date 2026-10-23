@@ -576,10 +576,16 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
-[Current twelve-family mapping and evidence](research/where-beta4-admission.md)
-separates SQL semantics from selected work with concrete witness predicates on7d9,
-W174/S16/V19 applicability and a substantive finite MOST recommendation. It retains
-scalar/vector/correlated IN owners. The former main RIGHT/FULL bypass is now bounded:
+[Runtime automatic-index/Bloom proposal](research/where-autoindex-admission.md):
+`where.c:whereLoopAddBtree/constructAutomaticIndex/sqlite3ConstructBloomFilter`,
+`whereInt.h:WhereLoop/WhereLevel`, `wherecode.c:codeAllEqualityTerms/filterPullDown`,
+`vdbe.c:filterHash/Once/OpenAutoindex/FilterAdd/Filter` → proposed shared loop descriptor,
+packed private cursor build/probe and VM filter. **Runtime gap, not translated credit.**
+Adjacent `where-autoindex-capture.py` and `where-autoindex-baseline.mjs` map native
+ON/OFF EXPLAIN, all3enc typed rows/metadata/reset and actual TS scan work; linked
+evidence defines remaining native-first controls and original-owner handoff.
+[Historical twelve-family inventory](research/where-beta4-admission.md) applies to7d9/W174/V19,
+not current-runtime certification. Current selected RIGHT/FULL mapping is bounded:
 `where.c:constraintCompatibleWithOuterJoin/whereUsablePartialIndex/whereLoopAddAll`
 → `where-plan.ts:analyzeWhere/usablePartialIndex/planWhere`: up to three physical
 rowid sources with exactly one RIGHT/FULL barrier, source-order prerequisite,
@@ -593,8 +599,9 @@ three encodings; `wr-matched-controls.test.mjs` maps post-selected lifecycle err
 `rightJoinDrain` retains exact primary positioning and disables covering substitution;
 `wr-boundary-capture.py` / `wr-boundary-native.json` / `wr-boundary.test.mjs`
 map mixed composite PK, physical-empty LHS, metadata/reset, damaged-root and stale-PK continuation.
-[Decision and finite author evidence](research/wr-matched-evidence.md), independent
-acceptance open. Repeated barriers, wider/WR-LHS/multiple-WR/module matched layouts retain the bypass.
+[Decision and finite evidence](research/wr-matched-evidence.md); bounded independent
+acceptance is attributed to parent [[card:card-s]] status51/G84/K-f35.
+Repeated barriers, wider/WR-LHS/multiple-WR/module matched layouts retain fallback.
 `where.c:7394ff` / `wherecode.c:2740ff` pRJ →
 `vdbe.ts:compileInnerTableSelect`: selected physical index rowid tail feeds the
 exact match set before WHERE, independent of deferred primary lookup; unmatched

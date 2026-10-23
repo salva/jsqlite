@@ -466,14 +466,15 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 
 ## WHERE, joins and physical indexes
 
-The [current finite two-axis WHERE inventory](research/where-beta4-admission.md)
-separates SQL correctness from selected/executed work on corrected7d9, with current
-source-owner/W174 integration/V19 installed-browser evidence. It supersedes the
-scalar-IN-first/seven-of-twelve proposal and recommends the finite beta.4 MOST
-milestone on common load-bearing access breadth, while disclosing automatic/Bloom,
-RIGHT/FULL matched-pass beyond the bounded two-rowid-source route and specialized
-optimization gaps. This is a technical
-recommendation for renewed review, not ROOT milestone or release acceptance.
+The [runtime automatic-index/Bloom decision](research/where-autoindex-admission.md)
+is the current bounded beta.5 proposal: native costed transient covering indexes,
+shared packed private-Btree build/probe, source Bloom hash/filter and execution-owned
+Once/resource lifetime, with native-FIRST captures and existing-owner handoff.
+Runtime support is still missing; correct scan results are not implementation credit.
+The [beta.4 two-axis inventory](research/where-beta4-admission.md) is historical
+7d9/W174/V19 evidence, not current input certification or a new MOST recommendation.
+Current bounded71ad G84/K-f35 and e00e W186 reconciliation have separate applicability
+in the linked decision; no fresh green509 or beta.5 closure is claimed.
 
 Selected scalar uncorrelated SELECT-IN retains the linked resolved SELECT and
 original parameters. expr.c candidate/uniqueness gates choose direct base-table
@@ -586,8 +587,8 @@ the sole subquery-bearing operand. Value-producing booleans retain three-valued
 evaluation; callers retain one patched rejection continuation. Leaf predicates
 still use the existing expression compiler; this is not full specialized
 comparison/TRUTH/BETWEEN branch-lowering credit. Native typed error/reset and
-unchanged FULL gate receipts are in [[card:card-k-e]] status; independent
-acceptance of this delta remains open.
+unchanged FULL gate receipts are in [[card:card-k-e]] status; bounded independent acceptance is attributed to parent
+[[card:card-s]] status51 (G84/K-f35), not general expression-lowering closure.
 RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
 or the complete typed WITHOUT ROWID primary key (KeyInfo order/collation/encoding).
 The RHS interior reads the primary reader, positioned by deferred selected access
@@ -603,7 +604,8 @@ exact NotFound/continue, then feeds the existing KeyInfo match set. Wider barrie
 WR-LHS/multiple-WR/module selected matched access retain fallback; their existing execution is
 not selected-access credit. No algorithm substitution or platform necessity is
 claimed. [WR caller source comparison and finite author evidence](research/wr-matched-evidence.md)
-tracks the two-source extension; independent acceptance remains open. Fresh-drain invocation carries `WHERE_RIGHT_JOIN` semantics even after its source jointype is cleared: selected WR secondary access must use exact primary NotFound/continue, not deferred lookup; covering substitution remains disabled. Mixed storage-class composite PK, descending/NOCASE identity, physical-empty LHS, metadata/reset and native damaged/stale-secondary controls are mapped in `wr-boundary.test.mjs` and the linked evidence. Representative selected-RHS corrupt required/off-path and post-selected
+tracks the two-source extension; bounded independent acceptance is attributed to
+parent [[card:card-s]] status51/G84/K-f35. Fresh-drain invocation carries `WHERE_RIGHT_JOIN` semantics even after its source jointype is cleared: selected WR secondary access must use exact primary NotFound/continue, not deferred lookup; covering substitution remains disabled. Mixed storage-class composite PK, descending/NOCASE identity, physical-empty LHS, metadata/reset and native damaged/stale-secondary controls are mapped in `wr-boundary.test.mjs` and the linked evidence. Representative selected-RHS corrupt required/off-path and post-selected
 execution/match-capacity cleanup controls are retained, not exhaustive composition
 coverage. [Source comparison and bounded controls](research/right-matched-evidence.md).
 The bounded three-source extension is independently accepted in
