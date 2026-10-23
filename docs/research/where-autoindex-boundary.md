@@ -243,6 +243,21 @@ suppression (not merely an isolated abs call). Public scans must preserve the
 same suppression. This is finite error/off-path coverage, not corrupt-page,
 allocation-site, native runtime or broader evaluation-order acceptance.
 
+## Cross-affinity multikey boundary
+
+`affinity` projects TEXT lhs keys against INTEGER rhs keys with a NOCASE second
+key; `affinity-reverse` reverses the declared affinities. Both retain numeric-text
+'01'/'1', duplicates, nonnumeric text, NULL and unmatched keys. Pinned
+expr.c sqlite3CompareAffinity/IndexAffinityOk and where.c termCanDriveIndex govern
+admission: forward native plan indexes both keys and applies NUMERIC Affinity
+before Filter/SeekGE; reverse excludes the incompatible TEXT numeric-comparison
+key, indexes only payload, has no Bloom and retains the numeric equality residual
+after seek. Both alternatives produce2080 typed rows (2048 matches) twice in all
+encodings. The existing public companion is deliberately authoritative: reverse
+currently FAILS (1056 rows in UTF8; '01' matches missing). Do not skip this fixture,
+replace native expectations, or claim cross-affinity/runtime feature acceptance.
+See [[card:card-s-a-c]] current status for exact evidence and correction scope.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic

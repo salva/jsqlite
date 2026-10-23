@@ -7,7 +7,7 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','pulldown','pulldown-dependent','overflow','overflow-offpath']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 d.sqlite3_errmsg.argtypes=[C.c_void_p];d.sqlite3_errmsg.restype=C.c_char_p
@@ -27,6 +27,9 @@ if a.case in ['overflow','overflow-offpath']:
 if a.case in ['nocase','rtrim','binary']:
  sql=sql.replace('r.k=l.k',f'r.k=l.k AND r.payload=l.c COLLATE {a.case.upper()}')
 if a.case=='representations': sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k AS rk FROM lhs l LEFT JOIN rhs r ON r.k=l.k ORDER BY l.id,r.id'
+cross_affinity=a.case in ['affinity','affinity-reverse']
+if cross_affinity:
+ sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k AS rk FROM lhs l LEFT JOIN rhs r ON r.k=l.k AND r.payload=l.c COLLATE NOCASE ORDER BY l.id,r.id'
 if a.case=='standalone': sql="SELECT l.id AS lid,r.id AS rid,r.payload FROM lhs l CROSS JOIN rhs r WHERE r.k=l.k AND r.payload='v2' ORDER BY l.id,r.id"
 multi=a.case in ['pulldown','pulldown-dependent']
 if multi:
@@ -40,6 +43,11 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
  h.execsql(d,db,f"PRAGMA encoding='{enc}'; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k {affinity}); CREATE TABLE rhs(id INTEGER PRIMARY KEY,k {affinity},payload TEXT);")
  h.execsql(d,db,'WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<64) INSERT INTO lhs SELECT x,CASE WHEN x=64 THEN NULL ELSE x%16 END FROM n;')
  h.execsql(d,db,"WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<128) INSERT INTO rhs SELECT x,CASE WHEN x=128 THEN NULL ELSE x%16 END,'v'||x FROM n;")
+ if cross_affinity:
+  # Recreate declared affinities, not CAST expressions that lose column ownership.
+  left,right=('TEXT','INTEGER') if a.case=='affinity' else ('INTEGER','TEXT')
+  h.execsql(d,db,f'DROP TABLE lhs; DROP TABLE rhs; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k {left},c TEXT); CREATE TABLE rhs(id INTEGER PRIMARY KEY,k {right},payload TEXT);')
+  h.execsql(d,db,"WITH RECURSIVE n(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<64) INSERT INTO lhs SELECT x,CASE x%4 WHEN 0 THEN '01' WHEN 1 THEN '1' WHEN 2 THEN 'x' ELSE NULL END,'a' FROM n; WITH RECURSIVE n(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<128) INSERT INTO rhs SELECT x,CASE x%4 WHEN 0 THEN '01' WHEN 1 THEN '1' WHEN 2 THEN '2' ELSE NULL END,'A' FROM n;")
  if a.case in ['nocase','rtrim','binary']:
   h.execsql(d,db,"ALTER TABLE lhs ADD COLUMN c TEXT; UPDATE lhs SET c=CASE id%3 WHEN 0 THEN 'A'||char(0)||'x' WHEN 1 THEN 'a ' ELSE 'A' END; UPDATE rhs SET payload=CASE id%3 WHEN 0 THEN 'a'||char(0)||'y' WHEN 1 THEN 'a' ELSE 'A' END;")
  if a.case in ['absent','collision']:
@@ -78,7 +86,18 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    assert 'SeekGE' in names
    assert any('USING INDEX rk' in h.text(row[3]) for row in eqp)
   if a.case!='is':
-   assert ('FilterAdd' in names)==(enabled or multi) and ('Filter' in names)==(enabled or multi)
+   bloom=(enabled and a.case!='affinity-reverse') or multi
+   assert ('FilterAdd' in names)==bloom and ('Filter' in names)==bloom
+  if cross_affinity and enabled:
+   detail=' '.join(h.text(row[3]) for row in eqp)
+   assert ('(k=?' in detail)==(a.case=='affinity')
+   assert 'AUTOMATIC COVERING INDEX' in detail
+   if a.case=='affinity':
+    assert names.index('Affinity')<names.index('Filter')<names.index('SeekGE')
+    assert h.text(ops[names.index('Affinity')][5])=='C'
+   else:
+    assert '(payload=?)' in detail and 'Filter' not in names
+    assert names.index('SeekGE')<names.index('Ne')
   if multi:
    filters=[i for i,n in enumerate(names) if n=='Filter']
    seeks=[i for i,n in enumerate(names) if n=='SeekGE']
@@ -120,6 +139,14 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   for i in range(0,len(runs),2): assert runs[i]==runs[i+1]
   if multi:
    assert len(rows)==34 and runs[0]['autoindexRows']==0
+  if cross_affinity:
+   assert len(rows)==2080
+   matches=[row for row in rows if row[1]['type']!='null']
+   assert len(matches)==2048
+   assert all(row[2]['type']==('text' if a.case=='affinity' else 'integer') for row in matches)
+   assert all(row[3]['type']==('integer' if a.case=='affinity' else 'text') for row in matches)
+   texts={h.text(row[2 if a.case=='affinity' else 3]) for row in matches}
+   assert texts=={'01','1'}
   if a.case=='standalone':
    assert len(rows)==34
    assert runs[0]['autoindexRows']==0
