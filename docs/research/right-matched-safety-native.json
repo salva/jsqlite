@@ -1,0 +1,2616 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "8d3a57c33418e6273e85046b7a8b664ad47827660658dfacef0136416c9f48f3",
+  "variants": [
+    {
+      "encoding": "utf8",
+      "fixture": "advanced-index-utf8.db",
+      "sha256": "4ed3f002c26084b7d10b948f2f65121523d912dd7158e583deb838192d87466b",
+      "offset": 8192,
+      "original": 10,
+      "corruptSha256": "30b93abfc3548739f0d5a28a4703bb05c9775e1d1eb84e3fcfe59dc91eda7ffb",
+      "cases": [
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        }
+      ]
+    },
+    {
+      "encoding": "utf16le",
+      "fixture": "advanced-index-utf16le.db",
+      "sha256": "438114fa92b95b5c5c3fa8f66b56e072229f6f032f30895d723aec319f17420c",
+      "offset": 9216,
+      "original": 10,
+      "corruptSha256": "bff5e04dd429b115fd793511089ad422b978a0db176ccf545428332d4aae76f3",
+      "cases": [
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        }
+      ]
+    },
+    {
+      "encoding": "utf16be",
+      "fixture": "advanced-index-utf16be.db",
+      "sha256": "75c3b2b1ab134f44ff2951d4f7f6bcfecd62c7176002f0f676d13669efccd8bf",
+      "offset": 9216,
+      "original": 10,
+      "corruptSha256": "ad85d72d81410d31b5aa3384537bd3c3d68657e71af5ad0891c3bbdee1c67fae",
+      "cases": [
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED RIGHT JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "required",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1",
+          "rows": [],
+          "rc": 11,
+          "reset": 11
+        },
+        {
+          "mode": "offpath",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b=1 LIMIT 0",
+          "rows": [],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "scan",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r NOT INDEXED ON r.a=l.a AND r.b=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        },
+        {
+          "mode": "capacity",
+          "sql": "SELECT l.id,r.id FROM m l NOT INDEXED FULL JOIN m r INDEXED BY m_abc ON r.a=l.a AND r.b>=1",
+          "rows": [
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "1"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "2"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "1"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "2"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "3"
+              },
+              {
+                "type": "integer",
+                "value": "3"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "4"
+              },
+              {
+                "type": "integer",
+                "value": "4"
+              }
+            ],
+            [
+              {
+                "type": "integer",
+                "value": "5"
+              },
+              {
+                "type": "integer",
+                "value": "5"
+              }
+            ]
+          ],
+          "rc": 101,
+          "reset": 0
+        }
+      ]
+    }
+  ]
+}

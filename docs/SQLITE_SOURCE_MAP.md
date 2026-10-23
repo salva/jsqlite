@@ -563,6 +563,10 @@ exact match set before WHERE, independent of deferred primary lookup; unmatched
 drain retains its separate primary reader and shared continuation.
 `right-matched-index.test.mjs` → native typed/five-metadata/twice-reset/error
 controls, selected/NOT INDEXED physical accounting, all encodings.
+`right-matched-safety-capture.py` / `right-matched-safety.test.mjs` map the same
+pRJ selected RHS identity and vdbe.c interrupt/error/cleanup path to representative
+corrupt required/off-path reads, post-selected execution controls, match-set capacity
+and saved-first-error/refund/reuse assertions across encodings.
 [Evidence and bounded tradeoffs](research/right-matched-evidence.md).
 No mechanical family-count credit,
 whole-query guarantee or final ROOT acceptance is implied.

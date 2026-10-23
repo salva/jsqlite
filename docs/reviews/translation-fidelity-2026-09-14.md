@@ -7,8 +7,11 @@ index tail identity enters the match set before WHERE, without forcing deferred
 primary lookup. Shared drain still uses the primary reader. Wider/WR/module
 matched planning remains bypassed, not credited by scan/drain tests. Native and
 public three-encoding typed/metadata/error/reset/access evidence and remaining
-limits: [repair evidence](../research/right-matched-evidence.md). This is author
-verification, not independent entire-delta or ROOT acceptance.
+limits: [repair evidence](../research/right-matched-evidence.md). G73-1 now has
+representative native-first selected RHS corrupt required/off-path controls and
+post-selected cancellation/deadline/work, match-capacity and exact first-error/
+refund/reuse coverage; this is finite author evidence, not exhaustive safety.
+This is author verification, not independent entire-delta or ROOT acceptance.
 
 ## Joined WHERE frontier repair (author evidence, independent acceptance open)
 

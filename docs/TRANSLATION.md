@@ -569,7 +569,9 @@ post-match/null-extension. The match set takes physical rowid from the selected
 index tail before WHERE, independently of deferred primary fetch. Wider barriers,
 WR/module selected matched access retain fallback; their existing execution is
 not selected-access credit. No algorithm substitution or platform necessity is
-claimed. [Source comparison and bounded controls](research/right-matched-evidence.md).
+claimed. Representative selected-RHS corrupt required/off-path and post-selected
+execution/match-capacity cleanup controls are retained, not exhaustive composition
+coverage. [Source comparison and bounded controls](research/right-matched-evidence.md).
 See
 [WR source and finite evidence](research/recursive-join/wr-right-full-evidence.md).
 Arbitrary

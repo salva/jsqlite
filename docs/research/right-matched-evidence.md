@@ -24,4 +24,40 @@ covered-deferred with its explicit native directory, run-advanced-index-ts;
 chained typecheck and diff check also passed. Source/test inputs were unchanged
 thereafter; only current documentation was consolidated before commit.
 
-Remaining: broader unsafe forced shapes, native malformed-page/resource controls for this selected composition, mixed typed/collation/range/IN/partial interaction breadth, nonauthor entire-delta review and ROOT/W full/package/browser acceptance. Existing repeated-right, residual, planner and deferred regression gates are retained; their finite successes do not prove arbitrary composition.
+Remaining: broader unsafe forced shapes, mixed typed/collation/range/IN/partial interaction breadth, nonauthor entire-delta review and ROOT/W full/package/browser acceptance. Existing repeated-right, residual, planner and deferred regression gates are retained; their finite successes do not prove arbitrary composition.
+
+## G73-1 representative selected-composition safety controls
+
+`right-matched-safety-capture.py` binds each original fixture SHA and exact mutated
+m_abc root-page type byte (original byte and offset, corrupted SHA). Pinned native
+capture precedes public consumption: 48 cases across three encodings, RIGHT/FULL,
+forced/unforced RHS, required corrupt read (SQLITE_CORRUPT/reset11), LIMIT0 off-path
+success and explicit NOT INDEXED success, plus intact multi-match capacity rows;
+each executes twice/reset. The preserved LHS is explicitly NOT INDEXED so the
+corrupt physical index belongs only to the selected RHS route. Reused authenticated
+library/SourceID remain bound in `right-matched-safety-native.json`.
+
+`right-matched-safety.test.mjs` asserts actual forced/unforced planner RHS selection,
+required-read index seeks and off-path zero seeks, native typed rows and reset.
+It checks saved malformed errors through subsequent step/reset/finalize. Execution
+controls cancel/expire/exhaust work only after a returned selected matched row and
+live match-owned bytes. Both reset and finalize preserve exact first-error identity;
+reset/reuse reproduce intact rows. One-entry/eight-byte match limits admit one
+rowid then reject a distinct second match, retry without accumulation, and permit
+an exact one-row control afterward. A test-local wrapper observes existing
+PrivateStateByteBudget owners and asserts usedBytes zero after failure/cleanup;
+no production accounting API or injected failure is added. Date.now supplies a
+deterministic post-selected deadline; cancellation here is at the next public step,
+not a claim of mid-opcode host interruption. Browser work/deadline/private capacity
+are existing bounded adaptations, not native budget equivalence. Native pRJ match
+identity/Found/IdxInsert and vdbe.c check_for_interrupt/abort error ordering remain
+unchanged; no runtime defect or source correction was warranted by these controls.
+
+Initial safety hypothesis used b=1 for capacity, but native scan rows show all
+three matches share r.id=1: one distinct match correctly fits. Native-first b>=1
+controls establish the second distinct key before that test is consumed. An initial
+unmatched-drain counter assertion assumed >5 tableNext even for forced full-index
+scan; corrected to the physical scan bound plus actual unmatched RHS rows, without
+changing production or native outcomes. Exact commands/results and delivery identity
+are in [[card:card-s-c-d-e]] status. This closes finite author coverage, not independent
+entire-delta approval or exhaustive malformed/resource composition.
