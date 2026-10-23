@@ -6,7 +6,8 @@ import {analyzeWhere,rightJoinResidual,btreeLoops,sourceBit,wherePathSolver,wher
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/private-blobkey-pages.ts';
 import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
-import {Mem} from '../../src/internal/mem.ts';
+import {Mem,memFromPublic} from '../../src/internal/mem.ts';
+import {packRecord} from '../../src/internal/record-pack.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
 const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:type==='TEXT'?'text':type==='REAL'?'real':type==='BLOB'?'blob':'integer',szEst:columnTypeEstimate(type).szEst,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:[],...extra});
 // Synthetic schema carries build.c/schema.ts default estimates, not ad-hoc planner costs.
@@ -242,6 +243,33 @@ test('generated IPK descriptor composes with packed prefix edges and identity re
     }
     assert.equal(await vm.boundJump([key],'IdxGT',control),true);
    }finally{key.release();out.release();vm.close();arena.close();}
+   assert.equal(budget.usedBytes,0);
+  }
+ }
+});
+
+test('automatic TEXT descriptor composes encoding collation and packed identity order',async()=>{
+ const control={async checkpoint(){}};
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const collation of ['NOCASE','RTRIM']){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve(`SELECT u.id FROM t o CROSS JOIN t u ON u.a COLLATE ${collation}=o.a`,s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([s.id]),encoding,plan);
+  assert.deepEqual(d.fields,[s.a,null]);assert.equal(d.bloom,false,'all TEXT keys have no native filter');
+  const values=collation==='NOCASE'?['é','É','é','Ω','ω','é']:['é','é ','é  ','É','Ω','é\t'];
+  for(let reset=0;reset<2;reset++){
+   const limits={maxEntries:100,maxKeyBytes:10000,maxBytes:1000000},budget=new PrivateStateByteBudget(limits.maxBytes);
+   const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits),vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,d.keyInfo,limits),d.keyInfo);
+   const probe=memFromPublic('é',encoding),out=new Mem();
+   try{
+    for(let i=values.length-1;i>=0;i--){const text=memFromPublic(values[i],encoding),id=memFromPublic(BigInt(i+1),encoding);try{await vm.insert(packRecord([text,id],encoding),control);}finally{text.release();id.release();}}
+    const expected=collation==='NOCASE'?[1n,3n,6n]:[1n,2n,3n];
+    assert.equal(await vm.seekBound([probe],'SeekGE',control),true);
+    for(const id of expected){assert.equal(await vm.boundJump([probe],'IdxGT',control),false);await vm.column(1,out,control);assert.equal(out.integerValue(),id);assert.equal(await vm.next(control),true);}
+    assert.equal(await vm.boundJump([probe],'IdxGT',control),true);
+    assert.equal(await vm.seekBound([probe],'SeekLE',control),true);await vm.column(1,out,control);assert.equal(out.integerValue(),expected.at(-1));
+   }finally{probe.release();out.release();vm.close();arena.close();}
    assert.equal(budget.usedBytes,0);
   }
  }

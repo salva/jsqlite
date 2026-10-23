@@ -567,6 +567,18 @@ Owner rebuild is primitive lifecycle coverage, not public statement reset.
 Existing native layout witness proc-6d50258132d1 applies; no fresh populated
 oracle, encoding-sensitive TEXT, VM lowering or runtime feature credit.
 
+TEXT descriptor composition follow-up:12 executions (3 encodings ×NOCASE/RTRIM
+×2 fresh owners) use descriptor-owned KeyInfo, memFromPublic encoding and
+packRecord, non-ASCII é/É/Ω/ω, space/tab distinctions. Prefix GE/LE/IdxGT
+returns identities [1,3,6] NOCASE and [1,2,3] RTRIM with disposal refund.
+Fresh SourceID-checked pinned populated SELECT across6 encoding/collation
+cases independently confirms those typed INTEGER identities (proc-c8c837b016bb).
+main.c collation comparison confirms ASCII-only NOCASE and space-only RTRIM.
+Focused proc-9230f3bdd728 passes, no production divergence. These all-TEXT
+keys explicitly disable Bloom; forcing a Filter/affinity path here would violate
+native selection. Mixed numeric Filter affinity remains separate prior evidence.
+No automatic SQL lowering, public reset or runtime feature credit.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
