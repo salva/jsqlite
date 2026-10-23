@@ -6,6 +6,12 @@
 `Mem.filterHashContribution`, `private-bloom.ts:filterHash` (unsigned64 sum).
 `vdbe.c:OP_FilterAdd/OP_Filter` → execution-owned `PrivateBloomFilter` and VM
 dispatch; zero-filled native Blob allocation → charged internal FilterInit.
+`where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
+`wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
+MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`
+(all encodings, numeric/text/REAL/IntReal/NULL/BLOB, collation, collisions,
+reset and missing-affinity negative control). This caller obligation is not
+satisfied by IndexSeekPrefix's private coercion alone.
 `vdbe.c:OP_SeekGE/GT/LE/LT`, `OP_IdxGT/GE/LT/LE` →
 `PrivateKeyVmCursor.seekBound/boundJump`, packed indexMoveto/payload owners;
 `vdbe.ts:IndexSeekPrefix/IndexPrefixEnd` private dispatch preserves persistent

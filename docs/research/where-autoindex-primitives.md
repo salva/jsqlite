@@ -208,6 +208,46 @@ Final checked command reused the361-test primitive/planner command above,
 receipt replays: exit0,361/361 zero failures/skips. Evidence:
 `work:///cards/card-s-j-a/processes/proc-e9d5f48b5abe/stdout.log`.
 
+## Composed affinity/hash/seek seam
+
+Source comparison: `where.c:1214` GenerateIndexKey/MakeRecord precedes
+FilterAdd; `wherecode.c:2024` codeApplyAffinity precedes Filter then Seek/Idx.
+VM Filter hashes borrowed live registers without coercion, while
+IndexSeekPrefix applies affinity to a private snapshot. Therefore omitting the
+explicit live Affinity before Filter can falsely reject numeric text even though
+a subsequent authoritative seek would match. This is a concrete lowering
+obligation, not a defect in the native hash algorithm. No current SQL producer
+emits this sequence, so no production patch or feature credit is justified.
+
+`private-bloom-affinity.test.mjs` composes MakeRecord→FilterAdd→IdxInsert and
+live Affinity→Filter→IndexSeekPrefix→IndexPrefixEnd, with reset/rebuild twice.
+54 all-encoding controls distinguish absent bit, present-but-authoritatively-
+rejected collision and matching prefix. Numeric exponent/text, REAL fractions,
+IntReal/six-byte boundary, TEXT spellings, NOCASE/RTRIM/BINARY, BLOB and NULL/IS
+are covered. A deliberately missing-prefilter-affinity control produces the
+false negative, preventing the fixture from hiding this caller obligation.
+Initial51-control run passed (`proc-6641f454c3f4`); no fixture failure this attempt.
+These tests deliberately isolate primitives; TEXT-only auto Bloom enablement
+and SQL EQ null skipping remain descriptor/lowering responsibilities.
+
+Fresh native captures used actual pinned library, SourceID unchanged, for
+`affinity`, `affinity-reverse`, `types`, `representations`, `is`, each3 encodings,
+automatic on/off and TS reset replay (60 executions). Command:
+`PYTHONDONTWRITEBYTECODE=1 python3 docs/research/where-autoindex-capture.py --library
+"$SAIVAGE_CARD_WORK_ROOT/oracle-build/build/libsqlite3-oracle.so" --output
+"$SAIVAGE_CARD_WORK_ROOT/affinity-seam-$case" --case "$case"`, then baseline.mjs.
+Capture/comparison exit0: `work:///cards/card-s-j-a/processes/proc-f3331d3c6ea0/stdout.log`.
+Native op/EQP extraction and receipt hashes:
+`work:///cards/card-s-j-a/processes/proc-792c32f47cab/stdout.log`.
+Affinity native uses numeric Affinity before Filter/Seek; reverse direction uses
+only payload key with no Bloom, not an unsafe TEXT k key. Typed rows and metadata
+agree, but TS still scans without the native runtime feature. Exact retained
+receipts are under the purpose-named affinity-seam-* work children, not product
+fixtures. These captures are not a fresh original-workload acceptance.
+Final415/415 tests, zero failures/skips, typecheck/diffcheck and four unchanged
+absent/collision/empty-inner/standalone receipt replays passed in the checked
+chain: `work:///cards/card-s-j-a/processes/proc-ae98bdbae158/stdout.log`.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

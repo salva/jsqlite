@@ -476,7 +476,13 @@ existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/I
 Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter
-state. No SQL producer currently emits them. Source-owned automatic driving-term
+state. No SQL producer currently emits them. Consumer lowering must apply native
+probe affinity to the live key registers **before Filter**, not only to the
+private snapshot inside IndexSeekPrefix; build FilterAdd follows MakeRecord's
+live-register affinity. Shared hash intentionally does not coerce by itself.
+Composed all-encoding VM controls cover mixed numeric/TEXT, REAL/IntReal, NULL/IS,
+BLOB and collations, including authoritative rejection after a present bit and a
+missing-prefilter-affinity negative control. Source-owned automatic driving-term
 and declared-index quality admission plus native setup/run/output costs feed the
 ordinary Btree candidate builder through an explicit internal lowering-capability
 opt-in (`CandidateOptions.automaticIndex`). Automatic loops are inserted before
