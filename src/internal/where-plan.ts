@@ -308,7 +308,7 @@ function usablePartialIndex(index:IndexNode,terms:readonly WhereTerm[],source:Re
  if(!index.partialWhere)return true;if(source.leftOfRightJoin||!resolved)return false;
  const sameResolvedExpression=partialProofIdentity(resolved,source);
  const required:ExprNode[]=[];splitExpressionAnd(index.partialWhere,required);
- const bit=sourceBit(ordinal);return required.every(predicate=>terms.some(term=>!term.virtual&&(term.prereqAll&bit)!==0n&&exprImpliesExpr(term.expression,predicate,sameResolvedExpression)&&(!source.joinFromLeft.left||(term.origin.kind==="join-on"&&term.origin.rightSource===ordinal))));
+ const bit=sourceBit(ordinal);return required.every(predicate=>terms.some(term=>!term.virtual&&(term.prereqAll&bit)!==0n&&exprImpliesExpr(term.expression,predicate,sameResolvedExpression)&&(!source.joinFromLeft.left&&!source.joinFromLeft.right||(term.outerOn&&term.joinOwner===ordinal))));
 }
 /** where.c:indexMightHelpWithOrderBy tests usefulness before full proof. */
 function indexMightHelpWithOrderBy(index:IndexNode|null,ordinal:number,table:ResolvedSource["table"],order:readonly OrderRequirement[]):boolean {
@@ -1238,7 +1238,7 @@ export function analyzeWhere(resolved:ResolvedSelect,includeRightTerms=false):Wh
 function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:readonly {node:ExprReduction;origin:TermOrigin}[],outer:WhereClause|null=null,split:"and"|"or"="and",orOwner:WhereClause|null=null):WhereAnalysis {
  if(!includeRightTerms&&resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin))return freeze({clause:whereClause([]),plannerEligible:false,fallback:"right-full"});
  const specs:{node:ExprReduction;origin:TermOrigin}[]=[];if(resolved.source.where?.reduction?.kind==="reduction"){const parts:ExprReduction[]=[];splitAnd(resolved.source.where.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"where"}});}
- resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left?"left":"inner"}});});
+ resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left||source.joinFromLeft.right?"left":"inner"}});});
  if(input){specs.length=0;specs.push(...input);}
  type Draft={inField?:number;inRhs?:SelectInLoopRhs;virtualNull?:boolean;node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
  const drafts:Draft[]=[];
@@ -1651,14 +1651,20 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
  // invocation owns fresh analysis even when it does not enter AddAll.
  const planBudget:WherePlanBudget=request.planBudget??{remaining:20000n};
  const initialLimit=planBudget.constructionLimit??20000n;planBudget.remaining=initialLimit;planBudget.truth={high:new Set(),heuristic:new Set(),secondPass:false};
- // RIGHT/FULL is statement-wide fallback and never participates in W1/W2.
- const hasRightFull=resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin);if(hasRightFull){const analysis=analyzeWhere(resolved);return freeze({analysis,truth:publishTruth(planBudget.truth),path:null,plannerCandidates:0,plannerPaths:0});}
+ // whereLoopAddAll's LTORJ/RIGHT prerequisites retain the physical order
+ // across this single two-source barrier. Wider layouts keep fallback.
+ const hasRightFull=resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin);
+ const rowidRight=hasRightFull&&resolved.sources.length===2&&resolved.sources[1]!.joinFromLeft.right&&resolved.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid)&&!resolved.sources.some(source=>source.using);
+ if(hasRightFull&&!rowidRight){const analysis=analyzeWhere(resolved);return freeze({analysis,truth:publishTruth(planBudget.truth),path:null,plannerCandidates:0,plannerPaths:0});}
  // Represented WITHOUT ROWID layouts participate through their synthetic
  // primary-index owner and physical secondary descriptors.
- const analysis=analyzeWhere(resolved);
+ const rawAnalysis=analyzeWhere(resolved,rowidRight);
+ // whereScanNext/termCanDriveIndex: outer ON drives only its RHS. The
+ // bounded path keeps WHERE post-extension (no non-null WHERE proofs).
+ const analysis=rowidRight?freeze({...rawAnalysis,clause:whereClause(rawAnalysis.clause.terms.map(term=>freeze({...term,outerJoinSafe:freeze({mayDrive:term.outerJoinSafe.mayDrive&&term.joinOwner===1&&term.left?.sourceOrdinal===1,mayOmitResidual:false})})))}):rawAnalysis;
 
  const buildAll=()=>{const ordinaryLoops:WhereLoop[]=[];
- let joinBarrier=0n;return resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000n;const prefix=(1n<<BigInt(ordinal))-1n;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);if(source.table.kind==='metadata-module'){const added=whereLoopInsertCandidates(metadataWhereLoops(resolved,source,request.externalAvailable??new Set(),sourcePrereq),planBudget);ordinaryLoops.push(...added);return added;}if(source.table.kind==='json-module'){
+ let joinBarrier=0n;return resolved.sources.map((source,ordinal)=>{planBudget.remaining+=1000n;const prefix=(1n<<BigInt(ordinal))-1n;if(rowidRight)joinBarrier|=prefix;if(source.joinFromLeft.left)joinBarrier|=prefix|sourceBit(ordinal);if(source.joinFromLeft.cross)joinBarrier|=prefix;const sourcePrereq=joinBarrier&~sourceBit(ordinal);if(source.table.kind==='metadata-module'){const added=whereLoopInsertCandidates(metadataWhereLoops(resolved,source,request.externalAvailable??new Set(),sourcePrereq),planBudget);ordinaryLoops.push(...added);return added;}if(source.table.kind==='json-module'){
  if(source.indexedBy!==null)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);
  // whereLoopAddVirtualOne inserts every successful BestIndex template via
  // whereLoopInsert, just like AddBtree. Share dominance and builder budget;

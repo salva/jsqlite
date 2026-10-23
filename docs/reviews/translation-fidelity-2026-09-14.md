@@ -1,3 +1,15 @@
+## RIGHT/FULL matched persistent access (bounded author repair)
+
+The prior blanket matched-pass planner bypass is replaced for two physical rowid
+tables at one RIGHT/FULL barrier without USING/NATURAL. Source-order prerequisites
+and RHS-owned outer ON admission feed the existing index caller; physical selected
+index tail identity enters the match set before WHERE, without forcing deferred
+primary lookup. Shared drain still uses the primary reader. Wider/WR/module
+matched planning remains bypassed, not credited by scan/drain tests. Native and
+public three-encoding typed/metadata/error/reset/access evidence and remaining
+limits: [repair evidence](../research/right-matched-evidence.md). This is author
+verification, not independent entire-delta or ROOT acceptance.
+
 ## Joined WHERE frontier repair (author evidence, independent acceptance open)
 
 The caller previously invoked ready WHERE emission only for LEFT/RIGHT levels;

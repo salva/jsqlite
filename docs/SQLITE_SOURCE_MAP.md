@@ -552,8 +552,19 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 [Current twelve-family mapping and evidence](research/where-beta4-admission.md)
 separates SQL semantics from selected work with concrete witness predicates on7d9,
 W174/S16/V19 applicability and a substantive finite MOST recommendation. It retains
-scalar/vector/correlated IN owners and distinguishes main RIGHT/FULL planner bypass
-from the one-source unmatched-drain consumer. No mechanical family-count credit,
+scalar/vector/correlated IN owners. The former main RIGHT/FULL bypass is now bounded:
+`where.c:constraintCompatibleWithOuterJoin/whereUsablePartialIndex/whereLoopAddAll`
+→ `where-plan.ts:analyzeWhere/usablePartialIndex/planWhere`: one two-rowid-source
+RIGHT/FULL barrier, source-order prerequisite, RHS-owned outer ON admission,
+WHERE retained post-extension. Wider layouts retain the old bypass.
+`where.c:7394ff` / `wherecode.c:2740ff` pRJ →
+`vdbe.ts:compileInnerTableSelect`: selected physical index rowid tail feeds the
+exact match set before WHERE, independent of deferred primary lookup; unmatched
+drain retains its separate primary reader and shared continuation.
+`right-matched-index.test.mjs` → native typed/five-metadata/twice-reset/error
+controls, selected/NOT INDEXED physical accounting, all encodings.
+[Evidence and bounded tradeoffs](research/right-matched-evidence.md).
+No mechanical family-count credit,
 whole-query guarantee or final ROOT acceptance is implied.
 
 `where.c:whereLoopOutputAdjust` (3037ff, `pExpr->pRight` at3090) →

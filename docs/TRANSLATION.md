@@ -460,7 +460,8 @@ separates SQL correctness from selected/executed work on corrected7d9, with curr
 source-owner/W174 integration/V19 installed-browser evidence. It supersedes the
 scalar-IN-first/seven-of-twelve proposal and recommends the finite beta.4 MOST
 milestone on common load-bearing access breadth, while disclosing automatic/Bloom,
-RIGHT/FULL matched-pass and specialized optimization gaps. This is a technical
+RIGHT/FULL matched-pass beyond the bounded two-rowid-source route and specialized
+optimization gaps. This is a technical
 recommendation for renewed review, not ROOT milestone or release acceptance.
 
 Selected scalar uncorrelated SELECT-IN retains the linked resolved SELECT and
@@ -559,8 +560,17 @@ Ordinary comma/CROSS/INNER/LEFT and represented repeated/mixed rowid RIGHT/FULL
 barriers are admitted at the documented gates. ON belongs to match testing; LEFT null extension precedes
 WHERE. RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
 or the complete typed WITHOUT ROWID primary key (KeyInfo order/collation/encoding).
-The RHS interior reads the primary reader, positioned from the active drain key;
-covering-only RHS binding is disabled as in pinned `where.c`. See
+The RHS interior reads the primary reader, positioned by deferred selected access
+or the active drain key; covering-only RHS binding stays disabled as in pinned
+`where.c`. Two physical rowid tables separated by one RIGHT/FULL barrier (without
+USING/NATURAL) participate in matched persistent-index planning: LTORJ/RIGHT
+prerequisites retain source order, outer ON admits only its RHS, and WHERE stays
+post-match/null-extension. The match set takes physical rowid from the selected
+index tail before WHERE, independently of deferred primary fetch. Wider barriers,
+WR/module selected matched access retain fallback; their existing execution is
+not selected-access credit. No algorithm substitution or platform necessity is
+claimed. [Source comparison and bounded controls](research/right-matched-evidence.md).
+See
 [WR source and finite evidence](research/recursive-join/wr-right-full-evidence.md).
 Arbitrary
 aggregate/correlation compositions are not implied. USING/NATURAL projection and metadata must

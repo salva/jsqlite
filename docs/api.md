@@ -371,6 +371,11 @@ compatibility credit.
   CROSS, INNER and LEFT joins are present. Ordinary rowid RIGHT/FULL barriers,
   including repeated/mixed barriers, downstream ordinary joins and represented
   USING/NATURAL metadata, execute through per-level match/continuation owners.
+  Two physical rowid tables at one RIGHT/FULL barrier without USING/NATURAL
+  additionally admit matched persistent-index access through the shared WHERE
+  caller. Wider/WR/module matched planning retains fallback; no public selection,
+  ordering or work-count promise follows from this bounded optimization
+  ([source and evidence](research/right-matched-evidence.md)).
   Mixed physical/JSON RIGHT/FULL also uses that owner with independent module
   row identities and register-backed prefix NULL extension. Forward references
   in outer-join table-function arguments reject at prepare with SQLite errors;
