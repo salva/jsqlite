@@ -364,8 +364,16 @@ No exercised production divergence found. Initial evidence:
 `work:///cards/card-s-j-a/processes/proc-87d3cee0427e/stdout.log`;
 corrected2/2/typecheck/diffcheck:
 `work:///cards/card-s-j-a/processes/proc-55ba8e4d2444/stdout.log`.
-These checks do not enumerate async overflow allocation faults, prove exact
-transient high water, or establish SQL runtime feature credit.
+These checks do not prove exact transient high water or SQL runtime feature credit.
+The async extension enumerates10 insertion and5 overflow-seek checkpoints per
+type, and requires a rejected insert to have grown the page count before failure.
+This witnesses partial overflow allocation followed by primary-error disposal;
+it is not only pre-mutation rejection. Source comparison follows fillInCell's
+previous-link publication before unref, and TS pending/previous lease unwind.
+No reproduced production divergence. Focused2/2/typecheck/diffcheck evidence:
+`work:///cards/card-s-j-a/processes/proc-484be64a7387/stdout.log`.
+Injected async errors exercise shared checkpoint propagation, not host timer
+cancellation or allocation-hook failure. Faulted mutations are never retried.
 
 ## Remaining acceptance work
 

@@ -10,17 +10,19 @@ const control={async checkpoint(){},snapshotCheckpoint(){}};
 for(const kind of ['blob','text'])test(`${kind}: each large packed input and borrowed seek snapshot rejection refunds on disposal`,async t=>{
  const packed=new Uint8Array(6003);packed.set([3,0xdd,kind==='blob'?0x6c:0x6d]);packed.fill(65,3);
  const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
- async function run(mode,failAt){
+ let rejectedPageGrowth=false;
+ async function run(mode,failAt,asynchronous=false){
   const limits={maxEntries:10,maxKeyBytes:20000,maxBytes:1000000},budget=new PrivateStateByteBudget(limits.maxBytes);
   const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits);
   const vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,info,limits),info);
   const life=new BorrowLifetime(),value=memFromRawRecord(new RawRecordReader(packed,'utf-8').next(),life);
   let calls=0;const primary=new Error('synchronous snapshot rejected');
-  const interrupted={async checkpoint(){},snapshotCheckpoint(){if(++calls===failAt)throw primary}};
+  const interrupted={async checkpoint(){if(asynchronous&&++calls===failAt)throw primary},snapshotCheckpoint(){if(!asynchronous&&++calls===failAt)throw primary}};
   try{
    if(mode==='seek')await vm.insert(packed,control);
    const operation=()=>mode==='insert'?vm.insert(packed,interrupted):vm.seekBound([value],'SeekGE',interrupted);
-   if(failAt)await assert.rejects(operation(),e=>e===primary);else await operation();
+   const pagesBefore=arena.pageCount;
+   if(failAt){await assert.rejects(operation(),e=>e===primary);if(asynchronous&&mode==='insert'&&arena.pageCount>pagesBefore)rejectedPageGrowth=true}else await operation();
    // Insert also checkpoints later private snapshots after publication; those
    // failures may fault the arena. Never retry a mutating failed operation.
    assert.equal(value.diagnostic().ownership,'borrowed');
@@ -32,8 +34,9 @@ for(const kind of ['blob','text'])test(`${kind}: each large packed input and bor
   }finally{value.release();life.invalidate();vm.close();arena.close()}
   assert.equal(budget.usedBytes,0);return calls;
  }
- for(const mode of ['insert','seek']){
-  const count=await run(mode,0);assert.ok(count>2);t.diagnostic(`${mode} snapshot checkpoints=${count}`);
-  for(let i=1;i<=count;i++)await run(mode,i);
+ for(const asynchronous of [false,true])for(const mode of ['insert','seek']){
+  const count=await run(mode,0,asynchronous);assert.ok(count>2);t.diagnostic(`${mode} ${asynchronous?'async':'snapshot'} checkpoints=${count}`);
+  for(let i=1;i<=count;i++)await run(mode,i,asynchronous);
  }
+ assert.equal(rejectedPageGrowth,true,'at least one rejected insert allocated overflow pages before failure');
 });
