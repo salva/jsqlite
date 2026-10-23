@@ -456,10 +456,12 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 ## WHERE, joins and physical indexes
 
 The [current finite two-axis WHERE inventory](research/where-beta4-admission.md)
-separates SQL correctness from selected/executed work at the accepted selected-IN
-delivery. It supersedes the scalar-IN-first/seven-of-twelve proposal, distinguishes
-RIGHT/FULL main-pass bypass from selected unmatched drain, and recommends bounded
-foundation readiness without granting whole-engine or release compatibility.
+separates SQL correctness from selected/executed work on corrected7d9, with current
+source-owner/W174 integration/V19 installed-browser evidence. It supersedes the
+scalar-IN-first/seven-of-twelve proposal and recommends the finite beta.4 MOST
+milestone on common load-bearing access breadth, while disclosing automatic/Bloom,
+RIGHT/FULL matched-pass and specialized optimization gaps. This is a technical
+recommendation for renewed review, not ROOT milestone or release acceptance.
 
 Selected scalar uncorrelated SELECT-IN retains the linked resolved SELECT and
 original parameters. expr.c candidate/uniqueness gates choose direct base-table
