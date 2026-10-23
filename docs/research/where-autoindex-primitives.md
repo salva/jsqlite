@@ -667,6 +667,19 @@ Last. Corrected fixture to explicit p4KeyInfo packed seam, not production fallba
 Focused proc-e416014d090d passes. No page-count assertion/native oracle capture,
 SQL enrollment, dispatch fault injection or general comparator parity claim.
 
+Traversal cancellation follow-up uses actual Last/Rewind,Next/Prev,Column VM
+routes after a built400-record tree's first row. Each record covers6000 BLOB
+bytes; forward/reverse × abort/deadline × twice/reset preserve primary error,
+abort cause and repeated-step/reset identity. Independently paused packed VM
+finishes all400 identities in order and resets after victim failure. Focused
+4/4 proc-d453a4fe8b71 passes without production change. Uses host timer/yield
+and1ms timeout, not native timing: exact failing opcode/checkpoint is unobserved,
+so only post-first-row traversal-phase cancellation is established, not proof
+that failure occurred inside one particular cursor method. Separate VM budgets,
+no measured shared refund/public SQL concurrency or fresh native capture.
+Existing #privateControl and #halt ordering inspected; no diagnostic architecture
+or patched globals added.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
