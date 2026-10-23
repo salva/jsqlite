@@ -95,8 +95,15 @@ Use existing limits/work/scheduler/abort/deadline, no new public options. Future
 private deterministic pause/fault controls must identify execution, phase
 (build/probe), successful allocations and requested bytes; fail before allocation
 publication, preserve the original error, and never replay work automatically.
-Capacity tests must measure successful high-water H then exercise H−1/H/H+1 on
-identical input, plus page/record/filter partial faults. Cancel/deadline must fire
+Capacity tests measure successful high-water H separately for maxBytes,
+maxEntries and maxKeyBytes, including every private consumer of the same execution
+but excluding separately owned survivor resources. Vary only that dimension with
+others nonbinding, then exercise H−1/H/H+1 on identical input; below-boundary
+build admission must publish no result rows, never fallback, preserve limit error,
+and release resources. At/above boundary require complete expected results and
+actual work. The capacity contract self-test mutates these branches; actual
+high-water observation/allocation adapter remains pending. Also require partial
+page/record/filter allocation faults. Cancel/deadline must fire
 after confirmed work in each phase, and reset/retry/finalize/close must verify
 release plus independent statement survival. These are required pending controls,
 not executed safety guarantees. Empty skip bodies are inventory, not coverage.

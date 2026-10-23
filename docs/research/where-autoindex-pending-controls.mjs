@@ -26,14 +26,22 @@ export async function workAndLifetime(adapter, expectations) {
   assert.notEqual(replacement.planIdentity,rebound.planIdentity);
   assert.notEqual(replacement.executionId,rebound.executionId);
 }
-export async function capacity(adapter) {
-  const measured=await adapter.measureHighWater();
-  assert.ok(Number.isSafeInteger(measured) && measured>0);
-  for(const limit of [measured-1,measured,measured+1]) {
-    const result=await adapter.executeWithLimit(limit);
-    if(limit<measured) assert.equal(result.error.name,'PrivateStateLimitError');
-    else assert.equal(result.error,null);
-    assertReleased(result.released,result.independentBefore,result.independentAfter);
+export async function capacity(adapter, expected) {
+  // H includes all private consumers of this same execution, not a global or
+  // survivor budget. Vary one dimension while holding the others nonbinding.
+  for(const dimension of ['maxBytes','maxEntries','maxKeyBytes']) {
+    const measured=await adapter.measureHighWater(dimension);
+    assert.ok(Number.isSafeInteger(measured) && measured>0);
+    for(const limit of [measured-1,measured,measured+1]) {
+      const result=await adapter.executeWithLimit(dimension,limit);
+      assert.equal(result.dimension,dimension);
+      assert.equal(result.fallback,false);
+      if(limit<measured) {
+        assert.equal(result.error?.name,'PrivateStateLimitError');
+        assert.equal(result.publishedResultRows,0);
+      } else assertResult(result,expected);
+      assertReleased(result.released,result.independentBefore,result.independentAfter);
+    }
   }
 }
 export async function interrupted(adapter, expectations) {
