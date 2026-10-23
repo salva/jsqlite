@@ -7,7 +7,7 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
@@ -15,13 +15,29 @@ assert d.sqlite3_sourceid().decode()==manifest['sqliteSourceId']
 for name in ['name','decltype','database_name','table_name','origin_name']:
  f=getattr(d,'sqlite3_column_'+name);f.argtypes=[C.c_void_p,C.c_int];f.restype=C.c_char_p
 sql='SELECT l.id AS lid,r.id AS rid,r.payload FROM lhs l LEFT JOIN rhs r ON r.k=l.k ORDER BY l.id,r.id'
-result={'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
+if a.case=='inner': sql=sql.replace('LEFT JOIN','INNER JOIN')
+if a.case=='on': sql=sql.replace('r.k=l.k','r.k=l.k AND r.id<4')
+if a.case=='where': sql=sql.replace(' ORDER BY',' WHERE r.id<4 ORDER BY')
+if a.case=='is': sql=sql.replace('r.k=l.k','r.k IS l.k')
+if a.case in ['nocase','rtrim','binary']:
+ sql=sql.replace('r.k=l.k',f'r.k=l.k AND r.payload=l.c COLLATE {a.case.upper()}')
+result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path
  db=C.c_void_p();assert d.sqlite3_open(str(path).encode(),C.byref(db))==0
  h.execsql(d,db,f"PRAGMA encoding='{enc}'; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k INTEGER); CREATE TABLE rhs(id INTEGER PRIMARY KEY,k INTEGER,payload TEXT);")
  h.execsql(d,db,'WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<64) INSERT INTO lhs SELECT x,CASE WHEN x=64 THEN NULL ELSE x%16 END FROM n;')
  h.execsql(d,db,"WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<128) INSERT INTO rhs SELECT x,CASE WHEN x=128 THEN NULL ELSE x%16 END,'v'||x FROM n;")
+ if a.case in ['nocase','rtrim','binary']:
+  h.execsql(d,db,"ALTER TABLE lhs ADD COLUMN c TEXT; UPDATE lhs SET c=CASE id%3 WHEN 0 THEN 'A'||char(0)||'x' WHEN 1 THEN 'a ' ELSE 'A' END; UPDATE rhs SET payload=CASE id%3 WHEN 0 THEN 'a'||char(0)||'y' WHEN 1 THEN 'a' ELSE 'A' END;")
+ if a.case in ['absent','collision']:
+  # Native filterHash numeric addition, 10000-byte filter: 80001 collides
+  # with present key 1 modulo 80000; 17 has an absent bit. No host hash.
+  h.execsql(d,db,f'UPDATE lhs SET k={17 if a.case=="absent" else 80001} WHERE id<64;')
+ if a.case=='empty-inner': h.execsql(d,db,'DELETE FROM rhs;')
+ if a.case=='empty-outer': h.execsql(d,db,'DELETE FROM lhs;')
+ if a.case=='types':
+  h.execsql(d,db,"UPDATE lhs SET k=CASE id%8 WHEN 0 THEN 1.0 WHEN 1 THEN 1.5 WHEN 2 THEN '01' WHEN 3 THEN 'x' WHEN 4 THEN x'31' WHEN 5 THEN -1 WHEN 6 THEN NULL ELSE 80001 END; UPDATE rhs SET k=CASE id%7 WHEN 0 THEN 1 WHEN 1 THEN 1.5 WHEN 2 THEN '01' WHEN 3 THEN 'X' WHEN 4 THEN x'31' WHEN 5 THEN -1 ELSE NULL END;")
  assert d.sqlite3_close(db)==0
  assert d.sqlite3_open_v2(str(path).encode(),C.byref(db),1,None)==0
  variant={'encoding':enc,'fixture':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'modes':[]}
@@ -30,7 +46,8 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   eqp,_=h.query(d,db,'EXPLAIN QUERY PLAN '+sql);ops,_=h.query(d,db,'EXPLAIN '+sql)
   names=[h.text(row[1]) for row in ops]
   assert ('OpenAutoindex' in names)==enabled
-  assert ('FilterAdd' in names)==enabled and ('Filter' in names)==enabled
+  if a.case!='is':
+   assert ('FilterAdd' in names)==enabled and ('Filter' in names)==enabled
   st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
   columns=[{key:(getattr(d,'sqlite3_column_'+fn)(st,i) or b'').decode() or None for key,fn in [('name','name'),('declaredType','decltype'),('database','database_name'),('table','table_name'),('origin','origin_name')]} for i in range(d.sqlite3_column_count(st))]
   runs=[]
@@ -44,8 +61,13 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    runs.append({'rows':rows,'rc':rc,'fullscanSteps':d.sqlite3_stmt_status(st,1,1),'autoindexRows':d.sqlite3_stmt_status(st,3,1),'vmSteps':d.sqlite3_stmt_status(st,4,1),'filterHit':d.sqlite3_stmt_status(st,8,1),'filterMiss':d.sqlite3_stmt_status(st,7,1)})
    assert d.sqlite3_reset(st)==0
   assert runs[0]==runs[1]
+  if enabled and a.case in ['absent','collision']:
+   assert len(rows)==64 and all(row[1]['type']=='null' for row in rows)
+   assert runs[0]['filterHit']==(63 if a.case=='absent' else 0)
+   assert runs[0]['filterMiss']==(0 if a.case=='absent' else 63)
   assert d.sqlite3_finalize(st)==0
   variant['modes'].append({'automaticIndex':enabled,'columns':columns,'eqp':eqp,'ops':ops,'runs':runs})
+ assert variant['modes'][0]['columns']==variant['modes'][1]['columns']
  assert variant['modes'][0]['runs'][0]['rows']==variant['modes'][1]['runs'][0]['rows']
  assert d.sqlite3_close(db)==0
  result['variants'].append(variant)

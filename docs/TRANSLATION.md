@@ -471,6 +471,8 @@ is the current bounded beta.5 proposal: native costed transient covering indexes
 shared packed private-Btree build/probe, source Bloom hash/filter and execution-owned
 Once/resource lifetime, with native-FIRST captures and existing-owner handoff.
 Runtime support is still missing; correct scan results are not implementation credit.
+[Executable boundary and pending private work contract](research/where-autoindex-boundary.md)
+provide native negative-bit/collision and semantic controls, not runtime acceptance.
 The [beta.4 two-axis inventory](research/where-beta4-admission.md) is historical
 7d9/W174/V19 evidence, not current input certification or a new MOST recommendation.
 Current bounded71ad G84/K-f35 and e00e W186 reconciliation have separate applicability

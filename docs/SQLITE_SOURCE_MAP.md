@@ -576,7 +576,8 @@ migrations do not establish full AggInfo/analyzer or arbitrary composition.
 
 ## WHERE and joins
 
-[Runtime automatic-index/Bloom proposal](research/where-autoindex-admission.md):
+[Runtime automatic-index/Bloom proposal](research/where-autoindex-admission.md)
+and [native executable boundary/pending private assertions](research/where-autoindex-boundary.md):
 `where.c:whereLoopAddBtree/constructAutomaticIndex/sqlite3ConstructBloomFilter`,
 `whereInt.h:WhereLoop/WhereLevel`, `wherecode.c:codeAllEqualityTerms/filterPullDown`,
 `vdbe.c:filterHash/Once/OpenAutoindex/FilterAdd/Filter` → proposed shared loop descriptor,
