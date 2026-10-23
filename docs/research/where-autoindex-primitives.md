@@ -374,6 +374,15 @@ No reproduced production divergence. Focused2/2/typecheck/diffcheck evidence:
 `work:///cards/card-s-j-a/processes/proc-484be64a7387/stdout.log`.
 Injected async errors exercise shared checkpoint propagation, not host timer
 cancellation or allocation-hook failure. Faulted mutations are never retried.
+The capacity control uses the real PrivateStateByteBudget.reserve rejection,
+observed by a test-only subclass without changing admission. A118-point sweep
+from40000 to99904 bytes in512-byte steps yields5 rejected insertions, all after
+page-count growth, and113 successes. It checks primary PrivateStateLimitError
+identity, no budget excess at rejection/return, and cumulative zero on disposal.
+This is sampled capacity-boundary evidence, not exact peak/minimum admission or
+native malloc parity. No exercised production divergence or repair.
+Focused3/3/typecheck/diffcheck evidence:
+`work:///cards/card-s-j-a/processes/proc-286b35498e39/stdout.log`.
 
 ## Remaining acceptance work
 

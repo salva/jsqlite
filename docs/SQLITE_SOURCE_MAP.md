@@ -23,7 +23,9 @@ independent arena readability and cumulative disposal refund (not victim rollbac
 snapshot rejection for6000-byte TEXT/BLOB overflow keys (12 insert/4 seek sites),
 and10 async insertion/5 overflow-seek failures per type, including rejected
 insertion after page-count growth; primary error/borrow ownership and disposal
-are preserved, with no retry of failed mutation or rollback claim.
+are preserved, with no retry of failed mutation or rollback claim. Its real byte
+budget sweep also witnesses capacity rejection after partial overflow allocation
+and cumulative disposal refund (sampled limits, not exact peak admission).
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`
