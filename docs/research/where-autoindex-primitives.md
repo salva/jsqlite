@@ -604,6 +604,19 @@ final cumulative zero remains required. No claim of rollback, native fault
 timing, public survivor/session continuity, split/overflow coverage or SQL build
 completion; separate packed failure tests retain their narrower evidence.
 
+Pre-FilterAdd boundary: delete.c sqlite3GenerateIndexKey loads typed fields and
+emits MakeRecord before where.c FilterAdd/IdxInsert. Descriptor [a NOCASE,b REAL,
+blob,rowid] now feeds a VM program with6000-byte covering BLOB. FilterInit's
+exact10128-byte occupied budget leaves no record/conversion headroom; next
+MakeRecord fails before subsequent FilterAdd/OpenEphemeral/IdxInsert.3 encodings
+×2 reset/rebuild attempts preserve original limit error; independently paused
+VM reaches post-MakeRecord phase then completes. Focused proc-07abd86f744c
+passes without production change. No after-error inspection of private bits is
+possible: execution cleanup discards owners. Unchanged bits/no insertion follows
+opcode ordering, not a private-state introspection claim. UTF16 may fail earlier
+conversion reservation; this is no-headroom admission, not exact minimal packed
+record threshold or heap measurement. No automatic SQL lowering/runtime credit.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

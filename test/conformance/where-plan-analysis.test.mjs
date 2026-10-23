@@ -7,6 +7,7 @@ import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/priva
 import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 import {PrivateBloomFilter} from '../../src/internal/private-bloom.ts';
+import {VdbeStatement} from '../../src/internal/vdbe.ts';
 import {Mem,memFromPublic} from '../../src/internal/mem.ts';
 import {packRecord} from '../../src/internal/record-pack.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
@@ -353,6 +354,42 @@ test('mixed descriptor build failures after FilterAdd preserve first error refun
    for(let failAt=1;failAt<=checkpoints;failAt++)await run(failAt);
   }finally{fields.forEach(v=>v.release());out.release();survivor.filter.close();survivor.vm.close();survivor.arena.close();}
   assert.equal(budget.usedBytes,0);
+ }
+});
+
+test('descriptor MakeRecord covering payload admission fails before FilterAdd and cursor publication',async()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve('SELECT u.blob FROM t o CROSS JOIN t u ON u.a COLLATE NOCASE=o.a AND u.b=o.b',s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([s.blob]),encoding,plan);
+  assert.deepEqual(d.fields,[s.a,s.b,s.blob,null]);assert.equal(d.bloom,true);
+  const ops=[
+   {code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},{code:'Integer',p1:1n,p2:2},
+   {code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:7n,p2:4},
+   {code:'Integer',p1:0n,p2:7},{code:'Filter',p1:8,p2:8,p3:1,p4:2},{code:'Halt'},
+   {code:'ResultRow',p1:7,p2:1},
+   {code:'MakeRecord',p1:1,p2:4,p3:5},
+   // Native source loads typed fields; VM still admits any UTF encoding scratch.
+   {code:'Integer',p1:1n,p2:7},{code:'ResultRow',p1:7,p2:1},
+   {code:'FilterAdd',p1:8,p3:1,p4:2},{code:'OpenEphemeral',p1:0,keyInfo:d.keyInfo},
+   {code:'IdxInsert',p1:0,p2:5},{code:'Halt'}];
+  function owner(maxBytes){return new VdbeStatement({encoding,registers:9,parameters:[],columns:[{name:'phase'}],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes},ops},()=>{},()=>()=>{},()=>{});}
+  // 10128 bytes are occupied by FilterInit. Reject a packed payload before
+  // publication, rather than relying on a later Btree capacity failure.
+  const failed=owner(10128),survivor=owner(1000000);
+  try{
+   assert.equal(await survivor.step(),'row');assert.equal(survivor.column(0),0n);
+   for(let run=0;run<2;run++){
+    assert.equal(await failed.step(),'row');assert.equal(failed.column(0),0n);
+    let primary;await assert.rejects(failed.step(),error=>{primary=error;return error.kind==='limit'});
+    await assert.rejects(failed.step(),error=>error===primary);
+    assert.throws(()=>failed.reset(),error=>error===primary);
+   }
+   assert.equal(await survivor.step(),'row');assert.equal(survivor.column(0),1n);
+   assert.equal(await survivor.step(),'done');
+  }finally{failed.finalize();survivor.finalize();}
  }
 });
 
