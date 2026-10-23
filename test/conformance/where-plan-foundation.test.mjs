@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {physicalRowidIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
-import {standaloneBloomDescriptors,automaticIndexCandidates,automaticIndexDescriptor,automaticIndexPathEligible,columnIsGoodAutomaticIndexCandidate,termCanDriveAutomaticIndex,automaticIndexCosts,admitIndexConstraint,btreeLoops,sourceBit,whereClause,wherePathSolver,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
+import {whereLoopInsertCandidates,standaloneBloomDescriptors,automaticIndexCandidates,automaticIndexDescriptor,automaticIndexPathEligible,columnIsGoodAutomaticIndexCandidate,termCanDriveAutomaticIndex,automaticIndexCosts,admitIndexConstraint,btreeLoops,sourceBit,whereClause,wherePathSolver,WherePlanningUnsupportedError} from '../../src/internal/where-plan.ts';
 
 const expression={tokens:[],reduction:null};
 function fixture(){
@@ -18,6 +18,45 @@ function fixture(){
 function term(id,source,column,columnIndex,operator,extra={}){return Object.freeze({id,expression,origin:{kind:'where'},operator,left:{source,sourceOrdinal:0,column,columnIndex,rowid:false},rightAffinity:column.affinity,effectiveCollation:column.collation?.toLowerCase()??'binary',originalIndexedOperand:'left',prereqRight:0n,prereqAll:sourceBit(0),parentId:null,childIds:Object.freeze([]),virtual:false,outerJoinSafe:Object.freeze({mayDrive:true,mayOmitResidual:true}),...extra});}
 
 const automaticContext={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+
+test('automatic-first production feeds native pruning and actual smallouter solver',()=>{
+ const {source,b}=fixture();source.table.indexes=[];
+ const eq=term(1,source,b,1,'eq',{prereqRight:2n});
+ const options={forcedIndex:null,neededColumns:new Set(),orderBy:[],automaticIndex:automaticContext};
+ const loops=btreeLoops(source,0,whereClause([eq]),options);
+ assert.equal(loops[0].kind,'automatic-index');assert.equal(loops[1].kind,'table-scan');
+ assert.equal(loops[0].setupCost,automaticIndexCosts(200n).setupCost);
+ assert.equal(loops[0].outputRows,43n);assert.deepEqual(loops[0].terms,[eq]);
+ const outer={...loops[1],sourceOrdinal:1,prereq:0n,outputRows:100n};
+ const selected=wherePathSolver([loops,[outer]],2);
+ assert.equal(selected.loops[1].kind,'automatic-index');
+ assert.equal(wherePathSolver([loops,[{...outer,outputRows:2n}]],2).loops[1].kind,'table-scan');
+ // Threshold is actual outer cardinality, independent of ready prerequisites.
+ const auto={...loops[0],runCost:0n,setupCost:1n},scan={...loops[1],runCost:1000n};
+ assert.equal(wherePathSolver([[auto,scan],[{...outer,outputRows:3n}]],2).loops[1].kind,'automatic-index');
+ assert.equal(wherePathSolver([[auto,scan],[{...outer,outputRows:2n}]],2).loops[1].kind,'table-scan');
+ assert.equal(wherePathSolver([[{...auto,prereq:0n},scan]],1).loops[0].kind,'table-scan');
+ assert.ok(btreeLoops(source,0,whereClause([eq]),{...options,notIndexed:true}).every(loop=>loop.kind!=='automatic-index'));
+ const indexed=fixture(),indexedEq=term(2,indexed.source,indexed.a,0,'eq',{prereqRight:2n});
+ // Override the quality guard for this fixture by removing only its leading
+ // declared key from candidate consideration: use b, the later good key.
+ const indexedB=term(3,indexed.source,indexed.b,1,'eq',{prereqRight:2n});
+ const forced=btreeLoops(indexed.source,0,whereClause([indexedEq,indexedB]),{...options,forcedIndex:indexed.index});
+ assert.ok(forced.every(loop=>loop.kind!=='automatic-index'));
+ const persistent={...forced.find(loop=>loop.capability?.nEq===2),sortIdentity:0,prereq:auto.prereq,runCost:10000n,outputRows:10000n};
+ // Native equality preference is independent of cost dominance. IS NULL and
+ // skip-scan must instead retain the expensive declared alternative alongside auto.
+ assert.equal(whereLoopInsertCandidates([auto,persistent]).some(loop=>loop.kind==='automatic-index'),false);
+ const isCap={...persistent.capability,equalitySlots:persistent.capability.equalitySlots.map(slot=>slot&&({...slot,operator:'is'}))};
+ assert.equal(whereLoopInsertCandidates([auto,{...persistent,capability:isCap}]).some(loop=>loop.kind==='automatic-index'),false);
+ assert.equal(whereLoopInsertCandidates([auto,{...persistent,prereq:auto.prereq|4n}])[0].kind,'automatic-index');
+ const nullCap={...persistent.capability,equalitySlots:persistent.capability.equalitySlots.map(slot=>slot&&({...slot,operator:'is-null'}))};
+ assert.equal(whereLoopInsertCandidates([auto,{...persistent,capability:nullCap}])[0].kind,'automatic-index');
+ assert.equal(whereLoopInsertCandidates([auto,{...persistent,capability:{...persistent.capability,nSkip:1}}])[0].kind,'automatic-index');
+ const budget={remaining:1n};
+ assert.deepEqual(btreeLoops(source,0,whereClause([eq]),{...options,planBudget:budget}).map(loop=>loop.kind),['automatic-index']);
+ assert.equal(budget.remaining,0n);
+});
 
 test('automatic candidate gates and smallouter admission stay independent of executable plans',()=>{
  const {source,b}=fixture(),eq=term(1,source,b,1,'eq',{prereqRight:2n}),clause=whereClause([eq]);

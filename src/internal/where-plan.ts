@@ -48,12 +48,12 @@ export interface IndexConstraintAdmission {readonly inSeekScan?:boolean;readonly
 export interface RowidConstraint {readonly term:WhereTerm;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly bound:IndexConstraintAdmission["bound"]}
 export interface BtreeCapability {readonly inSeekScan?:boolean;readonly index:IndexNode|null;readonly physicalIndex:PhysicalIndex|null;readonly nEq:number;readonly nSkip:number;readonly equalitySlots:readonly (IndexConstraintAdmission|null)[];readonly lower:IndexConstraintAdmission|null;readonly upper:IndexConstraintAdmission|null;readonly constrainedFields:number;readonly orderTermsSatisfied:number;readonly reverse:boolean;readonly covering:boolean;readonly needsTableLookup:boolean;readonly rowidEquality:RowidConstraint|null;readonly rowidLower:RowidConstraint|null;readonly rowidUpper:RowidConstraint|null}
 export type WhereLoop = BtreeWhereLoop | JsonWhereLoop | MetadataWhereLoop;
-export interface BtreeWhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index"|"multi-or";readonly orInfo?:Extract<WhereTermInfo,{kind:"or"}>;readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
+export interface BtreeWhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index"|"multi-or"|"automatic-index";readonly automatic?:AutomaticIndexCandidate;readonly orInfo?:Extract<WhereTermInfo,{kind:"or"}>;readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode|null;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
 export type NeededColumn=ColumnNode|typeof ROWID_NEEDED;
-export interface CandidateOptions {readonly sampleProbe?:Stat4Probe|undefined;readonly sampleCounts?:readonly (bigint|null)[]|undefined;readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet;readonly ordinaryLoops?:readonly WhereLoop[];readonly completion?:{done:boolean};/** Internal optimization control; source default enabled. */readonly skipScan?:boolean;/** Internal optimization control; source default enabled. */readonly inSeekScan?:boolean}
+export interface CandidateOptions {/** Internal opt-in only after the caller can lower automatic loops. No SQL caller currently supplies it. */readonly automaticIndex?:AutomaticIndexContext;readonly sampleProbe?:Stat4Probe|undefined;readonly sampleCounts?:readonly (bigint|null)[]|undefined;readonly forcedIndex:IndexNode|null;readonly notIndexed?:boolean;readonly sourcePrereq?:SourceMask;readonly neededColumns:ReadonlySet<NeededColumn>;readonly orderBy:readonly OrderRequirement[];readonly resolved?:ResolvedSelect;readonly planBudget?:WherePlanBudget;readonly orSet?:WhereOrSet;readonly ordinaryLoops?:readonly WhereLoop[];readonly completion?:{done:boolean};/** Internal optimization control; source default enabled. */readonly skipScan?:boolean;/** Internal optimization control; source default enabled. */readonly inSeekScan?:boolean}
 export class WherePlanningUnsupportedError extends Error {readonly classification="temporary" as const;constructor(message:string){super(message);this.name="WherePlanningUnsupportedError"}}
 export interface WhereTruthState {readonly high:Set<WhereTerm>;readonly heuristic:Set<WhereTerm>;secondPass:boolean}
 export interface WherePlanBudget {reprepare?:ReprepareContext;remaining:bigint;/** Internal source planner-limit control, independent of prior invocation consumption. */constructionLimit?:bigint;reserveProbe?:((bytes:number)=>()=>void)|undefined;truth?:WhereTruthState;/** where.c sqlite3ProgressCheck: throws control errors, never insertion DONE. */readonly progressCheck?:(()=>void)|undefined}
@@ -604,6 +604,14 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // NOT INDEXED suppresses optional secondary indexes, not physical storage.
  const loops:WhereLoop[]=[],budget=options.planBudget??{remaining:21000n};
  const insert=(loop:BtreeWhereLoop):boolean=>insertWhereLoop(loop,source,sourceOrdinal,clause,options,loops,budget,completion);
+ // whereLoopFindLesser's SETUP-INVARIANT requires auto before zero-setup
+ // scans/indexes. Cost-only OR builders must never inherit this capability.
+ if(options.automaticIndex&&!options.orSet&&!options.forcedIndex&&!options.notIndexed){
+  for(const automatic of automaticIndexCandidates(source,sourceOrdinal,clause,{...options.automaticIndex,sourcePrereq:sourcePrereq|options.automaticIndex.sourcePrereq})){
+   const loop:BtreeWhereLoop=freeze({source,sourceOrdinal,prereq:automatic.prereq,kind:"automatic-index",automatic,capability:null,sortIdentity:0,setupCost:automatic.setupCost,runCost:automatic.runCost,outputRows:automatic.outputRows,terms:Object.freeze([automatic.seed])});
+   if(!whereLoopInsert(loops,loop,budget,options.ordinaryLoops))return Object.freeze(loops);
+  }
+ }
  if(!options.forcedIndex&&!source.table.withoutRowid&&!insert(scan))return Object.freeze(loops);
  // A successful scan insertion is OK even when it consumed the last slot.
  if(!options.orSet&&budget.remaining===0n)return Object.freeze(loops);
@@ -922,6 +930,9 @@ function whereLoopInsert(inserted:WhereLoop[],candidate:WhereLoop,budget:WherePl
     const old=inserted[i]!;
     if(old.sourceOrdinal!==template.sourceOrdinal||(old.sortIdentity??0)!==(template.sortIdentity??0))continue;
     if((old.setupCost!==0n&&template.setupCost!==0n&&old.setupCost!==template.setupCost)||old.setupCost<template.setupCost)throw new Error("WHERE setup invariant");
+    // Native declared equality indexes replace auto regardless of estimated
+    // run/output cost, but neither skip-scan nor IS NULL has that privilege.
+    if(old.kind==="automatic-index"&&template.kind==="index"&&template.capability?.nSkip===0&&template.capability.equalitySlots.some(slot=>slot?.operator==="eq"||slot?.operator==="is")&&(old.prereq&template.prereq)===template.prereq)return i;
     if((old.prereq&template.prereq)===old.prereq&&old.setupCost<=template.setupCost&&old.runCost<=template.runCost&&old.outputRows<=template.outputRows)return null;
     if((old.prereq&template.prereq)===template.prereq&&old.runCost>=template.runCost&&old.outputRows>=template.outputRows)return i;
    }
@@ -950,6 +961,7 @@ export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sou
   const next:WherePath[]=[];let worst=0,mxCost=0n,mxUnsort=0n;
   for(const path of paths)for(const group of candidates)for(const loop of group){
    const bit=sourceBit(loop.sourceOrdinal);if(path.ready&bit||(loop.prereq&~path.ready)!==0n)continue;
+   if(loop.kind==="automatic-index"&&path.rows<3n)continue; // where.c smallouter
    let unsorted=loop.runCost+path.rows;if(loop.setupCost!==0n)unsorted=logEstAdd(loop.setupCost,unsorted);unsorted=logEstAdd(unsorted,path.unsortedCost);
    const ready=path.ready|bit,rows=path.rows+loop.outputRows;
    // where.c:wherePathSatisfiesOrderBy: an IPK equality is WHERE_ONEROW,

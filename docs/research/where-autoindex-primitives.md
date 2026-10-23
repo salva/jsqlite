@@ -109,11 +109,41 @@ Final checked chain runs `node --experimental-strip-types --test test/conformanc
 `work:///cards/card-s-j-a/processes/proc-29efad98474c/stdout.log`.
 No fresh native capture or SQL runtime feature pass is claimed.
 
+## Ordinary candidate/solver integration
+
+`CandidateOptions.automaticIndex` is an internal lowering-capability opt-in;
+no SQL producer supplies it. `btreeLoops` inserts native-cost automatic loops
+before its zero-setup table/index alternatives and consumes the shared planning
+budget for each attempted insertion. OR cost-only builders and forced/NOT INDEXED
+paths cannot inherit it. Loops retain their seed candidate, not a fake IndexNode.
+`whereLoopFindLesser` comparison now includes native declared equality preference:
+a compatible declared EQ/IS index replaces auto before cost dominance, but not
+IS NULL or skip-scan. This preserves SETUP-INVARIANT instead of appending auto
+after scans. The actual `wherePathSolver` rejects automatic loops when the
+current path's nRow<3 LogEst, even if all prerequisites are ready. The descriptor
+is still expanded only at a chosen readiness frontier, by the later consumer.
+
+Foundation tests exercise production order/cost/terms, disabled SQL defaults,
+actual solver threshold2/3, single-source smallouter rejection, native declared
+index replacement independent of cost and its IS NULL/skip exceptions, forced
+and NOT INDEXED controls with matching source identity, and budget exhaustion.
+Pinned where.c branches read:4096–4115 automatic production,2745–2803 lesser
+comparison,5950 smallouter. This supplies the missing source-order integration,
+not runtime execution acceptance.
+
+Checked command: `node --experimental-strip-types --test test/conformance/where-plan-analysis.test.mjs test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check`, then four unchanged native-first receipt replays, all chained on success: **325/325**, zero failures/skips, typecheck/diff check/replays exit0. Output:
+`work:///cards/card-s-j-a/processes/proc-a3cb75695184/stdout.log`.
+Two additional IS and extra-prerequisite pruning assertions were added after
+that test process started; changed foundation tests reran **11/11** exit0:
+`work:///cards/card-s-j-a/processes/proc-17b5ebd85c82/stdout.log`.
+Production inputs are unchanged between these checks. No failed check occurred
+in this attempt; no fresh native capture or SQL feature credit is claimed.
+
 ## Remaining acceptance work
 
-Immutable proposals and independent standalone descriptors are available, but
-native automatic-first loop insertion/pruning and actual smallouter solver
-integration and runtime enrollment are not delivered. Continue complete source-derived NOT INDEXED/forced,
+Automatic candidate insertion/pruning and actual smallouter solver integration
+are available behind internal opt-in; SQL runtime enrollment remains absent.
+Continue complete source-derived NOT INDEXED/forced,
 affinity/unready/outer/covering gates and collation/multipage packed boundary
 regressions. Current new prefix fixtures use numeric keys, not collation tests.
 Filter VM diagnostics/counters and measured runtime faults/cancel/deadline,

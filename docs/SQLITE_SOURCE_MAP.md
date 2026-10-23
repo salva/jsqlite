@@ -24,8 +24,12 @@ EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
 `whereCheckIfBloomFilterIsUseful` → independent `standaloneBloomDescriptors`,
 requiring selected-path stat1, selfcull proof, equality and repeated-search cost.
 Foundation tests cover explicit disabled gates and all-encoding descriptor layouts.
-These are internal immutable proposals, not executable loops: native insertion/
-pruning and runtime enrollment remain missing.
+`where.c:whereLoopAddBtree/whereLoopFindLesser/wherePathSolver` →
+`btreeLoops` automatic-first opt-in, declared EQ/IS (not skip-scan/IS NULL)
+replacement before cost dominance, and actual solver smallouter gate. Tests:
+`where-plan-foundation.test.mjs` (native costs/order, budget exhaustion,
+pruning exceptions, prerequisites and outer-row threshold). No SQL caller opts in;
+runtime enrollment remains missing.
 `expr.c:sqlite3ExprIsSingleTableConstraint/sqlite3ExprIsTableConstant` →
 `automaticIndexBuildPredicate` and descriptor `buildPredicates`, using resolved
 column/alias/function owners and native outer-join rules. Tests:

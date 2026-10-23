@@ -477,16 +477,17 @@ Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter
 state. No SQL producer currently emits them. Source-owned automatic driving-term
-and declared-index quality admission plus native setup/run/output cost primitives
-are available but not enrolled. Immutable automatic cost candidates, ready-key/
-covering/KeyInfo descriptors and independent standalone Bloom descriptors are also
-available through explicit internal enable/proof inputs; none is an executable
-WhereLoop or SQL plan. With the matching resolved owner, descriptors retain native
-single-table partial-build predicates: virtual terms, other-source columns,
+and declared-index quality admission plus native setup/run/output costs feed the
+ordinary Btree candidate builder through an explicit internal lowering-capability
+opt-in (`CandidateOptions.automaticIndex`). Automatic loops are inserted before
+zero-setup alternatives, participate in native declared-equality replacement and
+cost pruning, and reach the solver's actual smallouter gate. No SQL caller opts
+in, so unlowered loops cannot displace executable SQL plans. Ready-key/covering/
+KeyInfo descriptors and independent standalone Bloom descriptors retain explicit
+readiness/proof inputs. With the matching resolved owner, descriptors retain
+single-table partial-build predicates; virtual terms, other-source columns,
 subqueries, volatile functions and unsafe outer-join provenance are excluded.
-Native automatic-first insertion/pruning and actual smallouter solver integration
-remain missing. The
-smallouter helper alone grants no selection credit. Collation/multipage boundary
+Collation/multipage boundary
 coverage and full consumer/resource acceptance remain pending;
 [primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.
 [Executable boundary and pending private work contract](research/where-autoindex-boundary.md)
