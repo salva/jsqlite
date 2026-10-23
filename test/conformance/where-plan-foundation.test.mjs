@@ -100,6 +100,34 @@ for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: automat
  assert.equal(automaticIndexDescriptor(candidate,clause,2n,new Set(),encoding),null);
 });
 
+for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: automatic WR composite identity overlaps keys without a rowid tail`,()=>{
+ const {source,a,b}=fixture();
+ const c=Object.freeze({...b,name:'c'}),payload=Object.freeze({...a,name:'payload'});
+ source.table.indexes=[];source.table.withoutRowid=true;
+ source.table.columns=Object.freeze([a,b,c,payload]);
+ // Primary-key order differs from table order; coverage is table order,
+ // not a secondary-index PK-tail recipe. One PK column is a driving key.
+ source.table.primaryKey=Object.freeze([c,b]);
+ const eq=term(1,source,b,1,'eq',{prereqRight:2n});
+ const clause=whereClause([eq]),candidate=automaticIndexCandidates(source,0,clause,automaticContext)[0];
+ for(const needed of [new Set(),new Set([payload]),new Set([b,c,payload])]){
+  const d=automaticIndexDescriptor(candidate,clause,0n,needed,encoding);
+  const expected=needed.has(payload)?[b,c,payload]:[b,c];
+  assert.deepEqual(d.fields,expected);
+  assert.equal(new Set(d.fields).size,d.fields.length);
+  assert.ok(!d.fields.includes(null),'WITHOUT ROWID has no invented rowid');
+  assert.equal(d.keyInfo.totalFieldCount,expected.length);
+  assert.equal(d.keyInfo.keyFieldCount,expected.length);
+  assert.deepEqual(d.keyInfo.terms.map(t=>t.collation),expected.map(()=> 'binary'));
+ }
+ // Both composite identity fields become keys, in clause rather than PK order.
+ const second=term(2,source,c,2,'eq',{prereqRight:4n});
+ const allClause=whereClause([eq,second]);
+ const all=automaticIndexDescriptor(candidate,allClause,0n,new Set([payload]),encoding);
+ assert.deepEqual(all.fields,[b,c,payload]);assert.equal(all.keys.length,2);
+ assert.equal(all.prereq,6n);
+});
+
 test('standalone Bloom consumes output-adjustment SELFCULL and selected-path boundaries',()=>{
  const {source,a,b,index}=fixture();source.table.hasStat1=true;source.table.nRowLogEst=100;
  const eq=term(1,source,a,0,'is',{outerOn:true,joinOwner:0});

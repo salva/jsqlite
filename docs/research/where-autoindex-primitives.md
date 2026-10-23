@@ -445,6 +445,17 @@ sqlite3ExprCompareCollSeq/BinaryCompareCollSeq and TS original-expression
 collation retention across virtual commutation were compared. Focused1/1
 (12 combinations): process proc-a80a8eb02a8e, exit0. No exercised divergence;
 this is admission-only evidence, not residual omission or runtime enrollment.
+Composite WITHOUT ROWID coverage follow-up compares native extraCols PK
+inclusion/table-order covering fields/HasRowid tail with descriptor layout.
+Three encoding controls cover a PK ordered [c,b], automatic key b overlapping
+identity, optional payload and both identity columns as automatic keys.
+Fields are [b,c] or [b,c,payload], without duplicates or invented rowid;
+KeyInfo field counts and binary covering terms match. Unlike declared
+secondary physicalIndex PK tails, automatic coverage is table order and binary
+for added fields, not PK collation/direction order. Focused3/3:
+`work:///cards/card-s-j-a/processes/proc-4040b887a492/stdout.log`.
+No exercised divergence or runtime credit. High-column mask aliasing and
+production schema resolution are not established by these synthetic fixtures.
 
 ## Remaining acceptance work
 
