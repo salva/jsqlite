@@ -6,6 +6,7 @@ import {analyzeWhere,rightJoinResidual,btreeLoops,sourceBit,wherePathSolver,wher
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/private-blobkey-pages.ts';
 import {PrivateKeyVmCursor} from '../../src/internal/private-key-vm.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
+import {PrivateBloomFilter} from '../../src/internal/private-bloom.ts';
 import {Mem,memFromPublic} from '../../src/internal/mem.ts';
 import {packRecord} from '../../src/internal/record-pack.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
@@ -272,6 +273,39 @@ test('automatic TEXT descriptor composes encoding collation and packed identity 
    }finally{probe.release();out.release();vm.close();arena.close();}
    assert.equal(budget.usedBytes,0);
   }
+ }
+});
+
+test('mixed automatic descriptor composes live affinity Bloom and authoritative packed seek',async()=>{
+ const control={async checkpoint(){}};
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve('SELECT u.id FROM t o CROSS JOIN t u ON u.a COLLATE NOCASE=o.a AND u.b=o.b',s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([s.id]),encoding,plan);
+  assert.equal(d.bloom,true);assert.deepEqual(d.fields,[s.a,s.b,null]);
+  const limits={maxEntries:100,maxKeyBytes:10000,maxBytes:1000000},budget=new PrivateStateByteBudget(limits.maxBytes);
+  const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits),vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,d.keyInfo,limits),d.keyInfo),filter=await PrivateBloomFilter.open(budget,10000,control);
+  try{
+   for(const [id,a,b] of [[1n,'é',1n],[2n,'é',1.5],[3n,'É',1n],[4n,'é',null]]){
+    const fields=[a,b,id].map(v=>memFromPublic(v,encoding));
+    try{d.keys.forEach((key,i)=>fields[i].applyAffinity(key.affinity,encoding));filter.add(fields.slice(0,2));await vm.insert(packRecord(fields,encoding),control);}finally{fields.forEach(v=>v.release());}
+   }
+   for(const [a,b,expected] of [['é','01',1n],['é','1.5',2n],['É','1',3n],['missing','1',null],['é','9',null]]){
+    const probe=[a,b].map(v=>memFromPublic(v,encoding)),out=new Mem();
+    try{
+     if(b==='01')assert.equal(filter.absent(probe),true,'unaffinitized text must not be used for numeric Filter probe');
+     d.keys.forEach((key,i)=>probe[i].applyAffinity(key.affinity,encoding));
+     const absent=filter.absent(probe);if(expected!==null)assert.equal(absent,false);
+     if(a==='missing')assert.equal(absent,false,'TEXT hash collision requires authoritative seek');
+     let actual=null;
+     if(!absent&&await vm.seekBound(probe,'SeekGE',control)&&!await vm.boundJump(probe,'IdxGT',control)){await vm.column(2,out,control);actual=out.integerValue();}
+     assert.equal(actual,expected);
+    }finally{probe.forEach(v=>v.release());out.release();}
+   }
+  }finally{filter.close();vm.close();arena.close();}
+  assert.equal(budget.usedBytes,0);
  }
 });
 

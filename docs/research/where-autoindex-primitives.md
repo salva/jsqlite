@@ -579,6 +579,17 @@ keys explicitly disable Bloom; forcing a Filter/affinity path here would violate
 native selection. Mixed numeric Filter affinity remains separate prior evidence.
 No automatic SQL lowering, public reset or runtime feature credit.
 
+Mixed descriptor composition:3 encodings use descriptor [a NOCASE,b REAL,rowid],
+live per-key affinity, shared Bloom and packed seek/IdxGT. Numeric text '01',
+'1.5' and '1' returns identities1/2/3; missing TEXT hashes positive yet packed
+comparison rejects; absent numeric9 rejects. Deliberately omitting affinity for
+'01' yields a false negative, confirming consumer ordering. NULL build record
+is present, not proof of SQL NULL-probe semantics. Focused proc-6c8a94e6b65c
+passes without production changes. Fresh pinned SourceID-checked15 public
+queries (proc-651c367fc25b) agree on identities and show REAL1/1.5 distinctly;
+TS test asserts identities, not public REAL metadata. All resources refund.
+This primitive composition does not emit SQL consumers or prove public reset.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
