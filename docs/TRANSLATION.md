@@ -573,7 +573,7 @@ exact NotFound/continue, then feeds the existing KeyInfo match set. Wider barrie
 WR-LHS/multiple-WR/module selected matched access retain fallback; their existing execution is
 not selected-access credit. No algorithm substitution or platform necessity is
 claimed. [WR caller source comparison and finite author evidence](research/wr-matched-evidence.md)
-tracks the two-source extension; independent acceptance remains open. Representative selected-RHS corrupt required/off-path and post-selected
+tracks the two-source extension; independent acceptance remains open. Fresh-drain invocation carries `WHERE_RIGHT_JOIN` semantics even after its source jointype is cleared: selected WR secondary access must use exact primary NotFound/continue, not deferred lookup; covering substitution remains disabled. Mixed storage-class composite PK, descending/NOCASE identity, physical-empty LHS, metadata/reset and native damaged/stale-secondary controls are mapped in `wr-boundary.test.mjs` and the linked evidence. Representative selected-RHS corrupt required/off-path and post-selected
 execution/match-capacity cleanup controls are retained, not exhaustive composition
 coverage. [Source comparison and bounded controls](research/right-matched-evidence.md).
 The bounded three-source extension is independently accepted in

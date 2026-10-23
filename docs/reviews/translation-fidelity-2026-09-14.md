@@ -9,7 +9,7 @@ wider/WR-LHS/multiple-WR/module matched planning remains bypassed, not credited 
 A bounded two-source rowid-LHS/WR-RHS pair now admits selected access (author
 validation, independent acceptance open). Pinned wherecode.c2175 exact primary
 positioning and complete secondary PK extraction feed existing typed Found/IdxInsert;
-[decision and evidence](../research/wr-matched-evidence.md).
+[decision and evidence](../research/wr-matched-evidence.md). The fresh-drain caller now retains WHERE_RIGHT_JOIN semantics after clearing jointype, so stale secondary PKs take exact NotFound/continue instead of deferred-lookup error. Representative selected mixed-PK/physical-empty/metadata/reset/native-corruption controls and first-admitted/second-rejected match capacity are author-tested there; entire-delta independent review remains open.
 Qualified expression-index leaves now retain resolved source ownership while nested
 COLLATE remains structural. [Three-source source/caller argument and controls](../research/three-source-matched-evidence.md)
 documents the extension independently accepted in [[card:card-s]]

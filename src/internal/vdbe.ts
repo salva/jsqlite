@@ -4290,8 +4290,8 @@ function jsonColumnDemand(plan:ReturnType<typeof expandAndResolveSelect>,source:
 }
 
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:(columnAccess:(source:ResolvedSource,column:number)=>{cursor:number;physicalColumnIndex?:number})=>void;projectedRow?:(first:number,count:number)=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):NonNullable<Program["whereAccounting"]>;
-function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:(columnAccess:(source:ResolvedSource,column:number)=>{cursor:number;physicalColumnIndex?:number})=>void;projectedRow?:(first:number,count:number)=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|NonNullable<Program["whereAccounting"]> {
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:(columnAccess:(source:ResolvedSource,column:number)=>{cursor:number;physicalColumnIndex?:number})=>void;rightJoinDrain?:boolean;projectedRow?:(first:number,count:number)=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):NonNullable<Program["whereAccounting"]>;
+function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:(columnAccess:(source:ResolvedSource,column:number)=>{cursor:number;physicalColumnIndex?:number})=>void;rightJoinDrain?:boolean;projectedRow?:(first:number,count:number)=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|NonNullable<Program["whereAccounting"]> {
   // select.c selectInnerLoop: a positioned module row feeds the same
   // destination and LIMIT registers as an ordinary table row. The selected
   // virtual loop owns argv; EList is evaluated only outside SRT_Exists.
@@ -4375,7 +4375,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // must read one primary reader in both the selected and fresh-drain scans.
     // where.c substitutes each available field even on non-covering loops.
     // Missing fields retain the table reader and its pending DeferredSeek.
-    if(indexCursor!==undefined&&physical&&!source.joinFromLeft.right){
+    if(indexCursor!==undefined&&physical&&!source.joinFromLeft.right&&!owner?.rightJoinDrain){
       const at=physical.fields.findIndex(field=>(columnIndex>=0&&field.column===source.table.columns[columnIndex])||(field.role==='rowid-tail'&&(columnIndex<0||isIntegerPrimaryKeyAlias(source.table,columnIndex))));
       if(at>=0)return {cursor:indexCursor,physicalColumnIndex:at};
     }
@@ -4817,13 +4817,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // wherecode.c Case 4: only a WITHOUT ROWID primary index is the
     // table itself. A rowid table's declared PRIMARY KEY remains a secondary
     // index and must position its table cursor before uncovered reads.
-    if(!(source.table.kind==='table'&&source.table.withoutRowid)||source.joinFromLeft.right||(!capability.covering&&capability.physicalIndex!.index.origin!=='primary-key')){
+    if(!(source.table.kind==='table'&&source.table.withoutRowid)||source.joinFromLeft.right||owner?.rightJoinDrain||(!capability.covering&&capability.physicalIndex!.index.origin!=='primary-key')){
       if((source.table.kind==='table'&&source.table.withoutRowid)){
         const primary=primaryFor(source),primaryKeyFields=capability.physicalIndex!.primaryKeyFields;
         if(capability.physicalIndex!.index.origin!=='primary-key'&&primaryKeyFields.length!==primary.keyInfo.keyFieldCount)throw new JSQLiteError('unsupported','WITHOUT ROWID secondary primary-key mapping is not represented',{unsupportedClassification:'temporary'});
-        if(source.joinFromLeft.right){
-          // wherecode.c2175: retain the primary reader on RIGHT, even for
-          // covering access. Missing primary keys continue this loop level.
+        if(source.joinFromLeft.right||owner?.rightJoinDrain){
+          // wherecode.c2175: WHERE_RIGHT_JOIN retains the primary reader on
+          // both matched and fresh-drain invocations. Exact misses continue.
           const miss=emitWrPrimaryPosition(ops,capability.physicalIndex!,primary,indexCursor,cursorFor(source),allocate);
           if(miss!==undefined)rightPrimaryMisses.push({at:miss,level});
         }else ops.push({code:'DeferredIndexSeek',p1:indexCursor,p2:cursorFor(source),primaryKeyFields,physical:primary});
@@ -4994,7 +4994,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const binding:ResolvedExpressionBinding={policy:'scalar',location:(ref,depth)=>
       ref.source===source?{kind:'cursor',cursor:cursorFor(original)}:nestedBinding.location(ref,depth)};
     compileInnerTableSelect(input,sub,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{
-      builder,ops,parameters,destination:{kind:'output'},expressionBinding:binding,
+      builder,ops,parameters,destination:{kind:'output'},expressionBinding:binding,rightJoinDrain:true,
       ...(owner?.retainedCursors?{retainedCursors:owner.retainedCursors}:{}),
       cursorFor:ref=>ref===source?cursorFor(original):cursorFor(ref),consumeRow:access=>{
         let primaryMiss:number|undefined;

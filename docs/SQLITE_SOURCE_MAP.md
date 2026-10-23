@@ -562,6 +562,10 @@ rowid-LHS/WR-RHS pairs also participate: `wherecode.c:2175–2186` →
 reads → existing typed match set; `wr-matched-capture.py` / `wr-matched-native.json`
 / `wr-matched-index.test.mjs` map forced/unforced matched and fresh-drain controls,
 three encodings; `wr-matched-controls.test.mjs` maps post-selected lifecycle errors.
+`wherecode.c:2914–2920` fresh single-source `WHERE_RIGHT_JOIN` → caller
+`rightJoinDrain` retains exact primary positioning and disables covering substitution;
+`wr-boundary-capture.py` / `wr-boundary-native.json` / `wr-boundary.test.mjs`
+map mixed composite PK, physical-empty LHS, metadata/reset, damaged-root and stale-PK continuation.
 [Decision and finite author evidence](research/wr-matched-evidence.md), independent
 acceptance open. Repeated barriers, wider/WR-LHS/multiple-WR/module matched layouts retain the bypass.
 `where.c:7394ff` / `wherecode.c:2740ff` pRJ →

@@ -29,5 +29,13 @@ for(const enc of ['utf8','utf16le','utf16be'])test(`WR selected matched lifecycl
   db.closeDeferred();globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/wr-capacity',{limits:{maxPrivateEntries:0}});
   const limited=db.prepare(sql).statement;let error;try{await limited.step();}catch(e){error=e;}assert.equal(error?.kind,'limit');assert.throws(()=>limited.finalize(),e=>e===error);refunded();
   const recovery=db.prepare('SELECT 1').statement;assert.equal(await recovery.step(),'row');recovery.finalize();
+  // Admit one match identity; repeated matches reuse it, the next distinct
+  // identity must fail without retaining a partial insertion.
+  db.closeDeferred();db=await open('https://fixture.invalid/wr-capacity-one',{limits:{maxPrivateEntries:1}});
+  for(const finish of ['reset','finalize']){
+   const s=db.prepare(sql).statement;assert.equal(await s.step(),'row');assert.ok(privateAccounting(s).indexSeeks>0);assert.ok([...budgets].some(b=>b.usedBytes>0));
+   let error;try{while(await s.step()==='row'){};}catch(e){error=e;}assert.equal(error?.kind,'limit');await assert.rejects(s.step(),e=>e===error);assert.throws(()=>s[finish](),e=>e===error);refunded();
+   if(finish==='reset'){assert.equal(await s.step(),'row');let retry;try{while(await s.step()==='row'){};}catch(e){retry=e;}assert.equal(retry?.kind,'limit');assert.notEqual(retry,error);assert.throws(()=>s.finalize(),e=>e===retry);refunded();}
+  }
  }finally{db?.closeDeferred();PrivateStateByteBudget.prototype.reserve=reserve;globalThis.fetch=old;}
 });
