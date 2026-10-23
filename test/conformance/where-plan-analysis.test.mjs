@@ -41,6 +41,28 @@ test('automatic partial-build predicates use the source-owned table-constant wal
  }
 });
 
+test('automatic ready commuted duplicates retain first eligible key provenance',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const predicate of ['o.b=u.b AND u.b=v.b','u.b=o.b AND v.b=u.b']){
+  const s=schema(encoding),plan=resolve(`SELECT u.id FROM t o CROSS JOIN t u CROSS JOIN t v WHERE ${predicate}`,s);
+  const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidates=wherePlanning.automaticIndexCandidates(source,1,clause,context);
+  assert.equal(candidates.length,2);
+  const ready=candidates.find(c=>(c.prereq&sourceBit(2))===0n),blocked=candidates.find(c=>(c.prereq&sourceBit(2))!==0n);
+  assert.ok(ready);assert.ok(blocked);
+  assert.equal(wherePlanning.automaticIndexDescriptor(blocked,clause,sourceBit(2),new Set(),encoding,plan),null);
+  for(const notReady of [sourceBit(2),0n]){
+   const d=wherePlanning.automaticIndexDescriptor(ready,clause,notReady,new Set([s.id]),encoding,plan);
+   assert.equal(d.keys.length,1);
+   const first=clause.terms.find(t=>wherePlanning.termCanDriveAutomaticIndex(t,source,1,notReady|sourceBit(1)));
+   assert.equal(d.keys[0].term,first);
+   assert.equal(d.prereq,ready.prereq|first.prereqRight);
+   assert.equal(d.keys[0].column,s.b);assert.equal(d.keys[0].affinity,'real');
+   assert.ok(Object.isFrozen(d.keys));assert.ok(Object.isFrozen(d.keys[0]));
+  }
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

@@ -426,6 +426,17 @@ private Mem copy. Thus these are VM numeric-ownership/failure/reset controls,
 not proof of mixed cached-Str VM registers or failure *inside* Filter borrowing.
 No register injection or production divergence/repair. Focused6/6/typecheck:
 `work:///cards/card-s-j-a/processes/proc-e0a565f6ab89/stdout.log`.
+Admission follow-up compares where.c termCanDriveIndex and both
+constructAutomaticIndex clause loops: readiness precedes idxCols deduplication,
+first eligible clause term owns key provenance. Production analyzer controls
+in `where-plan-analysis.test.mjs` use both operand orientations, three encodings,
+and v-not-ready/all-ready frontiers on o/u/v duplicate-column equalities.
+Both seed candidates survive enumeration, unready seed expansion rejects,
+ready expansion keeps one key with first eligible provenance, affinity and
+prerequisite union. Focused1/1 (12 orientation/encoding/frontier combinations):
+`work:///cards/card-s-j-a/processes/proc-ef5269a60ea4/stdout.log`.
+No exercised admission divergence or production repair; these do not establish
+all multi-column/collation combinations or SQL enrollment.
 
 ## Remaining acceptance work
 
