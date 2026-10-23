@@ -69,6 +69,44 @@ test('real byte rejection after partial overflow allocation preserves limit erro
  t.diagnostic(`capacity sweep: ${rejected} rejected, ${partial} after page growth, ${successful} successful`);
 });
 
+test('borrowed overflow prefix bound scratch admits exactly and unwinds rejection',async t=>{
+ class PeakBudget extends PrivateStateByteBudget{
+  peak=0;primary=null;
+  reserve(bytes,message){try{super.reserve(bytes,message);this.peak=Math.max(this.peak,this.usedBytes)}catch(error){this.primary??=error;throw error}}
+  replace(oldBytes,newBytes,message){try{super.replace(oldBytes,newBytes,message);this.peak=Math.max(this.peak,this.usedBytes)}catch(error){this.primary??=error;throw error}}
+ }
+ const packed=new Uint8Array(6003);packed.set([3,0xdd,0x6c]);packed.fill(65,3);
+ const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+ async function trial(headroom){
+  const limits={maxEntries:10,maxKeyBytes:20000,maxBytes:1000000},budget=new PeakBudget(limits.maxBytes);
+  const arena=await PrivateBlobkeyPages.open(budget,control,()=>{},limits);
+  const vm=new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,info,limits),info);
+  const life=new BorrowLifetime(),key=memFromRawRecord(new RawRecordReader(packed,'utf-8').next(),life);
+  let ballast=0;
+  try{
+   await vm.insert(packed,control);assert.equal(await vm.seekBound([key],'SeekGE',control),true);
+   const baseline=budget.usedBytes;
+   if(headroom!==undefined){ballast=limits.maxBytes-baseline-headroom;budget.reserve(ballast)}
+   budget.peak=budget.usedBytes;
+   let failed=false;
+   try{assert.equal(await vm.boundJump([key],'IdxGT',control),false)}
+   catch(error){assert.ok(error instanceof PrivateStateLimitError);assert.equal(error,budget.primary);failed=true}
+   const delta=budget.peak-baseline-ballast;
+   assert.equal(key.diagnostic().ownership,'borrowed');
+   // Remove only this test's independently owned pressure before recovery.
+   budget.release(ballast);ballast=0;
+   assert.equal(await vm.seekBound([key],'SeekGE',control),true);
+   await vm.withColumn(0,control,value=>assert.deepEqual(value.blobValue(),packed.subarray(3)));
+   assert.equal(await vm.boundJump([key],'IdxGT',control),false);
+   return {delta,failed};
+  }finally{budget.release(ballast);key.release();life.invalidate();vm.close();arena.close();assert.equal(budget.usedBytes,0)}
+ }
+ const witness=await trial();assert.equal(witness.failed,false);assert.ok(witness.delta>6000);
+ const exact=await trial(witness.delta);assert.deepEqual(exact,witness);
+ const rejected=await trial(witness.delta-1);assert.equal(rejected.failed,true);
+ t.diagnostic(`borrowed bound scratch incremental peak=${witness.delta}; one-byte-short rejection recovers after pressure release`);
+});
+
 test('observed overflow insertion high water is the exact fresh-owner admission boundary',async t=>{
  class PeakBudget extends PrivateStateByteBudget{
   peak=0;primary=null;

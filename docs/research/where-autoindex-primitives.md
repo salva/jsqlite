@@ -393,6 +393,17 @@ state, not a page-vs-Mem attribution or actual JS heap measurement. This proves
 the accounted admission boundary only for this input/operation, not all private
 allocations or SQL execution. Focused4/4/typecheck/diffcheck:
 `work:///cards/card-s-j-a/processes/proc-50441330b48b/stdout.log`.
+Borrowed overflow-prefix boundJump now has an independent exact incremental
+admission control:12515 bytes additional accounted headroom accepts IdxGT equal
+prefix (no jump);12514 rejects the original limit error. Test-owned budget pressure
+is removed before explicit primitive reseek/column read/recomparison, which verify
+the original BLOB and borrowed input ownership. Every arena disposes to zero.
+Native vdbe.c IdxGT builds a borrowed UnpackedRecord and calls IdxKeyCompare;
+TS copies across async payload comparison and releases copies/scratch in finally.
+This validates that adaptation for one large BLOB, not general cache coherence,
+VM continuation after halt, native allocation timing or SQL enrollment.
+Focused5/5/typecheck/diffcheck evidence:
+`work:///cards/card-s-j-a/processes/proc-9ee990abd6f5/stdout.log`.
 
 ## Remaining acceptance work
 
