@@ -487,8 +487,10 @@ KeyInfo descriptors and independent standalone Bloom descriptors retain explicit
 readiness/proof inputs. With the matching resolved owner, descriptors retain
 single-table partial-build predicates; virtual terms, other-source columns,
 subqueries, volatile functions and unsafe outer-join provenance are excluded.
-Collation/multipage boundary
-coverage and full consumer/resource acceptance remain pending;
+Collation/multipage prefix transitions now have direct cursor and VM dispatch
+coverage across all encodings (BINARY/NOCASE/RTRIM, ascending/descending cursor
+KeyInfo, forward/reverse dispatch and reset). This is primitive coverage, not SQL
+runtime enrollment or full consumer/resource acceptance;
 [primitive evidence](research/where-autoindex-primitives.md) bounds this delivery.
 [Executable boundary and pending private work contract](research/where-autoindex-boundary.md)
 provide native negative-bit/collision and semantic controls, not runtime acceptance.

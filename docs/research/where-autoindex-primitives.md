@@ -139,13 +139,47 @@ that test process started; changed foundation tests reran **11/11** exit0:
 Production inputs are unchanged between these checks. No failed check occurred
 in this attempt; no fresh native capture or SQL feature credit is claimed.
 
+## Packed collation/multipage verification
+
+The next hypothesis was that duplicate-prefix positioning might diverge when
+collations make different spellings equal across packed page boundaries. Direct
+comparison of vdbe.c Seek*4990ff and Idx*6828ff with PrivateKeyVmCursor found the
+existing biased default_rc, adjacent movement, empty/Eof and bound polarity
+matched these tested paths. No production repair was justified by this evidence.
+
+Added `private-key-vm-collation.test.mjs`: 120 packed records with180-byte payload,
+asserted pageCount>4,40 equal prefixes, all encodings/BINARY/NOCASE/RTRIM, ASC/DESC
+KeyInfo, four seek bounds, all four bound predicates, bidirectional traversal,
+beyond-edge null publication, clear/reuse and empty seeks, full budget refund.
+Added `private-key-vm-collation-dispatch.test.mjs`: all encodings/collations and
+forward/reverse VM prefix dispatch, MakeRecord/IdxInsert construction,40 ordered
+suffix results and reset/rebuild twice. No SQL consumer selection is exercised.
+
+Independent ctypes public-API witness loaded the actual card-built amalgamation,
+created the same collation-equivalent keys, and checked forward/reverse complete
+prefix results plus four SQL boundary queries for all9 encoding/collation pairs.
+SourceID printed and matches pinned3530400; exit0:
+`work:///cards/card-s-j-a/processes/proc-802993558f2a/stdout.log`.
+This witness confirms row-level bounds, not private cursor state/error parity or
+DESC native index coverage (DESC is direct source-derived cursor testing).
+
+Initial fixture failures were test API misuse, not packed behavior defects:
+setText needs encoded Uint8Array, KeyTerm uses desc, and Mem null inspection uses
+initialStorageClass, not isNull/storageClass. Failed outputs proc-797a958d0760,
+proc-6b7e468071c6 and proc-35621e4b1d3a remain retained under this card's processes;
+the last already passed all18 VM dispatch cases but failed18 direct tests on the
+nonexistent null accessor. No failed test was erased by a later command success.
+Final checked chain: `node --experimental-strip-types --test test/conformance/where-plan-analysis.test.mjs test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check`, followed by four unchanged receipt replays: **361/361, zero failures/skips**, typecheck/diff check/replays exit0. Output:
+`work:///cards/card-s-j-a/processes/proc-082166cce6de/stdout.log`.
+SQL execution-work gap remains unchanged; no SQL runtime feature credit.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
 are available behind internal opt-in; SQL runtime enrollment remains absent.
 Continue complete source-derived NOT INDEXED/forced,
-affinity/unready/outer/covering gates and collation/multipage packed boundary
-regressions. Current new prefix fixtures use numeric keys, not collation tests.
+affinity/unready/outer/covering gates. Packed collation/multipage coverage is
+now present as described below; this does not prove runtime consumer admission.
 Filter VM diagnostics/counters and measured runtime faults/cancel/deadline,
 full cleanup/reprepare and original workload acceptance are still pending.
 Primitive unit controls do not prove those runtime obligations. No original

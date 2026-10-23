@@ -10,7 +10,11 @@ dispatch; zero-filled native Blob allocation → charged internal FilterInit.
 `PrivateKeyVmCursor.seekBound/boundJump`, packed indexMoveto/payload owners;
 `vdbe.ts:IndexSeekPrefix/IndexPrefixEnd` private dispatch preserves persistent
 and exact Found/IN ownership. Tests: `private-bloom*.test.mjs`,
-`private-key-vm-bound.test.mjs`, `private-key-vm-prefix-dispatch.test.mjs`.
+`private-key-vm-bound.test.mjs`, `private-key-vm-prefix-dispatch.test.mjs`,
+`private-key-vm-collation.test.mjs` and `private-key-vm-collation-dispatch.test.mjs`
+(all encodings, BINARY/NOCASE/RTRIM multipage prefix duplicates, directional bounds,
+null/empty/reuse, forward/reverse VM and reset). Native public-API witness and
+limits: [primitive evidence](research/where-autoindex-primitives.md).
 [Evidence and pending gates](research/where-autoindex-primitives.md).
 `where.c:columnIsGoodIndexCandidate/termCanDriveIndex` →
 `where-plan.ts:columnIsGoodAutomaticIndexCandidate/termCanDriveAutomaticIndex`;
