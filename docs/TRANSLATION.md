@@ -473,6 +473,8 @@ Once/resource lifetime, with native-FIRST captures and existing-owner handoff.
 Runtime enrollment is still missing; correct scan results are not implementation credit.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.
+VM Rewind and Column also dispatch to the same packed cursor first/column owners,
+including empty/nullRow handling; no decoded-row adapter is involved.
 Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter

@@ -642,6 +642,20 @@ proc-ead340378297 passes without production divergence. Guide states tradeoff.
 No claim of native failure threshold or inspection of old output after error;
 cleanup ends execution. These controls do not read replaced packed contents.
 
+Replacement consumer follow-up found real dispatch gaps: descriptor KeyInfo VM
+insert then Rewind failed 'rewind on unopened cursor' (proc-caf7fea67a14).
+PrivateKeyVmCursor.first already translates native Rewind state/error order but
+Vdbe dispatch omitted privateKeys. Added that route; Column likewise omitted
+privateKeys and now calls existing charged/borrow-safe packed column owner.
+Fixture initially used native rather than TS Column operand layout (null instead
+of éΩ, proc-e2e1393e25c6); corrected to field/output/cursor before verification.
+Fresh record replaces old at same output, then live inputs are overwritten;
+IdxInsert consumeRecord/Rewind/Column return new éΩ,integer2,6100 patterned BLOB,
+rowid9, all encodings twice/reset. Focused proc-4b9cfa01460d passes. Empty/clear
+Rewind jump and null columns twice/reset added. Compared pinned vdbe.c Rewind6372
+cache/deferred/error/nullRow ordering and Column/IdxInsert consumers. No new
+parallel evaluator. No SQL auto/Bloom enrollment credit.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

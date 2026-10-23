@@ -448,6 +448,46 @@ test('descriptor MakeRecord exact admission separates conversion scratch and ret
  }
 });
 
+test('descriptor packed replacement publication reaches inserted identity and covering bytes',async()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve('SELECT u.blob FROM t o CROSS JOIN t u ON u.a COLLATE NOCASE=o.a AND u.b=o.b',s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([s.blob]),encoding,plan);
+  assert.deepEqual(d.fields,[s.a,s.b,s.blob,null]);
+  const payload=new Uint8Array(6100);for(let i=0;i<payload.length;i++)payload[i]=(i*37+11)&255;
+  const ops=[{code:'OpenEphemeral',p1:0,keyInfo:d.keyInfo},
+   {code:'String',p1:'old',p2:1},{code:'Integer',p1:1n,p2:2},{code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:7n,p2:4},
+   {code:'MakeRecord',p1:1,p2:4,p3:5},
+   {code:'String',p1:'éΩ',p2:1},{code:'Integer',p1:2n,p2:2},{code:'Blob',p1:payload,p2:3},{code:'Integer',p1:9n,p2:4},
+   {code:'MakeRecord',p1:1,p2:4,p3:5},
+   {code:'String',p1:'later',p2:1},{code:'Integer',p1:99n,p2:2},{code:'Blob',p1:new Uint8Array(1),p2:3},{code:'Integer',p1:11n,p2:4},
+   {code:'IdxInsert',p1:0,p2:5,consumeRecord:true},
+   {code:'Rewind',p1:0,p2:23},
+   {code:'Column',p1:0,p2:6,p3:0},{code:'Column',p1:1,p2:7,p3:0},{code:'Column',p1:2,p2:8,p3:0},{code:'Column',p1:3,p2:9,p3:0},
+   {code:'ResultRow',p1:6,p2:4},{code:'Halt'}];
+  const vm=new VdbeStatement({encoding,registers:10,parameters:[],columns:['a','b','blob','rowid'].map(name=>({name})),maxWorkUnits:100000,maxResultBytes:100000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:1000000},ops},()=>{},()=>()=>{},()=>{});
+  try{for(let run=0;run<2;run++){
+   assert.equal(await vm.step(),'row');assert.equal(vm.column(0),'éΩ');assert.equal(vm.column(1),2n);assert.deepEqual(vm.column(2),payload);assert.equal(vm.column(3),9n);
+   assert.equal(await vm.step(),'done');if(!run)vm.reset();
+  }}finally{vm.finalize();}
+ }
+});
+
+test('packed VM Rewind empty and cleared owners branch before Column',async()=>{
+ const s=schema('utf-8');s.t.indexes=[];
+ const plan=resolve('SELECT u.blob FROM t o CROSS JOIN t u ON u.a=o.a',s),clause=analyzeWhere(plan).clause;
+ const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+ const c=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+ const d=wherePlanning.automaticIndexDescriptor(c,clause,0n,new Set([s.blob]),'utf-8',plan);
+ const ops=[{code:'OpenEphemeral',p1:0,keyInfo:d.keyInfo},{code:'Rewind',p1:0,p2:3},{code:'Halt'},
+  {code:'Column',p1:0,p2:1,p3:0},{code:'ResultRow',p1:1,p2:1},{code:'ClearEphemeral',p1:0},
+  {code:'Rewind',p1:0,p2:8},{code:'Halt'},{code:'Column',p1:0,p2:1,p3:0},{code:'ResultRow',p1:1,p2:1},{code:'Halt'}];
+ const vm=new VdbeStatement({encoding:'utf-8',registers:2,parameters:[],columns:[{name:'empty'}],maxWorkUnits:100000,maxResultBytes:1000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:100000},ops},()=>{},()=>()=>{},()=>{});
+ try{for(let run=0;run<2;run++){for(let row=0;row<2;row++){assert.equal(await vm.step(),'row');assert.equal(vm.column(0),null);}assert.equal(await vm.step(),'done');if(!run)vm.reset();}}finally{vm.finalize();}
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);
