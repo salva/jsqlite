@@ -7,7 +7,7 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','pulldown','pulldown-dependent']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
@@ -24,6 +24,10 @@ if a.case in ['nocase','rtrim','binary']:
  sql=sql.replace('r.k=l.k',f'r.k=l.k AND r.payload=l.c COLLATE {a.case.upper()}')
 if a.case=='representations': sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k AS rk FROM lhs l LEFT JOIN rhs r ON r.k=l.k ORDER BY l.id,r.id'
 if a.case=='standalone': sql="SELECT l.id AS lid,r.id AS rid,r.payload FROM lhs l CROSS JOIN rhs r WHERE r.k=l.k AND r.payload='v2' ORDER BY l.id,r.id"
+multi=a.case in ['pulldown','pulldown-dependent']
+if multi:
+ key='l.k' if a.case=='pulldown' else 'r.k'
+ sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l JOIN rhs r JOIN tail t WHERE r.k=l.k AND t.k={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
 result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path
@@ -45,24 +49,38 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
  if a.case=='representations':
   # No declared affinity preserves REAL 1.0 in storage, unlike INTEGER.
   h.execsql(d,db,"UPDATE lhs SET k=CASE id%8 WHEN 0 THEN 1.0 WHEN 1 THEN 1 WHEN 2 THEN '1' WHEN 3 THEN x'31' WHEN 4 THEN -1.0 WHEN 5 THEN -1 WHEN 6 THEN NULL ELSE 17 END; UPDATE rhs SET k=CASE id%8 WHEN 0 THEN 1 WHEN 1 THEN 1.0 WHEN 2 THEN '1' WHEN 3 THEN x'31' WHEN 4 THEN -1 WHEN 5 THEN -1.0 WHEN 6 THEN NULL ELSE 80001 END;")
- if a.case=='standalone':
+ if a.case=='standalone' or multi:
   h.execsql(d,db,"CREATE INDEX rk ON rhs(k); WITH RECURSIVE n(x) AS(VALUES(65) UNION ALL SELECT x+1 FROM n WHERE x<1024) INSERT INTO lhs SELECT x,x%32 FROM n; ANALYZE;")
+ if multi:
+  h.execsql(d,db,'CREATE TABLE tail(id INTEGER PRIMARY KEY,k INTEGER,payload TEXT); INSERT INTO tail SELECT * FROM rhs; CREATE INDEX tk ON tail(k); ANALYZE;')
  assert d.sqlite3_close(db)==0
  assert d.sqlite3_open_v2(str(path).encode(),C.byref(db),1,None)==0
  variant={'encoding':enc,'fixture':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'modes':[]}
  for enabled in [True,False]:
-  h.execsql(d,db,'PRAGMA automatic_index='+('ON' if enabled else 'OFF'))
+  h.execsql(d,db,'PRAGMA automatic_index='+('ON' if enabled and not multi else 'OFF'))
   if a.case=='standalone':
    # SQLITE_TESTCTRL_OPTIMIZATIONS=15; sqliteInt.h SQLITE_BloomFilter.
    d.sqlite3_test_control(15,db,0 if enabled else 0x00080000)
+  if multi: d.sqlite3_test_control(15,db,0x80 | (0 if enabled else 0x00100000))
   eqp,_=h.query(d,db,'EXPLAIN QUERY PLAN '+sql);ops,_=h.query(d,db,'EXPLAIN '+sql)
   names=[h.text(row[1]) for row in ops]
-  assert ('OpenAutoindex' in names)==(enabled and a.case!='standalone')
+  assert ('OpenAutoindex' in names)==(enabled and a.case!='standalone' and not multi)
   if a.case=='standalone':
    assert 'SeekGE' in names
    assert any('USING INDEX rk' in h.text(row[3]) for row in eqp)
   if a.case!='is':
-   assert ('FilterAdd' in names)==enabled and ('Filter' in names)==enabled
+   assert ('FilterAdd' in names)==(enabled or multi) and ('Filter' in names)==(enabled or multi)
+  if multi:
+   filters=[i for i,n in enumerate(names) if n=='Filter']
+   seeks=[i for i,n in enumerate(names) if n=='SeekGE']
+   assert len(filters)==2 and len(seeks)==2
+   early=filters[1]<seeks[0]
+   assert early==(enabled and a.case=='pulldown')
+   assert names.count('Once')==(1 if early else 2)
+   if early:
+    assert ops[filters[0]][3]==ops[filters[1]][3]==ops[seeks[0]][3]
+   placement={'laterFilterBeforeFirstSeek':early,'onceBlocks':names.count('Once'),
+              'order':[n for n in names if n in ['Once','FilterAdd','Filter','SeekGE']]}
   st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
   columns=[{key:(getattr(d,'sqlite3_column_'+fn)(st,i) or b'').decode() or None for key,fn in [('name','name'),('declaredType','decltype'),('database','database_name'),('table','table_name'),('origin','origin_name')]} for i in range(d.sqlite3_column_count(st))]
   runs=[]
@@ -85,6 +103,8 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    runs.append({'rows':rows,'rc':rc,'fullscanSteps':d.sqlite3_stmt_status(st,1,1),'autoindexRows':d.sqlite3_stmt_status(st,3,1),'vmSteps':d.sqlite3_stmt_status(st,4,1),'filterHit':d.sqlite3_stmt_status(st,8,1),'filterMiss':d.sqlite3_stmt_status(st,7,1)})
    assert d.sqlite3_reset(st)==0
   for i in range(0,len(runs),2): assert runs[i]==runs[i+1]
+  if multi:
+   assert len(rows)==34 and runs[0]['autoindexRows']==0
   if a.case=='standalone':
    assert len(rows)==34
    assert runs[0]['autoindexRows']==0
@@ -113,7 +133,8 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    assert runs[0]['filterHit']==(63 if a.case=='absent' else 0)
    assert runs[0]['filterMiss']==(0 if a.case=='absent' else 63)
   assert d.sqlite3_finalize(st)==0
-  variant['modes'].append({'automaticIndex':enabled,'columns':columns,'eqp':eqp,'ops':ops,'bindings':bindings,'reprepareBeforeRun':4 if a.case=='lifetime' else None,'runs':runs})
+  variant['modes'].append({'automaticIndex':enabled and not multi,'columns':columns,'eqp':eqp,'ops':ops,'bindings':bindings,'reprepareBeforeRun':4 if a.case=='lifetime' else None,'runs':runs})
+  if multi: variant['modes'][-1].update({'pulldownEnabled':enabled,'disabledOptimizations':0x80 | (0 if enabled else 0x00100000),'placement':placement})
  assert variant['modes'][0]['columns']==variant['modes'][1]['columns']
  for on,off in zip(variant['modes'][0]['runs'],variant['modes'][1]['runs']):
   assert on['rows']==off['rows'] and on['rc']==off['rc']

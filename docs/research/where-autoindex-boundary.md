@@ -192,9 +192,21 @@ outer/IN/unready early initialization; wherecode.c adds skip-scan exclusion and
 consumes the initialized register. Tests mutate each exclusion, conversion/order,
 continuation/register restoration, wrong index, counts, stale reset and rows.
 Four synthetic tests exercise these assertions; the one explicit runtime skip
-remains honest. No adapter/production counters are supplied. Native multi-loop
-pulldown, exclusion-plan captures and execution observations remain outstanding;
-the new native standalone fixture must not be misreported as those controls.
+remains honest. No adapter/production counters are supplied. Three-source
+`pulldown` and `pulldown-dependent` captures now compare BloomPulldown on/off
+with automatic indexes disabled and Transitive disabled in both alternatives
+(sqliteInt.h masks 0x100000/0x80). Ordinary joins permit the independent
+later key l.k to initialize under the earlier Once and Filter before the first
+SeekGE; dependent r.k cannot move early. Both produce 34 typed rows twice,
+metadata5 and DONE in all encodings, preserving actual full EQP/EXPLAIN.
+`where-bloom-placement.mjs` defines pending actual emitted-placement observations:
+order of Once/FilterAdd/Filter/SeekGE, onceBlocks, laterFilterBeforeFirstSeek,
+plus rows/columns/error/fresh positive executionId/stable planIdentity. Native
+captures check both absent jumps target the first seek's outer continuation.
+The receipt-driven test rejects reversed placement and drives the pending
+adapter contract from native expectations. This does not supply production
+execution, per-loop state restoration observations, or all outer/IN/skip-scan
+native exclusion witnesses. Existing synthetic exclusions retain those obligations.
 
 
 ## Remaining acceptance obligations
