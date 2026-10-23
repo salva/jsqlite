@@ -97,6 +97,25 @@ test('automatic high WR coverage follows resolved references not implicit PK alo
  }
 });
 
+test('automatic generated references expand colUsed for stored and virtual columns',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const storage of ['stored','virtual'])for(const count of [4,66]){
+  const s=schema(encoding,true);
+  const expression=resolve('SELECT 1',s).result[0].expression;
+  const columns=Object.freeze(Array.from({length:count},(_,i)=>Object.freeze({...col(`c${i}`,'INTEGER'),...(i===2?{generatedExpr:expression,generatedStorage:storage}:{})})));
+  s.t.columns=columns;s.t.primaryKey=Object.freeze([columns[count-1]]);s.t.indexes=[];
+  for(const [suffix,expand] of [['',false],[' WHERE abs(u.c2)>0',true],[' WHERE abs(o.c2)>0',false]]){
+   const plan=resolve(`SELECT count(*) FROM t o CROSS JOIN t u ON u.c1=o.c0${suffix}`,s);
+   const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+   const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+   const candidate=wherePlanning.automaticIndexCandidates(source,1,clause,context)[0];
+   const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set(),encoding,plan);
+   const expected=expand?[columns[1],...columns.filter((_,i)=>i!==1)]:count>=64?[columns[1]]:[columns[1],columns[count-1]];
+   assert.deepEqual(d.fields,expected,`${storage}/${count}/${suffix}`);
+   assert.equal(d.keyInfo.totalFieldCount,expected.length);
+  }
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

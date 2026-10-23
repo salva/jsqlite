@@ -488,9 +488,23 @@ Twelve encoding/orientation/source-identity analysis controls test no high use,
 prevents borrowing another source's high bit. A controlled omission of resolved
 uses reproduced failure for nested u.c64 (proc-9671dfa61741); restoring resolved
 ownership passes. This is descriptor coverage evidence, not populated auto
-runtime execution; counterexamples involving generated-column colUsed expansion
-remain outside these fixtures. No arbitrary high-column runtime enrollment is
-claimed.
+runtime execution. Generated-column follow-up now translates
+`resolve.c:sqlite3ExprColUsed` ALLBITS expansion: any referenced generated column,
+stored or virtual, requests all table columns rather than only dependencies.
+Descriptor collects target references from needed/analyzed/resolved merged owners,
+then expands low payload and high bit. Matching source identity remains required.
+36 controls (encoding × storage ×4/66 columns × target/other/no generated use)
+verify exact fields/counts. Constant-expression carriers are schema fixtures,
+not public DDL execution. Initial fixture used `results` instead of `result`
+and failed TypeError (proc-a9fa3a99de3d); corrected, no product workaround.
+Disabling only ALLBITS expansion yields failing stored4 target control
+`work:///cards/card-s-j-a/processes/proc-009cd9fd2159/stdout.log`.
+Fresh pinned public DDL/EXPLAIN witness for12 corresponding storage/width/use
+cases: `work:///cards/card-s-j-a/processes/proc-61253f2aeef5/stdout.log`.
+Native MakeRecord sizes are2/1 without target generated use (4/66 columns),
+4/66 with target generated use; other-source use does not expand target.
+Empty tables return typed INTEGER0. This proves descriptor layout rather than
+populated SQL automatic execution; SQL enrollment remains disabled.
 
 ## Remaining acceptance work
 

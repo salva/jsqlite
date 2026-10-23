@@ -64,7 +64,8 @@ EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
 high-bit ownership is retained independently of caller covering requests (high
 key expands every column>=63, including a duplicate key payload). Regression:
 `where-plan-foundation.test.mjs` high driving column controls and
-`where-plan-analysis.test.mjs` resolved high residual/implicit-PK boundary;
+`where-plan-analysis.test.mjs` resolved high residual/implicit-PK boundary and
+stored/virtual generated-column ALLBITS coverage;
 native witnesses
 and boundary in [primitive evidence](research/where-autoindex-primitives.md).
 Automatic proposal gates/cost templates →

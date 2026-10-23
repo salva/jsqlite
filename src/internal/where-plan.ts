@@ -196,16 +196,19 @@ export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,claus
  }
  if(!keys.length)return null;
  const fields:(ColumnNode|null)[]=keys.map(key=>key.column);
- // resolve.c records every referenced target column, including nested
- // residual/RHS uses, independently of caller-requested coverage. Resolved
- // source identity prevents correlated references from capturing a namesake.
- const highNeeded=clause.terms.some(term=>term.left?.source===source&&term.left.columnIndex>=63)||table.columns.slice(63).some(column=>needed.has(column))||!!resolved?.columnUses.some(use=>use.source===source&&use.columnIndex>=63);
+ // resolve.c sqlite3ExprColUsed expands any generated-column reference
+ // to all columns, not only the expression's dependencies (stored or virtual).
+ const referenced=new Set<NeededColumn>(needed);
+ for(const term of clause.terms)if(term.left?.source===source&&term.left.columnIndex>=0)referenced.add(table.columns[term.left.columnIndex]!);
+ for(const use of resolved?.columnUses??[])for(const ref of use.mergedSources??[use])if(ref.source===source&&ref.columnIndex>=0)referenced.add(table.columns[ref.columnIndex]!);
+ const allColumns=table.columns.some(column=>referenced.has(column)&&column.generatedExpr!==null);
+ const highNeeded=allColumns||table.columns.slice(63).some(column=>referenced.has(column));
  for(let i=0;i<table.columns.length;i++){
   const column=table.columns[i]!;
   // where.c expands high payload only from colUsed, not extraCols. A high
   // implicit WR PK alone sets extraCols bit63 but does not append payload.
   if(i>=63){if(highNeeded){fields.push(column);seen.add(column);}continue;}
-  if(!seen.has(column)&&(needed.has(column)||(table.withoutRowid&&table.primaryKey.includes(column)))){fields.push(column);seen.add(column);}
+  if(!seen.has(column)&&(allColumns||referenced.has(column)||(table.withoutRowid&&table.primaryKey.includes(column)))){fields.push(column);seen.add(column);}
  }
  if(!table.withoutRowid)fields.push(null);
  const terms:KeyTerm[]=fields.map((_,i)=>({collation:i<keys.length?keys[i]!.collation:"binary"}));
