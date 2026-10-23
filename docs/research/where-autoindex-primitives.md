@@ -404,6 +404,17 @@ This validates that adaptation for one large BLOB, not general cache coherence,
 VM continuation after halt, native allocation timing or SQL enrollment.
 Focused5/5/typecheck/diffcheck evidence:
 `work:///cards/card-s-j-a/processes/proc-9ee990abd6f5/stdout.log`.
+Mixed-state seam control (`private-bloom-mixed-state.test.mjs`) composes actual
+shared filter/packed owners for cached Str plus INTEGER/IntReal/REAL, all three
+encodings. Numeric hash priority preserves bit1, including REAL truncation
+collisions; authoritative packed seeks reject unequal colliding values. Real
+aggregate capacity rejection in boundJump leaves filter bits and numeric Mem
+hash unchanged; explicit post-pressure reseek/bound and disposal succeed.
+Native filterHash/FilterAdd/Filter and TS VM checkpoint-before-register-borrow
+branches were compared. These9 controls call primitives directly, not a VM
+register injection or fresh oracle capture: VM mixed-state failure ordering is
+not established by them. No production divergence/repair. Focused9/9:
+`work:///cards/card-s-j-a/processes/proc-0bceb0af8133/stdout.log`.
 
 ## Remaining acceptance work
 

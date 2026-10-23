@@ -31,6 +31,10 @@ accounted admission, not JS heap measurement or full page/Mem attribution.
 Borrowed large-BLOB boundJump separately accepts12515-byte incremental headroom
 and rejects12514 with explicit post-pressure reseek/column verification; this
 primitive recovery is not permission to continue a halted VM.
+`private-bloom-mixed-state.test.mjs` composes cached numeric/Str Mem hash,
+filter bit preservation and authoritative packed collision rejection through
+real scratch capacity failure (three encodings); direct primitives, not VM
+mixed-state failure acceptance.
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`
