@@ -1,6 +1,7 @@
 # Three physical-source matched RIGHT/FULL candidate
 
-This is revision-bound author evidence for the uncommitted extension over
+This is revision-bound author evidence for the extension delivered in
+27e27899f83367e523dffd3fcb2c0636b25cb4f5 over
 c00afbdbf3065dfbbe28346d331fd87b91844321, not independent acceptance or a
 replacement public contract. Current completion state: [card status](record:///status.md?card=card-s-c-d-e).
 
@@ -97,6 +98,8 @@ physical sources, USING and WITHOUT ROWID; these are not SQL rejection claims.
 The c00afb STAT4 fallback fixture is now admitted and must be coordinated with its
 owner to use a genuinely unsupported layout without weakening truth publication
 or invocation reset assertions. No STAT4 peer edit is included. Current guide/map
-still state accepted two-source coverage; this candidate must not silently turn
-that revision-bound acceptance into three-source approval. Detailed commands and
+describe the delivered three-source implementation separately from prior independent
+two-source acceptance. Independent focused checks are recorded in
+[G76](record:///status.md?card=card-s-c-d-g&v=76); they do not establish entire-delta
+or combined acceptance, and the real STAT4 companion remains 22/23. Detailed commands and
 remaining delivery gates are in the card status and accepted record history.
