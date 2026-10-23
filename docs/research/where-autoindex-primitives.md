@@ -273,6 +273,32 @@ typecheck/diffcheck and all four unchanged focused SQL receipt replays exit0:
 `work:///cards/card-s-j-a/processes/proc-e80356c817a3/stdout.log`. SQL execution-work
 remains red because consumers are absent; no fresh native capture this attempt.
 
+## Cancellation with independent packed ownership
+
+Follow-up to replacement ordering: compared shared checkControl/privateControl,
+step's saved-error/halt/reset/finalize flow and native vdbe.c interrupt checks
+(902/1092 and abort_due_to_interrupt) with filter allocation. No new divergence
+was demonstrated, so no speculative production change. Added
+`private-bloom-cancel.test.mjs`: real timer AbortController cancellation and
+elapsed1ms deadline on a1000000-byte replacement checkpoint path, two reset
+cycles with saved error identity, plus a separately paused packed cursor with80
+NOCASE-equivalent prefixes/180-byte payloads. After victim failure/reset/finalize,
+survivor continues every suffix without skip/duplicate and rebuilds after reset.
+No scheduler mocking/fault-injection architecture was added. Timer abort proves
+host-task delivery while allocation work yields; the exact pre/post-yield deadline
+check location is not asserted. These are internal VM controls, not SQL autoindex
+runtime enrollment, native timing equivalence or exact memory high-water proof.
+
+Initial controls reached cleanup but failed because fixture finalized twice;
+finalize is correctly non-idempotent (`work:///cards/card-s-j-a/processes/proc-ac901ce878ff/stdout.log`). Fixed fixture ownership with one-finalize guard,
+not product behavior. Corrected2/2 run passed; detailed checked chain follows
+below:423/423 zero failures/skips, typecheck/diffcheck and four unchanged
+focused SQL receipt replays exit0 (`work:///cards/card-s-j-a/processes/proc-72bd9be86b9b/stdout.log`). Corrected focused check/typecheck:
+`work:///cards/card-s-j-a/processes/proc-98e2b19cd266/stdout.log`.
+Native source and existing budget/work-error controls remain complementary;
+this does not establish every partial packed allocation failure or same-connection
+public API concurrency behavior.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

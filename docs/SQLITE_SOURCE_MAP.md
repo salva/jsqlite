@@ -10,6 +10,9 @@ Native `vdbe.c:OP_Blob`/`vdbemem.c:sqlite3VdbeMemSetZeroBlob` release before
 expansion → FilterInit closes/deletes the old execution owner before admission.
 `private-bloom-lifetime.test.mjs` covers exact single-allocation replacement,
 cleared bits, capacity/work failures, saved-error/reset and paused filter survivor.
+`private-bloom-cancel.test.mjs` adds timer abort/elapsed deadline during replacement
+and independent multipage NOCASE packed-prefix continuation across reset/finalize;
+exact deadline checkpoint timing is not asserted.
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`
