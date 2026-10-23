@@ -656,6 +656,17 @@ Rewind jump and null columns twice/reset added. Compared pinned vdbe.c Rewind637
 cache/deferred/error/nullRow ordering and Column/IdxInsert consumers. No new
 parallel evaluator. No SQL auto/Bloom enrollment credit.
 
+Bidirectional dispatch follow-up reproduced undefined.next in VM Next
+(proc-903850924583). Last/Next/Prev all omitted packed owners; route to existing
+PrivateKeyVmCursor last/next/previous, keeping table counters/paths separate.
+Pinned Last6254 and next_tail publish state/error order already owned by class.
+Tests exercise0/1/120 records, grouped NOCASE TEXT plus integer identities, both
+directions,3 encodings,twice/reset and terminal nullRow. Initial empty fixture
+used legacy OpenEphemeral because no IdxInsert existed; proc-668409d2e08b failed
+Last. Corrected fixture to explicit p4KeyInfo packed seam, not production fallback.
+Focused proc-e416014d090d passes. No page-count assertion/native oracle capture,
+SQL enrollment, dispatch fault injection or general comparator parity claim.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

@@ -38,7 +38,8 @@ mixed-state failure acceptance. `private-bloom-text-consumption.test.mjs`
 adds existing VM concat/numeric ownership, post-result work failure and reset
 rebuild controls; native restores numeric flags and TS formats a copy, so concat
 is not a live mixed-Str producer.
-`vdbe.c:OP_Rewind/OP_Column` maps to shared packed cursor first/column via
+`vdbe.c:OP_Rewind/OP_Last/OP_Next/OP_Prev/OP_Column` maps to shared packed
+cursor first/last/next/previous/column via
 `vdbe.ts` dispatch; descriptor replacement/overflow payload and empty/clear
 controls in `where-plan-analysis.test.mjs` ([evidence](research/where-autoindex-primitives.md)).
 
