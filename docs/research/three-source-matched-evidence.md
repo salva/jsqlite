@@ -93,13 +93,20 @@ ordering argument above is independent of the finite prefix assertions. Named
 negative planner controls additionally retain fallback for repeated RIGHT, four
 physical sources, USING and WITHOUT ROWID; these are not SQL rejection claims.
 
-## Integration limitation
+## Current disposition and retained revision limits
 
-The c00afb STAT4 fallback fixture is now admitted and must be coordinated with its
-owner to use a genuinely unsupported layout without weakening truth publication
-or invocation reset assertions. No STAT4 peer edit is included. Current guide/map
-describe the delivered three-source implementation separately from prior independent
-two-source acceptance. Independent focused checks are recorded in
-[G76](record:///status.md?card=card-s-c-d-g&v=76); they do not establish entire-delta
-or combined acceptance, and the real STAT4 companion remains 22/23. Detailed commands and
-remaining delivery gates are in the card status and accepted record history.
+The original STAT4 owner corrected the obsolete c00afb RIGHT+CROSS fallback
+witness to repeated RIGHT in343e without dropping truth/reset/publication assertions.
+Independent [[card:card-s]] [review18](record:///review.md?card=card-s&v=18)
+accepts the finite source/caller extension on343e; it supersedes the G76/22-of23
+open-gate disposition, not the historical failed execution. Prior revision detail
+is retained in [G76](record:///status.md?card=card-s-c-d-g&v=76).
+
+ROOT execution and exact artifact reconciliation are maintained in [[card:card-w]]
+[status](record:///status.md?card=card-w). The W test-only downstream observer repair
+on71015097 observes root4.first and root7.first/seek and retains explicit NOT INDEXED
+scan controls. Pinned wherecode.c `codeAllEqualityTerms` NULL guards precede equality
+seeks; therefore physical seek counts need not equal downstream scan starts.
+Typed rows/metadata, reset and first-error/cleanup assertions remain required.
+Neither local approval nor ROOT regression evidence implies repeated/wider/WR/module/
+USING selected-layout parity, exhaustive compositions, or release authorization.

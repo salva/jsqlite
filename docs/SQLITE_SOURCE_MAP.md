@@ -569,13 +569,14 @@ pRJ selected RHS identity and vdbe.c interrupt/error/cleanup path to representat
 corrupt required/off-path reads, post-selected execution controls, match-set capacity
 and saved-first-error/refund/reuse assertions across encodings.
 [Evidence and bounded tradeoffs](research/right-matched-evidence.md).
-Three-physical-source implementation (independent entire-delta review open) →
+Three-physical-source implementation (bounded independent acceptance:
+[[card:card-s]] [review18](record:///review.md?card=card-s&v=18)) →
 `three-source-red-capture.py` / `three-source-native.json` /
 `three-source-right.test.mjs`; representative selected cleanup/corruption →
 `right-matched-safety-capture.py --three-source` /
 `three-source-safety-native.json` / `right-matched-safety.test.mjs`.
-[Source/caller ordering argument and open gates](research/three-source-matched-evidence.md);
-not an extension of prior independent two-source acceptance.
+[Source/caller ordering argument and controls](research/three-source-matched-evidence.md);
+review18 assesses this extension, rather than inheriting two-source approval.
 `expr.c:sqlite3ExprCompare` → `where-plan.ts:indexedExpressionIdentity/indexedBinding`
 and immutable `WhereTerm.indexedIdentity` → `admitIndexConstraint`: resolve query
 column leaves against the indexed source, preserving nested COLLATE/structure.

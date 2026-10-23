@@ -572,8 +572,9 @@ not selected-access credit. No algorithm substitution or platform necessity is
 claimed. Representative selected-RHS corrupt required/off-path and post-selected
 execution/match-capacity cleanup controls are retained, not exhaustive composition
 coverage. [Source comparison and bounded controls](research/right-matched-evidence.md).
-The current three-source implementation extends the prior independently accepted
-two-source boundary, but its entire-delta acceptance remains open.
+The bounded three-source extension is independently accepted in
+[[card:card-s]] [review18](record:///review.md?card=card-s&v=18), separately from
+ROOT integration and general optimizer parity.
 [Source/caller ordering argument, expression identity and native controls](research/three-source-matched-evidence.md).
 Expression-index query leaves resolve against the designated source before schema
 identity comparison; another alias cannot become that source. Nested COLLATE and

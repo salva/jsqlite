@@ -1,4 +1,4 @@
-## RIGHT/FULL matched persistent access (bounded author repair)
+## RIGHT/FULL matched persistent access (bounded independent acceptance)
 
 The prior blanket matched-pass planner bypass is replaced for up to three physical
 rowid tables with exactly one RIGHT/FULL barrier without USING/NATURAL. Source-order prerequisites
@@ -8,13 +8,17 @@ primary lookup. Shared drain still uses the primary reader. Repeated barriers,
 wider/WR/module matched planning remains bypassed, not credited by scan/drain tests.
 Qualified expression-index leaves now retain resolved source ownership while nested
 COLLATE remains structural. [Three-source source/caller argument and controls](../research/three-source-matched-evidence.md)
-extend current implementation, not prior independent acceptance. Native and
+documents the extension independently accepted in [[card:card-s]]
+[review18](record:///review.md?card=card-s&v=18). Native and
 public three-encoding typed/metadata/error/reset/access evidence and remaining
 limits: [repair evidence](../research/right-matched-evidence.md). G73-1 now has
 representative native-first selected RHS corrupt required/off-path controls and
 post-selected cancellation/deadline/work, match-capacity and exact first-error/
 refund/reuse coverage; this is finite author evidence, not exhaustive safety.
-This is author verification, not independent entire-delta or ROOT acceptance.
+The finite extension has independent source/caller acceptance in review18, not
+whole-product or release acceptance. ROOT integration disposition and the downstream
+physical-observer reconciliation are maintained in [[card:card-w]]
+[status](record:///status.md?card=card-w).
 
 ## Joined WHERE frontier repair (author evidence, independent acceptance open)
 
