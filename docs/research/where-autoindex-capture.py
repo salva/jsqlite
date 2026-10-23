@@ -7,9 +7,11 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','pulldown','pulldown-dependent']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','pulldown','pulldown-dependent','overflow','overflow-offpath']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
+d.sqlite3_errmsg.argtypes=[C.c_void_p];d.sqlite3_errmsg.restype=C.c_char_p
+d.sqlite3_extended_errcode.argtypes=[C.c_void_p];d.sqlite3_extended_errcode.restype=C.c_int
 manifest=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
 assert d.sqlite3_sourceid().decode()==manifest['sqliteSourceId']
 for name in ['name','decltype','database_name','table_name','origin_name']:
@@ -20,6 +22,8 @@ if a.case=='on': sql=sql.replace('r.k=l.k','r.k=l.k AND r.id<4')
 if a.case=='where': sql=sql.replace(' ORDER BY',' WHERE r.id<4 ORDER BY')
 if a.case=='is': sql=sql.replace('r.k=l.k','r.k IS l.k')
 if a.case=='lifetime': sql=sql.replace('r.k=l.k','r.k=?1')
+if a.case in ['overflow','overflow-offpath']:
+ sql=sql.replace('r.k=l.k','r.k=l.k AND CASE WHEN l.k=17 THEN 1 ELSE abs(-9223372036854775808) END>0')
 if a.case in ['nocase','rtrim','binary']:
  sql=sql.replace('r.k=l.k',f'r.k=l.k AND r.payload=l.c COLLATE {a.case.upper()}')
 if a.case=='representations': sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k AS rk FROM lhs l LEFT JOIN rhs r ON r.k=l.k ORDER BY l.id,r.id'
@@ -43,6 +47,7 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   # with present key 1 modulo 80000; 17 has an absent bit. No host hash.
   h.execsql(d,db,f'UPDATE lhs SET k={17 if a.case=="absent" else 80001} WHERE id<64;')
  if a.case=='empty-inner': h.execsql(d,db,'DELETE FROM rhs;')
+ if a.case=='overflow-offpath': h.execsql(d,db,'UPDATE lhs SET k=17;')
  if a.case=='empty-outer': h.execsql(d,db,'DELETE FROM lhs;')
  if a.case=='types':
   h.execsql(d,db,"UPDATE lhs SET k=CASE id%8 WHEN 0 THEN 1.0 WHEN 1 THEN 1.5 WHEN 2 THEN '01' WHEN 3 THEN 'x' WHEN 4 THEN x'31' WHEN 5 THEN -1 WHEN 6 THEN NULL ELSE 80001 END; UPDATE rhs SET k=CASE id%7 WHEN 0 THEN 1 WHEN 1 THEN 1.5 WHEN 2 THEN '01' WHEN 3 THEN 'X' WHEN 4 THEN x'31' WHEN 5 THEN -1 ELSE NULL END;")
@@ -65,6 +70,10 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   eqp,_=h.query(d,db,'EXPLAIN QUERY PLAN '+sql);ops,_=h.query(d,db,'EXPLAIN '+sql)
   names=[h.text(row[1]) for row in ops]
   assert ('OpenAutoindex' in names)==(enabled and a.case!='standalone' and not multi)
+  if a.case in ['overflow','overflow-offpath']:
+   functions=[i for i,n in enumerate(names) if n=='Function']
+   assert len(functions)==1 and any('abs(1)' in h.text(row[5]) for row in ops if h.text(row[1])=='Function')
+   if enabled: assert names.index('Filter')<names.index('SeekGE')<functions[0]
   if a.case=='standalone':
    assert 'SeekGE' in names
    assert any('USING INDEX rk' in h.text(row[3]) for row in eqp)
@@ -99,9 +108,15 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
     rc=d.sqlite3_step(st)
     if rc!=100:break
     rows.append([h.cell(d,st,i) for i in range(d.sqlite3_column_count(st))])
-   assert rc==101
+   assert rc==(1 if a.case=='overflow' else 101)
+   error=None
+   if rc!=101:
+    error={'code':rc,'extendedCode':d.sqlite3_extended_errcode(db),'message':d.sqlite3_errmsg(db).decode()}
+    assert error=={'code':1,'extendedCode':1,'message':'integer overflow'} and rows==[]
    runs.append({'rows':rows,'rc':rc,'fullscanSteps':d.sqlite3_stmt_status(st,1,1),'autoindexRows':d.sqlite3_stmt_status(st,3,1),'vmSteps':d.sqlite3_stmt_status(st,4,1),'filterHit':d.sqlite3_stmt_status(st,8,1),'filterMiss':d.sqlite3_stmt_status(st,7,1)})
-   assert d.sqlite3_reset(st)==0
+   reset_rc=d.sqlite3_reset(st)
+   assert reset_rc==(1 if a.case=='overflow' else 0)
+   if a.case in ['overflow','overflow-offpath']: runs[-1].update({'error':error,'resetRc':reset_rc})
   for i in range(0,len(runs),2): assert runs[i]==runs[i+1]
   if multi:
    assert len(rows)==34 and runs[0]['autoindexRows']==0
@@ -132,6 +147,10 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    assert len(rows)==64 and all(row[1]['type']=='null' for row in rows)
    assert runs[0]['filterHit']==(63 if a.case=='absent' else 0)
    assert runs[0]['filterMiss']==(0 if a.case=='absent' else 63)
+  if a.case=='overflow-offpath':
+   assert len(rows)==64 and all(row[1]['type']=='null' for row in rows)
+  if enabled and a.case in ['overflow','overflow-offpath']:
+   assert (runs[0]['filterHit'],runs[0]['filterMiss'])==((0,1) if a.case=='overflow' else (64,0))
   assert d.sqlite3_finalize(st)==0
   variant['modes'].append({'automaticIndex':enabled and not multi,'columns':columns,'eqp':eqp,'ops':ops,'bindings':bindings,'reprepareBeforeRun':4 if a.case=='lifetime' else None,'runs':runs})
   if multi: variant['modes'][-1].update({'pulldownEnabled':enabled,'disabledOptimizations':0x80 | (0 if enabled else 0x00100000),'placement':placement})

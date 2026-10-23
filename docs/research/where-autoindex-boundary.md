@@ -225,12 +225,31 @@ not native SQLite error-code equivalence. These finite controls establish public
 baseline isolation and error behavior, NOT mid-build/probe interruption, actual
 allocation-site failure, refund/high-water, or runtime autoindex/Bloom credit.
 
+## SQLite execution error and off-path baseline
+
+The adjacent `overflow`/`overflow-offpath` captures use the same LEFT join with
+an ON CASE residual selecting abs(SMALLEST_INT64) unless l.k=17. Source func.c
+absFunc owns integer-overflow detection; vdbeaux.c sqlite3VdbeReset owns cleanup
+before reporting the saved error. Both actual automatic-index ON/OFF alternatives
+retain full plans, metadata5 and twice/reset results in all encodings. The error
+case requires code/extendedCode1, exact integer overflow message, zero rows and
+reset1 on both attempts. Public companion requires the independently captured
+error, saved-step/reset identity and retry; finalize after reset succeeds.
+Off-path fixture sets all outer keys to absent17 and requires64 typed NULL-extended
+rows/DONE/reset0. Native enabled filter reports64 absent skips/0 present; the
+error case reports0 absent/1 present before failure. EXPLAIN asserts Filter before
+SeekGE before abs Function: the negative control tests actual seek/residual
+suppression (not merely an isolated abs call). Public scans must preserve the
+same suppression. This is finite error/off-path coverage, not corrupt-page,
+allocation-site, native runtime or broader evaluation-order acceptance.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
 all-encoding cases and public scan controls. Actual runtime work assertions await
 the implementation dependency through [[card:card-s-a]]. the parameterized lifetime fixture now supplies reset/rebind/reprepare rows and
-metadata; independently obtained error/corrupt/off-path captures remain required; raw native hash/type-flag controls are now supplied by the C
+metadata; a finite integer-overflow/absent-key error/off-path family is now supplied;
+independently obtained corrupt-storage controls remain required. Raw native hash/type-flag controls are supplied by the C
 witness above. Production resource fault execution remains pending. This document
 explicitly does not close the entire accepted brief or
 beta.5. File60/batch600, original workloads and caps are unchanged. No WR/MOST
