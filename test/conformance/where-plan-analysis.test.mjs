@@ -116,6 +116,30 @@ test('automatic generated references expand colUsed for stored and virtual colum
  }
 });
 
+test('automatic generated driving keys retain collation affinity and high-key alias provenance',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const storage of ['stored','virtual'])for(const at of [2,63])for(const reverse of [false,true]){
+  const s=schema(encoding,true),expression=resolve('SELECT 1',s).result[0].expression;
+  const columns=Object.freeze(Array.from({length:66},(_,i)=>Object.freeze({...col(`c${i}`,'TEXT',{collation:'NOCASE'}),...(i===at?{generatedExpr:expression,generatedStorage:storage}:{})})));
+  s.t.columns=columns;s.t.primaryKey=Object.freeze([columns[65]]);s.t.indexes=[];
+  const eq=reverse?`o.c0=u.c${at} COLLATE RTRIM`:`u.c${at} COLLATE RTRIM=o.c0`;
+  const plan=resolve(`SELECT count(*) FROM t o CROSS JOIN t u ON ${eq} AND u.c64=o.c1`,s);
+  const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(source,1,clause,context)[0];
+  assert.ok(candidate);
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set(),encoding,plan);
+  // Native commuted virtual terms follow original terms in the clause.
+  const indices=reverse?(at===63?[64]:[64,2]):(at===63?[63]:[2,64]);
+  assert.deepEqual(d.keys.map(k=>k.columnIndex),indices);
+  const generatedKey=d.keys.find(k=>k.columnIndex===at);
+  if(generatedKey){assert.equal(generatedKey.collation,'rtrim');assert.equal(generatedKey.affinity,'text');}
+  assert.equal(d.keys[0].term.left.source,source);assert.equal(d.prereq,1n);
+  const expected=[...indices.map(i=>columns[i]),...columns.filter((_,i)=>i>=63||!indices.includes(i))];
+  assert.deepEqual(d.fields,expected);assert.equal(d.keyInfo.totalFieldCount,expected.length);
+  assert.equal(d.bloom,false);
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

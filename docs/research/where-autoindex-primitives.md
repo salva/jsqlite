@@ -506,6 +506,19 @@ Native MakeRecord sizes are2/1 without target generated use (4/66 columns),
 Empty tables return typed INTEGER0. This proves descriptor layout rather than
 populated SQL automatic execution; SQL enrollment remains disabled.
 
+Generated-key follow-up:24 storage/encoding/low-or-high/orientation descriptor
+controls in where-plan-analysis match8 fresh native EXPLAIN cases:
+`work:///cards/card-s-j-a/processes/proc-422706831684/stdout.log`.
+All native MakeRecord sizes67, with RTRIM/NOCASE key order reflecting clause
+order; no FilterAdd for all-TEXT keys. High bit aliases c63/c64; reversed
+orientation appends virtual commuted term after direct c64, so c64 wins the
+high key and RTRIM c63 does not become a second key. Initial test incorrectly
+expected operand-orientation-invariant key order (proc-db864ee07f49); pinned
+where.c clause walk and native witness disprove that expectation. Corrected
+source-based expectations pass (proc-836d646b5f3a). No production divergence or
+speculative patch. These are descriptor/EXPLAIN controls, not generated-key
+packed execution, build expression lifetime or populated SQL parity.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
