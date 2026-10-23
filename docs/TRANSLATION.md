@@ -521,7 +521,7 @@ independent standalone Bloom descriptors retain explicit readiness/proof inputs.
 `selfCulling` on ordinary loops from unused, exact-local nonvirtual terms, with
 null-rejecting operator gates on outer targets. `standaloneBloomDescriptors(path,
 enabled)` consumes that semantic owner directly; callers cannot inject a separate
-proof set. The explicit enable remains false at SQL producers. With the matching resolved owner, descriptors retain
+proof set. The ordinary two-rowid INNER/CROSS equality-only SQL producer now enables independent standalone descriptors, builds once from source-local constraints, and applies live probe affinity before Filter and the authoritative persistent seek. IN/range/outer/frame consumers and automatic-index SQL enrollment remain unfinished. See [[card:card-s-j-b]] status for bounded native-FIRST evidence and outstanding resource/observation gates. With the matching resolved owner, descriptors retain
 single-table partial-build predicates; virtual terms, other-source columns,
 subqueries, volatile functions and unsafe outer-join provenance are excluded.
 Collation/multipage prefix transitions now have direct cursor and VM dispatch

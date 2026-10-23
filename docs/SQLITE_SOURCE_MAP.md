@@ -85,6 +85,7 @@ Automatic proposal gates/cost templates →
 immutable `selfCulling` on ordinary loops; `whereCheckIfBloomFilterIsUseful` →
 independent `standaloneBloomDescriptors(path,enabled)`, requiring selected-path
 stat1 prefix, producer-owned selfcull, equality and repeated-search cost.
+`sqlite3ConstructBloomFilter` → `vdbe.ts:compileInnerTableSelect` ordinary two-rowid INNER/CROSS equality-only Once/source-table build, source-local predicate binding, FilterAdd, and live-affinity Filter before persistent seek. Native-FIRST all-encoding/reset typed-row and metadata controls: `where-autoindex-baseline.mjs` with `STANDALONE_BLOOM_RUNTIME=1`; evidence/remaining observation and safety gates: [[card:card-s-j-b]] status. Outer/IN/range/frame consumers remain unimplemented.
 Foundation tests cover used/virtual/nonlocal and LEFT/left-of-RIGHT rejection,
 null-rejecting operator admission, stat1 prefix break, accumulated search threshold,
 allocation clamps, integrated automatic context gates and descriptor layouts.

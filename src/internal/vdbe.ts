@@ -5,7 +5,7 @@ import {PrivateKeyVmCursor} from './private-key-vm.ts';
 import {beginInVectorLoop} from './where-in-loop.ts';
 import {dispatchPrivateInCursor} from './private-in-dispatch.ts';
 import {emitSelectedInRhs,selectedInStorage,selectedVectorInStorage} from './where-in-producer.ts';
-import type {SelectInLoopRhs} from './where-plan.ts';
+import {standaloneBloomDescriptors,automaticIndexBuildPredicate,type SelectInLoopRhs} from './where-plan.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
 import {StorageLimitError} from './storage.ts';
@@ -4375,7 +4375,9 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(!physical)throw new JSQLiteError('unsupported','WITHOUT ROWID primary layout is not represented',{unsupportedClassification:'temporary'});
     return physical;
   };
+  let bloomBuildSource:ResolvedSource|undefined;
   const columnAccess=(source:ResolvedSource,columnIndex:number):{cursor:number;physicalColumnIndex?:number}=>{
+    if(source===bloomBuildSource)return {cursor:cursorFor(source)};
     const ordinal=expanded.sources.indexOf(source),selected=selectedBySource.get(ordinal),physical=selected?.capability?.physicalIndex,indexCursor=indexCursors.get(ordinal);
     // where.c clears WHERE_IDX_ONLY for a RIGHT RHS: the shared interior
     // must read one primary reader in both the selected and fresh-drain scans.
@@ -4451,6 +4453,17 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const multiOrderConsumed=rightLevels.length===0&&!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
   const sorterCursor=builder.cursor(),distinctCursor=builder.cursor(),rightMatchCursor=builder.cursor();
   const selectedBySource=new Map(multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
+  // sqlite3ConstructBloomFilter is independent of automatic-index selection.
+  // Initially enroll only ordinary two-rowid equality-only SQL consumers:
+  // IN, outer and frame/drain continuations need their own lowering handoff.
+  const bloomLevels=new Map<number,{register:number;bytes:number}>();
+  if(!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers&&expanded.sources.length===2&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid&&!source.joinFromLeft.left&&!source.joinFromLeft.right)&&multiWhere.path){
+    for(const descriptor of standaloneBloomDescriptors(multiWhere.path,true)){
+      const loop=descriptor.loop,cap=loop.capability;
+      if(loop.kind==='index'&&cap&&cap.physicalIndex?.fields.slice(0,cap.nEq).every(field=>field.column!==null)&&cap.nSkip===0&&!cap.lower&&!cap.upper&&!cap.inSeekScan&&cap.equalitySlots.every(slot=>slot!==null&&(slot.operator==='eq'||slot.operator==='is')))
+        bloomLevels.set(loop.sourceOrdinal,{register:allocate(),bytes:descriptor.bytes});
+    }
+  }
   // The established RIGHT fallback has no global WherePath. Still obtain the
   // module's BestIndex template with the established source-order prefix.
   // Table-function arguments are linked hidden ON constraints; do not assume
@@ -4792,6 +4805,31 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     for(const call of continuation.calls)(ops[call] as {p2:number}).p2=ops.length;
     if(continuation.covering)orCovering.set(level,{physical:continuation.covering,cursor:continuation.indexCursor,tableCursor:cursorFor(source),start:ops.length});
   }else {
+  const bloom=bloomLevels.get(ordinal);
+  if(bloom){
+    // where.c: Once -> Blob -> Rewind -> source-local predicates ->
+    // key columns -> FilterAdd -> Next. No prepare-time scan or cache.
+    const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0},{code:'FilterInit',p1:bloom.register,bytes:bloom.bytes});
+    const rewind=ops.length;ops.push({code:'Rewind',p1:cursorFor(source),p2:0});
+    const top=ops.length,failures:number[]=[];
+    bloomBuildSource=source;
+    for(const term of multiWhere.analysis.clause.terms)if(automaticIndexBuildPredicate(term,expanded,ordinal)){
+      const at=compilePredicate(term.expression);if(at!==undefined)failures.push(at);
+    }
+    bloomBuildSource=undefined;
+    const equality=selected!.capability!.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
+    const first=range(equality.length),physical=selected!.capability!.physicalIndex!;
+    equality.forEach((_,i)=>{
+      const column=physical.fields[i]!.column!;
+      const index=source.table.columns.indexOf(column);
+      if(isIntegerPrimaryKeyAlias(source.table,index))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
+      else ops.push({code:'Column',p1:index,p2:first+i,p3:cursorFor(source)});
+    });
+    ops.push({code:'FilterAdd',p1:bloom.register,p3:first,p4:equality.length});
+    for(const at of failures)(ops[at] as {p2:number}).p2=ops.length;
+    ops.push({code:'Next',p1:cursorFor(source),p2:top});
+    (ops[rewind] as {p2:number}).p2=ops.length;(ops[once] as {p2:number}).p2=ops.length;
+  }
   rewinds.push(ops.length);
   if(rowEq){const tree=resolveTree(expressionFromReduction(rowEq.term.expression.reduction!),rowEq.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
     const capability=selected?.capability;
@@ -4851,6 +4889,15 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // codeAllEqualityTerms: SRT_Set already applied SELECT-IN affinity.
       // Seek and equality-prefix termination share this no-op slot vector.
       const affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
+      if(bloom){
+        // codeApplyAffinity precedes Filter on the live probe values. The
+        // contiguous copies borrow those same coerced values; a present bit
+        // still reaches the authoritative ordinary persistent seek.
+        const first=range(keys.length);
+        keys.forEach((key,i)=>ops.push({code:'Affinity',p1:key,affinity:affinities[i]!},{code:'Copy',p1:key,p2:first+i}));
+        equalityNullGuards.push({at:ops.length,level});
+        ops.push({code:'Filter',p1:bloom.register,p2:0,p3:first,p4:keys.length});
+      }
       const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
       rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);
     }else ops.push(indexCursor===undefined&&!(source.table.kind==='table'&&source.table.withoutRowid)?{code:capability?.reverse?'Last':'Rewind',p1:scanCursor,p2:0}:{code:capability?.reverse?'IndexLast':'IndexRewind',p1:scanCursor,p2:0});
