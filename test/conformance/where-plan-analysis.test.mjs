@@ -160,6 +160,19 @@ test('generated USING references keep covering ownership separate from build saf
  }
 });
 
+test('automatic rowid aliases use one identity tail not a duplicate IPK payload',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const name of ['id','rowid','_rowid_','oid'])for(const explicit of [false,true]){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve(`SELECT u.${name} FROM t o CROSS JOIN t u ON u.b=o.b`,s);
+  const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+  assert.equal(plan.columnUses.find(use=>use.expression===plan.result[0].expression.reduction).columnIndex,-1);
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(source,1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set(explicit?[s.id]:[]),encoding,plan);
+  assert.deepEqual(d.fields,[s.b,null]);assert.equal(d.keyInfo.totalFieldCount,2);
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

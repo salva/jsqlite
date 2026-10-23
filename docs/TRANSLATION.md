@@ -499,7 +499,9 @@ includes duplicate high-key payload fields. Resolved nested residual/RHS
 references also own that bit; an implicit high WITHOUT ROWID PK alone does not
 append high payload. Generated-column references (stored or virtual) expand
 colUsed to all table columns, including low payload and bit63, independent of
-expression dependencies, matching pinned resolve/extraCols control flow (see
+expression dependencies. INTEGER PRIMARY KEY caller coverage normalizes to the
+single rowid identity tail rather than adding an IPK payload, matching pinned
+rowidUsed versus colUsed and resolve/extraCols control flow (see
 [primitive evidence](research/where-autoindex-primitives.md)). Automatic and
 independent standalone Bloom descriptors retain explicit readiness/proof inputs. Native output adjustment now publishes immutable
 `selfCulling` on ordinary loops from unused, exact-local nonvirtual terms, with

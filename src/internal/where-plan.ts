@@ -198,7 +198,9 @@ export function automaticIndexDescriptor(candidate:AutomaticIndexCandidate,claus
  const fields:(ColumnNode|null)[]=keys.map(key=>key.column);
  // resolve.c sqlite3ExprColUsed expands any generated-column reference
  // to all columns, not only the expression's dependencies (stored or virtual).
- const referenced=new Set<NeededColumn>(needed);
+ // IPK names resolve to iColumn=-1: rowidUsed, not colUsed. Normalize
+ // caller coverage too; the identity tail below already supplies this value.
+ const referenced=new Set<NeededColumn>([...needed].filter(column=>table.withoutRowid||column!==integerPrimaryKeyColumn(table)));
  for(const term of clause.terms)if(term.left?.source===source&&term.left.columnIndex>=0)referenced.add(table.columns[term.left.columnIndex]!);
  for(const use of resolved?.columnUses??[])for(const ref of use.mergedSources??[use])if(ref.source===source&&ref.columnIndex>=0)referenced.add(table.columns[ref.columnIndex]!);
  const allColumns=table.columns.some(column=>referenced.has(column)&&column.generatedExpr!==null);

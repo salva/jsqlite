@@ -530,6 +530,15 @@ analysis seam passes (proc-3573035b4102), no product change or runtime opt-in.
 These controls do not independently establish exact merged descriptor field
 layout or native populated parity.
 
+Rowid/IPK follow-up found a descriptor defect with explicit caller needed IPK:
+[b,id,rowid] rather than native [b,rowid]. resolve.c lookupName maps IPK names
+to iColumn=-1 and rowidUsed, not colUsed; descriptor now normalizes caller
+needed IPK out of payload, retaining exactly one separately appended tail.
+24 controls (encoding × id/rowid/_rowid_/oid × explicit/empty needed) reproduce
+old failure proc-5cec6c01ce2c. Fresh SourceID-checked native EXPLAIN4 aliases
+confirms OpenAutoindex/MakeRecord2: proc-a989c1cf9993. No populated execution
+or SQL enrollment claimed; ordinary non-IPK fields and WR ownership unchanged.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
