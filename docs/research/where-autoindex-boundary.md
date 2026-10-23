@@ -209,6 +209,22 @@ execution, per-loop state restoration observations, or all outer/IN/skip-scan
 native exclusion witnesses. Existing synthetic exclusions retain those obligations.
 
 
+## Public operation-control baseline
+
+`AUTO_PUBLIC_CONTROLS=1` on the adjacent baseline invokes
+`where-autoindex-public-controls.mjs` on each unforced/NOT INDEXED statement
+and encoding (nonparameterized, at least two native rows). It tests pre-aborted
+signal and zero-duration deadline both before first step and after one result,
+exact JSQLiteError kind/message/non-SQLite codes, caller abort reason identity,
+failed-step saved error identity, reset cleanup/rethrow followed by safe reset,
+full native-typed retry and separately live survivor continuation/metadata.
+The expectations come from docs/api.md and VdbeStatement control/reset ownership;
+SQLite vdbe.c entry interruption and vdbeaux.c sqlite3VdbeReset supply upstream
+halt-before-error-return rationale. AbortSignal/deadline are public adaptations,
+not native SQLite error-code equivalence. These finite controls establish public
+baseline isolation and error behavior, NOT mid-build/probe interruption, actual
+allocation-site failure, refund/high-water, or runtime autoindex/Bloom credit.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
