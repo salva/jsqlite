@@ -150,7 +150,52 @@ SHA2560691d9f832465c1cecd66c2c27fa1f73dcd2bef377e66dfe6b5b178e958b3920;
 combined native→public baseline→contract checks exit0 (`proc-75b6c0d47c6e`).
 The public companion verifies12 scan executions with typed keys/metadata/reset;
 zero TS automatic-index/Bloom feature credit. Other affinity combinations and
-standalone Bloom/pulldown remain obligations.
+standalone Bloom now has the native/pending controls below; additional affinity
+combinations and native multi-loop pulldown controls remain obligations.
+
+## Standalone persistent Bloom and pending pulldown controls
+
+`--case standalone` extends the same capture infrastructure: physical `rk`
+index, ANALYZE/stat1, repeated CROSS JOIN probes, RHS-only payload predicate.
+It requires persistent `USING INDEX rk`/SeekGE and no OpenAutoindex on either
+alternative. The native optimization mask (test-control15, BloomFilter0x80000)
+disables Bloom alone for the comparison; the legacy receipt `automaticIndex`
+boolean also controls PRAGMA automatic_index but is not standalone feature credit.
+Both modes return34 typed rows, five metadata fields and DONE twice in all three
+encodings; enabled mode requires989 absent jumps/34 present fallthroughs, disabled
+mode0/0, autoindex status0 in both. Receipt and final commands are in the current
+card status. The existing public companion checks unforced persistent access and
+NOT INDEXED correctness, not TS Bloom support.
+
+`where-bloom-contract.mjs` defines a **distinct pending** private adapter contract:
+`assertStandaloneBloom` requires version1, persistent-index planKind, stable
+indexIdentity, autoindexBuilds0, no dispatched OpenAutoindex, actual Once/FilterAdd/
+Filter, exact caller-owned typed rows/metadata/error and exact nonnegative
+builds/insertedFilterKeys/probes/absent/present/persistentSeeks/collisionRejects.
+InsertedFilterKeys counts actual FilterAdd keys, not automatic IdxInsert or Next.
+Probes=absent+present; persistentSeeks=present applies to these single-probe
+controls (no IN, extra seek or NULL bypass counted as a probe). Exact `trace`
+is caller-selected expected dispatch order, not adapter-generated expectations:
+loop/filter/outer-iteration identities must remain distinguishable when the
+adapter is implemented. `standaloneBloom` executes/reset/executes each supplied
+case and requires fresh positive executionId and stable nonempty planIdentity.
+
+`assertPulldown` compares caller-owned complete per-loop placement observations:
+loopId; outer/inOperator/notReady/skipScan booleans; early; keyKind rowid/index;
+filterRegisterAfter; breakTargetBefore/After; outerNext; absentTarget; earlyTrace.
+Excluded loops must have early=false and no early trace. Eligible early rowid
+probes require MustBeInt then Filter; index probes require Affinity then Filter;
+the absent continuation is OuterNext, break target is restored and regFilter
+cleared. This is a normalized absent-probe trace, not an assertion that a present
+probe skips the authoritative persistent seek. where.c construction excludes
+outer/IN/unready early initialization; wherecode.c adds skip-scan exclusion and
+consumes the initialized register. Tests mutate each exclusion, conversion/order,
+continuation/register restoration, wrong index, counts, stale reset and rows.
+Four synthetic tests exercise these assertions; the one explicit runtime skip
+remains honest. No adapter/production counters are supplied. Native multi-loop
+pulldown, exclusion-plan captures and execution observations remain outstanding;
+the new native standalone fixture must not be misreported as those controls.
+
 
 ## Remaining acceptance obligations
 

@@ -22,6 +22,5 @@ test('pending observation rejects scan and incorrect filter/covering work',()=>{
 for(const name of ['unforced automatic covering build/probe/filter','reset rebind reprepare fresh execution',
  'capacity minus-one exact plus-one and partial page/record/filter allocation failure',
  'cancel and deadline during build and probe preserve original error',
- 'refund reset retry finalize close and independent statement ownership',
- 'standalone persistent-index Bloom choice and pulldown'])
+ 'refund reset retry finalize close and independent statement ownership'])
  test(name,{skip:'PENDING runtime implementation + version-1 private observation seam; no feature credit'},()=>{});
