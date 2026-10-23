@@ -1833,7 +1833,7 @@ export function rightJoinResidual(resolved:ResolvedSelect,ordinal:number):readon
  return Object.freeze(out);
 }
 
-export interface WherePlanRequest {readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>;readonly planBudget?:WherePlanBudget;readonly externalAvailable?:ReadonlySet<ResolvedSource>}
+export interface WherePlanRequest {readonly automaticIndex?:AutomaticIndexContext;readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>;readonly planBudget?:WherePlanBudget;readonly externalAvailable?:ReadonlySet<ResolvedSource>}
 /** Internal lowering publication: source term flags are mutable while AddAll
  * explores/rebuilds, then copied without retaining the reusable builder sets. */
 export interface WhereTruthPublication {readonly high:readonly WhereTerm[];readonly heuristic:readonly WhereTerm[];readonly secondPass:boolean}
@@ -1890,7 +1890,7 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
  // raw virtual templates are not automatically retained path candidates.
  const added=whereLoopInsertCandidates(jsonWhereLoops(resolved,source,request.externalAvailable??new Set(),sourcePrereq),planBudget);
  ordinaryLoops.push(...added);return added;
- }if(source.table.kind!=='table')throw new WherePlanningUnsupportedError('module requires its Filter producer');const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);const added=btreeLoops(source,ordinal,analysis.clause,{forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved,planBudget,ordinaryLoops});ordinaryLoops.push(...added);return added;});};
+ }if(source.table.kind!=='table')throw new WherePlanningUnsupportedError('module requires its Filter producer');const forced=source.indexedBy===null?null:source.table.indexes.find(index=>sqliteAsciiFold(index.name)===sqliteAsciiFold(source.indexedBy!))??null;if(source.indexedBy!==null&&!forced)throw new WherePlanningUnsupportedError(`no such index: ${source.indexedBy}`);const added=btreeLoops(source,ordinal,analysis.clause,{...(request.automaticIndex?{automaticIndex:request.automaticIndex}:{}),forcedIndex:forced,notIndexed:source.notIndexed||request.excludedIndexSources?.has(ordinal)===true,sourcePrereq,neededColumns:request.neededColumns[ordinal]??new Set(),orderBy:request.orderBy,resolved,planBudget,ordinaryLoops});ordinaryLoops.push(...added);return added;});};
  let groups=buildAll();
  if(planBudget.truth.secondPass){planBudget.remaining=initialLimit;planBudget.progressCheck?.();groups=buildAll();}
  const unsorted=wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length));

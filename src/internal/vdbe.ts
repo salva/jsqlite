@@ -5,7 +5,7 @@ import {PrivateKeyVmCursor} from './private-key-vm.ts';
 import {beginInVectorLoop} from './where-in-loop.ts';
 import {dispatchPrivateInCursor} from './private-in-dispatch.ts';
 import {emitSelectedInRhs,selectedInStorage,selectedVectorInStorage} from './where-in-producer.ts';
-import {standaloneBloomDescriptors,automaticIndexBuildPredicate,type SelectInLoopRhs} from './where-plan.ts';
+import {automaticIndexDescriptor,type AutomaticIndexDescriptor,standaloneBloomDescriptors,automaticIndexBuildPredicate,type SelectInLoopRhs} from './where-plan.ts';
 import {packRecord,recordSize} from './record-pack.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from './private-blobkey-pages.ts';
 import {StorageLimitError} from './storage.ts';
@@ -193,7 +193,7 @@ type Op =
   | { readonly code: "PriorityShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
   | { readonly code: "FifoInsert"; readonly p1:number; readonly keyStart:number; readonly keyCount:number }
   | { readonly code: "FifoShift"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump:number }
-  | { readonly code: "OpenEphemeral"; readonly p1:number; readonly keyInfo:KeyInfo; readonly p4KeyInfo?:KeyInfo; readonly insertionOrder?:boolean; readonly statementEncoding?:boolean }
+  | { readonly code: "OpenEphemeral"|"OpenAutoindex"; readonly p1:number; readonly keyInfo:KeyInfo; readonly p4KeyInfo?:KeyInfo; readonly insertionOrder?:boolean; readonly statementEncoding?:boolean }
   | { readonly code: "MakeRecord"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4Affinity?:readonly MemAffinity[] }
   | { readonly code: "NewRowid"; readonly p1:number; readonly p2:number }
   | { readonly code: "Insert"; readonly p1:number; readonly p2:number; readonly p3:number }
@@ -309,6 +309,13 @@ export interface Program {
 /** Production-private sqlite3_stmt_status-shaped accounting. It deliberately
  * does not extend the public Statement contract. */
 export interface VdbePrivateAccounting {
+  readonly automaticBuilds:number;
+  readonly automaticInserts:number;
+  readonly automaticSeeks:number;
+  readonly automaticCoveringReads:number;
+  readonly filterAdds:number;
+  readonly filterAbsent:number;
+  readonly filterPresent:number;
   readonly plannerCandidates:number;
   readonly plannerPaths:number;
   readonly indexSeeks:number;
@@ -323,7 +330,7 @@ export interface VdbePrivateAccounting {
   readonly orBranchRoots:readonly number[];
   readonly orDuplicateSkips:number;
 }
-const zeroPrivateAccounting=():VdbePrivateAccounting=>({plannerCandidates:0,plannerPaths:0,indexSeeks:0,indexNext:0,tableSeeks:0,tableNext:0,residualTests:0,sorterRows:0,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0});
+const zeroPrivateAccounting=():VdbePrivateAccounting=>({automaticBuilds:0,automaticInserts:0,automaticSeeks:0,automaticCoveringReads:0,filterAdds:0,filterAbsent:0,filterPresent:0,plannerCandidates:0,plannerPaths:0,indexSeeks:0,indexNext:0,tableSeeks:0,tableNext:0,residualTests:0,sorterRows:0,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0});
 export type WindowDeleteMode="retain"|"agg-inverse"|"return-row"|"agg-step";
 export interface WindowSetupLayer {
   readonly compatibleGroup:number;
@@ -4378,6 +4385,12 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   let bloomBuildSource:ResolvedSource|undefined;
   const columnAccess=(source:ResolvedSource,columnIndex:number):{cursor:number;physicalColumnIndex?:number}=>{
     if(source===bloomBuildSource)return {cursor:cursorFor(source)};
+    const automatic=automaticLevels.get(expanded.sources.indexOf(source));
+    if(automatic){
+      const at=columnIndex<0||isIntegerPrimaryKeyAlias(source.table,columnIndex)?automatic.descriptor.fields.indexOf(null):automatic.descriptor.fields.indexOf(source.table.columns[columnIndex]!);
+      if(at<0)throw new JSQLiteError('internal','automatic covering column is absent');
+      return {cursor:automatic.cursor,physicalColumnIndex:at};
+    }
     const ordinal=expanded.sources.indexOf(source),selected=selectedBySource.get(ordinal),physical=selected?.capability?.physicalIndex,indexCursor=indexCursors.get(ordinal);
     // where.c clears WHERE_IDX_ONLY for a RIGHT RHS: the shared interior
     // must read one primary reader in both the selected and fresh-drain scans.
@@ -4440,8 +4453,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const multiOrder=resolvedWhereOrder(expanded);
   // wherecode.c:codeINTerm admits a per-slot RHS cursor after its
   // prerequisites are positioned; the selected loop below lowers each slot.
+  const automaticEligible=!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers
+    &&expanded.sources.length===2&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid
+      &&!source.table.columns.some(column=>column.generatedExpr)&&!source.joinFromLeft.right);
   try {
-    multiWhere=planWhere(expanded,{neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...((source.table.kind==='table'&&source.table.withoutRowid)?[]:[ROWID_NEEDED])])),orderBy:multiOrder,externalAvailable:owner?.expressionBinding?.positionedSources??new Set(),planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
+    multiWhere=planWhere(expanded,{...(automaticEligible?{automaticIndex:{enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n}}:{}),neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...((source.table.kind==='table'&&source.table.withoutRowid)?[]:[ROWID_NEEDED])])),orderBy:multiOrder,externalAvailable:owner?.expressionBinding?.positionedSources??new Set(),planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
   } catch(error) {
     // Shared scalar/CTE callers use this producer too. Preserve the same
     // public admission boundary as the singleton planner, without hiding
@@ -4453,6 +4469,17 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const multiOrderConsumed=rightLevels.length===0&&!owner?.scalarPrepared&&multiOrder.length===select.orderBy.length&&multiWhere.path?.orderTermsSatisfied===select.orderBy.length;
   const sorterCursor=builder.cursor(),distinctCursor=builder.cursor(),rightMatchCursor=builder.cursor();
   const selectedBySource=new Map(multiWhere.path?.loops.map(loop=>[loop.sourceOrdinal,loop])??[]),indexCursors=new Map<number,number>();
+  const automaticLevels=new Map<number,{descriptor:AutomaticIndexDescriptor;cursor:number;filter:number|undefined}>();
+  if(multiWhere.path){let ready=0n;const all=(1n<<BigInt(expanded.sources.length))-1n;
+    for(const loop of multiWhere.path.loops){
+      if(loop.kind==='automatic-index'&&loop.automatic){
+        const descriptor=automaticIndexDescriptor(loop.automatic,multiWhere.analysis.clause,all&~ready,new Set([...loop.source.table.columns,ROWID_NEEDED]),database.encoding,expanded);
+        if(!descriptor)throw new JSQLiteError('internal','selected automatic index lost ready descriptor');
+        automaticLevels.set(loop.sourceOrdinal,{descriptor,cursor:builder.cursor(),filter:descriptor.bloom?allocate():undefined});
+      }
+      ready|=1n<<BigInt(loop.sourceOrdinal);
+    }
+  }
   // sqlite3ConstructBloomFilter is independent of automatic-index selection.
   // Initially enroll only ordinary two-rowid equality-only SQL consumers:
   // IN, outer and frame/drain continuations need their own lowering handoff.
@@ -4804,6 +4831,43 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     rewinds.push(continuation.exit);orReturns.set(level,continuation.returnRegister);singleRows[level]=false;
     for(const call of continuation.calls)(ops[call] as {p2:number}).p2=ops.length;
     if(continuation.covering)orCovering.set(level,{physical:continuation.covering,cursor:continuation.indexCursor,tableCursor:cursorFor(source),start:ops.length});
+  }else if(automaticLevels.has(ordinal)){
+    const automatic=automaticLevels.get(ordinal)!,descriptor=automatic.descriptor;
+    const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0},{code:'OpenAutoindex',p1:automatic.cursor,keyInfo:descriptor.keyInfo,p4KeyInfo:descriptor.keyInfo});
+    if(automatic.filter!==undefined)ops.push({code:'FilterInit',p1:automatic.filter,bytes:10000});
+    const rewind=ops.length;ops.push({code:'Rewind',p1:cursorFor(source),p2:0});
+    const top=ops.length,failures:number[]=[];
+    bloomBuildSource=source;
+    for(const term of descriptor.buildPredicates){const at=compilePredicate(term.expression);if(at!==undefined)failures.push(at);}
+    bloomBuildSource=undefined;
+    const first=range(descriptor.fields.length),record=allocate();
+    descriptor.fields.forEach((column,i)=>{
+      const at=column===null?-1:source.table.columns.indexOf(column);
+      if(at<0||isIntegerPrimaryKeyAlias(source.table,at))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
+      else ops.push({code:'Column',p1:at,p2:first+i,p3:cursorFor(source)});
+    });
+    ops.push({code:'MakeRecord',p1:first,p2:descriptor.fields.length,p3:record,p4Affinity:descriptor.fields.map(column=>column?.affinity??'integer')});
+    if(automatic.filter!==undefined)ops.push({code:'FilterAdd',p1:automatic.filter,p3:first,p4:descriptor.keys.length});
+    ops.push({code:'IdxInsert',p1:automatic.cursor,p2:record,keyStart:first,keyCount:descriptor.fields.length,consumeRecord:true});
+    for(const at of failures)(ops[at] as {p2:number}).p2=ops.length;
+    ops.push({code:'Next',p1:cursorFor(source),p2:top});
+    (ops[rewind] as {p2:number}).p2=ops.length;(ops[once] as {p2:number}).p2=ops.length;
+    const keys=range(descriptor.keys.length),affinities=descriptor.keys.map(key=>key.affinity);
+    descriptor.keys.forEach((key,i)=>{
+      const tree=resolveTree(expressionFromReduction(key.term.expression.reduction!),key.term.expression.reduction as Reduction);
+      if(tree.kind!=='binary')throw new JSQLiteError('internal','automatic key lost binary expression');
+      const value=compileExpressionTree(key.term.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery);
+      ops.push({code:'Copy',p1:value,p2:keys+i});
+      if(key.term.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys+i,p2:0});}
+      ops.push({code:'Affinity',p1:keys+i,affinity:key.affinity});
+    });
+    if(automatic.filter!==undefined){equalityNullGuards.push({at:ops.length,level});ops.push({code:'Filter',p1:automatic.filter,p2:0,p3:keys,p4:descriptor.keys.length});}
+    const registers=descriptor.keys.map((_,i)=>keys+i);
+    rewinds.push(ops.length);ops.push({code:'IndexSeekPrefix',p1:automatic.cursor,keys:registers,affinities,keyInfo:descriptor.keyInfo,reverse:false,p2:0});
+    // starts[] must include the authoritative equality-prefix termination on
+    // every duplicate step, but bodies[] excludes it for LEFT null extension.
+    loopEnds.push({at:ops.length,level});ops.push({code:'IndexPrefixEnd',p1:automatic.cursor,keys:registers,affinities,keyInfo:descriptor.keyInfo,p2:0});
+    singleRows[level]=false;
   }else {
   const bloom=bloomLevels.get(ordinal);
   if(bloom){
@@ -4904,7 +4968,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     singleRows[level]=false;
   }
   }
-  starts.push(ops.length);
+  starts.push(automaticLevels.has(ordinal)?ops.length-1:ops.length);
   if(indexCursor!==undefined){
     const capability=selected!.capability!,seek=ops[rewinds[level]!];
     if(seek?.code==='IndexSeekPrefix'||seek?.code==='IndexRewind'||seek?.code==='IndexLast'||(seek?.code==='Goto'&&prefixLoops.has(level))){
@@ -5020,8 +5084,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       }else if(op.code==='Rowid'&&(op.p1??0)===cover.tableCursor)ops[pc]={...op,p1:cover.cursor};
     }
   }
-  advanceAt[level]=ops.length;const coroutine=owner?.sourceProducers?.get(loopSources[level]!)?.coroutine;
-  if(coroutine)ops.push({code:'Goto',p2:rewinds[level]!});else if(moduleRows.has(loopSources[level]!)){
+  advanceAt[level]=ops.length;const automatic=automaticLevels.get(loopOrdinals[level]!);const coroutine=owner?.sourceProducers?.get(loopSources[level]!)?.coroutine;
+  if(automatic)ops.push({code:'IndexNext',p1:automatic.cursor,p2:starts[level]!});else if(coroutine)ops.push({code:'Goto',p2:rewinds[level]!});else if(moduleRows.has(loopSources[level]!)){
     const row=moduleRows.get(loopSources[level]!)!;ops.push({code:loopSources[level]!.table.kind==='metadata-module'?'MetadataNext':'JsonTableNext',p1:row.cursor,rowStart:row.first,rowIdentity:row.rowid,p2:starts[level]!});
   }else if(orReturns.has(level))ops.push({code:'Return',p1:orReturns.get(level)!});else if(singleRows[level])ops.push({code:'Goto',p2:0});else {const ordinal=loopOrdinals[level]!,indexCursor=indexCursors.get(ordinal),reverse=!!selectedBySource.get(ordinal)?.capability?.reverse;ops.push(indexCursor===undefined&&!(loopSources[level]!.table.kind==='table'&&physicalTable(loopSources[level]!).withoutRowid)?{code:reverse?'Prev':'Next',p1:cursorFor(loopSources[level]!),p2:starts[level]!}:{code:reverse?'IndexPrev':'IndexNext',p1:indexCursor??cursorFor(loopSources[level]!),p2:starts[level]!});}const restart=inRestarts.get(level);if(restart){
     // where.c:sqlite3WhereEnd unwinds each equality-slot IN from inner to outer.
@@ -5043,7 +5107,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // before re-entering the LEFT body. Neither may expose a previous hit.
     // where.c7694: MULTI_OR pCoveringIdx is a separate cursor owner.
     // Body Column/Rowid rewrites must observe NULL, not the final arm record.
-    const indexCursor=indexCursors.get(loopOrdinals[level]!)??orCovering.get(level)?.cursor;
+    const indexCursor=indexCursors.get(loopOrdinals[level]!)??automaticLevels.get(loopOrdinals[level]!)?.cursor??orCovering.get(level)?.cursor;
     if(indexCursor!==undefined)ops.push({code:'NullRow',p1:indexCursor});
     ops.push({code:'Integer',p1:1n,p2:nullPasses.get(level)!},{code:'Goto',p2:bodies[level]!});
     const nullContinue=nullContinues.get(level);if(nullContinue!==undefined)(ops[nullContinue] as {p2:number}).p2=ops.length;
@@ -9635,6 +9699,7 @@ export class VdbeStatement implements Statement {
   #privateKeys = new Map<number,PrivateKeyVmCursor>();
   // Execution-owned RHS Btree substitute, invalidated by each iterator reset.
   #inSets = new Map<number,{values:Mem[];bytes:number}>();
+  #automaticCursors = new Set<number>();
   #filters = new Map<number,PrivateBloomFilter>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
@@ -9705,6 +9770,7 @@ export class VdbeStatement implements Statement {
           const cursorOp=op.code==='Column'?{...op,p3:op.p3??0}:op;
           const result=await dispatchPrivateInCursor(cursorOp,this.#privateKeys,this.#registers,this.#privateControl(options,limit,started));
           if(result.handled){
+            if(op.code==='Column'&&this.#automaticCursors.has(op.p3??0))this.#privateAccounting={...this.#privateAccounting,automaticCoveringReads:this.#privateAccounting.automaticCoveringReads+1};
             if(op.code==='Column'&&op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}
             if(op.code==='Column'&&op.inProbe&&this.#registers[op.p2]!.initialStorageClass!=='null')this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1};
             if(result.jump!==null)this.#pc=result.jump;
@@ -9822,7 +9888,8 @@ export class VdbeStatement implements Statement {
           case "PriorityShift": {const values=(this.#privateCursors.get(op.p1) as PriorityQueueCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
           case "FifoInsert": await (this.#privateCursors.get(op.p1) as FifoCursor).insert(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
           case "FifoShift": {const values=(this.#privateCursors.get(op.p1) as FifoCursor).shift();if(!values)this.#pc=op.emptyJump;else{for(let i=0;i<op.count;i++){this.#registers[op.p2+i]!.copyFrom(values[i]!);values[i]!.release();}}break;}
-          case "OpenEphemeral": {
+          case "OpenAutoindex":case "OpenEphemeral": {
+            if(op.code==='OpenAutoindex'){this.#automaticCursors.add(op.p1);this.#privateAccounting={...this.#privateAccounting,automaticBuilds:this.#privateAccounting.automaticBuilds+1};}
             // Explicit consuming seam. Legacy auxiliary readers retain their
             // own contract; packed membership owns BLOBKEY First/Next traversal.
             const typed=op.p4KeyInfo!==undefined||this.#program.ops.some(i=>i.code==='IdxInsert'&&i.p1===op.p1&&i.p2!==undefined);
@@ -10006,7 +10073,7 @@ export class VdbeStatement implements Statement {
             if(typed){const record=op.p2===undefined?undefined:this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError('internal','private IdxInsert requires packed MakeRecord P2');
               // No trusted token is exported by the primitive. USESEEKRESULT
               // therefore requests its accepted packed reseek, never scalar loc.
-              try{await typed.insert(record.packed,this.#privateControl(options,limit,started));}
+              try{await typed.insert(record.packed,this.#privateControl(options,limit,started));if(this.#automaticCursors.has(op.p1))this.#privateAccounting={...this.#privateAccounting,automaticInserts:this.#privateAccounting.automaticInserts+1};}
               finally{if(op.consumeRecord){this.#packedRecords.delete(op.p2!);this.#privateBytes.release(record.charge);}}
               break}
             const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),control=this.#privateControl(options,limit,started);if(op.replace)await cursor.replace(key,control);else await cursor.insert(key,control);break;}
@@ -10104,6 +10171,7 @@ export class VdbeStatement implements Statement {
             break;
           }
           case "IndexSeekPrefix": {
+            if(this.#automaticCursors.has(op.p1))this.#privateAccounting={...this.#privateAccounting,automaticSeeks:this.#privateAccounting.automaticSeeks+1};
             const packed=this.#privateKeys.get(op.p1);
             if(packed){
               if(op.seekScan)throw new JSQLiteError('internal','private SeekScan not lowered');
@@ -10161,6 +10229,7 @@ export class VdbeStatement implements Statement {
           case "DeferredSeek": {const index=this.#records.get(op.p1),raw=index?.last();if(raw?.storageClass!=="integer")throw new JSQLiteError("internal","index rowid tail is not integer");this.#deferredRowids.set(op.p2,raw.value);this.#records.delete(op.p2);this.#recordRowids.set(op.p2,raw.value);break;}
           case "DeferredIndexSeek": {this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const record=this.#records.get(op.p1),cursor=this.#indexCursors.get(op.p2);if(!record||!cursor)throw new JSQLiteError("internal","deferred index seek on unopened cursor");const values=op.primaryKeyFields.map(ordinal=>{const raw=record.field(ordinal);if(raw===undefined)throw new BtreeFormatError("secondary key is missing a primary-key field");return memFromRawRecord(raw,this.#borrow)});const key=new UnpackedRecordKey(values,0,"seek",op.physical.keyInfo);try{if(!cursor.seek(payload=>compareRecordKey(payload,key,op.physical.keyInfo),"ge"))throw new BtreeFormatError("secondary key does not reference a primary row");this.#loadIndexRecord(op.p2);}finally{key.release();}break;}
           case "NullRow": {
+            const packed=this.#privateKeys.get(op.p1);if(packed)packed.nullRow=true;
             this.#borrow.invalidate();
             this.#records.delete(op.p1);
             const privateCursor=this.#privateCursors.get(op.p1);
@@ -10217,8 +10286,9 @@ export class VdbeStatement implements Statement {
             // bit publication have no await-time input mutation window.
             await this.#privateControl(options,limit,started).checkpoint(op.p4);
             const values=this.#registers.slice(op.p3,op.p3+op.p4);
-            if(op.code==='FilterAdd')filter.add(values);
-            else if(filter.absent(values))this.#pc=op.p2;
+            if(op.code==='FilterAdd'){filter.add(values);this.#privateAccounting={...this.#privateAccounting,filterAdds:this.#privateAccounting.filterAdds+1};}
+            else if(filter.absent(values)){this.#privateAccounting={...this.#privateAccounting,filterAbsent:this.#privateAccounting.filterAbsent+1};this.#pc=op.p2;}
+            else this.#privateAccounting={...this.#privateAccounting,filterPresent:this.#privateAccounting.filterPresent+1};
             break;
           }
           case "Blob": this.#registers[op.p2]!.setBlob(op.p1,{encoding:this.#program.encoding}); break;
@@ -10425,7 +10495,7 @@ export class VdbeStatement implements Statement {
     this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
-    this.#privateKeys.clear();
+    this.#privateKeys.clear();this.#automaticCursors.clear();
     for(const filter of this.#filters.values())try{filter.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#filters.clear();
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}

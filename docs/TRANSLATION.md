@@ -470,7 +470,7 @@ The [runtime automatic-index/Bloom decision](research/where-autoindex-admission.
 is the current bounded beta.5 proposal: native costed transient covering indexes,
 shared packed private-Btree build/probe, source Bloom hash/filter and execution-owned
 Once/resource lifetime, with native-FIRST captures and existing-owner handoff.
-Runtime enrollment is still missing; correct scan results are not implementation credit.
+Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for bounded INNER/CROSS persistent equality loops. Wider consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-b]] status for exact evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.
 VM Rewind/Last, Next/Prev and Column also dispatch to the same packed cursor
@@ -488,7 +488,7 @@ state. Replacement prereleases that owner before new allocation admission,
 matching native Blob/SetZeroBlob release-before-expansion; a failed replacement
 fails execution rather than retaining or restoring old bits. Cancellation and
 elapsed deadlines use shared execution checkpoints/first-error cleanup; no
-private filter owner controls another statement's packed cursor. No SQL producer currently emits them. Consumer lowering must apply native
+private filter owner controls another statement's packed cursor. SQL consumers emit these operations. Lowering applies native
 probe affinity to the live key registers **before Filter**, not only to the
 private snapshot inside IndexSeekPrefix; build FilterAdd follows MakeRecord's
 live-register affinity. Shared hash intentionally does not coerce by itself.
@@ -521,7 +521,7 @@ independent standalone Bloom descriptors retain explicit readiness/proof inputs.
 `selfCulling` on ordinary loops from unused, exact-local nonvirtual terms, with
 null-rejecting operator gates on outer targets. `standaloneBloomDescriptors(path,
 enabled)` consumes that semantic owner directly; callers cannot inject a separate
-proof set. The ordinary two-rowid INNER/CROSS equality-only SQL producer now enables independent standalone descriptors, builds once from source-local constraints, and applies live probe affinity before Filter and the authoritative persistent seek. IN/range/outer/frame consumers and automatic-index SQL enrollment remain unfinished. See [[card:card-s-j-b]] status for bounded native-FIRST evidence and outstanding resource/observation gates. With the matching resolved owner, descriptors retain
+proof set. The ordinary two-rowid INNER/CROSS equality-only SQL producer now enables independent standalone descriptors, builds once from source-local constraints, and applies live probe affinity before Filter and the authoritative persistent seek. IN/range/outer/frame standalone Bloom consumers remain unfinished. Automatic SQL uses Once/OpenAutoindex, source-local safe build predicates, MakeRecord/FilterAdd/IdxInsert, live-affinity Filter and SeekGE/IdxGT duplicate traversal; covering Column and LEFT NullRow share the packed cursor owner. See [[card:card-s-j-b]] status for bounded native-FIRST evidence and outstanding resource/observation gates. With the matching resolved owner, descriptors retain
 single-table partial-build predicates; virtual terms, other-source columns,
 subqueries, volatile functions and unsafe outer-join provenance are excluded.
 Collation/multipage prefix transitions now have direct cursor and VM dispatch

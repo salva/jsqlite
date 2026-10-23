@@ -1,6 +1,6 @@
-## Standalone Bloom consumer (partial author repair)
+## Automatic covering-index and independent standalone Bloom consumers (author repair)
 
-Ordinary two-physical-rowid INNER/CROSS equality-only SQL now enrolls the existing standalone descriptor and executes Once/source-local build/FilterAdd plus live-affinity Filter before persistent seek. Native-FIRST typed rows, five metadata fields and reset agree across three encodings; the standalone witness reduces persistent seeks from1023 to34. Automatic covering-index SQL remains absent; outer/IN/range/frame Bloom placement, production observation and finite fault/resource acceptance remain open. This is partial author evidence, not independent acceptance or full finding closure: [[card:card-s-j-b]] status.
+Ordinary two-physical-rowid INNER/CROSS equality-only SQL now enrolls the existing standalone descriptor and executes Once/source-local build/FilterAdd plus live-affinity Filter before persistent seek. Native-FIRST typed rows, five metadata fields and reset agree across three encodings; the standalone witness reduces persistent seeks from1023 to34. Two-rowid INNER/LEFT SQL now lowers native-costed automatic descriptors through shared packed build/probe/covering and LEFT null-extension ownership. Absent/collision/empty native-FIRST controls pass all encodings/reset with dispatched build/insert/filter/seek counters. Outer/IN/range/frame standalone Bloom placement, complete emitted-versus-dispatched observation and finite fault/resource acceptance remain open. This is partial author evidence, not independent acceptance or full finding closure: [[card:card-s-j-b]] status.
 
 ## Scalar comparison affinity correction
 
