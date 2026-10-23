@@ -476,7 +476,9 @@ existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/I
 Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter
-state. No SQL producer currently emits them. Consumer lowering must apply native
+state. Replacement prereleases that owner before new allocation admission,
+matching native Blob/SetZeroBlob release-before-expansion; a failed replacement
+fails execution rather than retaining or restoring old bits. No SQL producer currently emits them. Consumer lowering must apply native
 probe affinity to the live key registers **before Filter**, not only to the
 private snapshot inside IndexSeekPrefix; build FilterAdd follows MakeRecord's
 live-register affinity. Shared hash intentionally does not coerce by itself.

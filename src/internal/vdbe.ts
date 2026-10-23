@@ -10157,8 +10157,11 @@ export class VdbeStatement implements Statement {
           case "Real": this.#registers[op.p2]!.setDouble(op.p1); break;
           case "String": this.#registers[op.p2]!.setText(new TextEncoder().encode(op.p1),"utf-8"); break;
           case "FilterInit": {
+            // Native OP_Blob prereleases its old value before expansion.
+            // Failure exits execution; replacement is not a rollback owner.
+            this.#filters.get(op.p1)?.close();this.#filters.delete(op.p1);
             const filter=await PrivateBloomFilter.open(this.#privateBytes,op.bytes,this.#privateControl(options,limit,started));
-            this.#filters.get(op.p1)?.close();this.#filters.set(op.p1,filter);break;
+            this.#filters.set(op.p1,filter);break;
           }
           case "FilterAdd":case "Filter": {
             const filter=this.#filters.get(op.p1);

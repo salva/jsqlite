@@ -6,6 +6,10 @@
 `Mem.filterHashContribution`, `private-bloom.ts:filterHash` (unsigned64 sum).
 `vdbe.c:OP_FilterAdd/OP_Filter` → execution-owned `PrivateBloomFilter` and VM
 dispatch; zero-filled native Blob allocation → charged internal FilterInit.
+Native `vdbe.c:OP_Blob`/`vdbemem.c:sqlite3VdbeMemSetZeroBlob` release before
+expansion → FilterInit closes/deletes the old execution owner before admission.
+`private-bloom-lifetime.test.mjs` covers exact single-allocation replacement,
+cleared bits, capacity/work failures, saved-error/reset and paused filter survivor.
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`

@@ -248,6 +248,31 @@ Final415/415 tests, zero failures/skips, typecheck/diffcheck and four unchanged
 absent/collision/empty-inner/standalone receipt replays passed in the checked
 chain: `work:///cards/card-s-j-a/processes/proc-ae98bdbae158/stdout.log`.
 
+## Filter replacement ownership repair
+
+The informed lifetime attempt exposed a real divergence: FilterInit allocated a
+replacement before closing the old filter, demanding two simultaneous charges.
+A10000-byte replacement at the exact10128-byte limit failed (`work:///cards/card-s-j-a/processes/proc-2823a12c8d6f/stdout.log`). Native
+`vdbe.c:OP_Blob`1556ff calls out2Prerelease then SetZeroBlob/ExpandBlob;
+`vdbemem.c:sqlite3VdbeMemSetZeroBlob`1009ff releases old storage first. TS now
+closes/deletes the old owner before allocation/admission; allocation failure is
+an execution failure, not a rollback requiring retention of old bits. No new
+mechanism or capacity fallback was added. Two attempted apply_patch invocations
+made no changes; exact scoped edit applied the correction.
+
+`private-bloom-lifetime.test.mjs` proves exact-limit replacement clears bits and
+rebuilds after reset; oversized replacement preserves saved first-error identity
+through repeat step/reset; a separately paused filter retains its bit and resumes;
+replacement work exhaustion and FilterAdd/Filter key-work exhaustion clean up and
+permit repeat reset/rebuild. Six controls pass (`work:///cards/card-s-j-a/processes/proc-e18f040675fd/stdout.log`). Work exhaustion is not an AbortSignal/deadline
+witness; no claim of real-consumer resource accounting, packed-survivor fault
+coverage or SQL runtime enrollment follows. Existing primitive budget/refund
+tests remain complementary, not direct observation of every VM allocation.
+Final checked planner/shared-primitive chain:421/421, zero failures/skips,
+typecheck/diffcheck and all four unchanged focused SQL receipt replays exit0:
+`work:///cards/card-s-j-a/processes/proc-e80356c817a3/stdout.log`. SQL execution-work
+remains red because consumers are absent; no fresh native capture this attempt.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
