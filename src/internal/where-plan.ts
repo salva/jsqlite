@@ -48,7 +48,7 @@ export interface IndexConstraintAdmission {readonly inSeekScan?:boolean;readonly
 export interface RowidConstraint {readonly term:WhereTerm;readonly operator:WhereOperator;readonly originalIndexedOperand:"left"|"right";readonly bound:IndexConstraintAdmission["bound"]}
 export interface BtreeCapability {readonly inSeekScan?:boolean;readonly index:IndexNode|null;readonly physicalIndex:PhysicalIndex|null;readonly nEq:number;readonly nSkip:number;readonly equalitySlots:readonly (IndexConstraintAdmission|null)[];readonly lower:IndexConstraintAdmission|null;readonly upper:IndexConstraintAdmission|null;readonly constrainedFields:number;readonly orderTermsSatisfied:number;readonly reverse:boolean;readonly covering:boolean;readonly needsTableLookup:boolean;readonly rowidEquality:RowidConstraint|null;readonly rowidLower:RowidConstraint|null;readonly rowidUpper:RowidConstraint|null}
 export type WhereLoop = BtreeWhereLoop | JsonWhereLoop | MetadataWhereLoop;
-export interface BtreeWhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index"|"multi-or"|"automatic-index";readonly automatic?:AutomaticIndexCandidate;readonly orInfo?:Extract<WhereTermInfo,{kind:"or"}>;readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
+export interface BtreeWhereLoop {readonly source:ResolvedSource;readonly sourceOrdinal:number;readonly prereq:SourceMask;readonly capability:BtreeCapability|null;readonly kind:"table-scan"|"rowid"|"index"|"multi-or"|"automatic-index";readonly selfCulling?:boolean;readonly automatic?:AutomaticIndexCandidate;readonly orInfo?:Extract<WhereTermInfo,{kind:"or"}>;readonly sortIdentity?:number;readonly indexRowSize?:LogicalEstimate;readonly setupCost:LogicalEstimate;readonly runCost:LogicalEstimate;readonly outputRows:LogicalEstimate;readonly terms:readonly WhereTerm[]}
 export interface WherePath {readonly loops:readonly WhereLoop[];readonly ready:SourceMask;readonly reverse:SourceMask;readonly rows:LogicalEstimate;readonly cost:LogicalEstimate;readonly unsortedCost:LogicalEstimate;readonly orderTermsSatisfied:number|null}
 export interface OrderRequirement {readonly sourceOrdinal:number;readonly column:ColumnNode|null;readonly descending:boolean;readonly collation:BuiltinCollation;readonly nulls?:"first"|"last"|null}
 export const ROWID_NEEDED=Object.freeze({kind:"rowid" as const});
@@ -214,16 +214,15 @@ export interface StandaloneBloomDescriptor {
  readonly bytes:number;readonly requiresTableCursor:true;
 }
 /** whereCheckIfBloomFilterIsUseful runs on the selected path, independently
- * of automatic candidates. selfCulling contains WHERE_SELFCULL proofs from
- * output adjustment (not guessed from a nonempty term list). No SQL caller
- * supplies these proofs yet, so these descriptors cannot enable a filter. */
-export function standaloneBloomDescriptors(path:WherePath,selfCulling:ReadonlySet<WhereLoop>,enabled:boolean):readonly StandaloneBloomDescriptor[] {
+ * of automatic candidates. WHERE_SELFCULL is produced by output adjustment
+ * on the immutable loop. No SQL caller enables these descriptors yet. */
+export function standaloneBloomDescriptors(path:WherePath,enabled:boolean):readonly StandaloneBloomDescriptor[] {
  const result:StandaloneBloomDescriptor[]=[];let searches=0n;
  if(!enabled||path.loops.length<2)return Object.freeze(result);
  for(let i=0;i<path.loops.length;i++){
   const loop=path.loops[i]!,table=loop.source.table;
   if(table.kind!=="table"||!table.hasStat1)break;
-  if(i>0&&(loop.kind==="index"||loop.kind==="rowid")&&selfCulling.has(loop)){
+  if(i>0&&(loop.kind==="index"||loop.kind==="rowid")&&loop.selfCulling===true){
    const cap=loop.capability;
    const equality:readonly (IndexConstraintAdmission|RowidConstraint)[]=loop.kind==="rowid"
     ? cap?.rowidEquality?[cap.rowidEquality]:[]
@@ -508,17 +507,22 @@ function exprInteger32(value:ExprReduction):bigint|null {
 /** where.c:3037 whereLoopOutputAdjust. Cardinality is adjusted after run
  * costing, before insertion; residual predicates do not reduce physical work.
  * Likelihood/truthProb producers are not yet represented. TERM_HEURTRUTH
- * feeds builder-owned HIGHTRUTH/second-pass state (where.c3519/7086). SELFCULL only feeds the
- * unsupported Bloom-filter generation path (where.c6606), not this costing. */
-function outputAdjust(loop:BtreeWhereLoop,clause:WhereClause,budget:WherePlanBudget):bigint {
+ * feeds builder-owned HIGHTRUTH/second-pass state (where.c3519/7086). SELFCULL
+ * is published on the same immutable loop for standalone admission, not guessed
+ * by its consumer from output cardinality or a nonempty residual list. */
+function outputAdjust(loop:BtreeWhereLoop,clause:WhereClause,budget:WherePlanBudget):{outputRows:bigint;selfCulling:boolean} {
  const truth=budget.truth??=( {high:new Set(),heuristic:new Set(),secondPass:false} );
  const cap=loop.capability,used=cap?[...cap.equalitySlots.filter((a):a is IndexConstraintAdmission=>a!==null).map(a=>a.term),cap.lower?.term,cap.upper?.term,cap.rowidEquality?.term,cap.rowidLower?.term,cap.rowidUpper?.term].filter((t):t is WhereTerm=>!!t):[];
  const self=sourceBit(loop.sourceOrdinal),allowed=loop.prereq|self;
- let rows=loop.outputRows,reduce=0n;
+ let rows=loop.outputRows,reduce=0n,selfCulling=loop.selfCulling??false;
  for(const term of clause.terms){
   if(term.virtual||(term.prereqAll&~allowed)!==0n||(term.prereqAll&self)===0n)continue;
   if(used.some(t=>t===term||t.parentId===term.id))continue;
   budget.progressCheck?.(); // where.c:3060, after unused-term proof, before output reduction.
+  // where.c WHERE_SELFCULL: exact local prerequisite ownership, then
+  // null-rejecting WO_EQ/LT/LE/GT/GE/IN, or a non-outer target. IS and
+  // IS NULL deliberately do not prove culling of a null-extended row.
+  if(term.prereqAll===self&&(['eq','lt','le','gt','ge','in'].includes(term.operator??'')||(!loop.source.joinFromLeft.left&&!loop.source.leftOfRightJoin)))selfCulling=true;
   rows--;
   if((term.operator==="eq"||term.operator==="is")&&!truth.high.has(term)){
    // sqlite3ExprIsInteger tests the syntactic right operand, not the indexed
@@ -530,12 +534,12 @@ function outputAdjust(loop:BtreeWhereLoop,clause:WhereClause,budget:WherePlanBud
  }
  if(loop.source.table.kind!=='table')throw new Error('physical output adjustment on module');
  const limit=BigInt(loop.source.table.nRowLogEst)-reduce;
- return rows>limit?limit:rows;
+ return {outputRows:rows>limit?limit:rows,selfCulling};
 }
 function insertWhereLoop(loop:BtreeWhereLoop,source:ResolvedSource,sourceOrdinal:number,clause:WhereClause,options:CandidateOptions,loops:WhereLoop[],budget:WherePlanBudget,completion:{done:boolean}):boolean {
   if(source.table.kind!=='table')throw new Error('physical insertion on module');
   const table=source.table;
-  const candidate=freeze({...loop,outputRows:loop.kind==="multi-or"?loop.outputRows:outputAdjust(loop,clause,budget),sortIdentity:loop.kind==="multi-or"?0:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?table.indexes.indexOf(loop.capability.index)+2:1):0});
+  const candidate=freeze({...loop,...(loop.kind==="multi-or"?{outputRows:loop.outputRows}:outputAdjust(loop,clause,budget)),sortIdentity:loop.kind==="multi-or"?0:indexMightHelpWithOrderBy(loop.capability?.index??null,sourceOrdinal,source.table,options.orderBy)?(loop.capability?.index?table.indexes.indexOf(loop.capability.index)+2:1):0});
   if(options.orSet){const cap=loop.capability,nLTerm=loop.kind==="multi-or"?1:cap?cap.nEq+Number(!!cap.lower)+Number(!!cap.upper)+Number(!!cap.rowidEquality)+Number(!!cap.rowidLower)+Number(!!cap.rowidUpper):0;if(budget.remaining===0n){completion.done=true;return whereOrCollect(options.orSet,budget,nLTerm,{prereq:0n,rRun:0n,nOut:0n});}budget.remaining--;const adjusted=whereLoopAdjustCost(options.ordinaryLoops?[...options.ordinaryLoops,...loops]:loops,candidate);if(nLTerm)whereOrInsert(options.orSet,adjusted.prereq,adjusted.runCost,adjusted.outputRows);return true;}
   return whereLoopInsert(loops,candidate,budget,options.ordinaryLoops);
 

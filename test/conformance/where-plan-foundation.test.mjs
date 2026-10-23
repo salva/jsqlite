@@ -27,6 +27,13 @@ test('automatic-first production feeds native pruning and actual smallouter solv
  assert.equal(loops[0].kind,'automatic-index');assert.equal(loops[1].kind,'table-scan');
  assert.equal(loops[0].setupCost,automaticIndexCosts(200n).setupCost);
  assert.equal(loops[0].outputRows,43n);assert.deepEqual(loops[0].terms,[eq]);
+ for(const key of ['orOptimization','rightJoinDrain','orSubclause','correlated','recursive']){
+  const gated=btreeLoops(source,0,whereClause([eq]),{...options,automaticIndex:{...automaticContext,[key]:true}});
+  assert.ok(gated.every(loop=>loop.kind!=='automatic-index'),`${key} gates actual production`);
+ }
+ assert.ok(btreeLoops(source,0,whereClause([eq]),{...options,automaticIndex:{...automaticContext,enabled:false}}).every(loop=>loop.kind!=='automatic-index'));
+ const unready=automaticIndexDescriptor(loops[0].automatic,whereClause([eq]),2n,new Set(),'utf-8');
+ assert.equal(unready,null,'chosen-frontier expansion rejects an unready seed');
  const outer={...loops[1],sourceOrdinal:1,prereq:0n,outputRows:100n};
  const selected=wherePathSolver([loops,[outer]],2);
  assert.equal(selected.loops[1].kind,'automatic-index');
@@ -93,20 +100,43 @@ for(const encoding of ['utf-8','utf-16le','utf-16be'])test(`${encoding}: automat
  assert.equal(automaticIndexDescriptor(candidate,clause,2n,new Set(),encoding),null);
 });
 
-test('standalone Bloom is independent: selected persistent path, stat1 search threshold and selfcull proof',()=>{
- const {source,a,index}=fixture();source.table.hasStat1=true;source.table.nRowLogEst=100;
- const eq=term(1,source,a,0,'is');
- const loop=btreeLoops(source,0,whereClause([eq]),{forcedIndex:index,neededColumns:new Set(),orderBy:[]})[0];
+test('standalone Bloom consumes output-adjustment SELFCULL and selected-path boundaries',()=>{
+ const {source,a,b,index}=fixture();source.table.hasStat1=true;source.table.nRowLogEst=100;
+ const eq=term(1,source,a,0,'is',{outerOn:true,joinOwner:0});
+ const residual=term(2,source,b,1,'gt',{outerJoinSafe:{mayDrive:false,mayOmitResidual:false}});
+ const options={forcedIndex:index,neededColumns:new Set(),orderBy:[]};
+ const build=terms=>btreeLoops(source,0,whereClause(terms),options).find(loop=>loop.capability?.nEq===1);
+ const loop=build([eq,residual]);assert.equal(loop.selfCulling,true);
+ assert.equal(build([eq]).selfCulling,false,'used equality cannot prove SELFCULL');
+ assert.equal(build([eq,{...residual,virtual:true}]).selfCulling,false);
+ assert.equal(build([eq,{...residual,prereqAll:3n}]).selfCulling,false,'other-source term is not local');
  const outer={...loop,sourceOrdinal:1,outputRows:101n};
  const path={loops:[outer,loop]};
- assert.equal(standaloneBloomDescriptors(path,new Set(),true).length,0);
- const descriptors=standaloneBloomDescriptors(path,new Set([loop]),true);
+ const descriptors=standaloneBloomDescriptors(path,true);
  assert.equal(descriptors.length,1);assert.equal(descriptors[0].loop,loop);
  assert.equal(descriptors[0].equality[0].term,eq);assert.equal(descriptors[0].bytes,10000);
  assert.equal(descriptors[0].requiresTableCursor,true);
- assert.equal(standaloneBloomDescriptors(path,new Set([loop]),false).length,0);
- outer.outputRows=100n;assert.equal(standaloneBloomDescriptors(path,new Set([loop]),true).length,0);
- source.table.hasStat1=false;assert.equal(standaloneBloomDescriptors(path,new Set([loop]),true).length,0);
+ assert.equal(standaloneBloomDescriptors(path,false).length,0);
+ assert.equal(standaloneBloomDescriptors({loops:[loop]},true).length,0);
+ outer.outputRows=100n;assert.equal(standaloneBloomDescriptors(path,true).length,0);
+ outer.outputRows=101n;
+ source.joinFromLeft.left=true;
+ for(const operator of ['is','is-null',null])assert.equal(build([eq,{...residual,operator}]).selfCulling,false);
+ for(const operator of ['eq','lt','le','gt','ge','in'])assert.equal(build([eq,{...residual,operator}]).selfCulling,true);
+ source.joinFromLeft.left=false;source.leftOfRightJoin=true;
+ assert.equal(build([eq,{...residual,operator:'is-null'}]).selfCulling,false);
+ source.leftOfRightJoin=false;
+ assert.equal(build([eq,{...residual,operator:null}]).selfCulling,true,'non-outer scalar residual');
+ const missing=fixture();missing.table.hasStat1=false;
+ const noStats={...outer,source:missing.source};
+ assert.equal(standaloneBloomDescriptors({loops:[noStats,loop]},true).length,0,'stat1 prefix break');
+ // nSearch adds every preceding nOut, not just the immediate outer loop.
+ assert.equal(standaloneBloomDescriptors({loops:[{...outer,outputRows:50n},{...outer,outputRows:51n},loop]},true).at(-1).loop,loop);
+ for(const [population,bytes] of [[100,10000],[200,1048576],[300,10000000]]){
+  source.table.nRowLogEst=population;outer.outputRows=BigInt(population+1);
+  assert.equal(standaloneBloomDescriptors(path,true)[0].bytes,bytes);
+ }
+ source.table.hasStat1=false;assert.equal(standaloneBloomDescriptors(path,true).length,0);
 });
 
 test('automatic driving admission follows declared-key statistics, affinity and readiness',()=>{

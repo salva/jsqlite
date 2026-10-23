@@ -24,10 +24,14 @@ EQ/IS, affinity and outer provenance, ephemeral tuning/clamp).
 `constructAutomaticIndex` ready-key/dedup/covering layout →
 `automaticIndexDescriptor`; automatic proposal gates/cost templates →
 `automaticIndexCandidates`; smallouter readiness/threshold →
-`automaticIndexPathEligible` (not yet the solver caller).
-`whereCheckIfBloomFilterIsUseful` → independent `standaloneBloomDescriptors`,
-requiring selected-path stat1, selfcull proof, equality and repeated-search cost.
-Foundation tests cover explicit disabled gates and all-encoding descriptor layouts.
+`automaticIndexPathEligible` and actual `wherePathSolver`.
+`whereLoopOutputAdjust` unused/exact-local/outer-safe branches → `outputAdjust`
+immutable `selfCulling` on ordinary loops; `whereCheckIfBloomFilterIsUseful` →
+independent `standaloneBloomDescriptors(path,enabled)`, requiring selected-path
+stat1 prefix, producer-owned selfcull, equality and repeated-search cost.
+Foundation tests cover used/virtual/nonlocal and LEFT/left-of-RIGHT rejection,
+null-rejecting operator admission, stat1 prefix break, accumulated search threshold,
+allocation clamps, integrated automatic context gates and descriptor layouts.
 `where.c:whereLoopAddBtree/whereLoopFindLesser/wherePathSolver` →
 `btreeLoops` automatic-first opt-in, declared EQ/IS (not skip-scan/IS NULL)
 replacement before cost dominance, and actual solver smallouter gate. Tests:

@@ -484,7 +484,11 @@ zero-setup alternatives, participate in native declared-equality replacement and
 cost pruning, and reach the solver's actual smallouter gate. No SQL caller opts
 in, so unlowered loops cannot displace executable SQL plans. Ready-key/covering/
 KeyInfo descriptors and independent standalone Bloom descriptors retain explicit
-readiness/proof inputs. With the matching resolved owner, descriptors retain
+readiness/proof inputs. Native output adjustment now publishes immutable
+`selfCulling` on ordinary loops from unused, exact-local nonvirtual terms, with
+null-rejecting operator gates on outer targets. `standaloneBloomDescriptors(path,
+enabled)` consumes that semantic owner directly; callers cannot inject a separate
+proof set. The explicit enable remains false at SQL producers. With the matching resolved owner, descriptors retain
 single-table partial-build predicates; virtual terms, other-source columns,
 subqueries, volatile functions and unsafe outer-join provenance are excluded.
 Collation/multipage prefix transitions now have direct cursor and VM dispatch

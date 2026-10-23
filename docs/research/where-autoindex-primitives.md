@@ -74,9 +74,11 @@ supersedes the initial omission of partial-build predicates; residual disabling
 remains separate from safe build filtering.
 
 Independent `standaloneBloomDescriptors` follows selected persistent paths,
-stat1-prefix break, caller-owned SELFCULL proof, EQ/IS and repeated-search
+stat1-prefix break, producer-owned SELFCULL, EQ/IS and repeated-search
 threshold; it retains table-cursor requirement and native bounded allocation size.
-No SQL caller supplies these proofs/enables descriptors. Native WO_EQ|WO_IS,
+`outputAdjust` now publishes immutable selfCulling on the candidate itself;
+`standaloneBloomDescriptors(path,enabled)` no longer accepts caller-invented
+proofs. No SQL caller enables descriptors. Native WO_EQ|WO_IS,
 not just WO_EQ, is the flag producer relevant to the standalone test.
 
 Checked command: `node --experimental-strip-types --test test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check`, followed by the four unchanged receipt replays, chained on success. **56/56**, no failures/skips; typecheck/diff check and all four replays exit0. Full output:
@@ -172,6 +174,39 @@ nonexistent null accessor. No failed test was erased by a later command success.
 Final checked chain: `node --experimental-strip-types --test test/conformance/where-plan-analysis.test.mjs test/conformance/where-plan-foundation.test.mjs test/value/private-bloom*.test.mjs test/value/private-key-vm*.test.mjs && npm run typecheck && git diff --check`, followed by four unchanged receipt replays: **361/361, zero failures/skips**, typecheck/diff check/replays exit0. Output:
 `work:///cards/card-s-j-a/processes/proc-082166cce6de/stdout.log`.
 SQL execution-work gap remains unchanged; no SQL runtime feature credit.
+
+## SELFCULL producer/consumer repair
+
+Native `whereLoopOutputAdjust`3039–3080 sets WHERE_SELFCULL at the same
+unused-term proof point as output reduction. TS previously discarded this state
+and accepted a separately caller-supplied proof set at standalone admission.
+That was a missing semantic producer/consumer relationship, not a platform
+adaptation. `outputAdjust` now returns cardinality plus selfCulling; ordinary
+insertion publishes both on the immutable candidate. It uses existing used-term
+and parent/virtual/prerequisite checks, then requires exact maskSelf ownership
+and WO_IN/EQ/LT/LE/GT/GE (native0x3f) or a non-LEFT/non-left-of-RIGHT target.
+IS/IS NULL do not establish outer-target culling. Standalone admission consumes
+only this candidate field, removing the independent proof-set argument.
+Automatic loops retain separate native production and do not gain this flag.
+
+Foundation tests exercise actual btreeLoops producer, used/virtual/nonlocal
+rejection, LEFT/left-of-RIGHT null rules, all six native operator bits, nonouter
+scalar residual, stat1 prefix break, strict/accumulated search threshold and
+10000/1048576/10000000 allocation sizes. Integrated automatic context gates now
+check disabled/OR/right-drain/OR-subclause/correlated/recursive production and
+unready selected-frontier seed rejection. No SQL caller enables either consumer.
+
+Initial tests exposed invalid controls, not production failures: the residual
+was initially usable as an index range, so correctly did not mark SELFCULL
+(proc-570aa4953b3d); after retaining it as residual, LEFT correctly rejected an
+unowned WHERE driving seed (proc-46107f202f44). Test seed now has target-owned ON
+provenance. Both failures and corrected11/11 focused runs are retained in card
+process evidence. SQL execution-work reproducer still requires absent consumers;
+this repair alone makes no runtime claim.
+Final checked command reused the361-test primitive/planner command above,
+`&& npm run typecheck && git diff --check` and all four unchanged native SQL
+receipt replays: exit0,361/361 zero failures/skips. Evidence:
+`work:///cards/card-s-j-a/processes/proc-e9d5f48b5abe/stdout.log`.
 
 ## Remaining acceptance work
 
