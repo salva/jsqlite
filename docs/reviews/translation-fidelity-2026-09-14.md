@@ -1,12 +1,16 @@
 ## RIGHT/FULL matched persistent access (bounded independent acceptance)
 
-Joined predicate rejection now translates `expr.c:sqlite3ExprIfFalse`'s AND
-branch: FALSE or NULL rejects before the next conjunct; `exprEvalRhsFirst`
-postpones the sole subquery-bearing operand. Value-producing boolean expressions
-retain their three-valued path. One patched failure continuation remains owned
-by each joined caller, including LEFT fallback and RIGHT drain. No cursor alias,
-conversion cache or alternate plan is introduced. Author regression/source
-receipts are in [[card:card-k-e]] status; this delta needs independent acceptance.
+Joined predicate rejection translates `expr.c:sqlite3ExprIfTrue/IfFalse`'s
+mutually recursive AND/OR/NOT branches: polarity and NULL policy propagate into
+nested operands; `exprEvalRhsFirst` postpones the sole subquery-bearing operand.
+This corrects independent F3 (nested NULL AND under OR evaluated a suppressed
+error). Value-producing boolean expressions retain their three-valued path;
+leaf predicates still use that expression compiler, not full specialized
+comparison/TRUTH/BETWEEN branch lowering. One patched failure continuation remains
+owned by each joined caller, including LEFT fallback and RIGHT drain. No cursor
+alias, conversion cache or alternate plan is introduced. Native typed rows/errors,
+reset and author regression/source receipts are in [[card:card-k-e]] status;
+this delta needs independent acceptance.
 
 The prior blanket matched-pass planner bypass is replaced for up to three physical
 rowid tables with exactly one RIGHT/FULL barrier without USING/NATURAL. Source-order prerequisites

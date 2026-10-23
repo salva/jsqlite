@@ -656,11 +656,13 @@ positioned prefix. Prepare/error-phase and finite coverage:
 [JSON evidence](research/recursive-join/json-right-full-evidence.md).
 Per-barrier RIGHT/FULL state; selected expression/partial/covering/
 WITHOUT ROWID paths, not optimizer completeness.
-`expr.c:sqlite3ExprIfFalse(TK_AND)/exprEvalRhsFirst` → joined
-`vdbe.ts:compilePredicate`: FALSE/NULL conjunct rejection before the next
-operand, sole-subquery operand postponed, shared caller-patched failure exit.
-`right-residual.test.mjs` covers error suppression and reset across LEFT/RIGHT/FULL
-and encodings; [[card:card-k-e]] status retains native and author gate evidence.
+`expr.c:sqlite3ExprIfTrue/IfFalse` (AND/OR/NOT), `exprEvalRhsFirst` → joined
+`vdbe.ts:compilePredicate`: recursive polarity/NULL policy, sole-subquery operand
+postponed, shared caller-patched failure exit. Leaves retain the expression
+compiler (not full specialized comparison/TRUTH/BETWEEN branch credit).
+`right-residual.test.mjs` covers nested error guards, decisive neighbors, both
+operand orders, typed rows/errors and reset across INNER/LEFT/RIGHT/FULL and
+encodings; [[card:card-k-e]] status retains pinned native and author gate evidence.
 Genuine IPK/rowid proof and
 complete resolved ORDER/NULL flags precede plan consumption. Conservative typed
 sorting handles unproved BIGNULL ordering. Ordinary continuation must revisit

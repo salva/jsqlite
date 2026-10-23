@@ -573,11 +573,14 @@ coverage. Alias/ordinal ORDER resolution occurs before immutable plan handoff.
 
 Ordinary comma/CROSS/INNER/LEFT and represented repeated/mixed rowid RIGHT/FULL
 barriers are admitted at the documented gates. ON belongs to match testing; LEFT null extension precedes
-WHERE. Joined predicate AND rejection follows `expr.c:sqlite3ExprIfFalse`:
-FALSE/NULL exits before the next conjunct, with `exprEvalRhsFirst` postponing
+WHERE. Joined predicate AND/OR/NOT rejection follows the mutually recursive
+`expr.c:sqlite3ExprIfTrue/sqlite3ExprIfFalse` branches: polarity and JUMPIFNULL
+propagate through nested boolean operands, with `exprEvalRhsFirst` postponing
 the sole subquery-bearing operand. Value-producing booleans retain three-valued
-evaluation; callers retain one patched rejection continuation. Native error/reset
-and unchanged FULL gate receipts are in [[card:card-k-e]] status; independent
+evaluation; callers retain one patched rejection continuation. Leaf predicates
+still use the existing expression compiler; this is not full specialized
+comparison/TRUTH/BETWEEN branch-lowering credit. Native typed error/reset and
+unchanged FULL gate receipts are in [[card:card-k-e]] status; independent
 acceptance of this delta remains open.
 RIGHT/FULL has per-barrier unmatched-row tracking/drain, using rowid
 or the complete typed WITHOUT ROWID primary key (KeyInfo order/collation/encoding).

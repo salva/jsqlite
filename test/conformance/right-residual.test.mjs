@@ -23,6 +23,38 @@ function cell(s,i){const type=s.columnType(i),v=s.column(i);
 }
 function metadata(s){return Array.from({length:s.columnCount},(_,i)=>{const m=s.columnMetadata(i);return {name:m.name,declType:m.declaredType,database:m.database,table:m.table,origin:m.origin}})}
 async function rows(s){const out=[];while(await s.step()==='row')out.push(Array.from({length:s.columnCount},(_,i)=>cell(s,i)));return out}
+// Predicate branch context differs from value-producing Boolean evaluation.
+const badJson="json_extract('bad','$')=1";
+for(const enc of Object.keys(corpus.fixtures))for(const join of ['INNER','LEFT','RIGHT','FULL'])
+for(const [predicate,matched,error] of [
+ [`((NULL AND ${badJson}) OR 0)`,false,false],
+ [`NOT (1 OR ${badJson})`,false,false],
+ [`(0 OR (NULL AND ${badJson}))`,false,false],
+ [`NOT (NULL AND ${badJson})`,false,true],
+ [`NOT (0 AND ${badJson})`,true,false],
+ [`(1 OR (NULL AND ${badJson}))`,true,false],
+ [`((NULL AND 1) OR 1)`,true,false],
+ [`((NULL OR 0) AND 1)`,false,false],
+ [`(${badJson} AND 0)`,false,true],
+ [`(${badJson} OR NULL)`,false,true],
+ [`((SELECT ${badJson} WHERE a.k IS a.k) AND NULL)`,false,false],
+ [`(NULL AND (SELECT ${badJson} WHERE a.k IS a.k))`,false,false],
+])
+test(`nested predicate rejection ${enc}/${join}/${predicate}`,()=>withDb(enc,async db=>{
+ const s=db.prepare(`SELECT a.rowid,b.rowid FROM a ${join} JOIN b ON ${predicate}`).statement;
+ const n=value=>({type:'integer',value:String(value)}),nil={type:'null'};
+ const expected=[...(['LEFT','FULL'].includes(join)?[1,2,3,4].map(i=>[n(i),nil]):[]),...(['RIGHT','FULL'].includes(join)?[1,2,3].map(i=>[nil,n(i)]):[])];
+ try{
+  if(error){
+   let first;await assert.rejects(rows(s),e=>{first=e;return e.code===1&&e.message==='malformed JSON'});
+   assert.throws(()=>s.reset(),e=>e===first);
+   await assert.rejects(rows(s),e=>e.code===1&&e.message==='malformed JSON');
+  }else{
+   const want=matched?[1,2,3,4].flatMap(a=>[1,2,3].map(b=>[n(a),n(b)])):expected;
+   assert.deepEqual(await rows(s),want);s.reset();assert.deepEqual(await rows(s),want);
+  }
+ }finally{try{s.finalize()}catch(e){if(!error)throw e;assert.equal(e.code,1)}}
+}));
 const residual=JSON.parse(fs.readFileSync(new URL('./cases/right-residual.json',import.meta.url),'utf8'));
 for(const enc of Object.keys(corpus.fixtures))for(const join of ['LEFT','RIGHT','FULL'])for(const guard of ['0','NULL'])
 test(`predicate AND rejects before RHS ${enc}/${join}/${guard}`,()=>withDb(enc,async db=>{

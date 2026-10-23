@@ -241,7 +241,7 @@ type Op =
   | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number; readonly inProbe?:boolean }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
   | { readonly code: "IsNull"; readonly p1:number; readonly p2:number }
-  | { readonly code: "IfNot"; readonly p1: number; readonly p2: number; readonly residual?: boolean }
+  | { readonly code: "IfNot"; readonly p1: number; readonly p2: number; readonly residual?: boolean; readonly whenTrue?: boolean; readonly jumpIfNull?: boolean }
   | { readonly code: "Next"; readonly p1?: number; readonly p2: number }
   | { readonly code: "Prev"; readonly p1?: number; readonly p2: number }
   | { readonly code: "IndexNext"; readonly p1: number; readonly p2: number }
@@ -4514,9 +4514,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const compilePredicate=(expression:SelectNode['where'])=>{
     if(!expression?.reduction)return undefined;
     const tree=predicateTree(resolvedExpressionCarrier(expanded,expression.reduction as Reduction));
-    // expr.c sqlite3ExprIfFalse(TK_AND, SQLITE_JUMPIFNULL): reject the
-    // left conjunct before evaluating the right, including NULL. Keep value
-    // expressions on compileExpressionTree's three-valued boolean path.
+    // expr.c sqlite3ExprIfTrue/IfFalse: branch polarity and NULL policy
+    // propagate through boolean predicates, separately from value evaluation.
     const failures:number[]=[];
     const hasSubquery=(node:Expression):boolean=>{
       switch(node.kind){
@@ -4533,21 +4532,30 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         default:return false;
       }
     };
-    const reject=(node:Expression):void=>{
-      if(node.kind==='binary'&&node.op==='AND'){
-        // exprEvalRhsFirst: postpone the only subquery-bearing operand.
+    let first=true;
+    // A label is an invocation-local list of branch operands to patch.
+    const branch=(node:Expression,whenTrue:boolean,jumpIfNull:boolean,target:number[]):void=>{
+      if(node.kind==='unary'&&node.op==='NOT'){
+        branch(node.value,!whenTrue,jumpIfNull,target);return;
+      }
+      if(node.kind==='binary'&&(node.op==='AND'||node.op==='OR')){
         const reverse=hasSubquery(node.left)&&!hasSubquery(node.right);
-        reject(reverse?node.right:node.left);reject(reverse?node.left:node.right);return;
+        const a=reverse?node.right:node.left,b=reverse?node.left:node.right;
+        if((node.op==='OR')===whenTrue){
+          branch(a,whenTrue,jumpIfNull,target);branch(b,whenTrue,jumpIfNull,target);
+        }else{
+          const skip:number[]=[];
+          branch(a,!whenTrue,!jumpIfNull,skip);
+          branch(b,whenTrue,jumpIfNull,target);
+          for(const pc of skip)(ops[pc] as {p2:number}).p2=ops.length;
+        }
+        return;
       }
       const value=compileExpressionTree(node,ops,allocate,parameters,compileJoinSubquery);
-      const first=failures.length===0;
-      failures.push(ops.length);ops.push({code:'IfNot',p1:value,p2:0,residual:first});
+      target.push(ops.length);
+      ops.push({code:'IfNot',p1:value,p2:0,whenTrue,jumpIfNull,residual:first});first=false;
     };
-    if(tree.kind!=='binary'||tree.op!=='AND'){
-      const value=compileExpressionTree(tree,ops,allocate,parameters,compileJoinSubquery),at=ops.length;
-      ops.push({code:'IfNot',p1:value,p2:0,residual:true});return at;
-    }
-    reject(tree);
+    branch(tree,false,true,failures);
     const success=ops.length;ops.push({code:'Goto',p2:0});
     const at=ops.length;ops.push({code:'Goto',p2:0});
     for(const pc of failures)(ops[pc] as {p2:number}).p2=at;
@@ -10094,7 +10102,12 @@ export class VdbeStatement implements Statement {
           case "Rowid": {if(op.inProbe)this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1};const privateCursor=this.#privateCursors.get(op.p1??0);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.setInt64(privateCursor.rowid());break;}const cursorId=op.p1??0;let rowid=this.#recordRowids.get(cursorId);if(rowid===undefined&&this.#indexCursors.has(cursorId)){const tail=this.#records.get(cursorId)?.last();if(tail?.storageClass==='integer')rowid=tail.value;}if(rowid!==undefined)this.#registers[op.p2]!.setInt64(rowid);else this.#registers[op.p2]!.setNull();break;}
           case "Eq": { const a=this.#registers[op.p1]!, b=this.#registers[op.p2]!, out=this.#registers[op.p3]!; a.applyAffinity(op.affinity,this.#program.database!.encoding); b.applyAffinity(op.affinity,this.#program.database!.encoding); out.setInt64(a.initialStorageClass!=="null" && b.initialStorageClass!=="null" && compareMem(a,b,op.collation)===0 ? 1n : 0n); break; }
           case "IsNull": if(this.#registers[op.p1]!.initialStorageClass==="null")this.#pc=op.p2;break;
-          case "IfNot": if(op.residual)this.#privateAccounting={...this.#privateAccounting,residualTests:this.#privateAccounting.residualTests+1};if (truth(this.#registers[op.p1]!)!==true) this.#pc=op.p2; break;
+          case "IfNot": {
+            if(op.residual)this.#privateAccounting={...this.#privateAccounting,residualTests:this.#privateAccounting.residualTests+1};
+            const value=truth(this.#registers[op.p1]!);
+            if(value===null?(op.jumpIfNull??true):value===(op.whenTrue??false))this.#pc=op.p2;
+            break;
+          }
           case "Next": {const cursor=op.p1??0,privateCursor=this.#privateCursors.get(cursor);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.next())this.#pc=op.p2;break;}const table=this.#tableSeekCursors.get(cursor);this.#privateAccounting={...this.#privateAccounting,tableNext:this.#privateAccounting.tableNext+1};if(table||this.#cursors.has(cursor)){this.#records.delete(cursor);this.#recordRowids.delete(cursor);}if(table?table.next():this.#cursors.get(cursor)!.next()){if(table)this.#loadTableSeekRecord(cursor,table);else await this.#loadRecord(cursor,options,limit,started);this.#pc=op.p2;}break;}
           case "Prev": {const cursor=op.p1??0,table=this.#tableSeekCursors.get(cursor);if(!table)throw new JSQLiteError("internal","reverse movement without seek cursor");this.#privateAccounting={...this.#privateAccounting,tableNext:this.#privateAccounting.tableNext+1};this.#records.delete(cursor);this.#recordRowids.delete(cursor);if(table.previous()){this.#loadTableSeekRecord(cursor,table);this.#pc=op.p2;}break;}
           case "IndexNext": {this.#privateAccounting={...this.#privateAccounting,indexNext:this.#privateAccounting.indexNext+1};const cursor=this.#indexCursors.get(op.p1);if(!cursor)throw new JSQLiteError("internal","next on unopened index cursor");this.#records.delete(op.p1);this.#recordRowids.delete(op.p1);if(cursor.next()){this.#loadIndexRecord(op.p1);this.#pc=op.p2;}break;}
