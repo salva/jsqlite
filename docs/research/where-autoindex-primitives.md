@@ -415,6 +415,17 @@ branches were compared. These9 controls call primitives directly, not a VM
 register injection or fresh oracle capture: VM mixed-state failure ordering is
 not established by them. No production divergence/repair. Focused9/9:
 `work:///cards/card-s-j-a/processes/proc-0bceb0af8133/stdout.log`.
+VM text-consumption follow-up (`private-bloom-text-consumption.test.mjs`) uses
+existing Binary concatenation, FilterAdd/Filter and packed prefix dispatch, with
+INTEGER/REAL in three encodings. Shared work rejection at the post-result
+execution boundary retains the first error; reset rebuilds filter/tree and two
+complete runs return the original numeric value. Six controls pass. Source
+comparison rejects the proposed cached-live-Str hypothesis for this path:
+native OP_Concat restores numeric input flags after formatting; TS formats a
+private Mem copy. Thus these are VM numeric-ownership/failure/reset controls,
+not proof of mixed cached-Str VM registers or failure *inside* Filter borrowing.
+No register injection or production divergence/repair. Focused6/6/typecheck:
+`work:///cards/card-s-j-a/processes/proc-e0a565f6ab89/stdout.log`.
 
 ## Remaining acceptance work
 
