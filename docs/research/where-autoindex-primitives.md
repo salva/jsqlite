@@ -617,6 +617,18 @@ opcode ordering, not a private-state introspection claim. UTF16 may fail earlier
 conversion reservation; this is no-headroom admission, not exact minimal packed
 record threshold or heap measurement. No automatic SQL lowering/runtime credit.
 
+Exact MakeRecord admission follow-up: same descriptor fields with é,integer1,
+6000-byte BLOB,rowid7 serialize to6009 bytes (header6 + payload6003), retained
+charge6073. Native vdbe.c MakeRecord serial/header sizing compared to record-pack.
+UTF8 threshold16201 succeeds and16200 fails; UTF16LE/BE16273 succeeds and16272
+fails, including72 conversion scratch. Each runs twice/reset. At success the VM
+replaces10000-byte filter with10000+scratch while packed record remains live,
+then FilterAdd/Filter succeeds: released conversion scratch is reusable without
+releasing retained record charge. Focused proc-ba12a718c584 passes; no production
+divergence or failed fixture. These are implementation-budget thresholds, not
+native allocator/JS heap equivalence, nor all record types/header boundaries.
+Record bytes have independent arithmetic assertion but no fresh native capture.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

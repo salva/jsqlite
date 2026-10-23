@@ -9,7 +9,7 @@ import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 import {PrivateBloomFilter} from '../../src/internal/private-bloom.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
 import {Mem,memFromPublic} from '../../src/internal/mem.ts';
-import {packRecord} from '../../src/internal/record-pack.ts';
+import {packRecord,recordSize} from '../../src/internal/record-pack.ts';
 import {physicalIndex,columnTypeEstimate,sqliteLogEst} from '../../src/internal/schema.ts';
 const col=(name,type,extra={})=>Object.freeze({name,declaredType:type,affinity:type==='TEXT'?'text':type==='REAL'?'real':type==='BLOB'?'blob':'integer',szEst:columnTypeEstimate(type).szEst,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:[],...extra});
 // Synthetic schema carries build.c/schema.ts default estimates, not ad-hoc planner costs.
@@ -390,6 +390,43 @@ test('descriptor MakeRecord covering payload admission fails before FilterAdd an
    assert.equal(await survivor.step(),'row');assert.equal(survivor.column(0),1n);
    assert.equal(await survivor.step(),'done');
   }finally{failed.finalize();survivor.finalize();}
+ }
+});
+
+test('descriptor MakeRecord exact admission separates conversion scratch and retained bytes',async t=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const s=schema(encoding);s.t.indexes=[];
+  const plan=resolve('SELECT u.blob FROM t o CROSS JOIN t u ON u.a COLLATE NOCASE=o.a AND u.b=o.b',s),clause=analyzeWhere(plan).clause;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  const candidate=wherePlanning.automaticIndexCandidates(plan.sources[1],1,clause,context)[0];
+  const d=wherePlanning.automaticIndexDescriptor(candidate,clause,0n,new Set([s.blob]),encoding,plan);
+  assert.deepEqual(d.fields,[s.a,s.b,s.blob,null]);
+  const fields=['é',1n,new Uint8Array(6000),7n].map(v=>memFromPublic(v,'utf-8'));
+  let scratch,charge;
+  try{
+   scratch=fields.reduce((n,v)=>n+v.recordConversionBytes(undefined,encoding),0);
+   fields[0].changeEncoding(encoding);charge=recordSize(fields)+64;
+   // Four serial types, one is a 2-byte varint; header6, é2, 1 is
+   // zero payload, BLOB6000, rowid7 is one byte =>6009 bytes.
+   assert.equal(charge,6073);assert.equal(packRecord(fields,encoding).length,6009);
+   assert.equal(scratch,encoding==='utf-8'?0:72);
+  }finally{fields.forEach(v=>v.release());}
+  const threshold=10128+scratch+charge;t.diagnostic(`${encoding}: threshold ${threshold}, scratch ${scratch}, retained ${charge}`);
+  for(const delta of [-1,0]){
+   const ops=[{code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},
+    {code:'Integer',p1:1n,p2:2},{code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:7n,p2:4},
+    {code:'MakeRecord',p1:1,p2:4,p3:5},
+    // Spend released scratch on replacement filter while record stays live.
+    {code:'FilterInit',p1:8,bytes:10000+scratch},{code:'FilterAdd',p1:8,p3:1,p4:2},
+    {code:'Integer',p1:0n,p2:7},{code:'Filter',p1:8,p2:12,p3:1,p4:2},
+    {code:'ResultRow',p1:7,p2:1},{code:'Halt'},
+    {code:'Integer',p1:1n,p2:7},{code:'ResultRow',p1:7,p2:1},{code:'Halt'}];
+   const vm=new VdbeStatement({encoding,registers:9,parameters:[],columns:[{name:'absent'}],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:threshold+delta},ops},()=>{},()=>()=>{},()=>{});
+   try{for(let run=0;run<2;run++){
+    if(delta<0){let primary;await assert.rejects(vm.step(),e=>{primary=e;return e.kind==='limit'});assert.throws(()=>vm.reset(),e=>e===primary);}
+    else{assert.equal(await vm.step(),'row');assert.equal(vm.column(0),0n);assert.equal(await vm.step(),'done');if(!run)vm.reset();}
+   }}finally{vm.finalize();}
+  }
  }
 });
 
