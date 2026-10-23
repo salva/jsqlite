@@ -188,6 +188,25 @@ test('automatic generated ALLBITS retains IPK payload independently of rowid tai
  }
 });
 
+test('automatic rowid equality cannot drive keys even beside ordinary equality or hints',()=>{
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const name of ['id','rowid','_rowid_','oid'])for(const reverse of [false,true])for(const hint of ['', ' NOT INDEXED',' INDEXED BY i_ab']){
+  const s=schema(encoding);
+  const eq=reverse?`o.id=u.${name}`:`u.${name}=o.id`;
+  const context={enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n};
+  for(const ordinary of [false,true]){
+   const plan=resolve(`SELECT u.${name} FROM t o CROSS JOIN t u${hint} ON ${eq}${ordinary?' AND u.b=o.b':''}`,s);
+   const clause=analyzeWhere(plan).clause,source=plan.sources[1];
+   const candidates=wherePlanning.automaticIndexCandidates(source,1,clause,context);
+   assert.equal(candidates.length,hint||!ordinary?0:1);
+   if(candidates.length){
+    assert.equal(candidates[0].seed.left.columnIndex,2);
+    const d=wherePlanning.automaticIndexDescriptor(candidates[0],clause,0n,new Set([s.id]),encoding,plan);
+    assert.deepEqual(d.keys.map(key=>key.columnIndex),[2]);assert.deepEqual(d.fields,[s.b,null]);
+   }
+  }
+ }
+});
+
 test('ripe term scheduling retains correlation separately from cursor coverage',()=>{
  for(const encoding of ['utf-8','utf-16le','utf-16be']){
   const s=schema(encoding);

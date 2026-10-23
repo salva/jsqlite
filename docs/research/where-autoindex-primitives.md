@@ -548,6 +548,14 @@ Focused test and witness: `work:///cards/card-s-j-a/processes/proc-6d50258132d1/
 No production divergence found; no patch justified. These are exact descriptor
 layout/EXPLAIN controls, not populated packed-record or public runtime proof.
 
+Rowid key admission follow-up:144 combinations (3 encodings ×4 aliases ×2
+orientations ×3 hints ×2 ordinary-term states) verify negative-column terms
+never drive auto keys; a competing b equality alone owns the sole descriptor
+key, while NOT INDEXED/forced i_ab prohibit automatic proposals. Pinned
+where.c termCanDriveIndex leftCol<0 branch matches TS; no product patch.
+Focused author evidence proc-0109255a541d. These are candidate/descriptor tests,
+not selected-plan equivalence: native can prefer the existing rowid lookup.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration
