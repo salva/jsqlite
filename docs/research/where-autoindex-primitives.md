@@ -299,6 +299,28 @@ Native source and existing budget/work-error controls remain complementary;
 this does not establish every partial packed allocation failure or same-connection
 public API concurrency behavior.
 
+## Packed prefix interruption checkpoints
+
+`private-key-vm-prefix-failure.test.mjs` enumerates actual checkpoint calls for
+each SeekGE/GT/LE/LT over120 packed duplicate-prefix records, then rejects each
+checkpoint on a fresh owner. It verifies original error identity, cache/deferred
+flags, explicit fresh SeekGE followed by all120 suffixes, and cumulative zero
+budget after cursor/arena disposal. Compared native Seek default_rc, BtreeMoveto
+error-before-adjacent-movement branch and TS seekBound/indexMoveto snapshot/finally.
+No exercised production divergence found; this is not a promise to continue a
+failed VM without halt/reset. No SQL runtime consumer is enrolled.
+
+Three initial4/4 failures came from an invalid immediate-byte-equality assertion:
+first a64-byte path/lease delta, then896 bytes even on successful repeated seeks.
+Inspection of #acquire/#moveto shows retained charged page metadata/path capacity
+may change during search, so equality is not a valid transient-scratch witness.
+The test now checks complete disposal refunds, not an invented constant high-water
+contract. Evidence: `work:///cards/card-s-j-a/processes/proc-f0130bc5564c/stdout.log`,
+`work:///cards/card-s-j-a/processes/proc-29f0768d8bf4/stdout.log`,
+`work:///cards/card-s-j-a/processes/proc-355eb07c4087/stdout.log`.
+Corrected4/4/typecheck/diffcheck: `work:///cards/card-s-j-a/processes/proc-1b3bcdd0ca16/stdout.log`.
+This does not measure exact transient high water or interrupt insertion/balancing.
+
 ## Remaining acceptance work
 
 Automatic candidate insertion/pruning and actual smallouter solver integration

@@ -13,6 +13,9 @@ cleared bits, capacity/work failures, saved-error/reset and paused filter surviv
 `private-bloom-cancel.test.mjs` adds timer abort/elapsed deadline during replacement
 and independent multipage NOCASE packed-prefix continuation across reset/finalize;
 exact deadline checkpoint timing is not asserted.
+`private-key-vm-prefix-failure.test.mjs` enumerates every Seek* checkpoint failure,
+explicit reseek/complete suffix traversal and cumulative disposal refund; retained
+page/path metadata means immediate byte equality is not a scratch-leak test.
 `where.c:constructAutomaticIndex` MakeRecord→FilterAdd and
 `wherecode.c:2024` codeApplyAffinity→Filter→seek → live-register Affinity and
 MakeRecord ahead of shared Filter dispatch. Tests: `private-bloom-affinity.test.mjs`
