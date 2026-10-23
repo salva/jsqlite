@@ -371,6 +371,22 @@ for(const v of capture.variants){
 
 // wherecode.c OR_SUBCLAUSE leaves notReady AND terms untested, so the
 // enclosing OR remains live until the downstream source has a position.
+// expr.c IfTrue/IfFalse lowers the parent to control flow, not Binary OR.
+function assertUnreadyOrOwnership(ops,body,end) {
+  const prefix=ops.slice(0,body),downstream=ops.slice(body,end);
+  assert.ok(!prefix.some(op=>op.code==='Column'&&op.p3===1),'notReady later cursor cannot be read before downstream positioning');
+  const positioned=downstream.findIndex(op=>op.code==='SeekRowid'&&op.p1===1);
+  assert.ok(positioned>=0,'downstream source must be positioned');
+  for(const [cursor,column,value] of [[0,1,1n],[1,3,4n],[0,2,'beta'],[1,3,5n]]) {
+    const reads=downstream.filter(op=>op.code==='Column'&&op.p3===cursor&&op.p1===column);
+    assert.ok(reads.length>0&&reads.every(op=>downstream.indexOf(op)>positioned),'each parent arm reads its owned column after positioning');
+    const loads=downstream.filter(op=>(op.code==='Integer'||op.code==='String')&&op.p1===value);
+    assert.ok(loads.length>0,'each parent arm retains its comparison value');
+    const compare=downstream.find(op=>op.code==='Binary'&&op.op==='='&&reads.some(read=>op.p1===read.p2)&&loads.some(load=>op.p2===load.p2));
+    assert.ok(compare,'each parent arm retains its complete comparison');
+    assert.ok(downstream.some(op=>op.code==='IfNot'&&op.p1===compare.p3&&op.p2>=body&&op.p2<=end),'comparison feeds downstream branch control');
+  }
+}
 for(const v of capture.variants){
  test(`${v.id}: selected OR unready residual ownership`,async()=>withDb(v,async db=>{
   const captured=v.cases.find(c=>c.id==='unready-residual');
@@ -385,7 +401,16 @@ for(const v of capture.variants){
   assert.ok(laterOpen);
   assert.ok(!program.ops.slice(0,body).some(op=>op.code==='Column'&&op.p3===1),'notReady later cursor cannot be read by an arm before downstream positioning');
   const end=program.ops.findIndex((op,i)=>i>=body&&op.code==='Return');
-  assert.ok(program.ops.slice(body,end).some(op=>op.code==='Binary'&&op.op==='OR'),'full parent OR remains in downstream body');
+  assertUnreadyOrOwnership(program.ops,body,end);
+  // Observer negatives: losing either later-source arm or moving a read
+  // ahead of positioning must not silently turn this into a row-only check.
+  for(const value of [4n,5n]) {
+    const damaged=program.ops.map(op=>op.code==='Integer'&&op.p1===value?{code:'Noop'}:op);
+    assert.throws(()=>assertUnreadyOrOwnership(damaged,body,end),assert.AssertionError);
+  }
+  const early=program.ops.map(op=>({...op}));
+  early[0]={code:'Column',p1:3,p2:999,p3:1};
+  assert.throws(()=>assertUnreadyOrOwnership(early,body,end),assert.AssertionError);
   assert.equal(program.ops.slice(0,body).filter(op=>op.code==='IfNot'&&op.residual).length,0,'ready exact access constraints consumed; full unready parent retained downstream');
   const st=db.prepare(captured.sql).statement;
   try{

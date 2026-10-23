@@ -5,6 +5,7 @@ import { JSQLiteError, open } from "../../src/index.ts";
 import { parseSql } from "../../src/internal/parse.ts";
 import { compileScalarSelect, VdbeStatement } from "../../src/internal/vdbe.ts";
 import { openBtreeDatabase } from "../../src/internal/btree.ts";
+import { ExecutionTaskScheduler } from "../../src/internal/task-scheduler.ts";
 
 const generation = JSON.parse(fs.readFileSync(new URL("../fixtures/CURRENT.json", import.meta.url))).generationId;
 const fixture = name => fs.readFileSync(new URL(`../fixtures/generations/${generation}/generated/${name}.db`, import.meta.url));
@@ -87,21 +88,39 @@ test("step control failures are saved, cleaned by reset/finalize, and connection
   assert.throws(()=>s.finalize(),isError("limit"));
 });
 
-test("long table scan yields and observes cancellation after execution begins", async () => {
+async function scanCancellationProbe(deliverAbort) {
   const db=await openBytes("storage-p4096");
   const s=db.prepare("SELECT k FROM storage_values WHERE i=999999").statement;
   const controller=new AbortController();
-  const realTimer=globalThis.setTimeout;let timerTurns=0;
-  globalThis.setTimeout=(handler,delay,...args)=>{
-    timerTurns++;realTimer(()=>controller.abort('mid-scan'),0);
-    return realTimer(handler,delay,...args);
+  const realYield=ExecutionTaskScheduler.prototype.yield;let taskTurns=0;
+  // Observe a real awaited execution task, not Node's unspecified ordering
+  // between timers and MessagePorts. Keep actual scheduler delivery intact.
+  ExecutionTaskScheduler.prototype.yield=async function(){
+    await realYield.call(this);
+    taskTurns++;
+    if(deliverAbort)controller.abort('mid-scan');
   };
   try {
     await assert.rejects(s.step({signal:controller.signal}),error=>isError("cancelled")(error)&&error.cause==="mid-scan");
-    assert.ok(timerTurns>0,'long scan reaches an explicit scheduler timer turn');
-  } finally {globalThis.setTimeout=realTimer;}
-  assert.throws(()=>s.finalize(),isError("cancelled"));
-  db.close();
+    assert.ok(taskTurns>0,'scan reaches an awaited execution task before cancellation');
+  } finally {
+    ExecutionTaskScheduler.prototype.yield=realYield;
+    try {
+      if(deliverAbort)assert.throws(()=>s.finalize(),error=>isError('cancelled')(error)&&error.cause==='mid-scan');
+      else s.finalize();
+    } finally { db.close(); }
+  }
+}
+
+test("long table scan yields and observes cancellation after execution begins", async () => {
+  await scanCancellationProbe(true);
+});
+
+test("scan cancellation probe rejects missing delivery and still closes resources", async () => {
+  const original=ExecutionTaskScheduler.prototype.yield;
+  await assert.rejects(scanCancellationProbe(false),error=>error.code==='ERR_ASSERTION'&&/Missing expected rejection/.test(error.message));
+  assert.equal(ExecutionTaskScheduler.prototype.yield,original);
+  await scanCancellationProbe(true);
 });
 
 test("overflow storage work is charged and permits live cancellation and timeout at page checkpoints", async () => {
@@ -259,18 +278,17 @@ test("connection admission rejects every overlap while a VM is held at a real ho
   let releaseYield;
   let reachedYield;
   const yielded=new Promise(resolve=>{ reachedYield=resolve; });
-  const originalSetTimeout=globalThis.setTimeout;
-  globalThis.setTimeout=(callback,delay,...args)=>{
-    if(delay===0 && releaseYield===undefined) {
-      releaseYield=()=>{ originalSetTimeout(callback,0,...args); };
-      reachedYield();
-      return 0;
+  const originalYield=ExecutionTaskScheduler.prototype.yield;
+  ExecutionTaskScheduler.prototype.yield=async function(){
+    await originalYield.call(this);
+    if(releaseYield===undefined) {
+      await new Promise(resolve=>{releaseYield=resolve;reachedYield();});
     }
-    return originalSetTimeout(callback,delay,...args);
   };
+  let pending;
   try {
-    const pending=scan.step();
-    await yielded;
+    pending=scan.step();
+    await Promise.race([yielded,pending.then(()=>{throw new Error('scan completed without an execution checkpoint');})]);
     await assert.rejects(scan.step(),isError("misuse"));
     for (const operation of [
       ()=>db.prepare("SELECT 2"),
@@ -298,8 +316,13 @@ test("connection admission rejects every overlap while a VM is held at a real ho
     releaseYield();
     assert.equal(await pending,"done");
     assert.equal(parameter.columnText(0),"held sibling row");
-    scan.finalize(); parameter.finalize(); db.close();
-  } finally { globalThis.setTimeout=originalSetTimeout; }
+  } finally {
+    ExecutionTaskScheduler.prototype.yield=originalYield;
+    releaseYield?.();
+    try { await pending; } finally {
+      try { scan.finalize(); } finally { try { parameter.finalize(); } finally { db.close(); } }
+    }
+  }
 });
 
 test("scalar admission is acquired synchronously and binding requires reset after execution", async () => {
