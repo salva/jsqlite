@@ -39,16 +39,33 @@ test('production observation owns fresh execution and stable program identities'
  const a=statement(),b=statement();
  try{
   assert.equal(a.privateAccounting().executionId,null);
+  const prepared=a.privateAccounting();
+  assert.deepEqual(prepared.executedOps,[]);
+  assert.ok(prepared.emittedOps.includes('SorterInsert'));
+  assert.ok(Object.isFrozen(prepared.emittedOps));
   assert.equal(await a.step(),'row');
   const first=a.privateAccounting(),retained=JSON.stringify(first);
+  assert.ok(first.ownedBytes>0);assert.ok(first.ownerId>0);
+  assert.equal(first.chargedBytes-first.refundedBytes,first.ownedBytes);
   assert.ok(first.executionId);assert.ok(first.planId);assert.ok(Object.isFrozen(first));
+  assert.ok(Object.isFrozen(first.executedOps));
+  assert.ok(first.executedOps.includes('ResultRow'));
+  assert.equal(first.executedOps.includes('Halt'),false);
+  assert.equal(first.emittedOps.includes('Halt'),true);
+  assert.deepEqual(prepared.executedOps,[]);
   assert.equal(await a.step(),'done');assert.equal(a.privateAccounting().executionId,first.executionId);
   assert.equal(await a.step(),'done');assert.equal(a.privateAccounting().executionId,first.executionId);
   await b.step();const survivor=b.privateAccounting();
   assert.notEqual(survivor.executionId,first.executionId);
   a.reset();assert.equal(a.privateAccounting().executionId,null);
+  const released=a.privateAccounting();assert.equal(released.ownerId,first.ownerId);
+  assert.equal(released.ownedBytes,0);assert.equal(released.chargedBytes,released.refundedBytes);
+  assert.deepEqual(a.privateAccounting().executedOps,[]);
   await a.step();const second=a.privateAccounting();
   assert.notEqual(second.executionId,first.executionId);assert.equal(second.planId,first.planId);
+  assert.notEqual(second.ownerId,first.ownerId);assert.notEqual(second.ownerId,survivor.ownerId);
+  assert.equal(second.chargedBytes,first.chargedBytes);
+  assert.equal(second.chargedBytes-second.refundedBytes,second.ownedBytes);
   assert.equal(JSON.stringify(first),retained);
   assert.deepEqual(b.privateAccounting(),survivor);
  }finally{a.finalize();b.finalize();}

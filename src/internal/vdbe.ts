@@ -9735,7 +9735,8 @@ export class VdbeStatement implements Statement {
   get columnCount(): number { return this.#program.columns.length; }
   /** Internal conformance seam. A detached immutable snapshot prevents tests
    * from mutating statement execution state. */
-  privateAccounting(){return Object.freeze({...this.#privateAccounting,...this.#privateBytes.snapshot(),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
+  #dispatchedOps=new Set<Op['code']>();
+  privateAccounting(){return Object.freeze({...this.#privateAccounting,...this.#privateBytes.snapshot(),emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
@@ -9743,7 +9744,7 @@ export class VdbeStatement implements Statement {
   clearBindings(): void { this.#assertIdle(); this.#bindings.forEach(value => value.setNull()); if(this.#program.expmask)this.#expired=true; }
   async step(options: OperationOptions = {}): Promise<StepResult> {
     this.#assertIdle();
-    if(!this.#executionStarted){const plan=this.#program.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),executionId:`execution-${++nextExecutionIdentity}`,planId:planIdentity(this.#program),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};this.#executionStarted=true;}
+    if(!this.#executionStarted){this.#privateBytes=new PrivateStateByteBudget(this.#program.privateStateLimits.maxBytes);const plan=this.#program.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),executionId:`execution-${++nextExecutionIdentity}`,planId:planIdentity(this.#program),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};this.#executionStarted=true;}
     if (this.#state === "failed") throw this.#savedError;
     if (this.#state === "done") return "done";
     const requestedLimit = options.maxWorkUnits ?? this.#program.maxWorkUnits;
@@ -9776,6 +9777,7 @@ export class VdbeStatement implements Statement {
         this.#checkControl(options, limit, started);
         if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.checkpoint(); this.#state = "running"; this.#checkControl(options, limit, started); }
         const op = this.#program.ops[this.#pc++]!; this.#work++;
+        this.#dispatchedOps.add(op.code);
         // vdbe.c shares Btree positioning between ephemeral IN sets and
         // persistent indices. Await private movement before publishing jumps.
         if((op.code==='IndexRewind'||op.code==='IndexLast'||op.code==='IndexNext'||op.code==='IndexPrev'||op.code==='Column')&&this.#privateKeys.has(op.code==='Column'?(op.p3??0):op.p1)){
@@ -10415,7 +10417,7 @@ export class VdbeStatement implements Statement {
     // sqlite3VdbeReset returns the saved execution error after cleanup. TS
     // destructors may throw: finish releases and restore READY first.
     for (const value of this.#registers) try { value.setNull(); } catch (error) { if (cleanup === null) cleanup = error; }
-    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
+    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#dispatchedOps.clear(); this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
     this.#pc = 0; this.#state = "prepared";
     if (primary !== null) throw primary;
     if (cleanup !== null) throw cleanup;

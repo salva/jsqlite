@@ -478,12 +478,18 @@ identities. The lifetime follows `vdbeaux.c:sqlite3VdbeRewind`/Reset readiness a
 actual TS execution entry, not a test adapter. Identity controls live in
 `test/select/vdbe-private-continuation.test.mjs` and the existing native-receipt
 consumer baseline; they do not establish complete resource/safety observation.
+The same private snapshot distinguishes emitted opcode names from unique actually
+dispatched names, recorded at VM dispatch entry (including an entered opcode
+that subsequently fails). Both arrays are frozen detached copies; reset clears
+dispatch history. They are TS lowered opcode names, not native EXPLAIN names or
+successful-operation counts. Unreached emitted code is never dispatch evidence.
 The same private snapshot exposes the actual shared byte-budget owner ID,
 cumulative successful charges/refunds, live owned bytes and byte highwater.
 These count deterministic private-state budget units, not total JS heap or Mem
 usage. Budget replacement records both ownership transfers only after admission;
 failed reservations leave accounting unchanged. Counters persist through cleanup
-and reset on the retained budget owner; they are not per-execution deltas. Pages,
+and reset for release inspection; first step of the next execution installs a
+fresh budget owner and zero counters. The old snapshot remains detached. Pages,
 scratch/Mem highwater and the complete pending work/lifetime contract remain open.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for bounded INNER/CROSS persistent equality loops. Wider consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-b]] status for exact evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through

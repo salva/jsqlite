@@ -7,7 +7,10 @@
 distinguish executions and retained programs; reprepare preserves execution but
 replaces program identity. No cross-worker identity or native pointer is implied.
 Frozen snapshot/reset/done/concurrent-statement controls:
-`test/select/vdbe-private-continuation.test.mjs`; actual auto/Bloom consumer
+`test/select/vdbe-private-continuation.test.mjs`; VM dispatch entry records
+unique actually entered TS opcodes separately from retained-program emitted
+opcodes. Snapshots detach/freeze both arrays and reset clears entered history;
+entry is not successful-completion evidence. Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
 The existing execution-shared `PrivateStateByteBudget` now exposes cumulative
@@ -16,7 +19,9 @@ and highwater through that snapshot. This is browser representation accounting,
 not a translation of native heap-size measurement. Owner/rejected-transfer,
 replacement/refund and independent-budget controls:
 `test/value/private-byte-observation.test.mjs`. It does not yet establish the
-pending per-execution resource owner, page/Mem or lifetime contract.
+pending page/Mem or exhaustive lifetime contract. Reset retains release totals
+until next execution entry installs a fresh budget owner; VM continuation tests
+check distinct execution owners, balanced cleanup and paused independent budgets.
 
 ### Shared automatic/Bloom prerequisites (not SQL enrollment)
 
