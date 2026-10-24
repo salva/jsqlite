@@ -6,7 +6,11 @@ NULL continuation; dependent RHS remains local. Pinned three-source independent/
 dependent receipts now have actual public execution and structural placement
 assertions in `where-autoindex-baseline.mjs` (current [[card:card-s-j-c]] status).
 This supersedes the two-source-only implementation boundary, not the unfinished
-IPK/MustBeInt, IN/outer/frame, scratch/Mem, exhaustive lifetime and WR/FULL gates.
+IPK enrollment, IN/outer/frame, scratch/Mem, exhaustive lifetime and WR/FULL gates.
+The existing MustBeInt primitive now translates native nonzero-P2 no-match and
+zero/omitted-P2 mismatch branches, with shared NUMERIC affinity and sentinel-aware
+relocation. All-encoding primitive reset/conversion/error tests are author evidence,
+not a native IPK standalone placement witness; that producer remains unimplemented.
 
 Production-private snapshots now distinguish fresh executions and retained program
 identity across reset, with immutable detached observations. Reprepare retains the

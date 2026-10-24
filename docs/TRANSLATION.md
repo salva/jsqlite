@@ -1055,7 +1055,13 @@ their own borrowed contracts; they are not membership probes. Joined scalar IN w
 producer as vector IN, preserving `computeLimitRegisters`/MustBeInt and the
 LIMIT-zero-before-OFFSET branch. MustBeInt applies shared Mem NUMERIC affinity
 before testing INTEGER, including decimal/exponent/whitespace text and lossless
-REAL conversion; it does not independently parse integer text. Int64 REAL
+REAL conversion; it does not independently parse integer text. The opcode's
+optional nonzero P2 follows native `jump0`: unsuccessful conversion branches to
+the supplied no-match continuation; omitted/zero P2 retains datatype mismatch
+for LIMIT. Embedding relocates only nonzero P2. Primitive conversion/reset/error
+coverage is in `test/value/must-be-int-continuation.test.mjs`; this does not yet
+enroll IPK standalone producers or establish their native placement witnesses.
+Int64 REAL
 endpoints remain noninteger per `sqlite3VdbeIntegerAffinity`, unlike exact INTEGER
 text endpoints. [Numeric-affinity repair evidence](research/card-m-packed-independent-review.md#mustbeint-numeric-affinity-repair)
 retains native typed-row/error/reset controls and the bounded test inventory. NameResolutionError retains Parse's extended

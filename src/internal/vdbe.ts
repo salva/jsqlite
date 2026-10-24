@@ -217,7 +217,7 @@ type Op =
   | { readonly code: "EphemeralAdvanceData"; readonly p1:number; readonly p2:number; readonly count:number; readonly emptyJump?:number }
   | { readonly code: "IfEphemeralHasNext"; readonly p1:number; readonly jump:number }
   | { readonly code: "EphemeralResetPosition"; readonly p1:number }
-  | { readonly code: "MustBeInt"; readonly p1:number }
+  | { readonly code: "MustBeInt"; readonly p1:number; readonly p2?:number }
   | { readonly code: "WindowCheck"; readonly p1:number; readonly boundary:"starting"|"ending"|"nth"; readonly numeric:boolean }
   | { readonly code: "OffsetLimit"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "IfNotZero"; readonly p1:number; readonly p2:number }
@@ -267,6 +267,8 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
     case "IndexRewind":case "IndexLast":case "InListValue":case "IndexIfNoHope":case "IndexSeekPrefix":case "IndexPrefixEnd":
     case "Filter":case "IndexRangeEnd":case "IsNull":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
       return {...original,p2:target(original.p2)} as Op;
+    case "MustBeInt":
+      return original.p2?{...original,p2:target(original.p2)}:original;
     case "CompareJump":
       return {...original,less:target(original.less),equal:target(original.equal),greater:target(original.greater)};
     case "InitCoroutine":
@@ -9918,7 +9920,12 @@ export class VdbeStatement implements Statement {
             // bypass IntegerAffinity's losslessness/int64 boundary checks.
             const value=this.#registers[op.p1]!;
             if(value.initialStorageClass!=="integer")value.applyAffinity("numeric",this.#program.encoding);
-            if(value.initialStorageClass!=="integer")throw new JSQLiteError("sqlite","datatype mismatch",{code:20});
+            if(value.initialStorageClass!=="integer"){
+              // jump0: LIMIT uses P2=0 (MISMATCH); rowid equality and
+              // filterPullDown use a nonzero no-match continuation instead.
+              if(op.p2){this.#pc=op.p2;break;}
+              throw new JSQLiteError("sqlite","datatype mismatch",{code:20});
+            }
             value.setInt64(value.integerValue());
             break;
           }
