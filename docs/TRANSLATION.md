@@ -502,6 +502,20 @@ failed reservations leave accounting unchanged. Counters persist through cleanup
 and reset for release inspection; first step of the next execution installs a
 fresh budget owner and zero counters. The old snapshot remains detached. Pages,
 scratch/Mem highwater and the complete pending work/lifetime contract remain open.
+Capacity highwater/page/scratch/Mem ownership remains pending. Live/release
+snapshots now count distinct actual cursor slots, reusable Once state and live
+Bloom storage bytes. Halt clears Once together with execution resources; reset
+also restores READY. `AUTO_REAL_SURVIVOR=1` in the existing receipt consumer
+pauses an independent actual SQL statement after a row, verifies its positive
+ownership and byte-for-byte unchanged observation across done/reset/finalize and
+post-row cancel/timeout cleanup, then resumes complete native-expected rows.
+This proves these specific boundaries, not interruption within build/probe work
+or exhaustive reprepare/close/fault safety. `AUTO_REAL_CAPACITY=1` adds actual
+maxBytes H−1/H/H+1 runs with all other limits nonbinding and a separate live SQL
+survivor excluded. H includes build and probe scratch, so H−1 may fail at a probe
+after successful build but must precede any result row in these fixtures. Public
+limit errors preserve the underlying PrivateStateLimitError cause and reset
+returns the identical saved error. maxEntries/maxKeyBytes boundaries remain open.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for bounded INNER/CROSS persistent equality loops. Wider consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-b]] status for exact evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.

@@ -9748,7 +9748,7 @@ export class VdbeStatement implements Statement {
   /** Internal conformance seam. A detached immutable snapshot prevents tests
    * from mutating statement execution state. */
   #dispatchedOps=new Set<Op['code']>();
-  privateAccounting(){return Object.freeze({version:1,planKind:this.#program.ops.some(op=>op.code==='OpenAutoindex')?'automatic-index':this.#program.ops.some(op=>op.code==='Filter')?'standalone-bloom':'other',builds:this.#completedAutomaticBuilds,insertedRecords:this.#privateAccounting.automaticInserts,probes:this.#privateAccounting.filterAbsent+this.#privateAccounting.filterPresent,planIdentity:this.#privateAccounting.planId,...this.#privateAccounting,...this.#privateBytes.snapshot(),completedAutomaticBuilds:this.#completedAutomaticBuilds,coveringTableLookups:this.#coveringTableLookups,collisionRejects:this.#collisionRejects,emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
+  privateAccounting(){const cursors=new Set<number>([...this.#cursors.keys(),...this.#indexCursors.keys(),...this.#tableSeekCursors.keys(),...this.#privateKeys.keys(),...this.#privateCursors.keys(),...this.#jsonCursors.keys(),...this.#metadataCursors.keys()]);return Object.freeze({openCursors:cursors.size,onceActive:this.#once.size>0,filterBytes:[...this.#filters.values()].reduce((sum,filter)=>sum+filter.ownedBytes,0),version:1,planKind:this.#program.ops.some(op=>op.code==='OpenAutoindex')?'automatic-index':this.#program.ops.some(op=>op.code==='Filter')?'standalone-bloom':'other',builds:this.#completedAutomaticBuilds,insertedRecords:this.#privateAccounting.automaticInserts,probes:this.#privateAccounting.filterAbsent+this.#privateAccounting.filterPresent,planIdentity:this.#privateAccounting.planId,...this.#privateAccounting,...this.#privateBytes.snapshot(),completedAutomaticBuilds:this.#completedAutomaticBuilds,coveringTableLookups:this.#coveringTableLookups,collisionRejects:this.#collisionRejects,emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
@@ -10530,6 +10530,9 @@ export class VdbeStatement implements Statement {
     }};
   }
   #halt(): unknown | null {
+    // Once belongs to this execution; no halted/error path can reuse its
+    // successful initialization. Retained program identity is independent.
+    this.#once.clear();
     this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}

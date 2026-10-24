@@ -18,7 +18,19 @@ cursor reads map to `where.c:constructAutomaticIndex` fill-loop/covering ownersh
 `test/value/automatic-build-observation.test.mjs` distinguishes failed partial
 builds from completion and detects a deliberately introduced postbuild table read.
 Version1 work contract is asserted by the actual consumer runner, including empty
-builds (emitted FilterAdd is not dispatched). Actual auto/Bloom consumer
+builds (emitted FilterAdd is not dispatched). `vdbeaux.c:closeAllCursors`/Halt
+maps to VM halt-owned cursor/filter/Once release snapshots; Bloom storage size
+comes directly from `PrivateBloomFilter`. The existing receipt runner's
+`AUTO_REAL_SURVIVOR=1` invokes `where-autoindex-real-survivor.mjs`: independently
+paused SQL owner survives done/reset/finalize and post-row cancel/timeout, with
+unchanged live snapshots and complete native row continuation. Internal phase
+fault/cancel and exhaustive reprepare/close schedules remain pending.
+`where-autoindex-real-capacity.mjs` exercises the actual public maxPrivateBytes
+limit at measured whole-execution H−1/H/H+1 (build and probe scratch included),
+with independent live SQL survivor, exact native rows/metadata, no below-boundary
+row and preserved public limit/cause/reset identity. maxEntries/maxKeyBytes
+capacity schedules remain pending.
+Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
 The existing execution-shared `PrivateStateByteBudget` now exposes cumulative

@@ -41,5 +41,6 @@ export class PrivateBloomFilter {
     const bytes=this.#storage(),h=Number(filterHash(values)%BigInt(bytes.length*8));
     return (bytes[Math.floor(h/8)]!&(1<<(h&7)))===0;
   }
+  get ownedBytes():number{return this.#bytes?.length??0}
   close():void{if(this.#bytes){this.#bytes=null;this.#budget.release(this.#charge)}}
 }

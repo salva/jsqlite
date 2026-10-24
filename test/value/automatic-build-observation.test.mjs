@@ -13,8 +13,10 @@ test('Once completion is distinct from OpenAutoindex and covering observation de
  const good=statement();try{
   assert.equal(await good.step(),'row');const snapshot=good.privateAccounting();
   assert.equal(snapshot.automaticBuilds,1);assert.equal(snapshot.builds,1);
+  assert.equal(snapshot.onceActive,true);assert.ok(snapshot.openCursors>0);
   assert.equal(snapshot.coveringTableLookups,1,'must not publish constant zero');
   assert.equal(await good.step(),'done');assert.equal(good.privateAccounting().builds,1);
+  assert.equal(good.privateAccounting().onceActive,false);assert.equal(good.privateAccounting().openCursors,0);
   good.reset();assert.equal(good.privateAccounting().builds,0);
   await good.step();assert.equal(good.privateAccounting().builds,1);
  }finally{good.finalize();}

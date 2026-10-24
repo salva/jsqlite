@@ -65,9 +65,17 @@ private prefix seeks now contribute to indexSeeks. Covered source-table cursor
 accesses are observed only after build completion. Positive-access and failed-build
 VM controls prevent constant-zero/entry-only claims. Detailed revision evidence
 is in [[card:card-s-j-c]] status; this does not establish finite safety acceptance.
-The remainder of this section describes pending lifetime/capacity/interruption
-controls; historical no-runtime statements below apply to that baseline revision,
-not current work observation.
+The remainder of this section describes pending exhaustive lifetime/capacity/interruption
+controls. Current production release fields count distinct cursor slots, active
+Once and live Bloom byte storage. `AUTO_REAL_SURVIVOR=1` exercises actual paused
+SQL survivor isolation at done/reset/finalize and post-row cancel/timeout, including
+saved first-error identity and native row continuation. `AUTO_REAL_CAPACITY=1`
+measures whole-execution maxBytes highwater then exercises H−1/H/H+1 with other
+limits nonbinding and survivor excluded. The limiting owner may be auto packed
+build/probe scratch or sorter; public limit message is caller-owned per fixture,
+with PrivateStateLimitError cause. Other dimensions/internal phase schedules
+remain pending. Historical no-runtime statements below apply to that baseline
+revision, not current work/release observation.
 
 `where-autoindex-contract.mjs` exports executable assertions, exercised by
 `node --test docs/research/where-autoindex-contract.test.mjs`. Synthetic contract
