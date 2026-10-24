@@ -509,8 +509,11 @@ also restores READY. `AUTO_REAL_SURVIVOR=1` in the existing receipt consumer
 pauses an independent actual SQL statement after a row, verifies its positive
 ownership and byte-for-byte unchanged observation across done/reset/finalize and
 post-row cancel/timeout cleanup, then resumes complete native-expected rows.
-The survivor runner covers automatic and persistent standalone fixtures. It proves
-these specific boundaries, not exhaustive reprepare/close/fault safety.
+It also checks saved-error identity on repeated step and direct error-finalize,
+consumption on reset/repeated reset, fresh execution identities on retry, and
+legacy busy-close refusal without destroying the live statement. The runner
+covers automatic and persistent standalone fixtures. These specific boundaries
+are not exhaustive rebind/reprepare/deferred-close/fault safety.
 `AUTO_REAL_PROGRESS=1` interrupts automatic build after successful insertion and
 probe after completed build/positive probes; standalone requires positive actual
 FilterAdd with zero probes for build, positive FilterAdd/probes for probe. These
