@@ -408,8 +408,61 @@ test('validated balance path merges underfull child and rejects stale path befor
  const {PrivateBlobkeyPages}=await import('../../src/internal/private-blobkey-pages.ts'),budget=new PrivateStateByteBudget(200000),arena=await PrivateBlobkeyPages.open(budget,control);
  try{arena.installPage(2,raw(2,false,[[0,0,0,3,3,2,1,2]],4).bytes);arena.installPage(3,raw(3,true,[[3,2,1,1]]).bytes);arena.installPage(4,raw(4,true,[[3,2,1,3]]).bytes);
  await assert.rejects(arena.balancePath([2,4],[0],false,control),/stale balance path/);
- await arena.balancePath([2,3],[0],false,control);const p=arena.acquire(2);try{assert.equal(p.page.leaf,true);assert.equal(p.page.nCell,3)}finally{p.release()}
+ assert.equal(await arena.balancePath([2,3],[0],false,control),0);const p=arena.acquire(2);try{assert.equal(p.page.leaf,true);assert.equal(p.page.nCell,3)}finally{p.release()}
  }finally{arena.close();assert.equal(budget.usedBytes,0)}
+});
+test('balance ancestry resolves staged, shifted resident and logical right children',async()=>{
+ const {PrivateBlobkeyPages}=await import('../../src/internal/private-blobkey-pages.ts'),budget=new PrivateStateByteBudget(200000),arena=await PrivateBlobkeyPages.open(budget,control);
+ try{
+ const divider=child=>Uint8Array.of(0,0,0,child,3,2,1,2);
+ arena.installPage(2,raw(2,false,Array.from({length:408},()=>divider(3)),4).bytes);
+ for(const n of [3,4,5])arena.installPage(n,raw(n,true,Array.from({length:300},()=>[3,2,1,1])).bytes);
+ const parent=arena.acquire(2);try{await parent.page.insertCell(0,divider(5),control);assert.equal(parent.page.nOverflow,1)}finally{parent.release()}
+ assert.equal(await arena.balancePath([2,5],[0],false,control),1);
+ assert.equal(await arena.balancePath([2,3],[1],false,control),1);
+ assert.equal(await arena.balancePath([2,4],[409],false,control),1);
+ await assert.rejects(arena.balancePath([2,3],[0],false,control),/stale balance path/);
+ await assert.rejects(arena.balancePath([2,4],[410],false,control),/invalid balance child index/);
+ }finally{arena.close();assert.equal(budget.usedBytes,0)}
+});
+test('Delete continuation retains native stop depth and ascends only when requested',async()=>{
+ const {PrivateBlobkeyPages}=await import('../../src/internal/private-blobkey-pages.ts'),budget=new PrivateStateByteBudget(200000),arena=await PrivateBlobkeyPages.open(budget,control);
+ try{
+ arena.installPage(2,raw(2,false,[],3).bytes);
+ arena.installPage(3,raw(3,true,Array.from({length:300},()=>[3,2,1,1])).bytes);
+ // Source-derived native balance: dense leaf first pass is a no-op.
+ assert.equal(await arena.balancePath([2,3],[0],false,control),1);
+ assert.equal(await arena.balancePath([2,3],[0],false,control,0),0);
+ assert.equal(arena.referenceCount(2),0);assert.equal(arena.referenceCount(3),0);
+ await assert.rejects(arena.balancePath([2,3],[0],false,control,2),/ancestor depth/);
+ const p=arena.acquire(3);try{assert.equal(p.page.nCell,300)}finally{p.release()}
+ }finally{arena.close();assert.equal(budget.usedBytes,0)}
+});
+test('Delete ancestor continuation collapses only retained parent and never replays freed child',async()=>{
+ const {PrivateBlobkeyPages}=await import('../../src/internal/private-blobkey-pages.ts'),budget=new PrivateStateByteBudget(200000),arena=await PrivateBlobkeyPages.open(budget,control);
+ try{
+ arena.installPage(2,raw(2,false,[],3).bytes);arena.installPage(3,raw(3,false,[],4).bytes);
+ arena.installPage(4,raw(4,true,Array.from({length:300},()=>[3,2,1,1])).bytes);
+ assert.equal(await arena.balancePath([2,3,4],[0,0],false,control),2);
+ assert.equal(await arena.balancePath([2,3,4],[0,0],false,control,1),0);
+ const root=arena.acquire(2);try{assert.equal(root.page.leaf,false);assert.equal(root.page.rightChild(),4)}finally{root.release()}
+ assert.throws(()=>arena.acquire(3),/unexpected private index page type/);
+ const leaf=arena.acquire(4);try{assert.equal(leaf.page.nCell,300)}finally{leaf.release()}
+ }finally{arena.close();assert.equal(budget.usedBytes,0)}
+});
+test('Delete continuation admits path576 plus lease128 overlap at H-1/H/H+1',async()=>{
+ const {PrivateBlobkeyPages}=await import('../../src/internal/private-blobkey-pages.ts');
+ for(const room of [703,704,705]){
+ const budget=new PrivateStateByteBudget(200000),arena=await PrivateBlobkeyPages.open(budget,control);
+ const retained=budget.usedBytes;
+ // Fill unrelated scratch to leave exactly the balance path owner's capacity.
+ const filler=200000-retained-room;budget.reserveScratch(filler);
+ try{
+ if(room===703)await assert.rejects(arena.balancePath([2],[],false,control,0),/byte limit/);
+ else assert.equal(await arena.balancePath([2],[],false,control,0),0);
+ assert.equal(budget.usedBytes,retained+filler);
+ }finally{budget.releaseScratch(filler);arena.close();assert.equal(budget.usedBytes,0)}
+ }
 });
 test('dispatcher propagates a staged parent through root expansion into interior balance',async()=>{
  const {PrivateBlobkeyPages}=await import('../../src/internal/private-blobkey-pages.ts'),budget=new PrivateStateByteBudget(8000000),arena=await PrivateBlobkeyPages.open(budget,control);

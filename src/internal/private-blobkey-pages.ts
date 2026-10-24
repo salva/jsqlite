@@ -140,6 +140,7 @@ export class PrivateIndexPage {
   #mutating=false;#written=false;#fault:unknown;
   constructor(pgno:number,bytes:Uint8Array,scratch:{reserve(bytes:number):void;release(bytes:number):void;begin?():void;end?():void;fault?(error:unknown):void;admitEntry?():()=>void;removeEntries?(count:number):void;accountant?:object}={reserve(_bytes:number){},release(_bytes:number){}},maxKeyBytes=0x7fffffff){
     this.#scratch=scratch;this.#maxKeyBytes=maxKeyBytes;
+    deleteDrop.set(this,(index,size,control)=>this.#dropCell(index,size,control,true));
     balanceDividerInsert.set(this,{insert:(index,cell,child,control)=>{if(this.leaf)throw new Error("interior divider required");return this.#insertCell(index,cell,control,child,true)}});
     balanceChildPointer.set(this,{publish:(offset,pgno,control)=>this.#publishChild(offset,pgno,control)});
     balanceDivider.set(this,{take:(index,control,resident)=>this.#takeDivider(index,control,resident)});
@@ -412,7 +413,7 @@ export class PrivateIndexPage {
       if(pc+size>4096)corrupt("drop cell extends beyond page");
       // Checkpoint before native atomic freeSpace/slot mutation; the bounded
       // pointer memmove is at most one page. No suspension inside publication.
-      await control.checkpoint(size+2*(this.nCell-1-index));
+      this.#written=false;await control.checkpoint(size+2*(this.nCell-1-index));
       this.#written=true;this.#freeSpace(pc,size);
       this.#nCell--;if(!conserving)this.#scratch.removeEntries?.(1);
       if(this.nCell===0){
@@ -666,7 +667,8 @@ export class PrivatePageLease {
  * an isolated construction seam, not a mutation/cursor-save substitute. */
 type ArenaOperation=object;
 // This bridge and its identity tokens are never exported.
-const operations=new WeakMap<PrivateBlobkeyPages,{begin(cleanup?:boolean):ArenaOperation;end(t:ArenaOperation):void;acquire(t:ArenaOperation,p:number):PrivatePageLease;raw(t:ArenaOperation,p:number):{bytes:Uint8Array;release():void};register(c:PrivateBlobkeyCursor,owning:boolean):void;unlink(c:PrivateBlobkeyCursor):boolean;checkClose():void;insertLocal(t:ArenaOperation,p:number,i:number,k:Uint8Array,c:PrivateStateControl,replace?:boolean,balance?:boolean):Promise<void>;fault(t:ArenaOperation,e:unknown):void;balance(t:ArenaOperation,p:readonly number[],i:readonly number[],c:PrivateStateControl):Promise<void>;bytes(t:ArenaOperation,p:number):Uint8Array;savePeers(t:ArenaOperation,writer:PrivateBlobkeyCursor,c:PrivateStateControl):Promise<void>;overwrite(t:ArenaOperation,p:number,i:number,key:Uint8Array,c:PrivateStateControl):Promise<void>}>();
+const operations=new WeakMap<PrivateBlobkeyPages,{begin(cleanup?:boolean):ArenaOperation;end(t:ArenaOperation):void;acquire(t:ArenaOperation,p:number):PrivatePageLease;raw(t:ArenaOperation,p:number):{bytes:Uint8Array;release():void};register(c:PrivateBlobkeyCursor,owning:boolean):void;unlink(c:PrivateBlobkeyCursor):boolean;checkClose():void;insertLocal(t:ArenaOperation,p:number,i:number,k:Uint8Array,c:PrivateStateControl,replace?:boolean,balance?:boolean):Promise<void>;fault(t:ArenaOperation,e:unknown):void;balance(t:ArenaOperation,p:readonly number[],i:readonly number[],c:PrivateStateControl,ancestorDepth?:number):Promise<number>;bytes(t:ArenaOperation,p:number):Uint8Array;savePeers(t:ArenaOperation,writer:PrivateBlobkeyCursor,c:PrivateStateControl):Promise<void>;page(t:ArenaOperation,p:number):PrivateIndexPage;clearDeleted(t:ArenaOperation,p:number,i:number,c:PrivateStateControl,onWrite:()=>void):Promise<void>;edit<T>(t:ArenaOperation,p:number,run:()=>Promise<T>):Promise<T>;transferred(t:ArenaOperation,source:number,target:number):void;overwrite(t:ArenaOperation,p:number,i:number,key:Uint8Array,c:PrivateStateControl):Promise<void>}>();
+const deleteDrop=new WeakMap<PrivateIndexPage,(index:number,size:number,control:PrivateStateControl)=>Promise<void>>();
 const cursors=new WeakMap<PrivateBlobkeyCursor,{save(t:ArenaOperation,c:PrivateStateControl):Promise<void>;fault(e:unknown):void;refs():number}>();
 export class PrivateBlobkeyPages {
   readonly root=2;readonly autoVacuum=false;readonly pageSize=4096;
@@ -680,7 +682,7 @@ export class PrivateBlobkeyPages {
   private constructor(budget:PrivateStateByteBudget,hook:PrivatePageHook,maxKeyBytes:number,maxEntries:number){
     if(!Number.isSafeInteger(maxKeyBytes)||maxKeyBytes<0)throw new PrivateStateLimitError("invalid private key byte limit");
     if(!Number.isSafeInteger(maxEntries)||maxEntries<0)throw new PrivateStateLimitError("invalid private entry limit");
-    operations.set(this,{begin:cleanup=>this.#begin(cleanup),end:t=>this.#end(t),acquire:(t,p)=>{this.#check(t);return this.#acquire(p)},raw:(t,p)=>{this.#check(t);return this.#raw(p,false)},register:(c,o)=>this.#registerCursor(c,o),unlink:c=>this.#unregisterCursor(c),checkClose:()=>this.#assertCursorClose(),insertLocal:(t,p,i,k,c,r,b)=>{this.#check(t);return this.#insertLocal(t,p,i,k,c,r,b)},fault:(t,e)=>{this.#check(t);this.#trip(e)},balance:(t,p,i,c)=>this.#balancePath(p,i,false,c,t),bytes:(t,p)=>{this.#check(t);const entry=this.#pages.get(p);if(!entry)throw new PrivateBlobkeyFormatError("cursor page outside arena");return entry.bytes},savePeers:async(t,w,c)=>{this.#check(t);for(const peer of this.#registry)if(peer!==w)await cursors.get(peer)!.save(t,c);this.#assertCursorClose()},overwrite:(t,p,i,k,c)=>{this.#check(t);return this.#overwritePayload(p,i,k,c)}});
+    operations.set(this,{begin:cleanup=>this.#begin(cleanup),end:t=>this.#end(t),acquire:(t,p)=>{this.#check(t);return this.#acquire(p)},raw:(t,p)=>{this.#check(t);return this.#raw(p,false)},register:(c,o)=>this.#registerCursor(c,o),unlink:c=>this.#unregisterCursor(c),checkClose:()=>this.#assertCursorClose(),insertLocal:(t,p,i,k,c,r,b)=>{this.#check(t);return this.#insertLocal(t,p,i,k,c,r,b)},fault:(t,e)=>{this.#check(t);this.#trip(e)},balance:(t,p,i,c,a)=>this.#balancePath(p,i,false,c,t,a),bytes:(t,p)=>{this.#check(t);const entry=this.#pages.get(p);if(!entry)throw new PrivateBlobkeyFormatError("cursor page outside arena");return entry.bytes},savePeers:async(t,w,c)=>{this.#check(t);for(const peer of this.#registry)if(peer!==w)await cursors.get(peer)!.save(t,c);this.#assertCursorClose()},page:(t,p)=>{this.#check(t);return this.#pages.get(p)!.derived!},clearDeleted:async(t,p,i,c,w)=>{this.#check(t);await this.#clearCellOverflow(this.#pages.get(p)!.derived!,i,c,w)},edit:async(t,p,run)=>{this.#check(t);const entry=this.#pages.get(p)!;entry.editToken=t;try{return await run()}finally{delete entry.editToken}},transferred:(t,s,d)=>{this.#check(t);this.#pages.get(s)!.entries--;this.#pages.get(d)!.entries++},overwrite:(t,p,i,k,c)=>{this.#check(t);return this.#overwritePayload(p,i,k,c)}});
     this.#maxEntries=maxEntries;
     // Page backing is accounted separately; arena control, acquisition
     // capabilities and derived/staged storage share the scratch category.
@@ -828,13 +830,17 @@ export class PrivateBlobkeyPages {
   }
   /** Raw pager identity prerequisite; not nonroot/parent publication. */
   /** Native BLOBKEY balance loop over an owned, validated cursor path. */
-  async balancePath(numbers:readonly number[],indices:readonly number[],bulk:boolean,control:PrivateStateControl):Promise<void>{
-    return this.#balancePath(numbers,indices,bulk,control);
+  /** Returns native balance()'s reached depth, not a reusable leaf path.
+   * ancestorDepth requests Delete's second pass under the same admission and
+   * charged path owner. Only the surviving prefix is ever revisited. */
+  async balancePath(numbers:readonly number[],indices:readonly number[],bulk:boolean,control:PrivateStateControl,ancestorDepth?:number):Promise<number>{
+    return this.#balancePath(numbers,indices,bulk,control,undefined,ancestorDepth);
   }
-  async #balancePath(numbers:readonly number[],indices:readonly number[],bulk:boolean,control:PrivateStateControl,held?:ArenaOperation):Promise<void>{
+  async #balancePath(numbers:readonly number[],indices:readonly number[],bulk:boolean,control:PrivateStateControl,held?:ArenaOperation,ancestorDepth?:number):Promise<number>{
     const t=held??this.#begin();this.#check(t);let charge=0,started=false;
     try{
       if(numbers.length<1||numbers.length>20||numbers[0]!==2||indices.length!==numbers.length-1)corrupt("invalid balance path");
+      if(ancestorDepth!==undefined&&(!Number.isInteger(ancestorDepth)||ancestorDepth<0||ancestorDepth>=numbers.length))corrupt("invalid balance ancestor depth");
       this.#budget.reserveScratch(256+20*16);charge=256+20*16;
       const path=numbers.slice(),slots=indices.slice();
       if(!held)for(const c of this.#registry)await cursors.get(c)!.save(t,control);
@@ -844,13 +850,24 @@ export class PrivateBlobkeyPages {
         if(path.indexOf(path[i]!)!==i)corrupt("cyclic balance path");
         const p=this.#acquire(path[i]!);try{
           if(i<slots.length){const slot=slots[i]!;
-            if(!Number.isInteger(slot)||slot<0||slot>p.page.nCell||p.page.leaf)corrupt("invalid balance child index");
-            const child=slot===p.page.nCell?p.page.rightChild():get4(this.#pages.get(path[i]!)!.bytes,p.page.findCell(slot));
+            if(!Number.isInteger(slot)||slot<0||slot>p.page.nCell+p.page.nOverflow||p.page.leaf)corrupt("invalid balance child index");
+            // Delete may stage the transplanted predecessor at this logical
+            // slot. Resolve staged dividers before resident indices, as in
+            // balance_nonroot's parent acquisition; retain ancestry validation.
+            let resident=slot,child:number|undefined;
+            const staging=balanceStaging.get(this.#pages.get(path[i]!)!.derived!)!;
+            for(let j=0;j<staging.count();j++){
+              const cell=staging.at(j);
+              if(cell.index===slot){child=get4(cell.bytes,0);break}
+              if(cell.index<slot)resident--;
+            }
+            if(child===undefined)child=resident===p.page.nCell?p.page.rightChild():get4(p.page.bytes,p.page.findCell(resident));
             if(child!==path[i+1])corrupt("stale balance path");
           }
         }finally{p.release()}
       }
       started=true;
+      for(let pass=0;pass<2;pass++){
       while(path.length){
         await control.checkpoint(1);
         const p=this.#acquire(path[path.length-1]!);let pending=0,free=0;
@@ -865,6 +882,13 @@ export class PrivateBlobkeyPages {
           path.pop();slots.pop();
         }
       }
+      // sqlite3BtreeDelete: ascend only when leaf balance did not reach
+      // the original cell's depth. Descendants may have been freed/rekeyed;
+      // the retained prefix ends at the unchanged parent of the last edit.
+      if(pass||ancestorDepth===undefined||path.length-1<=ancestorDepth)break;
+      path.length=ancestorDepth+1;slots.length=ancestorDepth;
+      }
+      return path.length-1;
     }catch(error){if(started)this.#trip(error);throw error}
     finally{if(charge)this.#budget.releaseScratch(charge);if(!held)this.#end(t)}
   }
@@ -980,11 +1004,11 @@ export class PrivateBlobkeyPages {
   async freePage(pgno:number,control:PrivateStateControl):Promise<void>{
     return this.#arenaMutation(()=>this.#freePage(pgno,control));
   }
-  async #freePage(pgno:number,control:PrivateStateControl,supplied=false):Promise<void>{
+  async #freePage(pgno:number,control:PrivateStateControl,supplied=false,onWrite?:()=>void):Promise<void>{
       const p1=this.#pages.get(1)!.bytes;if(pgno<2||pgno>get4(p1,28))corrupt("free page outside arena");
       let page:{bytes:Uint8Array;release():void}|null=null,trunk:{bytes:Uint8Array;release():void}|null=null,primary:unknown;
       try{
-        page=supplied?this.#retainRaw(pgno):this.#raw(pgno);await control.checkpoint(0);const count=get4(p1,36);put4(p1,36,count+1);let head=0,leaf=false;
+        page=supplied?this.#retainRaw(pgno):this.#raw(pgno);await control.checkpoint(0);const count=get4(p1,36);onWrite?.();put4(p1,36,count+1);let head=0,leaf=false;
         if(count){head=get4(p1,32);if(head>get4(p1,28)||head<2)corrupt("free page trunk outside arena");trunk=this.#raw(head);const k=get4(trunk.bytes,4);if(k>1022)corrupt("free page trunk count");
           if(k<1016){put4(trunk.bytes,4,k+1);put4(trunk.bytes,8+4*k,pgno);leaf=true}
         }
@@ -1189,7 +1213,7 @@ export class PrivateBlobkeyPages {
     if(primary!==undefined)throw primary;
   }
   /** Held clearCellOverflow for replacement; final unused next pointer is not read. */
-  async #clearCellOverflow(page:PrivateIndexPage,index:number,control:PrivateStateControl):Promise<void>{
+  async #clearCellOverflow(page:PrivateIndexPage,index:number,control:PrivateStateControl,onWrite?:()=>void):Promise<void>{
     const cell=page.parseCell(index);if(cell.overflowOffset===null)return;
     let next=get4(page.bytes,cell.overflowOffset),remaining=Math.ceil((cell.nPayload-cell.nLocal)/4092);
     while(remaining--){
@@ -1199,7 +1223,7 @@ export class PrivateBlobkeyPages {
       try{
         const following=remaining?get4(raw.bytes,0):0;
         if(this.referenceCount(next)!==1)corrupt("clear overflow still referenced");
-        await this.#freePage(next,control,true);next=following;
+        await this.#freePage(next,control,true,onWrite);next=following;
       }catch(error){primary=error;throw error}
       finally{try{raw.release()}catch(error){if(primary===undefined)throw error}}
     }
@@ -1408,6 +1432,7 @@ export class PrivateBlobkeyCursor {
   #overflow=new Uint32Array(0);#overflowValid=false;
   #parentCapacity=0;#positionBytes=0;#resultBytes=0;
   #token:ArenaOperation|null=null;#saved:Uint8Array|null=null;#savedCharge=0;#skipNext=0;#pinned=false;#error:unknown;
+  #atLast=false;
   #index=0;#state:"VALID"|"INVALID"|"REQUIRESEEK"|"SKIPNEXT"|"FAULT"="INVALID";#busy=false;#closed=false;
   constructor(arena:PrivateBlobkeyPages,info:KeyInfo,limits:PrivateStateLimits,options:{owning?:boolean}={}){
     // Read caller configuration once, before admission. This fixed-size snapshot
@@ -1424,6 +1449,12 @@ export class PrivateBlobkeyCursor {
     },fault:error=>{this.#discardSaved();this.#state="FAULT";this.#error=error;try{this.#releasePath()}catch{/* terminal primary error remains authoritative */}},refs:()=>this.#parents.length+(this.#current?1:0)});
     operations.get(arena)!.register(this,options.owning===true);
   }
+  /** OP_OpenDup/btreeCursor: share root/KeyInfo, never position or saved key.
+   * Constructor admits PRIVATE_CURSOR_CHARGE before publishing the handle. */
+  duplicate():PrivateBlobkeyCursor{
+    if(this.#closed)throw new Error("private index cursor closed");
+    return new PrivateBlobkeyCursor(this.#arena,this.#info,this.#limits);
+  }
   /** Independent diagnostic copies: 64 result/array bytes plus32 per parent,
    * retained at high-water until close, not GC/heap measurement. */
   get position(){
@@ -1435,7 +1466,7 @@ export class PrivateBlobkeyCursor {
     }catch(error){this.#arena.releaseScratch(charge);throw error}
   }
   async #compare(index:number,key:UnpackedRecordKey,control:PrivateStateControl,shortcut=false,internal=false):Promise<-1|0|1|99>{
-    this.#overflowValid=false;
+    this.#atLast=false;this.#overflowValid=false;
     const page=this.#current!.page,bytes=internal?operations.get(this.#arena)!.bytes(this.#token!,page.pgno):page.bytes;
     if(shortcut){
       // indexCellCompare reads the raw payload prefix, not xParseCell. Unknown
@@ -1489,7 +1520,7 @@ export class PrivateBlobkeyCursor {
         const result=compareRecordKey(scratch.subarray(0,cell.nPayload),key,this.#info,{maxBytes:this.#limits.maxKeyBytes});
         // IndexMoveto clears BTCF_ValidOvfl after accessPayload even on
         // success; allocated overflow slots remain capacity, not valid cache.
-        this.#overflowValid=false;return result;
+        this.#atLast=false;this.#overflowValid=false;return result;
       }finally{this.#arena.releaseScratch(capacity)}
     }
     await control.checkpoint(cell.nPayload+key.nField);
@@ -1505,7 +1536,7 @@ export class PrivateBlobkeyCursor {
     }catch(error){this.#arena.releaseScratch(64);throw error}
   }
   #root():void{
-    this.#overflowValid=false;
+    this.#atLast=false;this.#overflowValid=false;
     if(this.#parents.length){
       // Release leaf and deeper ancestors, retaining the original root lease.
       let primary:unknown;const release=(lease:PrivatePageLease)=>{try{lease.release()}catch(error){primary??=error}};
@@ -1553,7 +1584,7 @@ export class PrivateBlobkeyCursor {
       // OpenEphemeral can retain wider KeyInfo; unpack already bounds width.
       if(key.nField===0)throw new Error("index writer requires a nonempty key");
       const result=await this.#moveto(key,control,false);
-      this.#overflowValid=false;
+      this.#atLast=false;this.#overflowValid=false;
       if(result.res===0&&result.state==="VALID"){
         const page=this.#current!.page;
         if(allowNew&&page.parseCell(this.#index).nPayload!==owned.length)await ops.insertLocal(t,page.pgno,this.#index,owned,control,true,balance);
@@ -1628,10 +1659,13 @@ export class PrivateBlobkeyCursor {
   async next(control:PrivateStateControl):Promise<boolean>{
     if(this.#closed)throw new Error("private index cursor closed");
     if(this.#state==="FAULT")throw this.#error;
-    if(this.#state==="REQUIRESEEK")await this.restoreCursorPosition(control);
     const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{this.#atLast=false;this.#overflowValid=false;await this.#restore(control);return await this.#next(control)}
+    finally{this.#token=null;ops.end(t)}
+  }
+  async #next(control:PrivateStateControl):Promise<boolean>{
     try{
-      await control.checkpoint(1);this.#overflowValid=false;
+      await control.checkpoint(1);this.#atLast=false;this.#overflowValid=false;
       if(this.#state==="INVALID")return false;
       if(this.#state==="SKIPNEXT"){this.#state="VALID";if(this.#skipNext>0)return true;}
       this.#index++;
@@ -1644,7 +1678,6 @@ export class PrivateBlobkeyCursor {
       }
       return true;
     }catch(error){this.#state="INVALID";this.#releasePath();throw error}
-    finally{this.#token=null;ops.end(t)}
   }
   // btree.c:btreeLast/moveToRightmost and btreePrevious. Interior index
   // dividers are records: ascending from child slot zero skips that parent.
@@ -1656,19 +1689,23 @@ export class PrivateBlobkeyCursor {
     if(this.#closed)throw new Error("private index cursor closed");
     const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
     try{
+      if(this.#state==="VALID"&&this.#atLast)return true;
       await control.checkpoint(1);this.#root();
       if(this.#state==="INVALID")return false;
-      await this.#rightmost(control);return true;
+      await this.#rightmost(control);this.#atLast=true;return true;
     }catch(error){this.#state="INVALID";this.#releasePath();throw error}
     finally{this.#token=null;ops.end(t)}
   }
   async previous(control:PrivateStateControl):Promise<boolean>{
     if(this.#closed)throw new Error("private index cursor closed");
     if(this.#state==="FAULT")throw this.#error;
-    if(this.#state==="REQUIRESEEK")await this.restoreCursorPosition(control);
     const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{this.#atLast=false;this.#overflowValid=false;await this.#restore(control);return await this.#previous(control)}
+    finally{this.#token=null;ops.end(t)}
+  }
+  async #previous(control:PrivateStateControl):Promise<boolean>{
     try{
-      await control.checkpoint(1);this.#overflowValid=false;
+      await control.checkpoint(1);this.#atLast=false;this.#overflowValid=false;
       if(this.#state==="INVALID")return false;
       if(this.#state==="SKIPNEXT"){this.#state="VALID";if(this.#skipNext<0)return true;}
       if(!this.#current!.page.leaf){await this.#scanChild(this.#index,control);await this.#rightmost(control);return true;}
@@ -1679,7 +1716,6 @@ export class PrivateBlobkeyCursor {
       }
       this.#index--;return true;
     }catch(error){this.#state="INVALID";this.#releasePath();throw error}
-    finally{this.#token=null;ops.end(t)}
   }
   /** accessPayload snapshot: callback cannot retain a page borrow across moves.
    * Scratch is charged until the consumer returns, including awaited work. */
@@ -1687,6 +1723,25 @@ export class PrivateBlobkeyCursor {
     if(this.#closed)throw new Error("private index cursor closed");
     if(this.#state==="FAULT")throw this.#error;
     const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{return await this.#withPayload(control,consume)}finally{this.#token=null;ops.end(t)}
+  }
+  /** CursorRestore/HandleMovedCursor consumption under one arena admission.
+   * A nearby restored cell remains available for directional movement but is
+   * not the row requested by Column. Notification runs even on restore error. */
+  async withRestoredPayload<T>(control:PrivateStateControl,notify:(different:boolean)=>void,consume:(bytes:Uint8Array|null)=>Promise<T>|T):Promise<T>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    try{
+      if(this.#state!=="VALID"){
+        // Restore mutates state across the call (TS retains the entry narrowing).
+        try{await this.#restore(control)}finally{notify((this.#state as string)!=="VALID")}
+      }
+      if(this.#state!=="VALID")return await consume(null);
+      return await this.#withPayload(control,consume);
+    }finally{this.#token=null;ops.end(t)}
+  }
+  async #withPayload<T>(control:PrivateStateControl,consume:(bytes:Uint8Array)=>Promise<T>|T):Promise<T>{
+    const ops=operations.get(this.#arena)!,t=this.#token!;
     let charge=0;
     try{
       if(this.#state!=="VALID"&&this.#state!=="SKIPNEXT")throw new Error("private payload on unpositioned cursor");
@@ -1709,7 +1764,7 @@ export class PrivateBlobkeyCursor {
         finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
       }
       return await consume(bytes);
-    }finally{if(charge)this.#arena.releasePayloadScratch(charge);this.#token=null;ops.end(t)}
+    }finally{if(charge)this.#arena.releasePayloadScratch(charge)}
   }
   async indexMoveto(key:UnpackedRecordKey,control:PrivateStateControl):Promise<PrivateIndexMovetoResult>{
     if(this.#closed)throw new Error("private index cursor closed");
@@ -1719,7 +1774,7 @@ export class PrivateBlobkeyCursor {
   async #moveto(key:UnpackedRecordKey,control:PrivateStateControl,publish=true,restoring=false):Promise<PrivateIndexMovetoResult>{
     if(this.#closed)throw new Error("private index cursor closed");if(this.#busy)throw new Error("private index operation in progress");
     key.assertLive();if(key.keyInfo!==this.#info)throw new Error("private cursor KeyInfo mismatch");
-    this.#overflowValid=false;this.#busy=true;key.errCode=0;
+    this.#atLast=false;this.#overflowValid=false;this.#busy=true;key.errCode=0;
     // Failed native restore retains pKey in INVALID. An explicit new seek
     // supersedes that owner; restore itself retains it through failure.
     if(!restoring&&this.#state==="INVALID"&&this.#saved)this.#discardSaved();
@@ -1778,7 +1833,7 @@ export class PrivateBlobkeyCursor {
     }
   }
   #releasePath():void{
-    this.#overflowValid=false;
+    this.#atLast=false;this.#overflowValid=false;
     let primary:unknown;
     const current=this.#current;this.#current=null;
     if(current)try{current.release()}catch(error){primary=error}
@@ -1796,13 +1851,19 @@ export class PrivateBlobkeyCursor {
     try{await this.#save(control)}finally{this.#busy=false;this.#token=null;operations.get(this.#arena)!.end(t)}
   }
   async #save(control:PrivateStateControl):Promise<void>{
-    const t=this.#token!;
-    let pending=0;
     try{
       if(this.#state!=="VALID"&&this.#state!=="SKIPNEXT")return;
       if(this.#pinned)throw new Error("private cursor pinned");
-      if(this.#saved)throw new Error("private cursor already has saved key");
       if(this.#state==="SKIPNEXT")this.#state="VALID";else this.#skipNext=0;
+      await this.#saveKey(control);
+      this.#releasePath();this.#state="REQUIRESEEK";
+    }finally{this.#atLast=false;this.#overflowValid=false}
+  }
+  /** saveCursorKey owns only the padded key; Delete retains its writer path. */
+  async #saveKey(control:PrivateStateControl):Promise<void>{
+    const t=this.#token!;let pending=0;
+    try{
+      if(this.#saved)throw new Error("private cursor already has saved key");
       const page=this.#current!.page,cell=page.parseCell(this.#index);
       if(cell.nPayload>this.#limits.maxKeyBytes)throw new PrivateStateLimitError("private saved key exceeds byte limit");
       const charge=cell.nPayload+17+64;
@@ -1817,26 +1878,85 @@ export class PrivateBlobkeyCursor {
         catch(error){primary=error;throw error}finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
       }
       this.#saved=packed;this.#savedCharge=charge;pending=0;
-      this.#state="REQUIRESEEK";this.#releasePath();
-    }finally{this.#overflowValid=false;if(pending)this.#arena.releaseScratch(pending)}
+    }finally{if(pending)this.#arena.releaseScratch(pending)}
+  }
+  /** btree.c:sqlite3BtreeDelete. One admission owns restore, predecessor,
+   * peer saves, overflow destruction, packed transfer and both balance passes. */
+  async deleteCurrent(options:{savePosition?:boolean},control:PrivateStateControl):Promise<void>{
+    if(this.#closed)throw new Error("private index cursor closed");
+    const preserveRequested=options.savePosition===true;
+    const ops=operations.get(this.#arena)!,t=ops.begin();this.#token=t;
+    let writing=false,savedForDelete=false,charge=0,primary:unknown;
+    try{
+      if(this.#state!=="VALID"){
+        if(this.#state==="FAULT")throw this.#error;
+        if(this.#state!=="REQUIRESEEK")corrupt("private Delete on unpositioned cursor");
+        await this.#restore(control);
+        if((this.#state as string)!=="VALID")return;
+      }
+      // Restore owns #moveto's cursor busy interval. The arena token already
+      // excludes public reentry throughout restore and the subsequent Delete.
+      this.#busy=true;
+      const depth=this.#parents.length,index=this.#index,page=this.#current!.page;
+      const cell=page.parseCell(index),free=page.computeFreeSpace();
+      const preserve=preserveRequested?(!page.leaf||free+cell.nSize+2>Math.floor(4096*2/3)||page.nCell===1?1:2):0;
+      if(preserve===1){await this.#saveKey(control);savedForDelete=true}
+      if(!page.leaf&&!await this.#previous(control))corrupt("missing Delete predecessor");
+      await ops.savePeers(t,this,control);
+      const leaf=this.#current!.page;
+      // Admit owned predecessor and native-depth continuation before writes.
+      const predecessor=!page.leaf?leaf.parseCell(leaf.nCell-1):null;
+      const requested=576+(predecessor?predecessor.nSize+4:0);this.#arena.reserveScratch(requested);charge=requested;
+      const path=this.#parents.map(p=>p.lease.page.pgno),slots=this.#parents.map(p=>p.slot);path.push(leaf.pgno);
+      let scratch:Uint8Array|null=null;
+      if(predecessor){scratch=new Uint8Array(predecessor.nSize+4);copyBorrowedBytes(scratch,leaf.bytes.subarray(predecessor.offset,predecessor.offset+predecessor.nSize),4)}
+      // Overflow destruction reports the first freelist write, not mere entry
+      // into clearCellOverflow. A rejected prewrite checkpoint remains retryable.
+      await ops.clearDeleted(t,page.pgno,index,control,()=>{writing=true});
+      await ops.edit(t,page.pgno,()=>page.dropCell(index,cell.nSize,control));
+      writing=true;
+      if(predecessor){
+        const child=path[depth+1]!;
+        const interior=scratch!.subarray(0,page.parseCellBytes(scratch!).nSize);
+        await ops.edit(t,page.pgno,()=>balanceDividerInsert.get(ops.page(t,page.pgno))!.insert(index,interior,child,control));
+        await ops.edit(t,leaf.pgno,()=>deleteDrop.get(ops.page(t,leaf.pgno))!(leaf.nCell-1,predecessor.nSize,control));
+        ops.transferred(t,leaf.pgno,page.pgno);
+      }
+      this.#atLast=false;this.#overflowValid=false;
+      if(preserve===2){
+        this.#state="SKIPNEXT";this.#skipNext=index>=leaf.nCell?-1:1;this.#index=Math.min(index,leaf.nCell-1);
+      }else{
+        this.#state="INVALID";this.#releasePath();
+        await ops.balance(t,path,slots,control,depth);
+        this.#root();
+        if(preserve===1){this.#releasePath();this.#state="REQUIRESEEK"}
+      }
+    }catch(error){primary=error;if(writing)ops.fault(t,error);else if(savedForDelete)this.#discardSaved()}
+    finally{
+      if(charge)this.#arena.releaseScratch(charge);
+      this.#busy=false;this.#token=null;ops.end(t);
+    }
+    if(primary!==undefined)throw primary;
   }
   async restoreCursorPosition(control:PrivateStateControl):Promise<void>{
     if(this.#closed)throw new Error("private index cursor closed");
     const t=operations.get(this.#arena)!.begin();this.#token=t;
-    try{
-      if(this.#state!=="REQUIRESEEK")return;
+    try{await this.#restore(control)}finally{this.#token=null;operations.get(this.#arena)!.end(t)}
+  }
+  async #restore(control:PrivateStateControl):Promise<void>{
+    if(this.#state==="FAULT")throw this.#error;
+    if(this.#state!=="REQUIRESEEK")return;
       this.#state="INVALID";
       const life=new BorrowLifetime();
       const key=unpackRecordKey(this.#saved!.subarray(0,this.#saved!.length-17),this.#info,life,{caller:"record"});
       try{const result=await this.#moveto(key,control,true,true);this.#discardSaved();if(result.res)this.#skipNext=result.res;if(this.#skipNext&&result.state==="VALID")this.#state="SKIPNEXT"}
       catch(error){this.#state="INVALID";throw error}
       finally{key.release();life.invalidate()}
-    }finally{this.#token=null;operations.get(this.#arena)!.end(t)}
   }
   clearCursor():void{
     if(this.#closed)throw new Error("private index cursor closed");
     const t=operations.get(this.#arena)!.begin();
-    try{this.#overflowValid=false;this.#discardSaved();this.#state="INVALID"}finally{operations.get(this.#arena)!.end(t)}
+    try{this.#atLast=false;this.#overflowValid=false;this.#discardSaved();this.#state="INVALID"}finally{operations.get(this.#arena)!.end(t)}
   }
   close():void{
     if(this.#closed)return;if(this.#busy)throw new Error("private index operation in progress");

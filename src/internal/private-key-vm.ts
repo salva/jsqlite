@@ -110,7 +110,11 @@ export class PrivateKeyVmCursor {
       const value=new Mem();
       try{return await consume(value)}finally{value.release()}
     }
-    return this.cursor.withPayload(control,async bytes=>{
+    return this.cursor.withRestoredPayload(control,different=>{this.cacheStale=true;if(different)this.nullRow=true},async bytes=>{
+      if(bytes===null){
+        const value=new Mem();
+        try{return await consume(value)}finally{value.release()}
+      }
       const lifetime=new BorrowLifetime();
       let value:Mem|undefined;
       try{
@@ -129,6 +133,18 @@ export class PrivateKeyVmCursor {
     // Primitive packed reseek is the accepted bounded USESEEKRESULT fallback.
     // Cache invalidation follows BtreeInsert return even when rc is an error.
     try{await this.cursor.insertIndex(packed,{},control)}finally{this.cacheStale=true}
+  }
+  async deleteCurrent(options:{savePosition?:boolean},control:PrivateStateControl):Promise<void>{
+    // OP_Delete stales cache and clears seekResult before checking rc.
+    // With SAVEPOSITION the packed cursor retains directional state, while
+    // Column must expose no old row.
+    try{await this.cursor.deleteCurrent(options,control);this.nullRow=true}
+    finally{this.cacheStale=true;this.seekResult=0;this.deferredMoveto=false}
+  }
+  /** OpenDup starts nullRow, with separate VM cache and packed cursor state.
+   * Arena registration already retains last-handle lifetime across duplicates. */
+  duplicate():PrivateKeyVmCursor{
+    return new PrivateKeyVmCursor(this.arena,this.cursor.duplicate(),this.info);
   }
   close():void{this.cursor.close()}
 }

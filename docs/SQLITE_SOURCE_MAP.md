@@ -287,6 +287,38 @@ is not a live mixed-Str producer.
 cursor first/last/next/previous/column via
 `vdbe.ts` dispatch; descriptor replacement/overflow payload and empty/clear
 controls in `where-plan-analysis.test.mjs` ([evidence](research/where-autoindex-primitives.md)).
+`btree.c:btreeRestoreCursorPosition/sqlite3BtreeCursorRestore` and
+`vdbeaux.c:sqlite3VdbeHandleMovedCursor` map to held cursor `#restore`,
+`withRestoredPayload` and facade Column cache/nullRow notification; held
+`#next/#previous` keep restoration and movement in one admission. `btree.c:balance`
+and Delete's conditional ancestor pass map to `#balancePath`'s reached depth and
+same-operation prefix truncation. `balance_nonroot` staged-parent child acquisition
+maps to logical-slot validation through existing internal staging descriptors before
+resident offsets/right-child resolution; no staging copy or validation bypass.
+The actual larger-predecessor Delete regression checks ordered/physical conservation
+at entry capacity and staging/reference cleanup; staged/shifted/right-child and stale
+path controls are in `private-blobkey-cellarray.test.mjs`. Source-derived no-op/collapse
+and path576+lease128 capacity controls remain there as well.
+OpenDup controls map `vdbe.c:OP_OpenDup`/`btree.c:btreeCursor` to primitive and
+facade `duplicate()`: shared arena/root/KeyInfo, independent unpositioned state,
+cursor128 admission and existing registry last-handle disposal. Tests in
+`private-blobkey-delete.test.mjs` cover cache/restore independence, H−1/H/H+1,
+borrow-admission exclusion and terminal FAULT cleanup.
+`btree.c:saveCursorKey/sqlite3BtreeDelete` maps to `#saveKey/deleteCurrent`,
+module-private conserving predecessor drop and existing divider TRANSFER insertion,
+overflow-clear owner and balance continuation; `sqlite3BtreeLast` maps to VALID
+AtLast fast path. Source-derived leaf signs, peer restoration, interior full-capacity
+transfer and repeated collapse controls are in `private-blobkey-delete.test.mjs`.
+That suite also maps the strict predicted-free two-thirds branch to exact boundary
+states/movement, staged consumption to simultaneous admission and cancellation
+with secondary release/primary FAULT cleanup, and UTF16BE NOCASE ties to exact
+typed survivors and moved-peer Column/next behavior. These are source-derived
+fixtures, not executed native INTERNAL parity captures.
+`freePage2`'s first page1 freelist-count write reports mutation ownership through
+held `#clearCellOverflow` to Delete; its checkpoint1/2 rejection and checkpoint3
+partial-failure controls distinguish retryable prewrite from all-peer FAULT.
+This remains an unaccepted candidate: overflow/staged/multilevel/error/capacity
+matrix and pinned comparisons remain incomplete; [[card:card-s-i-c-a-j]] status.
 
 `vdbe.c:OP_MakeRecord` output sizing/reuse maps to `record-pack.ts` and
 `vdbe.ts` packed-record publication: fresh-array replacement charges old/new

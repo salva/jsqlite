@@ -641,6 +641,43 @@ existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/I
 VM Rewind/Last, Next/Prev and Column also dispatch to the same packed cursor
 first/last/next/previous/column owners,
 including empty/nullRow handling; no decoded-row adapter is involved.
+Moved-peer Column restores and consumes under one arena operation, stales its
+facade cache, and publishes NULL when the saved row is gone; a nearby SKIPNEXT
+candidate remains directional state, not Column data. Next/Previous likewise
+hold admission across restoration and movement, using private held helpers.
+The balance dispatcher returns its native reached depth and can run Delete's
+conditional ancestor pass within the same operation and existing charged path
+owner. Ancestry validation resolves logical child slots through staged parent
+dividers before resident offsets (including the shifted right-child slot), matching
+`balance_nonroot` acquisition after predecessor transplant; stale/cyclic paths
+remain rejected. It truncates the surviving prefix rather than replay freed/rekeyed child
+identities. Its no-op path peak is path576 plus lease128 bytes; continuation
+adds no retained result object. Source-derived depth/collapse/admission controls
+are in `private-blobkey-cellarray.test.mjs`.
+OpenDup creates an initially unpositioned/nullRow facade with independent cache,
+saved key and packed cursor, sharing arena/root/KeyInfo. Existing cursor128
+admission precedes handle publication; registry lifetime keeps an owning arena
+alive until its last duplicate closes, including FAULT cleanup. No page or key
+is copied by duplication.
+Packed Delete now has an unaccepted held-operation implementation: original key
+snapshot is separate from path release; interior deletion moves to the predecessor,
+saves peers, clears only deleted overflow, drops the original cell, transfers the
+predecessor with its child pointer and overflow ownership, then uses the existing
+balance continuation. Dense-leaf preservation2 retains signed SKIPNEXT; preservation1
+retains the deleted padded key in REQUIRESEEK. Predecessor scratch is leaf-cell-size+4;
+caller path576 overlaps the balance owner's path576 and page/staging leases. These
+are deterministic representation charges, not native malloc parity. Last retains
+AtLast only while VALID and invalidates it on movement/save/mutation.
+This candidate is not complete Delete or application/Window acceptance. Focused
+source-derived controls now include exact preservation threshold, staged/consumed
+capacity, postwrite cancellation with secondary-release unwind, and mixed typed
+UTF16BE/NOCASE tie survivor/restore identity. Full affected verification, committed
+candidate review and independent pinned evidence retain their separate scope.
+Overflow destruction reports the actual first freelist
+write to the held Delete owner: rejection before that write remains retryable;
+failure after it faults all peers without claiming rollback. Source-derived controls are in
+`test/value/private-blobkey-delete.test.mjs`; current delivery evidence and remaining
+matrix: [[card:card-s-i-c-a-j]] status.
 OpenEphemeral reuse clears content but retains existing KeyInfo for non-growing
 width, as upstream does; it is not a rekey operation. Growth installs new KeyInfo.
 Packed insertion accepts nonempty records narrower than retained KeyInfo, using
