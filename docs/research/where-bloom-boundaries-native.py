@@ -8,7 +8,7 @@ d=n.load(sys.argv[1]);pin=json.loads((ROOT/'reference/sqlite/manifest.json').rea
 assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId']
 cases={
  'outer':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z LEFT JOIN t y ON y.a=99 AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
- 'in':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t y WHERE y.a IN (98,99) AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
+ 'in':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t y WHERE y.a IN (NULL,-1,98,99) AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
  'frame':"SELECT (SELECT count(*) FROM t y WHERE y.a=99 AND y.b=x.b AND y.s='cold') FROM t x CROSS JOIN tiny z WHERE x.id<10 ORDER BY x.id"
 }
 variants=[]

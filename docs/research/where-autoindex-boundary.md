@@ -15,8 +15,12 @@ and IN each emit a **local** Filter: where.c:sqlite3ConstructBloomFilter exclude
 these levels from later grouped construction, not all Bloom use. Its grouping
 loop skips JT_LEFT/JT_LTORJ and WHERE_COLUMN_IN; wherecode.c:filterPullDown then
 requires no IN, skips nSkip, consumes regFilter and restores the borrowed break.
-The current TS whole-query outer gate and equality-only IN gate suppress even
-these local filters. Equal rows alone do not repair that fidelity gap. Native
+The TS owner now enrolls local LEFT/IN filters, while
+`bloomPullDownEligible` keeps these out of later grouped construction/probing.
+Filter miss uses next-IN/outer continuation, distinct from equality NULL level
+exit; this preserves LEFT null extension and remaining IN values. Equal rows
+alone are not placement credit: the actual driver now requires positive
+FilterAdd/probe/seek and standalone plan kind for both local witnesses. Native
 frame witness has no filter and actual TS agrees on rows; this does not establish
 all frame/drain exclusions. Skip witness remains unresolved: the attempted
 b-only join on existing ab selected SCAN y, not native skip-scan, and confers no
@@ -30,10 +34,15 @@ Earlier `proc-dd16f7a413da` captured the unbounded frame and passed UTF8 outer/I
 then hit default maxWorkUnits on the frame; that earlier failure is not repaired
 as an engine defect. Its receipt remains at placement-exclusions/native.json.
 The bounded witness narrows diagnostic work only, not any original mandatory gate.
-Next: implement source-owned local outer/IN construction/probe handoff before
-claiming placement acceptance, and find a real skip-scan witness. Existing
-positive ready/dependent/IPK and construction/lifetime evidence remains applicable
-at its stated revisions; this is not full acceptance.
+Current implementation also passes `proc-da35d0bb1675`: positive outer/IN
+native comparisons, typecheck and twelve sensitive-reprepare invocations (including
+construction failure and eight exits). Initial expanded IN97 capture had three
+matching keys, so it did not prove absent-value continuation. Final capture adds
+NULL and absent -1 before98/99; its output/identity is recorded in card status.
+The prior diagnostic receipts are preserved, not relabeled as final input.
+Remaining: find a real skip-scan witness and broaden frame/drain comparison.
+Existing positive ready/dependent/IPK and construction/lifetime evidence remains
+applicable at its stated revisions; this is not full acceptance.
 
 ## Run and evidence
 

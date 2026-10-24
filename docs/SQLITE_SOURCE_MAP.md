@@ -1,5 +1,15 @@
 # SQLite source map
 
+### Local standalone filter boundaries
+
+`where.c:sqlite3ConstructBloomFilter` current build versus later LEFT/LTORJ/IN
+exclusions → `vdbe.ts` local Bloom enrollment and `bloomPullDownEligible`.
+`wherecode.c` local Filter addrNxt versus filterPullDown borrowed continuation →
+`emitBloomProbe` next-IN/outer fixup (NULL equality remains level exit).
+Independent native capture/actual public SQL regression:
+`docs/research/where-bloom-boundaries-{native.py,real.mjs}`; bounded evidence and
+remaining skip/frame obligations: [boundary research](research/where-autoindex-boundary.md).
+
 ### Execution observation identity
 
 `vdbeaux.c:sqlite3VdbeRewind`/`sqlite3VdbeReset` ready/run lifetime →

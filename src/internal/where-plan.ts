@@ -225,9 +225,9 @@ export interface StandaloneBloomDescriptor {
 }
 /** whereCheckIfBloomFilterIsUseful runs on the selected path, independently
  * of automatic candidates. WHERE_SELFCULL is produced by output adjustment
- * on the immutable loop. SQL enables ordinary rowid inner persistent-index
- * equality consumers, including deeper-ready pull-down; IPK/IN/outer/frame
- * lowering remains unfinished. */
+ * on the immutable loop. SQL enables persistent-index/IPK equality and local
+ * LEFT/IN filters; only ready non-outer non-IN levels are pulled down.
+ * Frame/drain handoff and skip-scan placement remain unfinished. */
 export function standaloneBloomDescriptors(path:WherePath,enabled:boolean):readonly StandaloneBloomDescriptor[] {
  const result:StandaloneBloomDescriptor[]=[];let searches=0n;
  if(!enabled||path.loops.length<2)return Object.freeze(result);

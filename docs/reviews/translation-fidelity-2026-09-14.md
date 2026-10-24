@@ -6,7 +6,12 @@ NULL continuation; dependent RHS remains local. Pinned three-source independent/
 dependent receipts now have actual public execution and structural placement
 assertions in `where-autoindex-baseline.mjs` (current [[card:card-s-j-c]] status).
 This supersedes the two-source-only implementation boundary, not the unfinished
-scratch/Mem, exhaustive lifetime and outer/IN/frame placement obligations.
+scratch/Mem and exhaustive lifetime obligations. Local LEFT/IN filters now
+translate current-level construction/probe separately from the later-group
+outer/IN exclusions; Filter miss targets next-IN/outer continuation. Native-first
+three-encoding rows, metadata, reset and positive dispatched filters are mapped
+in [boundary evidence](../research/where-autoindex-boundary.md). Skip/frame/drain
+placement breadth remains open.
 The existing MustBeInt primitive translates native nonzero-P2 no-match and
 zero/omitted-P2 mismatch branches, with shared NUMERIC affinity and sentinel-aware
 relocation. IPK standalone now builds Rowid keys and probes with MustBeInt before

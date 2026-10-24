@@ -23,6 +23,8 @@ for(const v of native.variants){
      const rows=[];while(await s.step()==='row')rows.push(Array.from({length:s.columnCount},(_,i)=>cell(s,i)));
      assert.deepEqual(rows,expected,`${v.encoding} ${c.case}`);
      const o=privateAccounting(s);assert.equal(o.ownedBytes,0);assert.equal(o.openCursors,0);
+     if(c.case==='frame'){assert.equal(o.filterAdds,0);assert.equal(o.probes,0);}
+     else {assert.equal(o.planKind,'standalone-bloom');assert.ok(o.filterAdds>0);assert.ok(o.probes>0);assert.ok(o.indexSeeks>0);}
      console.log(v.encoding,c.case,'native rows/metadata/reset/release passed',JSON.stringify({filterAdds:o.filterAdds,probes:o.probes,planKind:o.planKind}));
      s.reset();
     }
