@@ -1,5 +1,49 @@
 # Runtime autoindex executable boundary (author evidence)
 
+## Finite source-owner applicability matrix
+
+This is the original [[card:card-s-j-c]] observation/resource/placement slice,
+not every SQL composition or independent acceptance. Behavioral input is
+`9fd2c47b41586a52d64e2a32c72cbdb2a48a2b0e`, tree
+`553ce64575c1aedc5b03bf1253e6686b09c0284d`. This documentation-only consolidation
+does not replay executions or transfer receipt identities. Pinned SQLite3.53.4
+SourceID: `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`.
+
+| Source owner / branch | Actual representative native/public/resource evidence | Exact input applicability / residual gate |
+| --- | --- | --- |
+| where.c automatic covering construction; vdbe.c OpenAutoindex/IdxInsert, FilterAdd/Filter, authoritative seek/residual | [INNER33 / LEFT15](record:///status.md?card=card-s-j-c&v=81): typed rows, work, covering lookup0, release/survivor | 5c4586e0 INNER consumes all cells: no offpath slot. LEFT collision fixture retains genuine unconsumed damage. Not universal corruption detection. |
+| where.c sqlite3ConstructBloomFilter: Once, single-source predicate, ready grouping versus dependent local build | [multi30](record:///status.md?card=card-s-j-c&v=85): actual independent/dependent indexed builds, second allocation after10000 live bytes | ddff57 indexed receipts. IPK fault enrollment is structural, not actual IPK fault schedules. Dependent global probes may precede local build. |
+| wherecode.c filterPullDown: borrow/restore addrBrk, affinity or MustBeInt before Filter, clear regFilter | [semantic24](record:///status.md?card=card-s-j-c&v=90): native on/off placement, public typed rows/allenc/reset, work/refunds/final0 | 9fd2c47b independent indexed/IPK receipts with INTEGER/REAL/TEXT/fraction/bad-text/BLOB/NULL/collision probes. Consumed eligibility does not free allocation; later seek stays authoritative. Not every IPK safety permutation. |
+| where.c later-build outer/IN exclusions; wherecode.c nSkip pull-down exclusion and local continuation | [placement inventory](record:///status.md?card=card-s-j-c&v=82): LEFT/IN local30+18, skip local42 comparisons, reset/reprepare companions | bf101985 LEFT/IN and40fe0bf3 skip inputs. Skip is local, not pull-down. Local next-IN/outer target retains null extension. Broader correlated/RIGHT/OR/module remains root backlog, not permanent exclusion. |
+| WHERE invocation ownership in scalar/aggregate callbacks and retained producers | [caller inventory](record:///status.md?card=card-s-j-c&v=82), [materialized6](record:///status.md?card=card-s-j-c&v=78): scalar/positioned54, physical+materialized66, materialized automatic6 | 43cd4b83 scalar/positioned,668fa4c7 sibling,17955f7 materialized-reader inputs. Shared program/Once and producer Gosub, not separate evaluator. Coroutine/generalized consumers remain backlog, not prerequisite expansion. |
+| Packed insert/page/record/scratch failure unwind | [INNER33 / LEFT15](record:///status.md?card=card-s-j-c&v=81): record/secondary after insert1, second-page fault, selected/broad/header corruption, native retry/refunds/survivor | 5c4586e0 INNER and retained LEFT receipts. Secondary diagnostic is after actual release, not a pre-release destructor failure. Uses shared private fault seams, not adapter-invented errors. |
+| Same-execution private capacity owner: Mem/pages/scratch/filter/ordered result accumulation | [capacity54](record:///status.md?card=card-s-j-c&v=88): two-filter independent/dependent complete-sort H−1/H/H+1 separately bytes/entries/key,18 below failures/36 successes, live survivor20000 filter bytes | ef527979 receipts; byte H22184 UTF8/22200 UTF16, entries34,key32. Entries/key are policy maxima, not summed cursor maxima. Includes all same-owner demand for these plans, not every query. Earlier single-filter/automatic54 remain [separate](record:///status.md?card=card-s-j-c&v=82). Streaming may publish before final demand: no general atomic-publication guarantee. |
+| Work checkpoint during actual build/probe, then saved-primary unwind | [multi30](record:///status.md?card=card-s-j-c&v=85), [INNER33](record:///status.md?card=card-s-j-c&v=81): cancel/deadline after selected add/probe, native retry/refunds/survivor | Actual progress, not pre-query cancellation. Multi build selectedAdds1/probes0 and probe selectedProbes1; dependent global probes need not be0. Separate VM budgets are not combined SQL proof. |
+| vdbeaux.c halt/closeAllCursors/reset/finalize; execution owner and independent statement | [lifetime inventory](record:///status.md?card=card-s-j-c&v=82): eight exits done/reset/rebind/cancel/timeout/cancel-finalize/timeout-finalize/finalize on INNER/LEFT/standalone; ordinary/deferred-close | dc8f1ac0 actual36 comparisons/14tests. Both owners positive/distinct, owner disposal leaves survivor unchanged/native completion; fresh execution IDs, stable non-sensitive plan, refunds/final0. Finite representative exits, not every cross-product. |
+| prepare.c sqlite3Reprepare construction before swap; saved first error | [reprepare inventory](record:///status.md?card=card-s-j-c&v=82): STAT4 replacement/new plan/work; progressed planning failure, saved-primary reset/finalize and survivor | 2564a7b5 and30aa6a7b controls. LIMIT-only bind retains plan. Failed replacement retains old plan, emits no build/probe and releases failed-entry resources. Later companions do not rerun every failure schedule. |
+
+### Remaining defects and acceptance gates
+
+The finite implementation/representative owner-branch assessment is complete as
+an **author evidence inventory**: no additional missing original source branch
+was demonstrated. It is not full safety/compatibility acceptance. Linked accepted
+records retain original inputs, detailed schedules and failed hypotheses;
+unchanged-input reuse is not fresh execution.
+
+| Gate or defect | Current disposition / responsible continuation |
+| --- | --- |
+| Original WR/FULL400x400/allenc/six executions, typed rows/five metadata/reset/resources | Unrun on current combined input. Required unchanged workloads; owner100s/file, serial≤80, batch600. Parent routes shared runner/PLAN/encoding partitions. Selected VM tests cannot replace these gates. |
+| Root509+39, package/browser, independent exact combined source/control/caller/resources adjudication | Parent-arranged, unwaived. Author evidence is not independent approval; beta5 incomplete. |
+| Unordered LIMIT native910/TS10 (`proc-9e558deae0a9`) | Unresolved source/control-order defect; owning WHERE/LIMIT investigation through parent scope allocation. Ordered controls do not resolve it. |
+| Aggregate-derived prepare `no such table: q` (`proc-73b1286614a6`) | Unresolved producer/name-resolution path; exact SQL unrecovered, so no claimed reproducer/repair. Parent must recover input before diagnosis/acceptance. |
+| Unbounded frame work-limit (`proc-dd16f7a413da`) | Unresolved frame/work-accounting applicability, routed through parent to frame/work owner. Bounded controls do not resolve it. |
+| Skips/placeholders and killed60 run | Noncredit. Killed run is neither pass nor demonstrated watchdog timeout. No permanent exclusions inferred. |
+
+[Accepted red status92](record:///status.md?card=card-s-j-c&v=92) and
+`proc-80eb1989c264` preserve the pre-consolidation reproducer/provenance. Its
+positive source/consumer controls remain applicable; the negative missing-matrix
+observation is revision-bound and intentionally superseded here.
+
 ## Two-filter shared capacity boundary
 
 The actual capacity gate now enrolls admitted pulldown variants using explicit
