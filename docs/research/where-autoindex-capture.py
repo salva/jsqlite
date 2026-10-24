@@ -40,7 +40,8 @@ if multi:
  sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l JOIN rhs r JOIN tail t WHERE r.k=l.k AND t.k={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
 if ipk_multi:
  key='l.k' if a.case=='pulldown-ipk' else 'r.id'
- sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l JOIN rhs r JOIN tail t WHERE r.k=l.k AND t.id={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
+ join=' CROSS JOIN ' if a.case=='pulldown-ipk-dependent' else ' JOIN '
+ sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l{join}rhs r{join}tail t WHERE r.k=l.k AND t.id={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
 result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path

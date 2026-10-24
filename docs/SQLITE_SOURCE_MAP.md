@@ -18,7 +18,18 @@ cursor reads map to `where.c:constructAutomaticIndex` fill-loop/covering ownersh
 `test/value/automatic-build-observation.test.mjs` distinguishes failed partial
 builds from completion and detects a deliberately introduced postbuild table read.
 Version1 work contract is asserted by the actual consumer runner, including empty
-builds (emitted FilterAdd is not dispatched). `vdbeaux.c:closeAllCursors`/Halt
+builds (emitted FilterAdd is not dispatched).
+`btree.c:accessPayload` caller buffer → `PrivateBlobkeyCursor.withPayload`
+await-owned copy: existing payload+64 charge now publishes live/highwater
+`payloadScratchBytes`/`payloadScratchHighwaterBytes` on the shared budget.
+This is a subset of aggregate bytes, not all scratch/Mem. Paused callback and
+failure/refund controls: `test/value/private-demand-observation.test.mjs`;
+actual SQL release zero-check: `where-autoindex-baseline.mjs`. Native uses
+caller storage; the TS copy bounds page borrows across awaits, without changing
+seek/record semantics. Dependent-IPK CROSS JOIN native/public placement evidence
+isolates runtime continuation from the still-open ordinary JOIN costed-order gap;
+see [[card:card-s-j-c]] status for receipts and exact input.
+`vdbeaux.c:closeAllCursors`/Halt
 maps to VM halt-owned cursor/filter/Once release snapshots; Bloom storage size
 comes directly from `PrivateBloomFilter`. The existing receipt runner's
 `AUTO_REAL_SURVIVOR=1` invokes `where-autoindex-real-survivor.mjs`: independently

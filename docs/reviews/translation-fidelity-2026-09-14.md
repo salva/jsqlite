@@ -11,7 +11,13 @@ The existing MustBeInt primitive translates native nonzero-P2 no-match and
 zero/omitted-P2 mismatch branches, with shared NUMERIC affinity and sentinel-aware
 relocation. IPK standalone now builds Rowid keys and probes with MustBeInt before
 Filter/SeekRowid. Native heterogeneous local and independent deeper-ready public
-controls pass; the dependent-IPK native witness still fails TS enrollment.
+controls pass. A dependent CROSS JOIN control also passes native and public TS
+placement (second Filter after its prerequisite seek); this isolates runtime
+continuation ownership, not ordinary JOIN planning. The unforced ordinary-JOIN
+dependent-IPK witness still differs in costed order and fails TS enrollment.
+Payload-copy scratch now has actual live/highwater observation on the shared
+budget, with paused-await/failing-callback controls; all other scratch/Mem
+categories and exhaustive lifetime obligations remain open.
 This is partial author repair, not full placement acceptance.
 
 Production-private snapshots now distinguish fresh executions and retained program

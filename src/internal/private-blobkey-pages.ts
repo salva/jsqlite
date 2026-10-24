@@ -1363,6 +1363,8 @@ export class PrivateBlobkeyPages {
   reserveCursor(maxBytes:number,maxEntries:number):void{this.#live();if(this.#busy)throw new Error("private arena operation in progress");if(maxBytes!==this.#budget.maxBytes)throw new PrivateStateLimitError("private byte limit mismatch with aggregate budget");if(maxEntries!==this.#maxEntries)throw new PrivateStateLimitError("private entry limit mismatch with arena publication limit");this.#budget.reserve(PRIVATE_CURSOR_CHARGE)}
   reserveScratch(bytes:number):void{this.#budget.reserve(bytes)}
   releaseScratch(bytes:number):void{this.#budget.release(bytes)}
+  reservePayloadScratch(bytes:number):void{this.#budget.reservePayloadScratch(bytes)}
+  releasePayloadScratch(bytes:number):void{this.#budget.releasePayloadScratch(bytes)}
   allocationCheckpoint(pgno:number):void{this.#hook("allocate",pgno)}
   installPage(pgno:number,bytes:Uint8Array):void{
     this.#live();if(this.#busy)throw new Error("private arena operation in progress");if(bytes.length!==4096||pgno<2||!Number.isInteger(pgno))corrupt("invalid construction page");
@@ -1688,7 +1690,7 @@ export class PrivateBlobkeyCursor {
       if(this.#state!=="VALID"&&this.#state!=="SKIPNEXT")throw new Error("private payload on unpositioned cursor");
       const page=this.#current!.page,cell=page.parseCell(this.#index);
       if(cell.nPayload>this.#limits.maxKeyBytes)throw new PrivateStateLimitError("private payload exceeds byte limit");
-      this.#arena.allocationCheckpoint(page.pgno);this.#arena.reserveScratch(cell.nPayload+64);charge=cell.nPayload+64;
+      this.#arena.allocationCheckpoint(page.pgno);this.#arena.reservePayloadScratch(cell.nPayload+64);charge=cell.nPayload+64;
       const bytes=new Uint8Array(cell.nPayload);
       // The positioned page lease outlives this operation. Do not mint a
       // borrowed subview here: its capability charge would remain on that
@@ -1705,7 +1707,7 @@ export class PrivateBlobkeyCursor {
         finally{try{lease.release()}catch(error){if(primary===undefined)throw error}}
       }
       return await consume(bytes);
-    }finally{if(charge)this.#arena.releaseScratch(charge);this.#token=null;ops.end(t)}
+    }finally{if(charge)this.#arena.releasePayloadScratch(charge);this.#token=null;ops.end(t)}
   }
   async indexMoveto(key:UnpackedRecordKey,control:PrivateStateControl):Promise<PrivateIndexMovetoResult>{
     if(this.#closed)throw new Error("private index cursor closed");

@@ -28,6 +28,7 @@ export function assertReleased(o, independentBefore, independentAfter) {
   assert.equal(o.onceActive, false);
   assert.equal(o.filterBytes, 0);
   assert.equal(o.packedPages,0);
+  assert.equal(o.payloadScratchBytes,0);
   assert.ok(independentBefore && independentAfter,'survivor snapshots required');
   assert.ok(Number.isSafeInteger(independentBefore.ownerId) && independentBefore.ownerId>0);
   assert.notEqual(independentBefore.ownerId,o.ownerId);
