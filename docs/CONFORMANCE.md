@@ -8,7 +8,12 @@ This document records bounded evidence; it is not a claim of whole-SQLite compat
 the pre-register-ownership148 success expectation: UTF16 packing requires154
 logical admitted units (scratch76 + register6 + record72). All encodings,
 category transitions,153/154/155 boundaries, reset/error identity and independent
-survivor are local accounting companions, not native oracle credit. Existing
+survivor are local accounting companions, not native oracle credit.
+`makerecord-controls.test.mjs` adds deterministic admitted conversion/record
+cancel/deadline controls across encodings with saved-error identity, refund,
+reset/reuse, independent paused survivor and skipped zero-quota path. These
+exercise actual VM control checks; they do not claim intra-conversion/native
+interrupt timing parity. Existing
 Mem production/borrow/copy tests retain their own source/safety distinctions.
 Exact delivery checks and independent acceptance still needed are recorded in
 [[card:card-f-a-b]] status; no whole integration/browser acceptance follows.

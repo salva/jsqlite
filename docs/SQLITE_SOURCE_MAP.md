@@ -14,6 +14,12 @@ additional conservative allowance, not a native malloc measurement. Original148
 success observer predates register ownership; correction provenance and actual
 checks are in [[card:card-f-a-b]] status. Backing-production failure/borrow/copy
 controls remain in `private-demand-observation.test.mjs`.
+`makerecord-controls.test.mjs` maps actual admitted scratch/record boundaries to
+VM `#privateControl`/`#checkControl` cancel/deadline detection and halt/reset
+cleanup: all encodings, saved error identity, detached survivor and skipped
+zero-byte-quota path. These deterministic budget-boundary probes exercise the
+TS control adaptation, not native interrupt timing parity; record-admitted
+controls are observed at the next VM check after synchronous packing.
 
 ### Local standalone filter boundaries
 

@@ -605,6 +605,12 @@ observer predates register admission and is obsolete;147/148 remain rejection
 controls, with153/154/155 and UTF8 controls in `test/value/record-pack.test.mjs`.
 This corrects an internal observer, not a configured quota or public guarantee.
 Source/lifetime comparison and delivery evidence: [[card:card-f-a-b]] status.
+Direct admitted cancel/deadline/reset cleanup is exercised across encodings by
+`makerecord-controls.test.mjs`, using existing budget-boundary observation and a
+controlled clock. Conversion controls are detected by packed-work checkpoints;
+record-admitted controls by the next VM check after synchronous packing. This
+is representative safety coverage, not arbitrary intra-conversion interruption
+or native interrupt timing parity; no runtime hook or accounting policy changes.
 Scalar slots,
 bindings, detached temporary Mem and aggregate/rowset internals are not counted
 by this category. UTF8→UTF16 conversion derives exact byte demand from decoded
