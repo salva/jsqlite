@@ -7,7 +7,7 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','standalone-ipk','pulldown-ipk','pulldown-ipk-dependent','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 d.sqlite3_errmsg.argtypes=[C.c_void_p];d.sqlite3_errmsg.restype=C.c_char_p
@@ -30,11 +30,17 @@ if a.case=='representations': sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k 
 cross_affinity=a.case in ['affinity','affinity-reverse']
 if cross_affinity:
  sql='SELECT l.id AS lid,r.id AS rid,l.k AS lk,r.k AS rk FROM lhs l LEFT JOIN rhs r ON r.k=l.k AND r.payload=l.c COLLATE NOCASE ORDER BY l.id,r.id'
+ipk=a.case=='standalone-ipk'
+if ipk: sql="SELECT l.id AS lid,r.id AS rid,r.payload FROM lhs l CROSS JOIN rhs r WHERE r.id=l.k AND r.payload='v2' ORDER BY l.id,r.id"
 if a.case=='standalone': sql="SELECT l.id AS lid,r.id AS rid,r.payload FROM lhs l CROSS JOIN rhs r WHERE r.k=l.k AND r.payload='v2' ORDER BY l.id,r.id"
-multi=a.case in ['pulldown','pulldown-dependent']
+multi=a.case in ['pulldown','pulldown-dependent','pulldown-ipk','pulldown-ipk-dependent']
+ipk_multi=a.case in ['pulldown-ipk','pulldown-ipk-dependent']
 if multi:
  key='l.k' if a.case=='pulldown' else 'r.k'
  sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l JOIN rhs r JOIN tail t WHERE r.k=l.k AND t.k={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
+if ipk_multi:
+ key='l.k' if a.case=='pulldown-ipk' else 'r.id'
+ sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l JOIN rhs r JOIN tail t WHERE r.k=l.k AND t.id={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
 result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path
@@ -64,6 +70,9 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   h.execsql(d,db,"UPDATE lhs SET k=CASE id%8 WHEN 0 THEN 1.0 WHEN 1 THEN 1 WHEN 2 THEN '1' WHEN 3 THEN x'31' WHEN 4 THEN -1.0 WHEN 5 THEN -1 WHEN 6 THEN NULL ELSE 17 END; UPDATE rhs SET k=CASE id%8 WHEN 0 THEN 1 WHEN 1 THEN 1.0 WHEN 2 THEN '1' WHEN 3 THEN x'31' WHEN 4 THEN -1 WHEN 5 THEN -1.0 WHEN 6 THEN NULL ELSE 80001 END;")
  if a.case=='standalone' or multi:
   h.execsql(d,db,"CREATE INDEX rk ON rhs(k); WITH RECURSIVE n(x) AS(VALUES(65) UNION ALL SELECT x+1 FROM n WHERE x<1024) INSERT INTO lhs SELECT x,x%32 FROM n; ANALYZE;")
+ if ipk:
+  # Keep heterogeneous probe storage; native MustBeInt must precede hashing.
+  h.execsql(d,db,"DROP TABLE lhs; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k); WITH RECURSIVE n(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<1024) INSERT INTO lhs SELECT x,CASE x%8 WHEN 0 THEN 2 WHEN 1 THEN 2.0 WHEN 2 THEN '2.0' WHEN 3 THEN 2.5 WHEN 4 THEN 'bad' WHEN 5 THEN x'32' WHEN 6 THEN NULL ELSE 80002 END FROM n; ANALYZE;")
  if multi:
   h.execsql(d,db,'CREATE TABLE tail(id INTEGER PRIMARY KEY,k INTEGER,payload TEXT); INSERT INTO tail SELECT * FROM rhs; CREATE INDEX tk ON tail(k); ANALYZE;')
  assert d.sqlite3_close(db)==0
@@ -71,17 +80,20 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
  variant={'encoding':enc,'fixture':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'modes':[]}
  for enabled in [True,False]:
   h.execsql(d,db,'PRAGMA automatic_index='+('ON' if enabled and not multi else 'OFF'))
-  if a.case=='standalone':
+  if a.case=='standalone' or ipk:
    # SQLITE_TESTCTRL_OPTIMIZATIONS=15; sqliteInt.h SQLITE_BloomFilter.
    d.sqlite3_test_control(15,db,0 if enabled else 0x00080000)
   if multi: d.sqlite3_test_control(15,db,0x80 | (0 if enabled else 0x00100000))
   eqp,_=h.query(d,db,'EXPLAIN QUERY PLAN '+sql);ops,_=h.query(d,db,'EXPLAIN '+sql)
   names=[h.text(row[1]) for row in ops]
-  assert ('OpenAutoindex' in names)==(enabled and a.case!='standalone' and not multi)
+  assert ('OpenAutoindex' in names)==(enabled and a.case!='standalone' and not ipk and not multi)
   if a.case in ['overflow','overflow-offpath']:
    functions=[i for i,n in enumerate(names) if n=='Function']
    assert len(functions)==1 and any('abs(1)' in h.text(row[5]) for row in ops if h.text(row[1])=='Function')
    if enabled: assert names.index('Filter')<names.index('SeekGE')<functions[0]
+  if ipk:
+   assert 'SeekRowid' in names and 'OpenAutoindex' not in names
+   if enabled: assert names.index('MustBeInt')<names.index('Filter')<names.index('SeekRowid')
   if a.case=='standalone':
    assert 'SeekGE' in names
    assert any('USING INDEX rk' in h.text(row[3]) for row in eqp)
@@ -100,10 +112,11 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
     assert names.index('SeekGE')<names.index('Ne')
   if multi:
    filters=[i for i,n in enumerate(names) if n=='Filter']
-   seeks=[i for i,n in enumerate(names) if n=='SeekGE']
+   seeks=[i for i,n in enumerate(names) if n in ['SeekGE','SeekRowid']]
    assert len(filters)==2 and len(seeks)==2
    early=filters[1]<seeks[0]
-   assert early==(enabled and a.case=='pulldown')
+   assert early==(enabled and a.case in ['pulldown','pulldown-ipk'])
+   if ipk_multi: assert names.index('MustBeInt')<filters[1]<seeks[1]
    assert names.count('Once')==(1 if early else 2)
    if early:
     assert ops[filters[0]][3]==ops[filters[1]][3]==ops[seeks[0]][3]
@@ -147,6 +160,9 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    assert all(row[3]['type']==('integer' if a.case=='affinity' else 'text') for row in matches)
    texts={h.text(row[2 if a.case=='affinity' else 3]) for row in matches}
    assert texts=={'01','1'}
+  if ipk:
+   assert len(rows)==384 and runs[0]['autoindexRows']==0
+   assert all(row[1]=={'type':'integer','value':'2'} for row in rows)
   if a.case=='standalone':
    assert len(rows)==34
    assert runs[0]['autoindexRows']==0
