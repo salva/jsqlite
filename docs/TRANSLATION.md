@@ -527,11 +527,15 @@ release, survivor and successful retry. These serial source-owned research
 controls restore transport/clock/hooks in finally; they add no production option
 or testing registry. `AUTO_REAL_RECORD_FAULT=1` targets actual packRecord
 backing allocation after a successful automatic insert through a serial restored
-allocator proxy. `AUTO_REAL_CORRUPTION=1` damages index-page pointer arrays before
-actual collision probes (format error), versus untraversed page-one signature
-(control preserves native rows). Root-only header corruption may be cached; this
-is not isolated child/offpath-subtree coverage. Both controls require first/saved
-error where applicable, full release, independent real survivor and native retry.
+allocator proxy. `AUTO_REAL_CORRUPTION=1` traces actual collision-probe cell
+consumption, then corrupts exactly a consumed pointer slot (format error) or an
+observed unconsumed slot (native rows unchanged, damaged slot never parsed).
+The native-first collision variant `--collision-payload-bytes 240` produces
+nonroot selected-cell and entirely unconsumed-page witnesses in every encoding;
+the original small fixture remains a leaf-root control. It retains the broad
+index-pointer and untraversed page-one signature controls. These bounded
+single-slot witnesses are not exhaustive corruption validation. Error controls require first/saved error,
+full release, independent real survivor and native retry.
 They add no production seam. Evidence and scope: `record:///status.md?card=card-s-j-c`.
 `AUTO_REAL_CAPACITY=1` adds actual
 maxBytes H−1/H/H+1 runs with all other limits nonbinding and a separate live SQL

@@ -7,7 +7,8 @@ import argparse, ctypes as C, hashlib, importlib.util, json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
-p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','standalone-ipk','pulldown-ipk','pulldown-ipk-dependent','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','standalone-ipk','pulldown-ipk','pulldown-ipk-dependent','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);p.add_argument('--collision-payload-bytes',type=int,default=0)
+a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
 d.sqlite3_errmsg.argtypes=[C.c_void_p];d.sqlite3_errmsg.restype=C.c_char_p
@@ -61,6 +62,9 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   # Native filterHash numeric addition, 10000-byte filter: 80001 collides
   # with present key 1 modulo 80000; 17 has an absent bit. No host hash.
   h.execsql(d,db,f'UPDATE lhs SET k={17 if a.case=="absent" else 80001} WHERE id<64;')
+ if a.case=='collision' and a.collision_payload_bytes:
+  assert 0<a.collision_payload_bytes<=800
+  h.execsql(d,db,f"UPDATE rhs SET payload=printf('%0*d', {a.collision_payload_bytes}, id);")
  if a.case=='empty-inner': h.execsql(d,db,'DELETE FROM rhs;')
  if a.case=='overflow-offpath': h.execsql(d,db,'UPDATE lhs SET k=17;')
  if a.case=='empty-outer': h.execsql(d,db,'DELETE FROM lhs;')
