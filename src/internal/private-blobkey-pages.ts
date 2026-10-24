@@ -701,7 +701,7 @@ export class PrivateBlobkeyPages {
   }
   #append(pgno:number):void{
     this.#hook("allocate",pgno);this.#budget.reserve(PRIVATE_PAGE_CHARGE);
-    try{this.#pages.set(pgno,{bytes:new Uint8Array(4096),refs:0,derived:null,entries:0})}
+    try{this.#pages.set(pgno,{bytes:new Uint8Array(4096),refs:0,derived:null,entries:0});this.#budget.acquirePackedPage()}
     catch(error){this.#budget.release(PRIVATE_PAGE_CHARGE);throw error}
   }
   #begin(cleanup=false):ArenaOperation{if(!cleanup)this.#live();if(this.#busy)throw new Error("private arena operation in progress");this.#busy=true;return this.#operation={}}
@@ -1386,7 +1386,7 @@ export class PrivateBlobkeyPages {
     let primary:unknown;
     for(const release of this.#results)try{release()}catch(error){primary??=error}
     for(const page of this.#pages.values())try{this.#disposeStaging(page.derived)}catch(error){primary??=error}
-    this.#budget.release(this.#pages.size*PRIVATE_PAGE_CHARGE+PRIVATE_ARENA_CHARGE);this.#pages.clear();this.#closed=true;if(primary!==undefined)throw primary;
+    this.#budget.release(this.#pages.size*PRIVATE_PAGE_CHARGE+PRIVATE_ARENA_CHARGE);this.#budget.releasePackedPages(this.#pages.size);this.#pages.clear();this.#closed=true;if(primary!==undefined)throw primary;
   }
 }
 

@@ -26,7 +26,7 @@ export async function realByteCapacity(open,db,sql,expected,cell,workExpected,li
      while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>cell(statement,i)));
      assert.deepEqual(rows,expected.runs[0].rows);
      assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i)),expected.columns);
-     const result=privateAccounting(statement);assert.equal(result[field],H);assertRuntimeWork(result,workExpected);
+     const result=privateAccounting(statement);assert.equal(result[field],H);if(typeof workExpected==='function')workExpected(result);else assertRuntimeWork(result,workExpected);
      assertReleased(result,before,privateAccounting(survivor));
     }
    }finally{statement.finalize();limited.closeDeferred();}

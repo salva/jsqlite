@@ -512,7 +512,9 @@ post-row cancel/timeout cleanup, then resumes complete native-expected rows.
 The survivor runner covers automatic and persistent standalone fixtures. It proves
 these specific boundaries, not exhaustive reprepare/close/fault safety.
 `AUTO_REAL_PROGRESS=1` interrupts automatic build after successful insertion and
-probe after completed build/positive probes at the existing VM host-admission
+probe after completed build/positive probes; standalone requires positive actual
+FilterAdd with zero probes for build, positive FilterAdd/probes for probe. These
+controls use the existing VM host-admission
 seam, asserting exact public cancel/timeout, saved-error identity, refunds and
 unchanged independently live SQL survival before retry/native-result comparison.
 `AUTO_REAL_PAGE_FAULT=1` uses the existing arena hook to throw on second page
@@ -534,7 +536,15 @@ per-cursor entry counts. Key demand includes both packed payload bytes and
 unpacked seek Mem bytes; the larger representation can set H. Entry counts
 include pending packed cells; balancing transfers must not count new entries.
 The observations describe configured private limits, not total JS memory.
-Fault/internal phase and standalone safety schedules remain open.
+The same standalone fixture now exercises all three public capacity dimensions
+against its actual filter/sorter owner and independently live survivor.
+Shared snapshots additionally expose live/highwater `packedPages`: physical
+4096-byte backing pages admitted by arena append and released by arena close,
+including retained freelist/header pages and partial opens. They do not count
+persistent source pages or JS heap; page renumber/reuse does not allocate again.
+Partial-open and two-live-arena controls cover aggregate peak and surviving pages;
+actual automatic progress asserts positive live pages and halt asserts zero.
+Scratch/Mem highwater and exhaustive fault/lifetime schedules remain open.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for bounded INNER/CROSS persistent equality loops. Wider consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-b]] status for exact evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.

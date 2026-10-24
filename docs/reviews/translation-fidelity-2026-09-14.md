@@ -17,8 +17,15 @@ entered code. Partial-build and positive table-access controls prevent constant
 completion/zero lookup claims. Actual distinct cursor slots, Once state and
 Bloom bytes now supply release snapshots; actual SQL survivor controls cover
 done/reset/finalize and post-row cancel/timeout with native row continuation.
-These are not internal build/probe interruption/fault schedules. Actual byte
-capacity H−1/H/H+1 now includes the combined auto/Bloom/sorter/scratch owner;
+Additional source-owned serial controls now interrupt actual build/probe after
+confirmed progress for automatic and standalone, inject second-page and reserved
+filter-init faults, and require exact first/saved error, release, unchanged real
+survivor and native-result retry. These are selected schedules, not exhaustive
+fault/lifetime acceptance. Physical packed backing-page live/highwater observations
+now cover partial opens, concurrent arenas and actual automatic progress/halt;
+scratch/Mem highwater remain missing. Actual byte
+capacity H−1/H/H+1 now includes the combined auto/Bloom/sorter/scratch owner
+and separately the standalone filter/sorter owner;
 independently live SQL survivor remains excluded and unchanged. The same schedules separately cover maxEntries and maxKeyBytes with other
 limits nonbinding; these are maximum per-cursor policy demands, including
 unpacked seek target bytes, not aggregate entries or JS heap. Deeper placement

@@ -14,11 +14,13 @@ export async function realProgressInterrupt(db,sql,expected,cell){
    let witnessed=null,expired=false,primary;
    VdbeHostAdmission.prototype.checkpoint=function(){
     const current=privateAccounting(owner);
-    const ready=phase==='build'?current.automaticInserts>0&&current.builds===0:current.builds===1&&current.probes>0;
+    const standalone=current.planKind==='standalone-bloom';
+    const ready=standalone?(phase==='build'?current.filterAdds>0&&current.probes===0:current.filterAdds>0&&current.probes>0):(phase==='build'?current.automaticInserts>0&&current.builds===0:current.builds===1&&current.probes>0);
     if(!witnessed&&ready){
      witnessed=current;
      assert.ok(current.ownedBytes>0);assert.ok(current.openCursors>0);
      assert.ok(current.filterBytes>0);assert.equal(current.onceActive,true);
+     if(!standalone){assert.ok(current.packedPages>=2);assert.ok(current.packedPagesHighwater>=current.packedPages);}
      if(kind==='cancelled')controller.abort('confirmed '+phase+' progress');else expired=true;
     }
     return checkpoint.call(this);

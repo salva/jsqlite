@@ -26,7 +26,8 @@ paused SQL owner survives done/reset/finalize and post-row cancel/timeout, with
 unchanged live snapshots and complete native row continuation (automatic and
 persistent standalone). `where-autoindex-real-progress.mjs` uses the existing
 `VdbeHostAdmission.checkpoint` seam to cancel/expire automatic build after an
-insert and probe after positive progress, with exact public/saved errors,
+insert and probe after positive progress; standalone observes FilterAdd before
+any probe for build and positive FilterAdd/probes for probe. Both require exact public/saved errors,
 release, independent survivor and native-result retry.
 `where-autoindex-real-page-fault.mjs` injects second-page allocation failure via
 the existing arena hook; `where-autoindex-real-filter-fault.mjs` fails filter
@@ -45,7 +46,14 @@ unpacked cursor moveto; sorter insert/bounded replacement; ephemeral/FIFO/
 priority/IN/RowSet policies. Maxima across per-cursor policies are not summed;
 byte ownership remains aggregate. `private-demand-observation.test.mjs` checks
 shared cursor max semantics; actual fixture controls include packed and sorter
-limiting branches and encoding-dependent unpacked target byte demand.
+limiting branches and encoding-dependent unpacked target byte demand. The same
+capacity driver exercises standalone filter/sorter H−1/H/H+1 for all dimensions.
+Physical backing page lifetime (`pager.c` page acquisition/close; private arena
+append/close) maps to budget packedPages/packedPagesHighwater; retained freelist
+pages count as owned, renumber/reuse does not allocate. Partial open and two-live
+arena tests in `private-demand-observation.test.mjs`, plus actual progress/release
+controls, distinguish positive live pages, peak and zero-after-halt. This is not
+persistent Pager cache or total heap accounting.
 Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
