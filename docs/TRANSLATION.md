@@ -522,8 +522,11 @@ with a native-first STAT4 join witness (`where-autoindex-real-reprepare.mjs`).
 Binding expiration must replace the program while preserving fresh execution,
 positive FilterAdd/probe/seek work, native rows/metadata, cleanup and independent
 survival, including deferred close. LIMIT-only rebinding remains a retained-program
-control. Replacement-construction faults and residual safety breadth remain open;
-see [[card:card-s-j-c]] status for revision-bound evidence.
+control. Representative replacement-planning work-limit failures now run before
+publication, with retained plan identity, saved error reset/finalize, balanced
+failed-entry accounting and independent survivor continuation. They do not claim
+partial-allocation or every construction-failure branch; residual safety breadth
+remains open. See [[card:card-s-j-c]] status for revision-bound evidence.
 `AUTO_REAL_PROGRESS=1` interrupts automatic build after successful insertion and
 probe after completed build/positive probes; standalone requires positive actual
 FilterAdd with zero probes for build, positive FilterAdd/probes for probe. These

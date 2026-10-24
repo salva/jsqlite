@@ -58,6 +58,41 @@ export async function realSurvivor(db,sql,expected,cell,workExpected,{deferredCl
     }
    }else if(exit==='rebind'){
     owner.reset();assertReleased(privateAccounting(owner),before,privateAccounting(survivor));
+    if(parameterBinding!==undefined){
+     // prepare.c:sqlite3Reprepare returns before swap on construction failure.
+     // One successful compile check consumes the work unit; a later check
+     // fails inside construction, not at entry or after replacement dispatch.
+     for(const cleanup of ['reset','finalize']){
+      assert.equal(await owner.step(),'row');
+      const retainedPlan=privateAccounting(owner).planId;
+      owner.reset();assertReleased(privateAccounting(owner),before,privateAccounting(survivor));
+      owner.bind(1,binding);
+      const retained=privateAccounting(owner);let checks=0,primary;
+      const signal={get aborted(){checks++;return false;}};
+      try{await owner.step({maxWorkUnits:1,signal});assert.fail('replacement construction accepted');}
+      catch(error){primary=error;assert.equal(error.kind,'limit');assert.equal(error.message,'statement exceeds maxWorkUnits');}
+      assert.ok(checks>=2,'construction progressed past its initial successful check');
+      assert.match(primary.stack,/planWhereInvocation/,'failure originates in actual replacement planning');
+      const failed=privateAccounting(owner);
+      assert.equal(failed.planId,retainedPlan,'failed replacement is not published');
+      assert.notEqual(failed.executionId,retained.executionId);
+      assert.equal(failed.filterAdds,0);assert.equal(failed.probes,0);
+      for(const field of ['ownedBytes','openCursors','filterBytes','packedPages','payloadScratchBytes'])assert.equal(failed[field],0,field);
+      assert.equal(failed.onceActive,false);
+      assert.equal(failed.chargedBytes,failed.refundedBytes);
+      assert.notEqual(failed.ownerId,before.ownerId);
+      assert.deepEqual(privateAccounting(survivor),before);
+      await assert.rejects(owner.step(),error=>error===primary);
+      if(cleanup==='reset'){
+       assert.throws(()=>owner.reset(),error=>error===primary);owner.reset();
+      }else{
+       assert.throws(()=>owner.finalize(),error=>error===primary);ownerFinalized=true;
+       assert.deepEqual(privateAccounting(owner),failed,'finalize retains failed-entry accounting');
+       assert.deepEqual(privateAccounting(survivor),before);
+       owner=prepareOwner();ownerFinalized=false;
+      }
+     }
+    }
     owner.bind(1,binding);
     const rows=[];
     while(await owner.step()==='row')rows.push(Array.from({length:owner.columnCount},(_,i)=>cell(owner,i)));
@@ -84,5 +119,6 @@ export async function realSurvivor(db,sql,expected,cell,workExpected,{deferredCl
   while(await survivor.step()==='row')survivorRows.push(Array.from({length:survivor.columnCount},(_,i)=>cell(survivor,i)));
   assert.deepEqual(survivorRows,expected.runs[0].rows);
   assert.equal(privateAccounting(survivor).ownedBytes,0);
- }finally{if(!ownerFinalized)owner.finalize();survivor.finalize();}
+ }catch(error){try{owner.reset();}catch{/* Consume saved execution error without masking the assertion. */}throw error;}
+ finally{try{if(!ownerFinalized)owner.finalize();}finally{survivor.finalize();}}
 }

@@ -49,6 +49,10 @@ reprepare uses `where-autoindex-real-reprepare.mjs` and the same owner: native
 STAT4 expiration/replacement, positive actual filter work, native rows/metadata
 and ordinary/zombie lifetime controls. The independent C capture requires native
 BLOOM FILTER and SQLITE_STMTSTATUS_REPREPARE; LIMIT rebinding remains distinct.
+The same owner schedules work-limit failure inside actual replacement planning
+before publication (prepare.c failed LockAndPrepare branch), checks retained plan,
+saved-error reset/finalize, balanced failed-entry accounting and live independent
+survivor. This is not partial-allocation or exhaustive construction-fault coverage.
 Evidence:
 [[card:card-s-j-c]] status. `where-autoindex-real-progress.mjs` uses the existing
 `VdbeHostAdmission.checkpoint` seam to cancel/expire automatic build after an

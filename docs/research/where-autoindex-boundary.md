@@ -332,8 +332,12 @@ requires native BLOOM FILTER and positive reprepare status, and retains fixture
 hashes, typed rows and all five metadata fields. `where-autoindex-real-reprepare.mjs`
 requires replacement program identity, positive FilterAdd/probe/seek, ordinary
 and zombie-close cleanup and independent survivor completion. Evidence and failed
-targeting/capture hypotheses: [[card:card-s-j-c]] status. Construction-fault
-coverage remains distinct and open; no expmask forcing or synthetic consumer.
+targeting/capture hypotheses: [[card:card-s-j-c]] status. Representative work-limit
+failure in actual replacement planning now precedes publication, with retained
+plan identity, saved-error reset/finalize, balanced zero-live failed-entry resources
+and unchanged independent survivor. It uses public maxWorkUnits after one successful
+construction check, not a synthetic compiler or forced expmask. It does not cover
+partial-allocation failures or every construction ordering.
 
 ## Remaining acceptance obligations
 

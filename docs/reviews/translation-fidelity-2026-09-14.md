@@ -73,8 +73,10 @@ and separate zombie-close connections with two distinct live owners and
 independent survivor completion. Parameter-sensitive standalone reprepare now
 uses an independently captured STAT4/Bloom join witness and the same owner;
 program replacement, native rows/metadata and positive real filter work are
-required. Retained-plan LIMIT binding remains a separate control. Replacement
-construction faults and residual safety breadth remain open. Evidence:
+required. Retained-plan LIMIT binding remains a separate control. Representative
+replacement-planning work-limit failures check prepublication retained identity,
+saved-error reset/finalize, balanced failed-entry accounting and independent
+survival; partial-allocation and residual safety breadth remain open. Evidence:
 [[card:card-s-j-c]] status.
 Additional source-owned serial controls now interrupt actual build/probe after
 confirmed progress for automatic and standalone, inject second-page and reserved
