@@ -8,9 +8,16 @@ full-browser, original225 or alpha acceptance. See [independent source decision]
 On ea41e61f4c3739a678faa7d26e2e65abd5a493f5 the module-row callback
 caused compileInnerTableSelect to copy every physical source column, although
 its window caller ignores physical register rows and reads positioned cursors.
-Unused b/c TEXT retained seven bytes. Restricting that callback's snapshots to
-moduleRows restores the observed bounded witness to359 without removing Mem
-charges or changing limits. This translates window.c selectWindowRewriteExprCb's
+Unused b/c TEXT retained seven bytes. The window caller now explicitly requests
+`sourceRowPolicy:'modules'`, restoring359 without removing Mem charges or changing
+limits. Complete physical/module snapshots remain the default for ordinary
+AggInfo consumers: the earlier global moduleRows filter in ddbc399 incorrectly
+removed physical payload/rowid from mixed JSON and metadata aggregates (independent
+review [[card:card-o-c-c]] status23; author red witness status362). The correction
+changes the shared producer contract, not downstream SQL examples. Existing
+json-mixed-rowid-red and metadata-generated-aggregate tests retain the physical
+payload/identity contract; window-rewrite retains the no-extra-copy control.
+This translates window.c selectWindowRewriteExprCb's
 terminal projection; native EXPLAIN on pinned3530400 for a,sum(d) over ordered d
 reads rowid/d/d, not b/c (proc-7ed3a60e0381). Native built successfully in disposable
 source/build directories with executable modes restored (proc-f40d3470e799).
@@ -28,6 +35,30 @@ cache82 witness. After boundary controls, three complete suites passed
 typecheck (proc-224b57426e8d). These are author evidence, not independent full522,
 installed/browser or whole-card acceptance. Exact process stdout resources and
 remaining obligations are in [[card:card-o-c-b]] status.
+
+## Shared-caller correction validation
+
+Author corrected global-filter hypothesis with explicit window-only policy;
+no quotas, accounting categories, aggregate evaluation or cleanup order changed.
+Pinned select.c directMode loads AggInfo arguments/columns from the active row
+(updateAccumulator and grouped sorter construction around8583); ordinary TS
+consumers instead own complete snapshot registers. Those registers must receive
+physical payload/rowid before consumeRow, including LEFT-null rows. Window
+terminal projection is a separate consumer demand, not a replacement evaluator.
+
+Corrected runtime: proc-1050caf30795 runs json-mixed-rowid-red,
+metadata-generated-aggregate, window-bounded-lookahead,
+window-conversion-budget-cleanup, window-rewrite and
+json-each-aggregate-integration-native:450/450 pass (240 caller +207 window +3
+native). Full log is work:///cards/card-o-c-b/beta5-window-diagnosis/caller-repair.log.
+proc-60a5476859f3: typecheck, package validation (57 runtime modules116 files),
+Chromium private-live359/358/200 smoke3/3 pass; tarball SHA256
+38dffc0db7e4e4088e8aad3d9d4e939b3b3633e33a2d89e49189de946f70cb2c.
+Temporary dependency symlink removed. proc-79af89d391f5: installed tarball public
+mixed-rowid suite9/9. proc-6588abe0d48a: independently imported installed dist,
+typed native window rows match at359,358 rejects after1 row,200 before rows;
+saved-error reset identity, success reset and finalize/close checked. Author
+receipts are not independent acceptance or full522/fullbrowser50 certification.
 
 ## Current implemented boundary
 

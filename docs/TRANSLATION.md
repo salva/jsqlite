@@ -1271,10 +1271,11 @@ its shared compiler owner; direct transient column names use resolved producer
 names, not qualified SQL spans. Standalone single-source JSON each/tree Window
 input also uses the shared WHERE coroutine with source-identity registers and
 independent rowid; arbitrary module/Window composition is not implied.
-The module-row handoff snapshots only module sources: physical cursors remain
-positioned across Yield and rewritten terminals read them directly, without an
-unused full-row register copy. Live Mem accounting and halt-time context release
-remain enabled. [Current correction evidence](research/card-s-i/window-owner-correction.md).
+The shared sourceRow handoff defaults to complete payload/identity snapshots for
+ordinary AggInfo consumers. Only the window caller requests `sourceRowPolicy:
+'modules'`: physical cursors remain positioned across Yield and rewritten terminals
+read them directly, without an unused full-row register copy. Live Mem accounting
+and halt-time context release remain enabled. [Current correction evidence](research/card-s-i/window-owner-correction.md).
 [CTE composition evidence](research/cte-json-window-composition.md) and
 [direct-input scope and evidence](research/direct-json-window/README.md).
 Cached frame/EXCLUDE scheduling is a source-shaped adaptation, not

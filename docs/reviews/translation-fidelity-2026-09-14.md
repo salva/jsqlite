@@ -1,8 +1,11 @@
 ## Beta5 window producer retention correction (author evidence)
 
-Current scoped repair restricts module-row snapshots to module sources; physical
-window producers keep positioned cursors and read rewritten terminals directly.
-The previous unused b/c copies caused the reproduced366-versus359 peak. Live Mem
+Current scoped repair makes sourceRow snapshot policy caller-owned: complete
+physical/module payload and identity by default for AggInfo, modules-only for the
+window caller whose physical cursors stay positioned across Yield. The previous
+global module-only filter broke mixed JSON/metadata physical aggregate consumers;
+existing caller regressions cover that loss alongside the terminal-only window
+witness. The unused window b/c copies caused the366-versus359 peak. Live Mem
 charges remain; cache85-byte boundary and done-time context release controls are
 now explicit. [Source comparison and evidence](../research/card-s-i/window-owner-correction.md).
 This does not certify whole-window, installed/browser or full-matrix acceptance.
