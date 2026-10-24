@@ -522,8 +522,14 @@ allocation; `AUTO_REAL_FILTER_FAULT=1` throws after filter byte reservation befo
 publication (automatic and standalone). Both require exact first/saved error,
 release, survivor and successful retry. These serial source-owned research
 controls restore transport/clock/hooks in finally; they add no production option
-or testing registry. Record-allocation and selected/offpath corruption coverage
-remain open. Evidence and scope: `record:///status.md?card=card-s-j-c`.
+or testing registry. `AUTO_REAL_RECORD_FAULT=1` targets actual packRecord
+backing allocation after a successful automatic insert through a serial restored
+allocator proxy. `AUTO_REAL_CORRUPTION=1` damages index-page pointer arrays before
+actual collision probes (format error), versus untraversed page-one signature
+(control preserves native rows). Root-only header corruption may be cached; this
+is not isolated child/offpath-subtree coverage. Both controls require first/saved
+error where applicable, full release, independent real survivor and native retry.
+They add no production seam. Evidence and scope: `record:///status.md?card=card-s-j-c`.
 `AUTO_REAL_CAPACITY=1` adds actual
 maxBytes H−1/H/H+1 runs with all other limits nonbinding and a separate live SQL
 survivor excluded. H includes build and probe scratch, so H−1 may fail at a probe

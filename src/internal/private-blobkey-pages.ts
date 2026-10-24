@@ -1374,7 +1374,7 @@ export class PrivateBlobkeyPages {
     // Replacement scratch is charged at peak, even though old/new buffers have
     // the same capacity. No alias or net accounting hides the allocation.
     this.#budget.reserve(old?4096:PRIVATE_PAGE_CHARGE);
-    try{const copy=bytes.slice();this.#pages.set(pgno,{bytes:copy,refs:0,derived:null,entries})}
+    try{const copy=bytes.slice();this.#pages.set(pgno,{bytes:copy,refs:0,derived:null,entries});if(!old)this.#budget.acquirePackedPage()}
     catch(error){this.#budget.release(old?4096:PRIVATE_PAGE_CHARGE);throw error}
     if(old){this.#disposeStaging(old.derived);this.#budget.release(4096);}
     this.#epoch++;

@@ -21,7 +21,11 @@ Additional source-owned serial controls now interrupt actual build/probe after
 confirmed progress for automatic and standalone, inject second-page and reserved
 filter-init faults, and require exact first/saved error, release, unchanged real
 survivor and native-result retry. These are selected schedules, not exhaustive
-fault/lifetime acceptance. Physical packed backing-page live/highwater observations
+fault/lifetime acceptance. Additional actual partial-build MakeRecord backing
+allocation faults now preserve exact first/saved error, release and native retry
+with a live real survivor. Collision-probe pointer-array damage across index
+backing pages errors; untraversed page-one signature damage preserves native
+rows. This is not isolated selected-child/offpath-subtree coverage. Physical packed backing-page live/highwater observations
 now cover partial opens, concurrent arenas and actual automatic progress/halt;
 scratch/Mem highwater remain missing. Actual byte
 capacity H−1/H/H+1 now includes the combined auto/Bloom/sorter/scratch owner

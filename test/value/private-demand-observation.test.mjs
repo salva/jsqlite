@@ -29,6 +29,8 @@ test('physical page observations include partial opens and independent live aren
   assert.equal(budget.snapshot().packedPages,2);assert.equal(budget.snapshot().packedPagesHighwater,3);
   const other=await PrivateBlobkeyPages.open(budget,control);
   assert.equal(budget.snapshot().packedPages,4);other.close();assert.equal(budget.snapshot().packedPages,2);
+  survivor.installPage(3,new Uint8Array(4096));assert.equal(budget.snapshot().packedPages,3);
+  survivor.installPage(3,new Uint8Array(4096));assert.equal(budget.snapshot().packedPages,3);
  }finally{survivor.close();}
  assert.equal(budget.snapshot().packedPages,0);assert.equal(budget.snapshot().packedPagesHighwater,4);
  assert.equal(budget.snapshot().ownedBytes,0);

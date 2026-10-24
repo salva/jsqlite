@@ -49,11 +49,21 @@ shared cursor max semantics; actual fixture controls include packed and sorter
 limiting branches and encoding-dependent unpacked target byte demand. The same
 capacity driver exercises standalone filter/sorter H−1/H/H+1 for all dimensions.
 Physical backing page lifetime (`pager.c` page acquisition/close; private arena
-append/close) maps to budget packedPages/packedPagesHighwater; retained freelist
+append/installPage/close) maps to budget packedPages/packedPagesHighwater; retained freelist
 pages count as owned, renumber/reuse does not allocate. Partial open and two-live
 arena tests in `private-demand-observation.test.mjs`, plus actual progress/release
 controls, distinguish positive live pages, peak and zero-after-halt. This is not
-persistent Pager cache or total heap accounting.
+persistent Pager cache or total heap accounting. Construction-only installPage
+append (not replacement) now also records its backing allocation; this closes an
+observation gap exposed while preparing corruption controls.
+`vdbe.c OP_MakeRecord` sizing/allocation failure maps to actual packRecord
+allocator-failure controls in `where-autoindex-real-record-fault.mjs` (partial
+build, first/saved error, release and independent survivor/retry).
+`where-autoindex-real-corruption.mjs` damages actual index backing pointer arrays
+before collision probes, versus untraversed page-one signature: format error
+versus native rows. This is broad selected-index/untraversed-header evidence,
+not isolated child or offpath-subtree parity. Both serial allocator controls are
+source-owned research only, restoring prototypes/globals in finally.
 Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
