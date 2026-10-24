@@ -30,8 +30,12 @@ or JS storage. Ordinary register owned TEXT/BLOB backing now shares admission
 and live/highwater Mem observation, with copy/borrow/move/replacement and
 halt/error/reset/finalize controls (`private-demand-observation.test.mjs`). Detached
 temporaries, scalar slots, aggregate/rowset internals and encoding/adopt producer
-allocation overlap remain outside that proof. Unclassified internal arena
-reservations, all-consumer capacity and exhaustive lifetime remain open.
+allocation overlap remain outside that proof. Internal arena control, lease/raw
+lease capabilities and derived/packed temporary staging now report through the
+same scratch owner, retaining packed backing as aggregate-only/page-counted.
+The accepted v31 acquisition witness and boundary/init-failure/raw-view controls
+are in `private-demand-observation.test.mjs`; this closes category omission, not
+all-consumer capacity or exhaustive lifetime acceptance, which remain open.
 This is partial author repair, not full placement acceptance.
 
 Production-private snapshots now distinguish fresh executions and retained program

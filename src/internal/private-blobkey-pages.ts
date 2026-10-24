@@ -682,7 +682,9 @@ export class PrivateBlobkeyPages {
     if(!Number.isSafeInteger(maxEntries)||maxEntries<0)throw new PrivateStateLimitError("invalid private entry limit");
     operations.set(this,{begin:cleanup=>this.#begin(cleanup),end:t=>this.#end(t),acquire:(t,p)=>{this.#check(t);return this.#acquire(p)},raw:(t,p)=>{this.#check(t);return this.#raw(p,false)},register:(c,o)=>this.#registerCursor(c,o),unlink:c=>this.#unregisterCursor(c),checkClose:()=>this.#assertCursorClose(),insertLocal:(t,p,i,k,c,r,b)=>{this.#check(t);return this.#insertLocal(t,p,i,k,c,r,b)},fault:(t,e)=>{this.#check(t);this.#trip(e)},balance:(t,p,i,c)=>this.#balancePath(p,i,false,c,t),bytes:(t,p)=>{this.#check(t);const entry=this.#pages.get(p);if(!entry)throw new PrivateBlobkeyFormatError("cursor page outside arena");return entry.bytes},savePeers:async(t,w,c)=>{this.#check(t);for(const peer of this.#registry)if(peer!==w)await cursors.get(peer)!.save(t,c);this.#assertCursorClose()},overwrite:(t,p,i,k,c)=>{this.#check(t);return this.#overwritePayload(p,i,k,c)}});
     this.#maxEntries=maxEntries;
-    budget.reserve(PRIVATE_ARENA_CHARGE);this.#budget=budget;this.#hook=hook;this.#maxKeyBytes=maxKeyBytes;
+    // Page backing is accounted separately; arena control, acquisition
+    // capabilities and derived/staged storage share the scratch category.
+    budget.reserveScratch(PRIVATE_ARENA_CHARGE);this.#budget=budget;this.#hook=hook;this.#maxKeyBytes=maxKeyBytes;
   }
   static async open(budget:PrivateStateByteBudget,control:PrivateStateControl,hook:PrivatePageHook=()=>{},limits:Pick<PrivateStateLimits,"maxKeyBytes"> & Partial<Pick<PrivateStateLimits,"maxEntries">>={maxKeyBytes:0x7fffffff}):Promise<PrivateBlobkeyPages>{
     const arena=new PrivateBlobkeyPages(budget,hook,limits.maxKeyBytes,limits.maxEntries??Number.MAX_SAFE_INTEGER);
@@ -719,15 +721,15 @@ export class PrivateBlobkeyPages {
     this.#hook("acquire",pgno);const entry=this.#pages.get(pgno);
     if(!entry)throw new PrivateBlobkeyFormatError("private page number outside arena");
     if(entry.derived?.operationPending)throw new Error("private page operation in progress");
-    this.#budget.reserve(PRIVATE_LEASE_CHARGE);entry.refs++;
+    this.#budget.reserveScratch(PRIVATE_LEASE_CHARGE);entry.refs++;
     let capabilityBytes=0;
-    const admitCapability=(charge:number)=>{this.#budget.reserve(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.release(charge)}};
+    const admitCapability=(charge:number)=>{this.#budget.reserveScratch(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.releaseScratch(charge)}};
     const release=()=>this.#cleanupRelease(()=>{
-      entry.refs--;this.#budget.release(PRIVATE_LEASE_CHARGE+capabilityBytes);capabilityBytes=0;this.#hook("release",pgno);
+      entry.refs--;this.#budget.releaseScratch(PRIVATE_LEASE_CHARGE+capabilityBytes);capabilityBytes=0;this.#hook("release",pgno);
     });
     try{
       this.#hook("init",pgno);
-      if(!entry.derived)entry.derived=new PrivateIndexPage(pgno,entry.bytes,{accountant:this.#budget,reserve:bytes=>this.#budget.reserve(bytes),release:bytes=>this.#budget.release(bytes),begin:()=>{if(entry.refs!==1)throw new Error("private mutation requires exclusive lease");if(entry.editToken)this.#check(entry.editToken);else this.#begin()},end:()=>{this.#epoch++;if(!entry.editToken)this.#end(this.#operation!)},fault:error=>this.#trip(error),admitEntry:()=>this.#newEntry(entry),removeEntries:count=>{entry.entries-=count}},this.#maxKeyBytes);
+      if(!entry.derived)entry.derived=new PrivateIndexPage(pgno,entry.bytes,{accountant:this.#budget,reserve:bytes=>this.#budget.reserveScratch(bytes),release:bytes=>this.#budget.releaseScratch(bytes),begin:()=>{if(entry.refs!==1)throw new Error("private mutation requires exclusive lease");if(entry.editToken)this.#check(entry.editToken);else this.#begin()},end:()=>{this.#epoch++;if(!entry.editToken)this.#end(this.#operation!)},fault:error=>this.#trip(error),admitEntry:()=>this.#newEntry(entry),removeEntries:count=>{entry.entries-=count}},this.#maxKeyBytes);
       entry.derived.assertUsable();return new PrivatePageLease(entry.derived,release,admitCapability);
     }catch(error){try{release()}catch{/* primary init failure wins */}throw error}
   }
@@ -743,11 +745,11 @@ export class PrivateBlobkeyPages {
   #retainRaw(pgno:number,writable=true):{pgno:number;bytes:Uint8Array;release():void}{
     const entry=this.#pages.get(pgno);
     if(!entry||pgno<2)throw new PrivateBlobkeyFormatError("raw page number outside arena");
-    this.#budget.reserve(PRIVATE_LEASE_CHARGE);entry.refs++;let released=false;
+    this.#budget.reserveScratch(PRIVATE_LEASE_CHARGE);entry.refs++;let released=false;
     let capabilityBytes=0;
-    const admitCapability=(charge:number)=>{this.#budget.reserve(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.release(charge)}};
+    const admitCapability=(charge:number)=>{this.#budget.reserveScratch(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.releaseScratch(charge)}};
     const release=()=>{if(released)return;this.#cleanupRelease(()=>{
-      released=true;entry.refs--;this.#budget.release(PRIVATE_LEASE_CHARGE+capabilityBytes);capabilityBytes=0;this.#observeRelease(pgno,entry.bytes);
+      released=true;entry.refs--;this.#budget.releaseScratch(PRIVATE_LEASE_CHARGE+capabilityBytes);capabilityBytes=0;this.#observeRelease(pgno,entry.bytes);
     })};
     try{
       const bytes=writable?entry.bytes:borrowedBytes(entry.bytes,()=>{if(released)throw new Error("private raw lease released")},admitCapability);
@@ -763,8 +765,8 @@ export class PrivateBlobkeyPages {
   }
   #observeRelease(pgno:number,bytes:Uint8Array):void{
     let active=true,capabilityBytes=0;
-    const admitCapability=(charge:number)=>{this.#budget.reserve(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.release(charge)}};
-    try{this.#hook("release",pgno,borrowedBytes(bytes,()=>{if(!active)throw new Error("private observer released")},admitCapability))}finally{active=false;this.#budget.release(capabilityBytes)}
+    const admitCapability=(charge:number)=>{this.#budget.reserveScratch(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.releaseScratch(charge)}};
+    try{this.#hook("release",pgno,borrowedBytes(bytes,()=>{if(!active)throw new Error("private observer released")},admitCapability))}finally{active=false;this.#budget.releaseScratch(capabilityBytes)}
   }
   async #arenaMutation<T>(operation:()=>Promise<T>):Promise<T>{
     this.#live();if(this.#busy)throw new Error("private arena operation in progress");
@@ -833,7 +835,7 @@ export class PrivateBlobkeyPages {
     const t=held??this.#begin();this.#check(t);let charge=0,started=false;
     try{
       if(numbers.length<1||numbers.length>20||numbers[0]!==2||indices.length!==numbers.length-1)corrupt("invalid balance path");
-      this.#budget.reserve(256+20*16);charge=256+20*16;
+      this.#budget.reserveScratch(256+20*16);charge=256+20*16;
       const path=numbers.slice(),slots=indices.slice();
       if(!held)for(const c of this.#registry)await cursors.get(c)!.save(t,control);
       for(const p of this.#pages.values())if(p.refs)throw new Error("private balance requires no foreign leases");
@@ -864,7 +866,7 @@ export class PrivateBlobkeyPages {
         }
       }
     }catch(error){if(started)this.#trip(error);throw error}
-    finally{if(charge)this.#budget.release(charge);if(!held)this.#end(t)}
+    finally{if(charge)this.#budget.releaseScratch(charge);if(!held)this.#end(t)}
   }
   /** Held nonroot owner, private hdrOffset0/autoVacuum=false. */
   async balanceNonroot(parentNumber:number,index:number,bulk:boolean,control:PrivateStateControl):Promise<void>{
@@ -875,7 +877,7 @@ export class PrivateBlobkeyPages {
     let parent:PrivatePageLease|null=null,old:Awaited<ReturnType<typeof acquireBlobkeySiblings>>|null=null,gather:Awaited<ReturnType<typeof gatherBlobkeyCells>>|null=null,partition:Awaited<ReturnType<typeof partitionBlobkeyCells>>|null=null;
     let fresh:PrivatePageLease[]|undefined,entries:ArenaPage[]|undefined;
     try{
-      this.#budget.reserve(PRIVATE_NONROOT_CONTROL_CHARGE);charge=PRIVATE_NONROOT_CONTROL_CHARGE;fresh=[];entries=[];
+      this.#budget.reserveScratch(PRIVATE_NONROOT_CONTROL_CHARGE);charge=PRIVATE_NONROOT_CONTROL_CHARGE;fresh=[];entries=[];
       if(!held)for(const c of this.#registry)await cursors.get(c)!.save(t,control);
       for(const p of this.#pages.values())if(p.refs)throw new Error("private balance requires no foreign leases");
       parent=this.#acquire(parentNumber);const parentEntry=this.#pages.get(parentNumber)!;parentEntry.editToken=t;entries.push(parentEntry);started=true;
@@ -918,7 +920,7 @@ export class PrivateBlobkeyPages {
     finally{
       for(const entry of entries??[])delete entry.editToken;
       for(const release of [()=>partition?.release(),()=>gather?.release(),()=>old?.release(),...(fresh??[]).map(p=>()=>p.release()),()=>parent?.release()])try{release()}catch(error){primary??=error}
-      if(charge)this.#budget.release(charge);if(started&&primary!==undefined)this.#trip(primary);if(!held)this.#end(t);
+      if(charge)this.#budget.releaseScratch(charge);if(started&&primary!==undefined)this.#trip(primary);if(!held)this.#end(t);
     }
     if(primary!==undefined)throw primary;
   }
@@ -926,7 +928,7 @@ export class PrivateBlobkeyPages {
     const t=this.#begin();let charge=0,changed=false;
     try{
       if(numbers.length<1||numbers.length>5)throw new Error("invalid rekey siblings");
-      this.#budget.reserve(128);charge=128;
+      this.#budget.reserveScratch(128);charge=128;
       const owned=numbers.slice();
       for(const c of this.#registry)await cursors.get(c)!.save(t,control);
       for(const p of this.#pages.values())if(p.refs)throw new Error("private rekey requires no foreign leases");
@@ -942,7 +944,7 @@ export class PrivateBlobkeyPages {
       },this.#budget,control);
       result.release();if(changed)this.#epoch++;
     }catch(error){if(changed)this.#trip(error);throw error}
-    finally{if(charge)this.#budget.release(charge);this.#end(t)}
+    finally{if(charge)this.#budget.releaseScratch(charge);this.#end(t)}
   }
   /** autoVacuum=false BTALLOC_ANY branch. Result is readonly uninitialized storage inspection. */
   async allocatePage(nearby:number,control:PrivateStateControl):Promise<{pgno:number;bytes:Uint8Array;release():void}>{
@@ -1036,7 +1038,7 @@ export class PrivateBlobkeyPages {
       const size=Math.max(4,header+local+(local<length?4:0));
       // Own input plus pending result metadata before any allocation/publication.
       const resultCharge=size+PRIVATE_CELL_RESULT_CHARGE;
-      this.#budget.reserve(length+resultCharge);let retained=false;
+      this.#budget.reserveScratch(length+resultCharge);let retained=false;
       let previous:{pgno:number;bytes:Uint8Array;release():void}|null=null,pending:{pgno:number;bytes:Uint8Array;release():void}|null=null;
       try{
         // The nonyielding probe permits cancellation/work accounting without
@@ -1072,17 +1074,17 @@ export class PrivateBlobkeyPages {
         }
         if(previous){previous.release();previous=null}
         let released=false,capabilityBytes=0;
-        const admitCapability=(charge:number)=>{this.#budget.reserve(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.release(charge)}};
+        const admitCapability=(charge:number)=>{this.#budget.reserveScratch(charge);capabilityBytes+=charge;return ()=>{capabilityBytes-=charge;this.#budget.releaseScratch(charge)}};
         const bytes=borrowedBytes(cell,()=>{if(released)throw new Error("private cell result released")},admitCapability);
-        const release=()=>{if(released)return;released=true;this.#results.delete(release);this.#budget.release(resultCharge+capabilityBytes);capabilityBytes=0};
+        const release=()=>{if(released)return;released=true;this.#results.delete(release);this.#budget.releaseScratch(resultCharge+capabilityBytes);capabilityBytes=0};
         // Register before publication; a failing registry allocation leaves the
         // pending input/cell charge to the existing primary-error unwind.
         const result={bytes,release};this.#results.add(release);
-        this.#budget.release(length);retained=true;return result;
+        this.#budget.releaseScratch(length);retained=true;return result;
       }catch(error){
         for(const lease of [pending,previous])if(lease)try{lease.release()}catch{/* primary wins */}
         throw error;
-      }finally{if(!retained)this.#budget.release(length+resultCharge)}
+      }finally{if(!retained)this.#budget.releaseScratch(length+resultCharge)}
   }
   #registerCursor(cursor:PrivateBlobkeyCursor,owning:boolean):void{this.#registry.add(cursor);this.#single ||= owning}
   #unregisterCursor(cursor:PrivateBlobkeyCursor):boolean{this.#registry.delete(cursor);return this.#single&&this.#registry.size===0}
@@ -1094,8 +1096,8 @@ export class PrivateBlobkeyPages {
     const frames:{lease:PrivatePageLease;index:number;right:boolean}[]=[];let count=0;
     const push=async(pgno:number)=>{
       await control.checkpoint(0);if(frames.length>=20||frames.some(f=>f.lease.page.pgno===pgno))corrupt("clear tree cycle/depth");
-      this.#budget.reserve(128);let lease:PrivatePageLease|null=null;
-      try{lease=this.#acquire(pgno);frames.push({lease,index:0,right:false})}catch(error){if(lease)try{lease.release()}catch{}this.#budget.release(128);throw error}
+      this.#budget.reserveScratch(128);let lease:PrivatePageLease|null=null;
+      try{lease=this.#acquire(pgno);frames.push({lease,index:0,right:false})}catch(error){if(lease)try{lease.release()}catch{}this.#budget.releaseScratch(128);throw error}
     };
     try{
       for(const c of this.#registry)await cursors.get(c)!.save(t,control);
@@ -1119,11 +1121,11 @@ export class PrivateBlobkeyPages {
         count+=page.nCell;
         if(page.pgno===this.root){await control.checkpoint(4096);changed=true;const entry=this.#pages.get(this.root)!;entry.bytes.fill(0);entry.bytes[0]=10;put2(entry.bytes,5,4096);entry.derived=null;entry.entries=0}
         else {changed=true;await this.#freePage(page.pgno,control,true)}
-        frames.pop();this.#budget.release(128);frame.lease.release();
+        frames.pop();this.#budget.releaseScratch(128);frame.lease.release();
       }
       this.#epoch++;return count;
     }catch(error){if(changed)this.#trip(error);throw error}
-    finally{while(frames.length){const frame=frames.pop()!;this.#budget.release(128);try{frame.lease.release()}catch{/* primary wins */}}this.#end(t)}
+    finally{while(frames.length){const frame=frames.pop()!;this.#budget.releaseScratch(128);try{frame.lease.release()}catch{/* primary wins */}}this.#end(t)}
   }
   /** Single staged descriptor consumption; no redistribution/parent edits. */
   async transferStagedCell(source:number,destination:number,slot:number,control:PrivateStateControl):Promise<void>{
@@ -1138,14 +1140,14 @@ export class PrivateBlobkeyPages {
       if(!Number.isInteger(slot)||slot<0||slot>to.nCell)corrupt("invalid staged transfer slot");
       const authority=stagedCells.get(from)!,bytes=authority.peek();
       if(to.computeFreeSpace()<bytes.length+2)throw new Error("staged transfer requiring balance is unsupported");
-      this.#budget.reserve(bytes.length+64);charge=bytes.length+64;const copy=bytes.slice();
+      this.#budget.reserveScratch(bytes.length+64);charge=bytes.length+64;const copy=bytes.slice();
       await control.checkpoint(bytes.length);
       authority.take();this.#transit++;removed=true;
-      const target=new PrivateIndexPage(destination,dst.bytes,{reserve:n=>this.#budget.reserve(n),release:n=>this.#budget.release(n),admitEntry:()=>this.#consumeTransit(dst)},this.#maxKeyBytes);
+      const target=new PrivateIndexPage(destination,dst.bytes,{reserve:n=>this.#budget.reserveScratch(n),release:n=>this.#budget.releaseScratch(n),admitEntry:()=>this.#consumeTransit(dst)},this.#maxKeyBytes);
       await target.insertCell(slot,copy,control);
       dst.derived=null;this.#epoch++;
     }catch(error){primary=error;if(removed)this.#trip(error)}
-    finally{for(const lease of [a,b])if(lease)try{lease.release()}catch(error){primary??=error}if(removed&&primary!==undefined)this.#trip(primary);if(charge)this.#budget.release(charge);this.#end(t)}
+    finally{for(const lease of [a,b])if(lease)try{lease.release()}catch(error){primary??=error}if(removed&&primary!==undefined)this.#trip(primary);if(charge)this.#budget.releaseScratch(charge);this.#end(t)}
     if(primary!==undefined)throw primary;
   }
   #disposeStaging(page:PrivateIndexPage|null):void{if(page)stagedDisposal.get(page)!()}
@@ -1169,7 +1171,7 @@ export class PrivateBlobkeyPages {
     if(payload.length>this.#maxKeyBytes)throw new PrivateStateLimitError("private overwrite key exceeds byte limit");
     const t=this.#begin();let charge=0,lease:PrivatePageLease|null=null,primary:unknown,written=false;
     try{
-      this.#budget.reserve(payload.length+64);charge=payload.length+64;
+      this.#budget.reserveScratch(payload.length+64);charge=payload.length+64;
       if(!control.snapshotCheckpoint&&payload.length>4096){await control.checkpoint(0);throw new Error("large private input requires synchronous snapshot checkpoint")}
       control.snapshotCheckpoint?.(0);
       const owned=new Uint8Array(payload.length);
@@ -1182,7 +1184,7 @@ export class PrivateBlobkeyPages {
     finally{
       if(lease)try{lease.release()}catch(error){primary??=error}
       if(written&&primary!==undefined)this.#trip(primary);
-      if(charge)this.#budget.release(charge);this.#end(t);
+      if(charge)this.#budget.releaseScratch(charge);this.#end(t);
     }
     if(primary!==undefined)throw primary;
   }
@@ -1208,7 +1210,7 @@ export class PrivateBlobkeyPages {
       let result:{bytes:Uint8Array;release():void}|null=null,charge=0;
       try{
         // Native construction precedes old overflow destruction and drop.
-        result=await this.#fillCell(pgno,key,control);this.#budget.reserve(result.bytes.length);charge=result.bytes.length;
+        result=await this.#fillCell(pgno,key,control);this.#budget.reserveScratch(result.bytes.length);charge=result.bytes.length;
         const cell=new Uint8Array(charge);for(let i=0;i<charge;i++)cell[i]=result.bytes[i]!;
         const old=page.parseCell(index);if(!page.leaf)cell.set(entry.bytes.subarray(old.offset,old.offset+4));
         entry.editToken=t;
@@ -1216,7 +1218,7 @@ export class PrivateBlobkeyPages {
         if(old.nLocal===old.nPayload&&old.nSize===charge){await control.checkpoint(charge);entry.bytes.set(cell,old.offset);this.#epoch++}
         else{await page.dropCell(index,old.nSize,control);await page.insertCell(index,cell,control)}
       }catch(error){this.#trip(error);throw error}
-      finally{delete entry.editToken;if(charge)this.#budget.release(charge);result?.release()}
+      finally{delete entry.editToken;if(charge)this.#budget.releaseScratch(charge);result?.release()}
       return;
     }
     if(balance&&!replace&&page.leaf&&!page.nOverflow&&key.length>page.maxLocal){
@@ -1226,9 +1228,9 @@ export class PrivateBlobkeyPages {
       try{
         cell=await this.#fillCell(pgno,key,control);
         entry.editToken=t;
-        const size=cell.bytes.length;this.#budget.reserve(size);
+        const size=cell.bytes.length;this.#budget.reserveScratch(size);
         try{const owned=new Uint8Array(size);for(let i=0;i<size;i++)owned[i]=cell.bytes[i]!;await page.insertCell(index,owned,control)}
-        finally{this.#budget.release(size)}
+        finally{this.#budget.releaseScratch(size)}
       }catch(error){this.#trip(error);throw error}
       finally{delete entry.editToken;cell?.release()}
       return;
@@ -1239,7 +1241,7 @@ export class PrivateBlobkeyPages {
     const old=replace?page.parseCell(index):null;
     if(old&&old.nLocal!==old.nPayload)throw new Error("local replacement requires overflow clear (unimplemented)");
     if(!balance&&size+2>page.computeFreeSpace()+(old?old.nSize+2:0))throw new Error("local writer requires balance (unimplemented)");
-    this.#budget.reserve(size);
+    this.#budget.reserveScratch(size);
     try{
       const cell=new Uint8Array(size);value=key.length;
       for(let i=count-1;i>=0;i--){cell[page.childPtrSize+i]=(value%128)|(i===count-1?0:128);value=Math.floor(value/128)}
@@ -1255,7 +1257,7 @@ export class PrivateBlobkeyPages {
         }
         await page.insertCell(index,cell,control);
       }catch(error){if(dropped)this.#trip(error);throw error}finally{delete entry.editToken}
-    }finally{this.#budget.release(size)}
+    }finally{this.#budget.releaseScratch(size)}
   }
   async #overwritePayload(pgno:number,index:number,owned:Uint8Array,control:PrivateStateControl):Promise<void>{
     let written=false;
@@ -1298,7 +1300,7 @@ export class PrivateBlobkeyPages {
     if(cell.length>4096)throw new PrivateStateLimitError("private replacement cell too large");
     const t=this.#begin();let lease:PrivatePageLease|null=null,charge=0,primary:unknown,written=false;
     try{
-      this.#budget.reserve(cell.length+64);charge=cell.length+64;
+      this.#budget.reserveScratch(cell.length+64);charge=cell.length+64;
       // Own packed physical input before the first await; bounded to one page.
       // Native borrows synchronously. Async adaptation probes under the gate
       // after peak admission and before copy/peer saves; failure is unpublished.
@@ -1319,7 +1321,7 @@ export class PrivateBlobkeyPages {
       if(different){written=true;entry.bytes.set(copy,offset)}
       this.#epoch++; // entry count unchanged: REPLACE, never NEW.
     }catch(error){primary=error;if(written)this.#trip(error)}
-    finally{if(lease)try{lease.release()}catch(error){primary??=error}if(written&&primary!==undefined)this.#trip(primary);if(charge)this.#budget.release(charge);this.#end(t)}
+    finally{if(lease)try{lease.release()}catch(error){primary??=error}if(written&&primary!==undefined)this.#trip(primary);if(charge)this.#budget.releaseScratch(charge);this.#end(t)}
     if(primary!==undefined)throw primary;
   }
   /** Narrow physical cell-transfer prerequisite, not balance or Insert. Packed
@@ -1340,11 +1342,11 @@ export class PrivateBlobkeyPages {
       if(to.computeFreeSpace()<cell.nSize+2)throw new Error("transfer requiring balance is unsupported");
       // Linear ownership: resident source -> pending transit -> resident target.
       // Transit remains in aggregate count; it is not NEW admission at capacity.
-      this.#budget.reserve(cell.nSize+64);scratch=cell.nSize+64;
+      this.#budget.reserveScratch(cell.nSize+64);scratch=cell.nSize+64;
       const copy=this.#pages.get(source)!.bytes.slice(offset,offset+cell.nSize);
       const src=this.#pages.get(source)!,dst=this.#pages.get(destination)!;
       const make=(pgno:number,entry:ArenaPage,remove:(n:number)=>void,admit:()=>()=>void)=>new PrivateIndexPage(pgno,entry.bytes,{
-        reserve:n=>this.#budget.reserve(n),release:n=>this.#budget.release(n),removeEntries:remove,admitEntry:admit
+        reserve:n=>this.#budget.reserveScratch(n),release:n=>this.#budget.releaseScratch(n),removeEntries:remove,admitEntry:admit
       },this.#maxKeyBytes);
       const drop=make(source,src,n=>{src.entries-=n;this.#transit+=n;removed=true},()=>{throw new Error("transfer source cannot admit")});
       const insert=make(destination,dst,()=>{throw new Error("transfer target cannot remove")},()=>this.#consumeTransit(dst));
@@ -1356,7 +1358,7 @@ export class PrivateBlobkeyPages {
     finally{
       for(const lease of [fromLease,toLease])if(lease)try{lease.release()}catch(error){primary??=error}
       if((removed||writing)&&primary!==undefined)this.#trip(primary);
-      if(scratch)this.#budget.release(scratch);this.#end(t);
+      if(scratch)this.#budget.releaseScratch(scratch);this.#end(t);
     }
     if(primary!==undefined)throw primary;
   }
@@ -1375,10 +1377,10 @@ export class PrivateBlobkeyPages {
     if(total>this.#maxEntries)throw new PrivateStateLimitError("private index entry limit");
     // Replacement scratch is charged at peak, even though old/new buffers have
     // the same capacity. No alias or net accounting hides the allocation.
-    this.#budget.reserve(old?4096:PRIVATE_PAGE_CHARGE);
+    if(old)this.#budget.reserveScratch(4096);else this.#budget.reserve(PRIVATE_PAGE_CHARGE);
     try{const copy=bytes.slice();this.#pages.set(pgno,{bytes:copy,refs:0,derived:null,entries});if(!old)this.#budget.acquirePackedPage()}
-    catch(error){this.#budget.release(old?4096:PRIVATE_PAGE_CHARGE);throw error}
-    if(old){this.#disposeStaging(old.derived);this.#budget.release(4096);}
+    catch(error){if(old)this.#budget.releaseScratch(4096);else this.#budget.release(PRIVATE_PAGE_CHARGE);throw error}
+    if(old){this.#disposeStaging(old.derived);this.#budget.releaseScratch(4096);}
     this.#epoch++;
     put4(this.#pages.get(1)!.bytes,28,this.#pages.size);
   }
@@ -1388,7 +1390,7 @@ export class PrivateBlobkeyPages {
     let primary:unknown;
     for(const release of this.#results)try{release()}catch(error){primary??=error}
     for(const page of this.#pages.values())try{this.#disposeStaging(page.derived)}catch(error){primary??=error}
-    this.#budget.release(this.#pages.size*PRIVATE_PAGE_CHARGE+PRIVATE_ARENA_CHARGE);this.#budget.releasePackedPages(this.#pages.size);this.#pages.clear();this.#closed=true;if(primary!==undefined)throw primary;
+    this.#budget.release(this.#pages.size*PRIVATE_PAGE_CHARGE);this.#budget.releaseScratch(PRIVATE_ARENA_CHARGE);this.#budget.releasePackedPages(this.#pages.size);this.#pages.clear();this.#closed=true;if(primary!==undefined)throw primary;
   }
 }
 

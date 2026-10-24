@@ -6,6 +6,36 @@ import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem} from '../../src/internal/mem.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
 
+test('arena lease, raw capabilities and init failure share scratch ownership',async()=>{
+ for(const cap of [8703,8704,8705,100000]){
+  const budget=new PrivateStateByteBudget(cap),survivor=new PrivateStateByteBudget(100);
+  survivor.reserve(19);const independent=survivor.snapshot();
+  const arena=await PrivateBlobkeyPages.open(budget,{checkpoint(){}});
+  try{
+   const baseline=budget.snapshot();assert.equal(baseline.ownedBytes,8576);
+   if(cap<8704){assert.throws(()=>arena.acquire(2));assert.deepEqual(budget.snapshot(),baseline);}
+   else {
+    const lease=arena.acquire(2),live=budget.snapshot();
+    try{assert.equal(live.ownedBytes,8704);assert.equal(live.scratchBytes-baseline.scratchBytes,128);assert.equal(live.memBytes,0);assert.equal(live.recordBytes,0);assert.equal(live.packedPages,2);}
+    finally{lease.release()}
+    assert.equal(budget.snapshot().scratchBytes,baseline.scratchBytes);
+    assert.equal(live.scratchBytes,baseline.scratchBytes+128);
+    if(cap===100000){
+     const raw=arena.acquireRaw(2);
+     try{const before=budget.snapshot();const view=raw.bytes.subarray(0,4);assert.equal(view.length,4);assert.ok(budget.snapshot().scratchBytes>before.scratchBytes);assert.equal(budget.snapshot().ownedBytes-before.ownedBytes,budget.snapshot().scratchBytes-before.scratchBytes)}finally{raw.release()}
+     assert.equal(budget.snapshot().scratchBytes,baseline.scratchBytes);
+    }
+   }
+   assert.deepEqual(survivor.snapshot(),independent);
+  }finally{arena.close();survivor.release(19)}
+  const done=budget.snapshot();assert.equal(done.ownedBytes,0);assert.equal(done.scratchBytes,0);assert.equal(done.chargedBytes,done.refundedBytes);
+ }
+ const budget=new PrivateStateByteBudget(100000),primary=new Error('init');
+ const arena=await PrivateBlobkeyPages.open(budget,{checkpoint(){}},event=>{if(event==='init')throw primary});
+ try{const before=budget.snapshot();assert.throws(()=>arena.acquire(2),error=>error===primary);assert.equal(budget.snapshot().ownedBytes,before.ownedBytes);assert.equal(budget.snapshot().scratchBytes,before.scratchBytes)}finally{arena.close()}
+ assert.equal(budget.snapshot().scratchBytes,0);
+});
+
 test('ordinary VM String/Copy bytes share admission and refund on every exit',async()=>{
  const program=(n,maxBytes)=>({encoding:'utf-8',registers:3,parameters:[],columns:[{name:'x'}],maxWorkUnits:1000000,maxResultBytes:100000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes},ops:[
   {code:'String',p1:'x'.repeat(n),p2:1},{code:'Copy',p1:1,p2:2},
@@ -59,14 +89,14 @@ test('non-payload scratch observes admission, payload overlap and failure refund
  const arena=await PrivateBlobkeyPages.open(budget,control);
  try{
   const before=budget.snapshot();arena.reserveScratch(576);const live=budget.snapshot();
-  assert.equal(live.ownedBytes-before.ownedBytes,576);assert.equal(live.scratchBytes,576);
+  assert.equal(live.ownedBytes-before.ownedBytes,576);assert.equal(live.scratchBytes-before.scratchBytes,576);
   assert.equal(live.payloadScratchBytes,0);
   arena.reservePayloadScratch(67);
-  assert.equal(budget.snapshot().scratchBytes,643);assert.equal(budget.snapshot().payloadScratchBytes,67);
+  assert.equal(budget.snapshot().scratchBytes-before.scratchBytes,643);assert.equal(budget.snapshot().payloadScratchBytes,67);
   assert.equal(budget.snapshot().ownedBytes-before.ownedBytes,643);
   arena.releasePayloadScratch(67);arena.releaseScratch(576);
-  assert.equal(budget.snapshot().scratchBytes,0);assert.equal(budget.snapshot().scratchHighwaterBytes,643);
-  assert.equal(live.scratchBytes,576,'snapshot is detached');
+  assert.equal(budget.snapshot().scratchBytes,before.scratchBytes);assert.equal(budget.snapshot().scratchHighwaterBytes,before.scratchBytes+643);
+  assert.equal(live.scratchBytes,before.scratchBytes+576,'snapshot is detached');
   const snapshot=budget.snapshot();assert.throws(()=>arena.reserveScratch(100001));
   assert.deepEqual(budget.snapshot(),snapshot);
  }finally{arena.close()}

@@ -29,7 +29,7 @@ export class PrivateStateByteBudget {
   reserveMem(bytes:number):void{this.reserve(bytes);this.#memBytes+=bytes;this.#memHighwaterBytes=Math.max(this.#memHighwaterBytes,this.#memBytes)}
   releaseMem(bytes:number):void{this.release(bytes);this.#memBytes-=bytes}
   #recordBytes=0; #recordHighwaterBytes=0;
-  /** Admitted cursor/conversion scratch, including payload copies. Not all JS temporaries or VM Mem. */
+  /** Admitted arena control/lease/staging, cursor and conversion scratch, including payload copies. Not all JS temporaries or VM Mem. */
   reserveScratch(bytes:number):void{this.reserve(bytes);this.#scratchBytes+=bytes;this.#scratchHighwaterBytes=Math.max(this.#scratchHighwaterBytes,this.#scratchBytes)}
   releaseScratch(bytes:number):void{this.release(bytes);this.#scratchBytes-=bytes}
   /** Packed MakeRecord register ownership, separate from conversion scratch. */

@@ -103,9 +103,15 @@ The same regression covers actual String→Copy capacity64 and H−1/H/H+1,
 borrow versus owned copies, move/numeric refund, reset/finalize and independent
 live statement survival. Live/highwater Mem backing excludes scalar slots,
 bindings, detached temporaries and aggregate/rowset internals; encoding/adopt
-producer allocation overlap remains unproved. Unclassified arena reservations
-and all-consumer resource acceptance remain open. Evidence: [[card:card-s-j-c]]
-status (accepted red evidence v28 and subsequent repair evidence).
+producer allocation overlap remains unproved. `pager.c:sqlite3PagerGet` /
+`sqlite3PagerUnref` acquisition lifetimes map to private arena leases/raw leases;
+their revoked-view capabilities, arena control and derived/packed staging now
+share scratch admission/refund in `private-blobkey-pages.ts`. Packed page backing
+remains aggregate-only with page counts (replacement overlap is scratch).
+`private-demand-observation.test.mjs` preserves the 8576→8704 acquisition witness,
+H−1/H/H+1, raw capabilities, failed init and independent-owner cleanup controls.
+All-consumer resource acceptance remains open. Evidence: [[card:card-s-j-c]]
+status (accepted red evidence v28/v31 and subsequent repair evidence).
 Reset retains release totals
 until next execution entry installs a fresh budget owner; VM continuation tests
 check distinct execution owners, balanced cleanup and paused independent budgets.

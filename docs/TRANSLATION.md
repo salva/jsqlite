@@ -580,9 +580,13 @@ borrowed/static bytes retain their producer owner, move transfers ownership, and
 numeric replacement/reset/error/halt/finalize refund owned backing. Scalar slots,
 bindings, detached temporary Mem and aggregate/rowset internals are not counted
 by this category. Encoding/adopt paths admit at publication (their producer
-allocation still needs separate overlap inventory). Unclassified arena leases and
-staging, temporary/conversion allocation completeness and all-consumer capacity
-remain open; this is not native heap parity or full Mem acceptance. Owner regression
+allocation still needs separate overlap inventory). Arena control, leases/raw
+leases, revoked-view capabilities, derived overflow-cell staging, balance/transfer
+controls and packed temporary copies now use this same scratch category. Packed
+page backing stays aggregate-only with separate page counts; replacement overlap
+is scratch. Admission and cleanup order are unchanged and payload scratch remains
+a subset, not an extra charge. Temporary/conversion allocation completeness and
+all-consumer capacity remain open; this is not native heap parity or full Mem acceptance. Owner regression
 and evidence: `test/value/private-demand-observation.test.mjs`,
 [[card:card-s-j-c]] status.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for ordinary rowid INNER/CROSS persistent equality loops, including deeper-ready construction/pull-down. IPK standalone equality is now enrolled: build hashes Rowid, probe uses MustBeInt's no-match continuation before Filter and authoritative SeekRowid. Wider continuation consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-c]] status for exact current evidence.
