@@ -324,10 +324,16 @@ passed for INNER (`proc-f1693793f21d`), LEFT (`proc-c1ea81d11336`) and persisten
 standalone (`proc-b7a4e8f23316`): all three encodings, ordinary native comparisons
 and the eight owner exits on ordinary/deferred-close connections. Exact receipts,
 commands and durable output references are in [[card:card-s-j-c]] status.
-These are selected lifetime schedules, not parameter-sensitive reprepare proof.
-Two exploratory STAT4 self-joins changed program identity on bind but executed
-neither automatic nor standalone Bloom work; they confer no consumer coverage.
-Next work must obtain a real parameter-sensitive consumer, not force an expmask.
+These are selected lifetime schedules. Parameter-sensitive standalone reprepare
+now uses the same owner and a native-first STAT4 witness with a persistent
+equality index, local self-culling residual and sufficient outer searches.
+`where-autoindex-reprepare-native.py` captures three encodings/two bindings,
+requires native BLOOM FILTER and positive reprepare status, and retains fixture
+hashes, typed rows and all five metadata fields. `where-autoindex-real-reprepare.mjs`
+requires replacement program identity, positive FilterAdd/probe/seek, ordinary
+and zombie-close cleanup and independent survivor completion. Evidence and failed
+targeting/capture hypotheses: [[card:card-s-j-c]] status. Construction-fault
+coverage remains distinct and open; no expmask forcing or synthetic consumer.
 
 ## Remaining acceptance obligations
 

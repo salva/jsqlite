@@ -70,8 +70,11 @@ Bloom bytes now supply release snapshots; actual SQL survivor controls cover
 done/reset/finalize and post-row cancel/timeout with native row continuation.
 The same owner now enrolls positive INNER/LEFT, actual unlimited-LIMIT rebind,
 and separate zombie-close connections with two distinct live owners and
-independent survivor completion. This does not cover parameter-sensitive
-reprepare; retained-plan LIMIT binding is explicitly distinct. Evidence:
+independent survivor completion. Parameter-sensitive standalone reprepare now
+uses an independently captured STAT4/Bloom join witness and the same owner;
+program replacement, native rows/metadata and positive real filter work are
+required. Retained-plan LIMIT binding remains a separate control. Replacement
+construction faults and residual safety breadth remain open. Evidence:
 [[card:card-s-j-c]] status.
 Additional source-owned serial controls now interrupt actual build/probe after
 confirmed progress for automatic and standalone, inject second-page and reserved

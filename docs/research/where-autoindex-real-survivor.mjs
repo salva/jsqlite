@@ -11,11 +11,13 @@ export async function realDeferredSurvivor(open,sql,expected,cell,workExpected){
  finally{if(!completed){try{db.closeDeferred();}catch{/* Preserve failed assertion; driver finalized both owned statements. */}}}
 }
 
-export async function realSurvivor(db,sql,expected,cell,workExpected,{deferredClose=false}={}){
+export async function realSurvivor(db,sql,expected,cell,workExpected,{deferredClose=false,parameterBinding}={}){
  // Native LIMIT -1 preserves the complete independently captured result.
- const ownerSql=`${sql.replace(/;\s*$/,'')} LIMIT ?1`;
- const prepareOwner=()=>{const s=db.prepare(ownerSql).statement;s.bind(1,-1n);return s;};
- const survivor=db.prepare(sql).statement;let owner=prepareOwner(),ownerFinalized=false;
+ const ownerSql=parameterBinding===undefined?`${sql.replace(/;\s*$/,'')} LIMIT ?1`:sql;
+ const binding=parameterBinding??-1n;
+ const prepareOwner=()=>{const s=db.prepare(ownerSql).statement;s.bind(1,binding);return s;};
+ const survivor=db.prepare(sql).statement;if(parameterBinding!==undefined)survivor.bind(1,binding);
+ let owner=prepareOwner(),ownerFinalized=false;
  try{
   const columns=s=>Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i));
   assert.deepEqual(columns(owner),expected.columns);assert.deepEqual(columns(survivor),expected.columns);
@@ -56,13 +58,14 @@ export async function realSurvivor(db,sql,expected,cell,workExpected,{deferredCl
     }
    }else if(exit==='rebind'){
     owner.reset();assertReleased(privateAccounting(owner),before,privateAccounting(survivor));
-    owner.bind(1,-1n);
+    owner.bind(1,binding);
     const rows=[];
     while(await owner.step()==='row')rows.push(Array.from({length:owner.columnCount},(_,i)=>cell(owner,i)));
     assert.deepEqual(rows,expected.runs[0].rows);
     const rebound=privateAccounting(owner);
     assert.notEqual(rebound.executionId,live.executionId);
-    assert.equal(rebound.planId,live.planId,'non-sensitive LIMIT rebind retains program');
+    if(parameterBinding===undefined)assert.equal(rebound.planId,live.planId,'non-sensitive LIMIT rebind retains program');
+    else assert.notEqual(rebound.planId,live.planId,'sensitive binding must replace actual consumer program');
     if(typeof workExpected==='function')workExpected(rebound);else assertRuntimeWork(rebound,workExpected);
     owner.reset();
    }else if(exit==='reset')owner.reset();else {

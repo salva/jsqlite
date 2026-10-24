@@ -44,8 +44,12 @@ persistent standalone). Positive INNER/LEFT now use the same owner. A bound
 unlimited LIMIT exercises actual reset/rebind with native rows and retained
 program identity. Separate connection runs mark the database zombie with two
 live resource owners, finalize the first, reject new prepare and resume the
-independent survivor to complete native rows. Parameter-sensitive reprepare
-remains pending (LIMIT rebinding does not expire the program). Evidence:
+independent survivor to complete native rows. Parameter-sensitive standalone
+reprepare uses `where-autoindex-real-reprepare.mjs` and the same owner: native
+STAT4 expiration/replacement, positive actual filter work, native rows/metadata
+and ordinary/zombie lifetime controls. The independent C capture requires native
+BLOOM FILTER and SQLITE_STMTSTATUS_REPREPARE; LIMIT rebinding remains distinct.
+Evidence:
 [[card:card-s-j-c]] status. `where-autoindex-real-progress.mjs` uses the existing
 `VdbeHostAdmission.checkpoint` seam to cancel/expire automatic build after an
 insert and probe after positive progress; standalone observes FilterAdd before

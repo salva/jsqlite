@@ -517,9 +517,13 @@ fixtures. The owner uses a bound unlimited LIMIT: reset/rebind repeats complete
 native rows with a fresh execution and unchanged program. Separate connections
 exercise deferred close with both distinct owners live, owner finalization,
 rejected new prepare and complete independent survivor continuation. Existing
-cancel/timeout first-error schedules remain intact. Parameter-sensitive reprepare
-and residual fault/lifetime acceptance remain open; LIMIT rebinding does not
-claim program replacement.
+cancel/timeout first-error schedules remain intact. Actual parameter-sensitive standalone reprepare now uses the same survivor owner
+with a native-first STAT4 join witness (`where-autoindex-real-reprepare.mjs`).
+Binding expiration must replace the program while preserving fresh execution,
+positive FilterAdd/probe/seek work, native rows/metadata, cleanup and independent
+survival, including deferred close. LIMIT-only rebinding remains a retained-program
+control. Replacement-construction faults and residual safety breadth remain open;
+see [[card:card-s-j-c]] status for revision-bound evidence.
 `AUTO_REAL_PROGRESS=1` interrupts automatic build after successful insertion and
 probe after completed build/positive probes; standalone requires positive actual
 FilterAdd with zero probes for build, positive FilterAdd/probes for probe. These
