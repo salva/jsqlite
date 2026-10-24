@@ -59,6 +59,13 @@ for(const v of native.variants){
      assert.equal(c.program.filter(o=>o.opcode==='Once'&&o.addr<ns[1].addr).length,2);assert.notEqual(nf[0].p2,nf[1].p2);
     }finally{storage.close();}
    }
+   if(c.case==='frame-bloom'||c.case==='frame-first'){
+    // Child WHERE work shares the builder but retains its own Once and cursor
+    // IDs. Demand native construction/probe structure, not only equal rows.
+    const nf=c.program.filter(o=>o.opcode==='Filter'),adds=c.program.filter(o=>o.opcode==='FilterAdd');
+    assert.equal(nf.length,1);assert.equal(adds.length,1);assert.ok(adds[0].addr<nf[0].addr);
+    assert.ok(c.program.some(o=>o.opcode==='Once'&&o.addr<adds[0].addr));
+   }
    const s=db.prepare(c.sql).statement;
    try{
     assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i)),c.columns);

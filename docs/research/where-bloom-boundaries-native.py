@@ -7,6 +7,8 @@ n=importlib.util.module_from_spec(s);s.loader.exec_module(n)
 d=n.load(sys.argv[1]);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
 assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId']
 cases={
+ 'frame-bloom':"SELECT (SELECT count(*) FROM t x CROSS JOIN tiny z CROSS JOIN t y WHERE y.a=99 AND y.b=x.b AND y.s='cold') AS n",
+ 'frame-first':"SELECT (SELECT y.id FROM t x CROSS JOIN tiny z CROSS JOIN t y WHERE y.a=99 AND y.b=x.b AND y.s='cold' LIMIT 1) AS n",
  'outer':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z LEFT JOIN t y ON y.a=99 AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
  'in':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t y WHERE y.a IN (NULL,-1,98,99) AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
  'group-outer':"SELECT x.id,r.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t r LEFT JOIN t y ON y.a=98 AND y.b=x.b AND y.s='cold' WHERE r.a=99 AND r.b=x.b AND r.s='cold' ORDER BY x.id,r.id,y.id",

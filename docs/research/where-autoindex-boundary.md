@@ -5,6 +5,31 @@ Candidate baseline c875487f3607be620ed0057caf2b375103af050f / tree
 [decision](where-autoindex-admission.md), not persistent schema-autoindex tests.
 No runtime implementation, public API change, or feature credit.
 
+## Scalar-child standalone continuation repair (author evidence)
+
+On `40fe0bf3`, the accepted scalar-child count witness returned native INTEGER500
+but TS dispatched no filters. The original receipt and failed assertion remain in
+[[card:card-s-j-c]] [status62](record:///status.md?card=card-s-j-c&v=62).
+The owning divergence was the blanket expressionBinding/consumeRow enrollment
+gate, not a different hash algorithm or missing cursor representation.
+Pinned where.c7438–7472 constructs selected filters inside each WHERE invocation;
+1273–1392 owns source-local Once/build and wherecode.c1391–1449 consumes probes.
+TS already shares one SelectProgramBuilder register/cursor namespace, resolves
+local binding through cursorFor/columnAccess, and directs aggregate callbacks only
+after positioned WHERE rows. Those two callback-presence exclusions are removed;
+RIGHT drains and derived source producers remain gated pending their own work.
+No independent evaluator, SQL special case, fixture edit or budget change.
+
+The existing capture/public boundary drivers now retain the exact scalar count
+reproducer plus a scalar first-row LIMIT1 control across all three encodings and
+two real reset runs. Both require native Once/FilterAdd/Filter structure and
+actual positive TS filter/probe/index seek dispatch, typed rows, five metadata
+fields and zero remaining bytes/cursors. Count exhausts the child; first-row
+return checks early exit. Original correlated no-filter and skip/LEFT/IN controls
+remain. Exact final commands, receipt identity and results are maintained in the
+current card status; this is author regression evidence, not full frame/drain
+safety coverage or independent acceptance.
+
 ## Standalone boundary investigation (continuing author evidence)
 
 `where-bloom-boundaries-native.py` captures read-only pinned public-API outer,

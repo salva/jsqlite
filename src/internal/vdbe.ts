@@ -4496,9 +4496,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // sqlite3ConstructBloomFilter is independent of automatic-index selection.
   // Enroll ordinary rowid equality/IN consumers, including local LEFT filters.
   // Only independent non-outer, non-IN later levels may share construction
-  // and pull-down. Frame/drain producers still need their own handoff.
+  // and pull-down. Bindings and positioned-row consumers share this builder's
+  // register/cursor namespace, not a separate WHERE execution. Derived source
+  // producers and RIGHT drains still need their own handoff.
   const bloomLevels=new Map<number,{register:number;bytes:number}>();
-  if(!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid&&!source.joinFromLeft.right)&&multiWhere.path){
+  if(!owner?.rightJoinDrain&&!owner?.sourceProducers&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid&&!source.joinFromLeft.right)&&multiWhere.path){
     for(const descriptor of standaloneBloomDescriptors(multiWhere.path,true)){
       const loop=descriptor.loop,cap=loop.capability;
       if((loop.kind==='rowid'&&cap?.rowidEquality&&(cap.rowidEquality.operator==='eq'||cap.rowidEquality.operator==='is'))||(loop.kind==='index'&&cap&&cap.physicalIndex?.fields.slice(0,cap.nEq).every(field=>field.column!==null)&&!cap.lower&&!cap.upper&&!cap.inSeekScan&&cap.equalitySlots.every(slot=>slot===null||slot.operator==='eq'||slot.operator==='is'||slot.operator==='in')))
