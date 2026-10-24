@@ -1,2 +1,2 @@
 import {registerNullableComposition} from './or-wr-nullable-cases.mjs';
-registerNullableComposition('FULL');
+registerNullableComposition('FULL','UTF-8');

@@ -15,14 +15,16 @@ async function withDb(v,run,options){
  const server=http.createServer((_q,r)=>r.end(bytes)); await new Promise(r=>server.listen(0,'127.0.0.1',r));let db;
  try{db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`),options);await run(db)}finally{db?.closeDeferred();await new Promise(r=>server.close(r))}
 }
-// Separate processes retain every assertion, encoding and reset without raising
-// the file watchdog. The case body is unchanged from or-wr-boundary.
-export function registerNullableComposition(join){
+// One file admits one complete encoding case; the shared assertion body and
+// fixture/native ownership are unchanged from the original combined callbacks.
+export function registerNullableComposition(join,encoding){
  assert.ok(join==='RIGHT'||join==='FULL');
-test(`WR ${join} nullable composition matches pinned execution`,async()=>{
+ const variants=capture.variants.filter(v=>v.encoding===encoding);
+ assert.equal(variants.length,1,'one known encoding is required');
+test(`WR ${join} ${encoding} nullable composition matches pinned execution`,{timeout:100000},async()=>{
  const native=JSON.parse(fs.readFileSync(new URL('../../docs/research/card-s-i/native-right-full.json',import.meta.url)));
  assert.equal(native.sourceId,manifest.sqliteSourceId);
- for(const v of capture.variants)await withDb(v,async db=>{
+ for(const v of variants)await withDb(v,async db=>{
   const sql=`SELECT u.x,w.n FROM u ${join} JOIN w ON (w.a=1 OR w.b=2) AND w.n=u.x`;
   const c=native.cases.find(c=>c.encoding===v.encoding&&c.sql===sql);assert.ok(c);
   assert.equal(c.fixtureSha256,v.fixture.sha256);
