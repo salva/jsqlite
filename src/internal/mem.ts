@@ -550,10 +550,16 @@ export class Mem {
       return;
     }
     const source = old.bytes.subarray(0, old.bytes.byteLength & ~1);
-    const bytes = sqliteUtf16ToUtf8(source,old.encoding);
-    checkedLength(bytes.byteLength, limits.maxLength);
+    // utf.c allocates 2*n+1 before conversion. The returned subarray retains
+    // that whole allocation, including spare capacity and terminator; admit
+    // and retain its backing charge, not merely the logical result length.
+    const capacity = 2 * source.byteLength + 1;
+    this.#ownBytes(capacity,()=>{
+      const bytes = sqliteUtf16ToUtf8(source,old.encoding);
+      checkedLength(bytes.byteLength, limits.maxLength);
+      return { kind: "text", bytes, encoding, terminated: true, ownership: "owned", zeroTail: 0 };
+    });
     this.#generation.invalidate();
-    this.#ownBytes(bytes.length,()=>({ kind: "text", bytes, encoding, terminated: true, ownership: "owned", zeroTail: 0 }));
   }
   /** MakeRecord's transient conversion admission, predicted without mutation.
    * vdbe.c applies affinity before serialization. JS numeric scanners build a

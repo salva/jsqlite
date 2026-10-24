@@ -103,7 +103,13 @@ The same regression covers actual String→Copy capacity64 and H−1/H/H+1,
 borrow versus owned copies, move/numeric refund, reset/finalize and independent
 live statement survival. Live/highwater Mem backing excludes scalar slots,
 bindings, detached temporaries and aggregate/rowset internals; encoding/adopt
-producer allocation overlap remains unproved for UTF16→UTF8 and adopt.
+producer allocation overlap remains unproved for adopt.
+`utf.c:sqlite3VdbeMemTranslate` UTF16→UTF8 `2*n+1` allocation maps to
+`Mem.changeEncoding` reserving native backing capacity through #ownBytes before
+`sqliteUtf16ToUtf8` production. The returned subarray retains this capacity,
+charged until replacement/release; maxLength bounds logical output separately.
+Demand tests instrument both source endians at original caps5/6/7 (now no
+production) and actual overlap12/13/14, plus producer/length failure and retry.
 `utf.c:sqlite3VdbeMemTranslate` allocation-before-conversion maps for UTF8→UTF16
 to `Mem.changeEncoding`: decoded JS code-unit length predicts exact logical
 byte demand; #ownBytes admits replacement overlap before encoding, refunding

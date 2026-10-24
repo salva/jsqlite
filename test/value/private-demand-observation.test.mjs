@@ -6,6 +6,27 @@ import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem,BorrowLifetime} from '../../src/internal/mem.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
 
+test('UTF16 to UTF8 admits and retains native conversion backing before production',()=>{
+ for(const encoding of ['utf-16le','utf-16be'])for(const cap of [5,6,7,12,13,14]){
+  const budget=new PrivateStateByteBudget(cap),mem=new Mem(()=>budget);
+  mem.setText(new Uint8Array(encoding==='utf-16le'?[65,0,66,0]:[0,65,0,66]),encoding);
+  const before=budget.snapshot();let produced=0;const original=globalThis.Uint8Array;
+  globalThis.Uint8Array=new Proxy(original,{construct(target,args){assert.equal(budget.snapshot().memBytes,13);const r=Reflect.construct(target,args);produced+=r.byteLength;return r}});
+  try{if(cap<13)assert.throws(()=>mem.changeEncoding('utf-8'));else mem.changeEncoding('utf-8')}finally{globalThis.Uint8Array=original}
+  assert.equal(produced,cap<13?0:9);
+  if(cap<13)assert.deepEqual(budget.snapshot(),before);
+  else {assert.equal(budget.snapshot().memBytes,9);assert.equal(budget.snapshot().memHighwaterBytes,13)}
+  assert.equal(mem.textValue(),'AB');mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+ }
+ const budget=new PrivateStateByteBudget(13),mem=new Mem(()=>budget);mem.setText(new Uint8Array([65,0,66,0]),'utf-16le');
+ const error=new Error('reverse producer failure'),original=globalThis.Uint8Array;
+ globalThis.Uint8Array=new Proxy(original,{construct(){assert.equal(budget.snapshot().memBytes,13);throw error}});
+ try{assert.throws(()=>mem.changeEncoding('utf-8'),e=>e===error)}finally{globalThis.Uint8Array=original}
+ assert.equal(budget.snapshot().memBytes,4);assert.equal(mem.textValue(),'AB');
+ assert.throws(()=>mem.changeEncoding('utf-8',{maxLength:1}));assert.equal(budget.snapshot().memBytes,4);
+ mem.changeEncoding('utf-8');assert.equal(budget.snapshot().memBytes,9);mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+});
+
 test('UTF8 to UTF16 admits replacement overlap before byte production',()=>{
  for(const encoding of ['utf-16le','utf-16be'])for(const cap of [5,6,7]){
   const budget=new PrivateStateByteBudget(cap),mem=new Mem(()=>budget);

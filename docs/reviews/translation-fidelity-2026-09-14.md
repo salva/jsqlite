@@ -35,8 +35,11 @@ and refunds producer failure; native reusable allocator capacity and JS numeric
 rendering are not heap accounting. UTF8→UTF16 now admits exact byte demand
 before encoding, using decoded JS code-unit length (JS string storage excluded).
 Production instrumentation covers rejected/admitted replacement overlap and
-producer failure/refund/retry. Reverse UTF16→UTF8 and adopt producer
-allocation overlap remain outside that proof. UTF-16 endian translation:
+producer failure/refund/retry. UTF16→UTF8 now admits native `2*evenLength+1`
+backing before production and retains that capacity charge with the result
+subarray; original and true overlap boundaries plus producer/length failure
+controls cover both source endians. Adopt producer allocation overlap remains
+outside that proof. UTF-16 endian translation:
 it now follows native MakeWriteable/in-place swap, reusing owned backing and
 admitting borrowed/static copying before allocation. Isolated allocation
 instrumentation and boundary/odd-byte tests cover this bounded correction.
