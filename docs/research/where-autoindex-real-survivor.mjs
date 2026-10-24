@@ -20,10 +20,10 @@ export async function realSurvivor(db,sql,expected,cell,workExpected){
    if(exit==='done'){
     const rows=[Array.from({length:owner.columnCount},(_,i)=>cell(owner,i))];
     while(await owner.step()==='row')rows.push(Array.from({length:owner.columnCount},(_,i)=>cell(owner,i)));
-    assert.deepEqual(rows,expected.runs[0].rows);assertRuntimeWork(privateAccounting(owner),workExpected);
+    assert.deepEqual(rows,expected.runs[0].rows);if(typeof workExpected==='function')workExpected(privateAccounting(owner));else assertRuntimeWork(privateAccounting(owner),workExpected);
    }else if(exit==='cancel'||exit==='timeout'){
     // Build and at least one Filter probe completed before interruption.
-    assert.equal(live.builds,1);assert.ok(live.probes>0);
+    if(live.planKind==='standalone-bloom'){assert.ok(live.filterAdds>0);assert.ok(live.probes>0);}else{assert.equal(live.builds,1);assert.ok(live.probes>0);}
     const controller=new AbortController();controller.abort('real survivor control');
     const kind=exit==='cancel'?'cancelled':'timeout';
     const message=exit==='cancel'?'statement execution was cancelled':'statement execution timed out';

@@ -23,8 +23,18 @@ maps to VM halt-owned cursor/filter/Once release snapshots; Bloom storage size
 comes directly from `PrivateBloomFilter`. The existing receipt runner's
 `AUTO_REAL_SURVIVOR=1` invokes `where-autoindex-real-survivor.mjs`: independently
 paused SQL owner survives done/reset/finalize and post-row cancel/timeout, with
-unchanged live snapshots and complete native row continuation. Internal phase
-fault/cancel and exhaustive reprepare/close schedules remain pending.
+unchanged live snapshots and complete native row continuation (automatic and
+persistent standalone). `where-autoindex-real-progress.mjs` uses the existing
+`VdbeHostAdmission.checkpoint` seam to cancel/expire automatic build after an
+insert and probe after positive progress, with exact public/saved errors,
+release, independent survivor and native-result retry.
+`where-autoindex-real-page-fault.mjs` injects second-page allocation failure via
+the existing arena hook; `where-autoindex-real-filter-fault.mjs` fails filter
+initialization after reservation and before publication, including standalone.
+These source-owned serial controls restore hooks/clock in finally. Native
+`vdbe.c` interrupt checks and `vdbeaux.c` Halt own exit/cleanup, not the adapter.
+Record allocation, selected/offpath corruption, exhaustive reprepare/close and
+page/scratch/Mem observation remain pending.
 `where-autoindex-real-capacity.mjs` exercises the actual public maxPrivateBytes
 limit at measured whole-execution H−1/H/H+1 (build and probe scratch included),
 with independent live SQL survivor, exact native rows/metadata, no below-boundary

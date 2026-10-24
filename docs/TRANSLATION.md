@@ -509,8 +509,20 @@ also restores READY. `AUTO_REAL_SURVIVOR=1` in the existing receipt consumer
 pauses an independent actual SQL statement after a row, verifies its positive
 ownership and byte-for-byte unchanged observation across done/reset/finalize and
 post-row cancel/timeout cleanup, then resumes complete native-expected rows.
-This proves these specific boundaries, not interruption within build/probe work
-or exhaustive reprepare/close/fault safety. `AUTO_REAL_CAPACITY=1` adds actual
+The survivor runner covers automatic and persistent standalone fixtures. It proves
+these specific boundaries, not exhaustive reprepare/close/fault safety.
+`AUTO_REAL_PROGRESS=1` interrupts automatic build after successful insertion and
+probe after completed build/positive probes at the existing VM host-admission
+seam, asserting exact public cancel/timeout, saved-error identity, refunds and
+unchanged independently live SQL survival before retry/native-result comparison.
+`AUTO_REAL_PAGE_FAULT=1` uses the existing arena hook to throw on second page
+allocation; `AUTO_REAL_FILTER_FAULT=1` throws after filter byte reservation before
+publication (automatic and standalone). Both require exact first/saved error,
+release, survivor and successful retry. These serial source-owned research
+controls restore transport/clock/hooks in finally; they add no production option
+or testing registry. Record-allocation and selected/offpath corruption coverage
+remain open. Evidence and scope: `record:///status.md?card=card-s-j-c`.
+`AUTO_REAL_CAPACITY=1` adds actual
 maxBytes H−1/H/H+1 runs with all other limits nonbinding and a separate live SQL
 survivor excluded. H includes build and probe scratch, so H−1 may fail at a probe
 after successful build but must precede any result row in these fixtures. Public
