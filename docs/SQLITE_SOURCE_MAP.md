@@ -317,8 +317,12 @@ fixtures, not executed native INTERNAL parity captures.
 `freePage2`'s first page1 freelist-count write reports mutation ownership through
 held `#clearCellOverflow` to Delete; its checkpoint1/2 rejection and checkpoint3
 partial-failure controls distinguish retryable prewrite from all-peer FAULT.
-This remains an unaccepted candidate: overflow/staged/multilevel/error/capacity
-matrix and pinned comparisons remain incomplete; [[card:card-s-i-c-a-j]] status.
+The finite overflow/staged/multilevel/error/capacity matrix and representative
+pinned comparisons are locally accepted in the
+[NONAUTHOR assessment](record:///status.md?card=card-s-i-c-a-h&v=12);
+delivery evidence: [[card:card-s-i-c-a-j]] status. Native INTERNAL execution
+remains unobtained; application/Window, full522/browser and combined-parent
+delivery remain later obligations, not outcomes of this primitive acceptance.
 
 `vdbe.c:OP_MakeRecord` output sizing/reuse maps to `record-pack.ts` and
 `vdbe.ts` packed-record publication: fresh-array replacement charges old/new

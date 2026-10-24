@@ -659,7 +659,7 @@ saved key and packed cursor, sharing arena/root/KeyInfo. Existing cursor128
 admission precedes handle publication; registry lifetime keeps an owning arena
 alive until its last duplicate closes, including FAULT cleanup. No page or key
 is copied by duplication.
-Packed Delete now has an unaccepted held-operation implementation: original key
+Packed Delete has a locally accepted held-operation implementation: original key
 snapshot is separate from path release; interior deletion moves to the predecessor,
 saves peers, clears only deleted overflow, drops the original cell, transfers the
 predecessor with its child pointer and overflow ownership, then uses the existing
@@ -668,16 +668,17 @@ retains the deleted padded key in REQUIRESEEK. Predecessor scratch is leaf-cell-
 caller path576 overlaps the balance owner's path576 and page/staging leases. These
 are deterministic representation charges, not native malloc parity. Last retains
 AtLast only while VALID and invalidates it on movement/save/mutation.
-This candidate is not complete Delete or application/Window acceptance. Focused
-source-derived controls now include exact preservation threshold, staged/consumed
+The finite shared packed Delete and restore-aware capability is independently
+accepted locally; see [NONAUTHOR assessment](record:///status.md?card=card-s-i-c-a-h&v=12).
+Source-derived controls include exact preservation threshold, staged/consumed
 capacity, postwrite cancellation with secondary-release unwind, and mixed typed
-UTF16BE/NOCASE tie survivor/restore identity. Full affected verification, committed
-candidate review and independent pinned evidence retain their separate scope.
+UTF16BE/NOCASE tie survivor/restore identity. This is not application/Window,
+full522/browser or combined-parent delivery acceptance.
 Overflow destruction reports the actual first freelist
 write to the held Delete owner: rejection before that write remains retryable;
 failure after it faults all peers without claiming rollback. Source-derived controls are in
-`test/value/private-blobkey-delete.test.mjs`; current delivery evidence and remaining
-matrix: [[card:card-s-i-c-a-j]] status.
+`test/value/private-blobkey-delete.test.mjs`; delivery evidence:
+[[card:card-s-i-c-a-j]] status.
 OpenEphemeral reuse clears content but retains existing KeyInfo for non-growing
 width, as upstream does; it is not a rekey operation. Growth installs new KeyInfo.
 Packed insertion accepts nonempty records narrower than retained KeyInfo, using
