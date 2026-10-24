@@ -636,7 +636,12 @@ state. Replacement prereleases that owner before new allocation admission,
 matching native Blob/SetZeroBlob release-before-expansion; a failed replacement
 fails execution rather than retaining or restoring old bits. Cancellation and
 elapsed deadlines use shared execution checkpoints/first-error cleanup; no
-private filter owner controls another statement's packed cursor. SQL consumers emit these operations. Lowering applies native
+private filter owner controls another statement's packed cursor. Original SQL
+research consumers exercise admitted INNER record/page allocation faults and
+build/probe interrupts with saved-primary/reset/retry and independent-survivor
+checks. Corruption distinguishes full-consumption INNER from collision LEFT's
+required offpath slot; exact applicability is in [[card:card-s-j-c]] status and
+`where-autoindex-enrollment.test.mjs`. SQL consumers emit these operations. Lowering applies native
 probe affinity to the live key registers **before Filter**, not only to the
 private snapshot inside IndexSeekPrefix; build FilterAdd follows MakeRecord's
 live-register affinity. Shared hash intentionally does not coerce by itself.

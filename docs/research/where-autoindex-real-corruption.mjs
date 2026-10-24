@@ -5,16 +5,18 @@ import {privateAccounting} from '../../test/conformance/public-api-adapter.mjs';
 import {assertReleased} from './where-autoindex-contract.mjs';
 
 // Observe actual probe cell consumption first, then damage exactly one selected
-// or unconsumed pointer slot on the same deterministic build. Prefer a selected
+// or unconsumed pointer slot on the same deterministic build. Full-consumption
+// INNER witnesses explicitly assert no offpath slot exists; the default LEFT
+// witness must still execute offpath damage. Prefer a selected
 // nonroot page and an entirely unconsumed page when the fixture has depth.
-export async function realCorruption(db,sql,expected,cell){
+export async function realCorruption(db,sql,expected,cell,{offpath=true}={}){
  const survivor=db.prepare(sql).statement,owner=db.prepare(sql).statement;
  const seek=PrivateKeyVmCursor.prototype.seekBound,parse=PrivateIndexPage.prototype.parseCell;
  const Native=globalThis.Uint8Array,visited=new Set();
  let active=false,mode='trace',damaged=false,selectedCell,offpathCell;
  try{
   assert.equal(await survivor.step(),'row');const before=privateAccounting(survivor);
-  for(mode of ['trace','selected','offpath','broad','signature']){
+  for(mode of ['trace','selected',...(offpath?['offpath']:[]),'broad','signature']){
    let witnessed=false,primary;const backing=[];damaged=false;
    globalThis.Uint8Array=new Proxy(Native,{construct(target,args,newTarget){
     const result=Reflect.construct(target,args,newTarget);
@@ -68,7 +70,9 @@ export async function realCorruption(db,sql,expected,cell){
       if(page[0]!==2&&page[0]!==10)continue;
       for(let i=0;i<n;i++)if(!visited.has(`${p+1}:${i}`)){offpathCell={pgno:p+1,index:i,slot:offset+2*i,pageUnconsumed:![...visited].some(k=>k.startsWith(`${p+1}:`))};break;}
      }
-     assert.ok(selectedCell);assert.ok(offpathCell);
+     assert.ok(selectedCell);
+     if(offpath)assert.ok(offpathCell);
+     else assert.equal(offpathCell,undefined,'full-consumption witness must not conceal an available offpath cell');
     }
    }finally{active=false;PrivateIndexPage.prototype.parseCell=parse;PrivateKeyVmCursor.prototype.seekBound=seek;globalThis.Uint8Array=Native;}
    assert.ok(witnessed);if(mode!=='trace')assert.ok(damaged);

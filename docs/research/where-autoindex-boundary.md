@@ -1,5 +1,19 @@
 # Runtime autoindex executable boundary (author evidence)
 
+## INNER safety-consumer enrollment
+
+The original baseline consumer now enrolls `inner`/`original` cases for actual
+record/page faults, selected/broad/header corruption and progressed build/probe
+cancel/deadline controls. These use the existing shared private seams and saved
+primary/reset/retry/survivor contracts, not substituted results. Full-consumption
+INNER traces every cell and asserts no offpath slot exists; collision LEFT still
+requires and damages a genuinely unconsumed slot. This is a witness boundary,
+not permission to suppress a failed offpath assertion on arbitrary fixtures.
+Enrollment regression: `where-autoindex-enrollment.test.mjs`; revision-bound
+native receipts, failed initial hypothesis and actual results are maintained in
+[[card:card-s-j-c]] status. This closes that focused durable-consumer gap, not all
+resource/fault/lifetime or combined acceptance obligations.
+
 Candidate baseline c875487f3607be620ed0057caf2b375103af050f / tree
 36ff963cb0a047bb74e1c5b16db219cad3e390af. This extends the adjacent
 [decision](where-autoindex-admission.md), not persistent schema-autoindex tests.

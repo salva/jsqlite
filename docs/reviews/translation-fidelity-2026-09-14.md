@@ -1,5 +1,13 @@
 ## Automatic covering-index and independent standalone Bloom consumers (author repair)
 
+The original research consumer now executes admitted INNER record/page faults,
+selected/broad/header corruption and confirmed build/probe interruptions with
+saved-primary/reset/retry/survivor checks. Full-consumption INNER has no offpath
+slot (asserted); collision LEFT retains mandatory offpath damage. Enrollment
+regression and exact revision-bound execution evidence: [[card:card-s-j-c]] status
+and `where-autoindex-enrollment.test.mjs`. This resolves the missing consumer
+coverage finding, not exhaustive safety or independent combined acceptance.
+
 Current standalone persistent-index lowering now groups deeper ready builds under
 one Once and consumes their filters before the initiating seek, with its absent/
 NULL continuation; dependent RHS remains local. Pinned three-source independent/

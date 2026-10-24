@@ -117,12 +117,16 @@ consumer runs both ordinary cleanup and a secondary diagnostic thrown after actu
 owned Bloom release; `vdbeaux.c:closeCursorsInFrame` / TS halt loops retain exhaustive
 cleanup and failed-step primary precedence. This bounded diagnostic-after-release
 schedule does not cover a destructor failing before release; evidence and receipt
-identity: [[card:card-s-j-c]] status74.
-`where-autoindex-real-corruption.mjs` damages actual index backing pointer arrays
-before collision probes, versus untraversed page-one signature: format error
-versus native rows. This is broad selected-index/untraversed-header evidence,
-not isolated child or offpath-subtree parity. Both serial allocator controls are
-source-owned research only, restoring prototypes/globals in finally.
+identity: [[card:card-s-j-c]] status74 and current status. The original consumer
+also enrolls native INNER witnesses for record/page faults and confirmed build/
+probe cancellation/deadline, preserving first-error/reset/retry and independent
+survivor checks. Enrollment regression: `where-autoindex-enrollment.test.mjs`.
+`where-autoindex-real-corruption.mjs` traces actual consumed index cells, damages
+a selected cell pointer and broad index backing, versus an untraversed page-one
+signature. Collision LEFT additionally requires a genuinely unconsumed offpath
+slot; full-consumption INNER asserts no such slot exists and does not claim that
+schedule. Source-owned research controls restore prototypes/globals in finally;
+exact native/author executions and applicability: [[card:card-s-j-c]] status.
 Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
