@@ -12,7 +12,11 @@ Current standalone persistent-index safety consumers now enroll the admitted
 multi-filter pulldown cases. Fault/progress controls select the second actual
 filter owner, require prior live ownership for allocation failure, and observe
 selected add/probe completion rather than aggregate counts. Dependent local
-builds can follow prior probes. Exact native/public execution and remaining
+builds can follow prior probes. Representative two-filter shared capacity now
+uses native-first complete expression-key sort controls and separate whole-owner
+byte/entry/key H−1/H/H+1 limits with a live 20000-byte filter survivor. This does
+not establish pre-publication failure for streaming plans whose demand grows
+after a row. Exact native/public execution and remaining
 limits: [[card:card-s-j-c]] status and boundary evidence; this is author evidence,
 not independent or exhaustive safety acceptance.
 

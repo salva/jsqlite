@@ -1,5 +1,30 @@
 # Runtime autoindex executable boundary (author evidence)
 
+## Two-filter shared capacity boundary
+
+The actual capacity gate now enrolls admitted pulldown variants using explicit
+native-first `--capacity-order` receipts. The expression-key ORDER BY
+`l.id+r.id,t.id,l.id,r.id` preserves independent/grouped versus dependent/local
+filter construction and placement while completing result accumulation before
+first publication. This is a research witness change, not a runtime algorithm
+substitution or a change to original placement assertions. The original streaming
+witness returned a row at whole-execution byte H−1 (`proc-a37ecf6fef48`): final
+demand need not precede first row. No claim of runtime leakage follows. The first
+complete-sort run (`proc-9805c082b48d`) then exposed the wrong transferred expected
+message: the actual limiting owner was Mem.copyFrom/PrivateStateByteBudget,
+`private state exceeds total byte limit`, not sorter allocation. The owner/caller
+expectation was corrected without changing admission or swallowing the error.
+
+Native-first capture and execution `proc-2eef13e7510f` passed representative
+independent/dependent controls, all three encodings. Strengthened receipts and
+exact-delivery commands are in [[card:card-s-j-c]] status. The helper retains
+separate maxBytes/maxEntries/maxKeyBytes H−1/H/H+1, no below-boundary row/DONE,
+primary cause/reset identity, native typed rows/five metadata H/above, release,
+and independent survivor equality. It additionally asserts the survivor actually
+holds 20000 filter bytes and emits each capacity result. Entry/key H are shared
+policy highwaters, not sums of cursor maxima. This is representative two-filter
+capacity coverage, not IPK permutation or combined-suite acceptance.
+
 ## Multi-filter standalone safety enrollment
 
 The original filter-fault/progress gates now enroll admitted independent and

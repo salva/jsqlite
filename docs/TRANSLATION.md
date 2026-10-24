@@ -643,6 +643,12 @@ checks. Multi-filter standalone consumers select the second actual filter owner
 for initialization faults after prior live filter ownership and for progressed
 build/probe interruption. Dependent local builds may follow earlier probes;
 selected-owner progress, not global zero-probe counts, defines that boundary.
+Representative independent/grouped and dependent/local two-filter capacity
+consumers use a native-first complete-sort variant to reach all same-execution
+byte/entry/key demand before publishing rows, with a live two-filter survivor.
+Streaming witnesses can publish before their final highwater; they do not supply
+that pre-publication boundary proof. Exact scope/evidence is in the capacity
+enrollment regression, boundary research and [[card:card-s-j-c]] status.
 Corruption distinguishes full-consumption INNER from collision LEFT's
 required offpath slot; exact applicability is in [[card:card-s-j-c]] status and
 `where-autoindex-enrollment.test.mjs`. SQL consumers emit these operations. Lowering applies native

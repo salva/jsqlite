@@ -108,6 +108,14 @@ byte ownership remains aggregate. `private-demand-observation.test.mjs` checks
 shared cursor max semantics; actual fixture controls include packed and sorter
 limiting branches and encoding-dependent unpacked target byte demand. The same
 capacity driver exercises standalone filter/sorter H−1/H/H+1 for all dimensions.
+Two-filter independent/grouped and dependent/local witnesses use the native-first
+`where-autoindex-capture.py --capacity-order` variant: a complete expression-key
+sort reaches whole-execution demand before publishing rows. The existing helper
+asserts 20000 live filter bytes in the independent survivor and distinct released
+limited owners; `where-autoindex-capacity-enrollment.test.mjs` preserves admission.
+This is bounded pre-publication capacity evidence, not a guarantee that a streaming
+query cannot return earlier rows before a later allocation fails. Evidence and
+failed transfer hypotheses: [[card:card-s-j-c]] status and boundary research.
 Physical backing page lifetime (`pager.c` page acquisition/close; private arena
 append/installPage/close) maps to budget packedPages/packedPagesHighwater; retained freelist
 pages count as owned, renumber/reuse does not allocate. Partial open and two-live

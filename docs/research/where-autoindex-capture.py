@@ -8,6 +8,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[2]
 spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/capture-index-planner.py')
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
 p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','standalone-ipk','pulldown-ipk','pulldown-ipk-dependent','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);p.add_argument('--collision-payload-bytes',type=int,default=0)
+p.add_argument('--capacity-order',action='store_true',help='Complete result sort for multi-filter pre-publication capacity checks')
 a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
@@ -43,7 +44,10 @@ if ipk_multi:
  key='l.k' if a.case=='pulldown-ipk' else 'r.id'
  join=' CROSS JOIN ' if a.case=='pulldown-ipk-dependent' else ' JOIN '
  sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l{join}rhs r{join}tail t WHERE r.k=l.k AND t.id={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
-result={'case':a.case,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
+if a.capacity_order:
+ assert multi
+ sql=sql.replace('ORDER BY l.id,r.id,t.id','ORDER BY l.id+r.id,t.id,l.id,r.id')
+result={'case':a.case,'capacityOrder':a.capacity_order,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path
  db=C.c_void_p();assert d.sqlite3_open(str(path).encode(),C.byref(db))==0
