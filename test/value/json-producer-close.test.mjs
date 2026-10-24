@@ -5,6 +5,48 @@ import {compileTableSelect,VdbeStatement} from '../../src/internal/vdbe.ts';
 import {SelectProgramBuilder} from '../../src/internal/select-program.ts';
 import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 
+// VM Mem registers own input/output bytes independently of xFilter's retained
+// parse/root/parent allocation. Check each execution owner, not a global total
+// that could conflate these lifetimes. No other private owner is live in these
+// handcrafted programs; any non-Mem byte at this boundary is a cursor leak.
+function cursorBytes(budget) {
+ const snapshot=budget.snapshot();
+ assert.equal(snapshot.ownedBytes,snapshot.chargedBytes-snapshot.refundedBytes);
+ assert.ok(snapshot.memBytes>=0 && snapshot.memBytes<=snapshot.ownedBytes);
+ return snapshot.ownedBytes-snapshot.memBytes;
+}
+function assertCursorsClosed(budgets,message) {
+ for(const budget of budgets) assert.equal(cursorBytes(budget),0,message);
+}
+
+// Withholding xClose must fail at the caller boundary even when Halt later
+// refunds everything. Exercise both a flat parse and recursive root/parents.
+for(const encoding of ['utf-8','utf-16le','utf-16be']) {
+ test(`JSON close observer detects withheld cursor release (${encoding})`,async()=>{
+  for(const source of ["json_each('[\"text\",2]')", "json_tree('{\"a\":[\"text\",2]}','$.a')"]) {
+   const builder=new SelectProgramBuilder(),output=builder.register();
+   const program=compileTableSelect(parseSql(`SELECT value FROM ${source} LIMIT 1`).statement,
+    {tables:new Map(),views:new Map()},{encoding},100,10000,10000,
+    {maxEntries:100,maxKeyBytes:10000,maxBytes:1000000},
+    {builder,parameters:{maximum:0,names:[],named:new Map()},destination:{kind:'mem',register:output,width:1}});
+   assert.ok(builder.ops.some(op=>op.code==='JsonTableClose'));
+   const ops=builder.ops.map(op=>op.code==='JsonTableClose'?{code:'Null',p2:output}:op);
+   ops.push({code:'ResultRow',p1:output,p2:1},{code:'Halt'});
+   const budgets=new Set(),replace=PrivateStateByteBudget.prototype.replace;
+   PrivateStateByteBudget.prototype.replace=function(...args){budgets.add(this);return replace.apply(this,args)};
+   const statement=new VdbeStatement({...program,ops,registers:builder.registers},()=>{},()=>()=>{},()=>{});
+   try {
+    assert.equal(await statement.step(),'row');
+    assert.ok([...budgets].some(b=>b.snapshot().memBytes>0),'owning Mem remains independently charged');
+    assert.throws(()=>assertCursorsClosed(budgets,'withheld close'),/withheld close/);
+    assert.equal(await statement.step(),'done');
+    assertCursorsClosed(budgets,'Halt releases withheld cursor only after caller row');
+   }finally{try{statement.finalize();}finally{PrivateStateByteBudget.prototype.replace=replace;}}
+   for(const budget of budgets)assert.equal(budget.usedBytes,0,'finalize releases all owners');
+  }
+ });
+}
+
 // A shared producer returns to its caller before Halt. LIMIT must close its
 // virtual cursor at that boundary, not retain the parse until statement death.
 for(const encoding of ['utf-8','utf-16le','utf-16be']) {
@@ -27,7 +69,7 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
     assert.equal(await statement.step(),'row');
     assert.equal(statement.column(0),suffix.endsWith('LIMIT 0')?null:suffix.startsWith('ORDER')?2n:1n);
     if(!suffix.endsWith('LIMIT 0'))assert.ok(budgets.size>0);
-    assert.equal([...budgets].reduce((sum,budget)=>sum+budget.usedBytes,0),0,'producer return refunds before caller row');
+    assertCursorsClosed(budgets,'producer return refunds before caller row');
     assert.equal(await statement.step(),'done');
     statement.reset();
    }
@@ -56,7 +98,7 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
     assert.equal(await statement.step(),'row');
     assert.equal(statement.column(0),1n);
     assert.ok(budgets.size>0);
-    assert.equal([...budgets].reduce((sum,budget)=>sum+budget.usedBytes,0),0,'producer return refunds before caller row');
+    assertCursorsClosed(budgets,'producer return refunds before caller row');
     assert.equal(await statement.step(),'done');
     statement.reset();
    }
@@ -229,7 +271,7 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    try {for(let run=0;run<2;run++) {
     assert.equal(await statement.step(),'row');assert.equal(statement.column(0),expected);
     assert.ok(budgets.size>0);
-    assert.equal([...budgets].reduce((sum,budget)=>sum+budget.usedBytes,0),0,'both source cursors refunded before caller row');
+    assertCursorsClosed(budgets,'both source cursors refunded before caller row');
     assert.equal(await statement.step(),'done');statement.reset();
    }} finally {statement.finalize();PrivateStateByteBudget.prototype.replace=original;}
   });
@@ -273,7 +315,7 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
   const statement=new VdbeStatement({...program,ops:builder.finish(),registers:builder.registers},()=>{},()=>()=>{},()=>{});
   try {for(let run=0;run<2;run++) {
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n);
-   assert.equal([...budgets].reduce((sum,budget)=>sum+budget.usedBytes,0),0,'both Filter owners close before caller resumes');
+   assertCursorsClosed(budgets,'both Filter owners close before caller resumes');
    assert.equal(await statement.step(),'done');statement.reset();
   }} finally {statement.finalize();PrivateStateByteBudget.prototype.replace=original;}
  });
@@ -301,7 +343,7 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    const statement=new VdbeStatement({...program,ops:builder.finish(),registers:builder.registers},()=>{},()=>()=>{},()=>{});
    try {for(let run=0;run<2;run++) {
     assert.equal(await statement.step(),'row');assert.equal(statement.column(0),expected);
-    assert.equal([...budgets].reduce((sum,budget)=>sum+budget.usedBytes,0),0,'all source owners refunded before caller row');
+    assertCursorsClosed(budgets,'all source owners refunded before caller row');
     assert.equal(await statement.step(),'row');assert.equal(statement.column(0),expected===1n?0n:initialCount,'supplied count consumed');
     assert.equal(await statement.step(),'row');assert.equal(statement.column(0),initialOffset===9n?7n:0n,'supplied offset consumed');
     assert.equal(await statement.step(),'done');statement.reset();
@@ -336,9 +378,9 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
   try {for(let run=0;run<2;run++) {
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),7n);
    assert.ok(budgets.size>0,'initial Filter actually opened a cursor');
-   assert.equal([...budgets].reduce((sum,b)=>sum+b.usedBytes,0),0,'plan zero releases before outer continuation');
+   assertCursorsClosed(budgets,'plan zero releases before outer continuation');
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n,'same slot can Filter again at first row');
-   assert.equal([...budgets].reduce((sum,b)=>sum+b.usedBytes,0),0);
+   assertCursorsClosed(budgets);
    assert.equal(await statement.step(),'done');statement.reset();
   }} finally {statement.finalize();PrivateStateByteBudget.prototype.replace=replace;}
  });
@@ -362,14 +404,14 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    {code:'ResultRow',p1:output,p2:1},{code:'Halt'}];
   const events=[],budgets=new Set(),replace=PrivateStateByteBudget.prototype.replace;
   PrivateStateByteBudget.prototype.replace=function(oldBytes,newBytes,...rest){
-   events.push([oldBytes,newBytes,this.usedBytes]);budgets.add(this);
+   events.push([oldBytes,newBytes,cursorBytes(this)]);budgets.add(this);
    return replace.call(this,oldBytes,newBytes,...rest);
   };
   const statement=new VdbeStatement({...program,ops,registers:builder.registers},()=>{},()=>()=>{},()=>{});
   try {for(let run=0;run<2;run++) {
    events.length=0;
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n);
-   assert.ok([...budgets].some(b=>b.usedBytes>0),'old parse remains live while suspended');
+   assert.ok([...budgets].some(b=>cursorBytes(b)>0),'old parse remains live while suspended');
    const boundary=events.length;
    let saved;
    await assert.rejects(statement.step(),error=>{saved=error;return error.kind==='sqlite'&&error.code===1&&/malformed JSON/.test(error.message)});
@@ -378,9 +420,9 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    const firstNew=replacement.findIndex(([,newBytes])=>newBytes>0);
    assert.ok(firstNew>0,'refund precedes replacement allocation');
    assert.equal(replacement[firstNew][2],0,'replacement starts with no retained old parse');
-   assert.equal([...budgets].reduce((sum,b)=>sum+b.usedBytes,0),0,'error cleanup refunds all parses');
+   assertCursorsClosed(budgets,'error cleanup refunds all parses');
    assert.throws(()=>statement.reset(),error=>error===saved,'reset reports saved failure after cleanup');
-  }} finally {statement.finalize();PrivateStateByteBudget.prototype.replace=replace;}
+  }} finally {try{statement.finalize();}finally{PrivateStateByteBudget.prototype.replace=replace;}}
  });
 }
 
@@ -406,14 +448,14 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    {code:'JsonTableClose',p1:rewind.p1},{code:'Halt'}];
   const events=[],budgets=new Set(),replace=PrivateStateByteBudget.prototype.replace;
   PrivateStateByteBudget.prototype.replace=function(oldBytes,newBytes,...rest){
-   events.push([oldBytes,newBytes,this.usedBytes]);budgets.add(this);
+   events.push([oldBytes,newBytes,cursorBytes(this)]);budgets.add(this);
    return replace.call(this,oldBytes,newBytes,...rest);
   };
   const statement=new VdbeStatement({...program,ops,registers:builder.registers},()=>{},()=>()=>{},()=>{});
   try {for(let run=0;run<2;run++) {
    events.length=0;
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),0n);assert.equal(statement.column(1),1n);
-   assert.ok([...budgets].some(b=>b.usedBytes>0),'old parse remains live while suspended');
+   assert.ok([...budgets].some(b=>cursorBytes(b)>0),'old parse remains live while suspended');
    const boundary=events.length;
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),0n);assert.equal(statement.column(1),9n);
    const replacement=events.slice(boundary);
@@ -421,10 +463,10 @@ for(const encoding of ['utf-8','utf-16le','utf-16be']) {
    const firstNew=replacement.findIndex(([,newBytes])=>newBytes>0);
    assert.ok(firstNew>0,'refund precedes replacement allocation');
    assert.equal(replacement[firstNew][2],0,'replacement starts with no retained old parse');
-   assert.ok([...budgets].some(b=>b.usedBytes>0),'new parse remains live until its own scan ends');
+   assert.ok([...budgets].some(b=>cursorBytes(b)>0),'new parse remains live until its own scan ends');
    assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n);assert.equal(statement.column(1),8n);
    assert.equal(await statement.step(),'done');
-   assert.equal([...budgets].reduce((sum,b)=>sum+b.usedBytes,0),0,'new owner refunded at exhaustion');
+   assertCursorsClosed(budgets,'new owner refunded at exhaustion');
    statement.reset();
   }} finally {statement.finalize();PrivateStateByteBudget.prototype.replace=replace;}
  });
