@@ -639,7 +639,11 @@ elapsed deadlines use shared execution checkpoints/first-error cleanup; no
 private filter owner controls another statement's packed cursor. Original SQL
 research consumers exercise admitted INNER record/page allocation faults and
 build/probe interrupts with saved-primary/reset/retry and independent-survivor
-checks. Corruption distinguishes full-consumption INNER from collision LEFT's
+checks. Multi-filter standalone consumers select the second actual filter owner
+for initialization faults after prior live filter ownership and for progressed
+build/probe interruption. Dependent local builds may follow earlier probes;
+selected-owner progress, not global zero-probe counts, defines that boundary.
+Corruption distinguishes full-consumption INNER from collision LEFT's
 required offpath slot; exact applicability is in [[card:card-s-j-c]] status and
 `where-autoindex-enrollment.test.mjs`. SQL consumers emit these operations. Lowering applies native
 probe affinity to the live key registers **before Filter**, not only to the

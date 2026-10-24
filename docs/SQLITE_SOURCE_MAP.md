@@ -81,6 +81,12 @@ release, independent survivor and native-result retry.
 `where-autoindex-real-page-fault.mjs` injects second-page allocation failure via
 the existing arena hook; `where-autoindex-real-filter-fault.mjs` fails filter
 initialization after reservation and before publication, including standalone.
+Multi-filter pulldown cases select the second actual filter allocation after
+positive prior filter bytes/adds. Progress controls associate add/probe calls with
+the selected filter object and drain public steps until interruption: a dependent
+local build may follow earlier probes, unlike grouped independent construction.
+Native grouping/readiness remains in where.c:sqlite3ConstructBloomFilter and
+consumption in wherecode.c:filterPullDown; no runtime lowering change here.
 These source-owned serial controls restore hooks/clock in finally. Native
 `vdbe.c` interrupt checks and `vdbeaux.c` Halt own exit/cleanup, not the adapter.
 Record allocation, selected/offpath corruption, exhaustive reprepare/close and

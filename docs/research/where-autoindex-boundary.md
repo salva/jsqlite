@@ -1,5 +1,27 @@
 # Runtime autoindex executable boundary (author evidence)
 
+## Multi-filter standalone safety enrollment
+
+The original filter-fault/progress gates now enroll admitted independent and
+dependent pulldown cases (including IPK variants). The shared fault helper can
+select the second actual allocation, requiring prior live filter bytes and adds
+before failing its post-reservation checkpoint. Progress associates completed
+add/probe calls with the actual second filter object, using the existing host
+checkpoint for cancellation/deadline and draining public steps until that point.
+Dependent local construction may follow earlier probes; requiring global probes0
+would incorrectly make its build schedule unreachable. Hooks/clock are restored
+before saved-primary/reset/native retry and independent-survivor checks.
+
+Pinned `where.c:sqlite3ConstructBloomFilter` groups only ready independent later
+filters under Once; `wherecode.c:filterPullDown` consumes ready filters and restores
+break ownership. The runtime translation is unchanged here: this repairs research
+consumer scheduling, not a demonstrated runtime leak. The enrollment regression
+preserves positive single-standalone/placement and NOT INDEXED boundaries.
+Representative independent/dependent actual receipts, failed transfer hypotheses,
+exact identities and results are in [[card:card-s-j-c]] status. IPK enrollment is
+not itself actual IPK fault-schedule credit; broader combined/independent gates
+remain unwaived. No public API change or exceptional algorithm substitution.
+
 ## INNER safety-consumer enrollment
 
 The original baseline consumer now enrolls `inner`/`original` cases for actual

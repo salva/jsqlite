@@ -8,6 +8,14 @@ regression and exact revision-bound execution evidence: [[card:card-s-j-c]] stat
 and `where-autoindex-enrollment.test.mjs`. This resolves the missing consumer
 coverage finding, not exhaustive safety or independent combined acceptance.
 
+Current standalone persistent-index safety consumers now enroll the admitted
+multi-filter pulldown cases. Fault/progress controls select the second actual
+filter owner, require prior live ownership for allocation failure, and observe
+selected add/probe completion rather than aggregate counts. Dependent local
+builds can follow prior probes. Exact native/public execution and remaining
+limits: [[card:card-s-j-c]] status and boundary evidence; this is author evidence,
+not independent or exhaustive safety acceptance.
+
 Current standalone persistent-index lowering now groups deeper ready builds under
 one Once and consumes their filters before the initiating seek, with its absent/
 NULL continuation; dependent RHS remains local. Pinned three-source independent/
