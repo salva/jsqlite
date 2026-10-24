@@ -10,7 +10,10 @@ Frozen snapshot/reset/done/concurrent-statement controls:
 `test/select/vdbe-private-continuation.test.mjs`; VM dispatch entry records
 unique actually entered TS opcodes separately from retained-program emitted
 opcodes. Snapshots detach/freeze both arrays and reset clears entered history;
-entry is not successful-completion evidence. Actual auto/Bloom consumer
+entry is not successful-completion evidence. Filter-to-cursor candidate tracking
+resolves rejection at failed Seek or first IndexPrefixEnd, not duplicate exhaustion;
+`test/value/filter-probe-observation.test.mjs` covers both rejection branches,
+duplicate matches and reset. Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
 The existing execution-shared `PrivateStateByteBudget` now exposes cumulative

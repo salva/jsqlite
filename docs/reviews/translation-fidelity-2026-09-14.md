@@ -8,7 +8,9 @@ separately from emitted names; reset clears dispatch history. Shared byte-budget
 snapshots carry actual charges/refunds/highwater and fresh execution owners,
 with reset retaining release totals until next entry. VM-owner controls are not
 full SQL lifetime acceptance. Identity owner and actual consumer controls:
-[[card:card-s-j-c]]. Deeper placement, authoritative collision/covering observation
+[[card:card-s-j-c]]. Initial candidate rejection now follows the actual seek and
+first prefix test, with duplicate-exhaustion/reset controls and63 actual collision
+rejects per selected collision execution. Deeper placement, covering observation
 and the finite capacity/fault/cancel/lifetime schedule remain unfinished.
 
 Ordinary two-physical-rowid INNER/CROSS equality-only SQL now enrolls the existing standalone descriptor and executes Once/source-local build/FilterAdd plus live-affinity Filter before persistent seek. Native-FIRST typed rows, five metadata fields and reset agree across three encodings; the standalone witness reduces persistent seeks from1023 to34. Two-rowid INNER/LEFT SQL now lowers native-costed automatic descriptors through shared packed build/probe/covering and LEFT null-extension ownership. Absent/collision/empty native-FIRST controls pass all encodings/reset with dispatched build/insert/filter/seek counters. Outer/IN/range/frame standalone Bloom placement, complete emitted-versus-dispatched observation and finite fault/resource acceptance remain open. This is partial author evidence, not independent acceptance or full finding closure: [[card:card-s-j-b]] status.

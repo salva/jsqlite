@@ -135,7 +135,7 @@ type Op =
   | { readonly code: "Blob"; readonly p1: Uint8Array; readonly p2: number }
   | { readonly code: "FilterInit"; readonly p1:number; readonly bytes:number }
   | { readonly code: "FilterAdd"; readonly p1:number; readonly p3:number; readonly p4:number }
-  | { readonly code: "Filter"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4:number }
+  | { readonly code: "Filter"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4:number; readonly probeCursor?:number }
   | { readonly code: "Null"; readonly p2: number }
   | { readonly code: "Copy"; readonly p1: number; readonly p2: number }
   | { readonly code: "Variable"; readonly p1: number; readonly p2: number }
@@ -4872,7 +4872,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       if(key.term.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:keys+i,p2:0});}
       ops.push({code:'Affinity',p1:keys+i,affinity:key.affinity});
     });
-    if(automatic.filter!==undefined){equalityNullGuards.push({at:ops.length,level});ops.push({code:'Filter',p1:automatic.filter,p2:0,p3:keys,p4:descriptor.keys.length});}
+    if(automatic.filter!==undefined){equalityNullGuards.push({at:ops.length,level});ops.push({code:'Filter',p1:automatic.filter,p2:0,p3:keys,p4:descriptor.keys.length,probeCursor:automatic.cursor});}
     const registers=descriptor.keys.map((_,i)=>keys+i);
     rewinds.push(ops.length);ops.push({code:'IndexSeekPrefix',p1:automatic.cursor,keys:registers,affinities,keyInfo:descriptor.keyInfo,reverse:false,p2:0});
     // starts[] must include the authoritative equality-prefix termination on
@@ -4971,7 +4971,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         const first=range(keys.length);
         keys.forEach((key,i)=>ops.push({code:'Affinity',p1:key,affinity:affinities[i]!},{code:'Copy',p1:key,p2:first+i}));
         equalityNullGuards.push({at:ops.length,level});
-        ops.push({code:'Filter',p1:bloom.register,p2:0,p3:first,p4:keys.length});
+        ops.push({code:'Filter',p1:bloom.register,p2:0,p3:first,p4:keys.length,probeCursor:indexCursor!});
       }
       const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
       rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);
@@ -9711,6 +9711,13 @@ export class VdbeStatement implements Statement {
   // Execution-owned RHS Btree substitute, invalidated by each iterator reset.
   #inSets = new Map<number,{values:Mem[];bytes:number}>();
   #automaticCursors = new Set<number>();
+  // A present bit is only a candidate. Retain it through lower-bound seek
+  // until the first prefix test, never through duplicate iteration.
+  #pendingFilterProbes = new Set<number>();
+  #collisionRejects=0;
+  #finishFilterProbe(cursor:number,rejected:boolean):void {
+    if(this.#pendingFilterProbes.delete(cursor)&&rejected)this.#collisionRejects++;
+  }
   #filters = new Map<number,PrivateBloomFilter>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
@@ -9736,7 +9743,7 @@ export class VdbeStatement implements Statement {
   /** Internal conformance seam. A detached immutable snapshot prevents tests
    * from mutating statement execution state. */
   #dispatchedOps=new Set<Op['code']>();
-  privateAccounting(){return Object.freeze({...this.#privateAccounting,...this.#privateBytes.snapshot(),emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
+  privateAccounting(){return Object.freeze({...this.#privateAccounting,...this.#privateBytes.snapshot(),collisionRejects:this.#collisionRejects,emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
@@ -10195,7 +10202,7 @@ export class VdbeStatement implements Statement {
               for(let i=0;i<op.keys.length;i++)this.#registers[op.keys[i]!]!.applyAffinity(op.affinities[i]!,this.#program.encoding);
               const values=op.keys.map(r=>this.#registers[r]!);
               const seek=op.reverse?(op.strict?'SeekLT':'SeekLE'):(op.strict?'SeekGT':'SeekGE');
-              if(!await packed.seekBound(values,seek,this.#privateControl(options,limit,started)))this.#pc=op.p2;
+              if(!await packed.seekBound(values,seek,this.#privateControl(options,limit,started))){this.#finishFilterProbe(op.p1,true);this.#pc=op.p2;}
               break;
             }
             const cursor=this.#indexCursors.get(op.p1);
@@ -10222,7 +10229,7 @@ export class VdbeStatement implements Statement {
               // vdbe.c:4935ff: partial-key bias belongs to Seek*, not to
               // an equality callback. All lowering callers share this owner.
               const direction=op.reverse?(op.strict?"lt":"le"):(op.strict?"gt":"ge");
-              if(!cursor.seekKey(values,op.keyInfo,direction))this.#pc=op.p2;
+              if(!cursor.seekKey(values,op.keyInfo,direction)){this.#finishFilterProbe(op.p1,true);this.#pc=op.p2;}
               else this.#loadIndexRecord(op.p1);
             } finally {for(const value of values)value.release();}
             break;
@@ -10235,10 +10242,12 @@ export class VdbeStatement implements Statement {
               if(packed.nullRow){this.#pc=op.p2;break}
               const values=op.keys.map(r=>this.#registers[r]!);
               const control=this.#privateControl(options,limit,started);
-              if(await packed.boundJump(values,'IdxGT',control)||await packed.boundJump(values,'IdxLT',control))this.#pc=op.p2;
+              const rejected=await packed.boundJump(values,'IdxGT',control)||await packed.boundJump(values,'IdxLT',control);
+              this.#finishFilterProbe(op.p1,rejected);
+              if(rejected)this.#pc=op.p2;
               break;
             }
-            const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.field(i);if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}if(!matches)this.#pc=op.p2;else {const cursor=this.#indexCursors.get(op.p1);if(cursor)cursor.seekHit=Math.max(cursor.seekHit,op.keys.length);}break;}
+            const record=this.#records.get(op.p1),values=op.keys.map((register,index)=>{const value=new Mem();value.copyFrom(this.#registers[register]!);value.applyAffinity(op.affinities[index]!,this.#program.encoding);return value;});let matches=!!record;try{if(record)for(let i=0;i<values.length;i++){const raw=record.field(i);if(!raw){matches=false;break;}const current=memFromRawRecord(raw,this.#borrow);try{if(compareMem(current,values[i]!,op.keyInfo.terms[i]!.collation)!==0){matches=false;break;}}finally{current.release();}}}finally{for(const value of values)value.release();}this.#finishFilterProbe(op.p1,!matches);if(!matches)this.#pc=op.p2;else {const cursor=this.#indexCursors.get(op.p1);if(cursor)cursor.seekHit=Math.max(cursor.seekHit,op.keys.length);}break;}
           case "IndexRangeEnd": {const record=this.#records.get(op.p1),raw=record?.field(op.field),key=this.#registers[op.key]!;if(!raw){this.#pc=op.p2;break;}const current=memFromRawRecord(raw,this.#borrow),bound=new Mem();bound.copyFrom(key);bound.applyAffinity(op.affinity,this.#program.encoding);try{const comparison=compareMem(current,bound,op.collation),passes=op.operator==="lt"?comparison<0:op.operator==="le"?comparison<=0:op.operator==="gt"?comparison>0:comparison>=0;if(!passes)this.#pc=op.p2;}finally{current.release();bound.release();}break;}
           case "DeferredSeek": {const index=this.#records.get(op.p1),raw=index?.last();if(raw?.storageClass!=="integer")throw new JSQLiteError("internal","index rowid tail is not integer");this.#deferredRowids.set(op.p2,raw.value);this.#records.delete(op.p2);this.#recordRowids.set(op.p2,raw.value);break;}
           case "DeferredIndexSeek": {this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};const record=this.#records.get(op.p1),cursor=this.#indexCursors.get(op.p2);if(!record||!cursor)throw new JSQLiteError("internal","deferred index seek on unopened cursor");const values=op.primaryKeyFields.map(ordinal=>{const raw=record.field(ordinal);if(raw===undefined)throw new BtreeFormatError("secondary key is missing a primary-key field");return memFromRawRecord(raw,this.#borrow)});const key=new UnpackedRecordKey(values,0,"seek",op.physical.keyInfo);try{if(!cursor.seek(payload=>compareRecordKey(payload,key,op.physical.keyInfo),"ge"))throw new BtreeFormatError("secondary key does not reference a primary row");this.#loadIndexRecord(op.p2);}finally{key.release();}break;}
@@ -10300,9 +10309,10 @@ export class VdbeStatement implements Statement {
             // bit publication have no await-time input mutation window.
             await this.#privateControl(options,limit,started).checkpoint(op.p4);
             const values=this.#registers.slice(op.p3,op.p3+op.p4);
+            if(op.code==='Filter'&&op.probeCursor!==undefined)this.#pendingFilterProbes.delete(op.probeCursor);
             if(op.code==='FilterAdd'){filter.add(values);this.#privateAccounting={...this.#privateAccounting,filterAdds:this.#privateAccounting.filterAdds+1};}
             else if(filter.absent(values)){this.#privateAccounting={...this.#privateAccounting,filterAbsent:this.#privateAccounting.filterAbsent+1};this.#pc=op.p2;}
-            else this.#privateAccounting={...this.#privateAccounting,filterPresent:this.#privateAccounting.filterPresent+1};
+            else {if(op.probeCursor!==undefined)this.#pendingFilterProbes.add(op.probeCursor);this.#privateAccounting={...this.#privateAccounting,filterPresent:this.#privateAccounting.filterPresent+1};}
             break;
           }
           case "Blob": this.#registers[op.p2]!.setBlob(op.p1,{encoding:this.#program.encoding}); break;
@@ -10417,7 +10427,7 @@ export class VdbeStatement implements Statement {
     // sqlite3VdbeReset returns the saved execution error after cleanup. TS
     // destructors may throw: finish releases and restore READY first.
     for (const value of this.#registers) try { value.setNull(); } catch (error) { if (cleanup === null) cleanup = error; }
-    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#dispatchedOps.clear(); this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
+    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#dispatchedOps.clear(); this.#collisionRejects=0; this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
     this.#pc = 0; this.#state = "prepared";
     if (primary !== null) throw primary;
     if (cleanup !== null) throw cleanup;
@@ -10509,7 +10519,7 @@ export class VdbeStatement implements Statement {
     this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
-    this.#privateKeys.clear();this.#automaticCursors.clear();
+    this.#privateKeys.clear();this.#pendingFilterProbes.clear();this.#automaticCursors.clear();
     for(const filter of this.#filters.values())try{filter.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#filters.clear();
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
