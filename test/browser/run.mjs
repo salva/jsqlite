@@ -21,6 +21,13 @@ function register(p,expected){const b=fs.readFileSync(p);if(expected?.sha256&&ha
 function fixture(id,expected){const f=catalog.semantic.fixtures.find(f=>f.id===id);if(!f)throw Error(`unknown fixture ${id}`);register(`${generation}/${f.path}`,{sha256:expected??f.sha256,bytes:f.bytes});return `/fixture/${bridge.token}/${id}`}
 function capture(name){const p=`test/conformance/cases/${name}.json`;const b=fs.readFileSync(p);evidence.push({path:p,sha256:hash(b)});return JSON.parse(b)}
 function addNative(name,ids,resolve){const d=capture(name);for(const id of ids){const c=d.cases.find(c=>c.id===id);if(!c)throw Error(id);const native=c.native;cases.push({id:`${name}/${id}`,kind:'capture',url:resolve(c),sql:c.sql,columns:native.columns,rows:native.first?.rows??native.runs?.[0]?.rows,provenance:{capture:name,id,source:d.source,assertion:c.provenance??{file:c.sourceFile,case:c.sourceCase}},...(native.runs?.[0].terminalCode!==undefined&&native.runs[0].terminalCode!==101?{error:{kind:'sqlite',code:native.runs[0].terminalCode,message:native.runs[0].errorMessage}}:{})})}}
+for(const fixtureName of ['typed','typed-utf-16le','typed-utf-16be']){
+ const oracle=capture('window-extrema-native');
+ const variants=oracle.variants.filter(v=>v.fixture===fixtureName);
+ const url=register(`test/fixtures/aggregate-window/${fixtureName}.db`,{sha256:variants[0].fixtureSha256});
+ const rows=c=>c.map(row=>row.map(cell=>cell.type==='text'?{type:'text',utf8Hex:Buffer.from(cell.value,'utf8').toString('hex')}:cell));
+ for(const [index,c] of variants.entries())cases.push({id:`packed-extrema/${fixtureName}/${index}`,lane:'packed-extrema',kind:'capture',url,sql:c.sql,columns:c.columns,rows:rows(c.runs[0]),provenance:{sourceId:oracle.sourceId}});
+}
 addNative('stage3-aggregate-group',['empty-count','numeric-types','encoding-utf8','encoding-utf16le','encoding-utf16be'],c=>fixture(c.fixture,c.fixtureSha256));
 addNative('stage3-subquery-view',['derived-basic'],c=>fixture(c.fixture,c.fixtureSha256));
 addNative('stage3-multisource-select',['comma-order','duplicate-names'],()=>register('test/conformance/fixtures/multisource-inner-oracle.db'));

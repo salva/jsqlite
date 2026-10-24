@@ -60,3 +60,28 @@ INTEGER1,REAL1 for that explicit NO OTHERS query; implicit exclusion instead
 uses newest equal representation. These are author checks, not independent
 acceptance. No beta5, full522, installed/browser, composition-union or whole-card
 acceptance follows.
+
+## Packed caller follow-up
+
+`tools/oracle/capture-window-extrema.py` independently uses ctypes/pinned library,
+not product evaluation. `test/conformance/cases/window-extrema-native.json`
+retains180 cases: min/max; two numeric tie orders, NOCASE text, multibyte text,
+BLOB, NULL; implicit sliding plus all four EXCLUDE forms; three encodings.
+Each includes five-field column metadata and two typed result runs (INTEGER
+strings, REAL IEEE754 bits, BLOB hex). `window-extrema-native.test.mjs` checks
+these through public APIs. `window-extrema-lifecycle.test.mjs` interrupts actual
+packed inverse Delete at live cancellation/deadline and checks first-error,
+no replay and zero owned bytes; entry/key/byte/work rejection is also tested.
+Primitive tests separately cover saved positions, aliases and balance; this is
+not a claim every primitive branch is forced by the application matrix. Browser
+lane `packed-extrema` consumes the capture on rebuilt dist, adapting text only to
+its existing UTF8-hex witness format. Exact attempts/results remain in card status.
+
+Accounting controls remain query-specific, not extrema page minima. Ordinary sum
+ROWS in `window-bounded-lookahead` observes359 after removal of unused b/c handoff
+copies (previous366);358 rejects,359/360 pass. Synthetic MakeRecord/Insert in
+`window-rewrite` rejects84, admits85=String3 + record71 + row11. Its sum/count
+lifecycle releases2 at reset,4 cumulatively at done, still4 after finalize: two
+lifetimes, not four simultaneous contexts. These unchanged controls were rerun
+on packed application bytes, not rewritten to match page charges. No native
+allocator minimum or independent consuming-caller approval is implied.
