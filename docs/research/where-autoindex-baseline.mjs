@@ -18,7 +18,7 @@ function checkObservation(work,previous,sameStatement){
  assert.equal(typeof work.planId,'string');assert.ok(work.planId.length>0);
  if(previous&&sameStatement)assert.equal(work.planId,previous.planId);
 }
-function dispatchCounts({executionId,planId,...counts}){return counts;}
+function dispatchCounts({executionId,planId,ownerId,chargedBytes,refundedBytes,ownedBytes,highwaterBytes,...counts}){return counts;}
 function cell(s,i){const type=s.columnType(i),v=s.column(i);if(type==='null')return {type};if(type==='integer')return {type,value:String(v)};if(type==='real'){const b=Buffer.alloc(8);b.writeDoubleBE(v);return {type,ieee754be:b.toString('hex')}}if(type==='text')return {type,utf8Hex:Buffer.from(v).toString('hex')};return {type,hex:Buffer.from(v).toString('hex')}}
 for(const sql of [native.sql,native.sql.replace('rhs r','rhs r NOT INDEXED')])
 for(const v of native.variants){const bytes=fs.readFileSync(new URL(v.fixture,'file://'+receipt));const storage=ImmutableStorage.open(bytes);let kinds;try{const schema=loadSchemaGraph({[storageOwner]:storage}),r=expandAndResolveSelect(parseSql(sql).statement,schema),p=planWhere(r,{neededColumns:r.sources.map(s=>new Set(s.table.columns)),orderBy:[]});kinds=p.path?.loops.map(l=>l.kind)}finally{storage.close()}

@@ -10,6 +10,13 @@ Frozen snapshot/reset/done/concurrent-statement controls:
 `test/select/vdbe-private-continuation.test.mjs`; actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
+The existing execution-shared `PrivateStateByteBudget` now exposes cumulative
+successful reserve/replace/release transfers, live deterministic charged bytes
+and highwater through that snapshot. This is browser representation accounting,
+not a translation of native heap-size measurement. Owner/rejected-transfer,
+replacement/refund and independent-budget controls:
+`test/value/private-byte-observation.test.mjs`. It does not yet establish the
+pending per-execution resource owner, page/Mem or lifetime contract.
 
 ### Shared automatic/Bloom prerequisites (not SQL enrollment)
 

@@ -18,11 +18,14 @@ export interface PrivateStateControl {
 export class PrivateStateLimitError extends Error { constructor(message:string){super(message);this.name="PrivateStateLimitError"} }
 /** One execution-owned aggregate budget shared by every private cursor. */
 export class PrivateStateByteBudget {
-  readonly maxBytes:number; #used=0;
+  readonly maxBytes:number; #used=0; #charged=0; #refunded=0; #highwater=0;
+  static #nextOwner=0;
+  readonly ownerId=++PrivateStateByteBudget.#nextOwner;
+  snapshot(){return Object.freeze({ownerId:this.ownerId,chargedBytes:this.#charged,refundedBytes:this.#refunded,ownedBytes:this.#used,highwaterBytes:this.#highwater})}
   constructor(maxBytes:number){this.maxBytes=maxBytes}
-  reserve(bytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(bytes)||bytes<0)throw new Error("invalid private-state byte reservation");if(this.#used+bytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=bytes}
-  replace(oldBytes:number,newBytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(oldBytes)||!Number.isSafeInteger(newBytes)||oldBytes<0||newBytes<0||oldBytes>this.#used)throw new Error("invalid private-state byte replacement");if(this.#used-oldBytes+newBytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=newBytes-oldBytes}
-  release(bytes:number):void{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#used)throw new Error("invalid private-state byte release");this.#used-=bytes}
+  reserve(bytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(bytes)||bytes<0)throw new Error("invalid private-state byte reservation");if(this.#used+bytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=bytes;this.#charged+=bytes;this.#highwater=Math.max(this.#highwater,this.#used)}
+  replace(oldBytes:number,newBytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(oldBytes)||!Number.isSafeInteger(newBytes)||oldBytes<0||newBytes<0||oldBytes>this.#used)throw new Error("invalid private-state byte replacement");if(this.#used-oldBytes+newBytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=newBytes-oldBytes;this.#charged+=newBytes;this.#refunded+=oldBytes;this.#highwater=Math.max(this.#highwater,this.#used)}
+  release(bytes:number):void{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#used)throw new Error("invalid private-state byte release");this.#used-=bytes;this.#refunded+=bytes}
   get usedBytes():number{return this.#used}
 }
 type Entry={key:Mem[];payload:Mem[];sequence:number;bytes:number};

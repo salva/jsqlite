@@ -9735,7 +9735,7 @@ export class VdbeStatement implements Statement {
   get columnCount(): number { return this.#program.columns.length; }
   /** Internal conformance seam. A detached immutable snapshot prevents tests
    * from mutating statement execution state. */
-  privateAccounting():VdbePrivateAccounting{return Object.freeze({...this.#privateAccounting,orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
+  privateAccounting(){return Object.freeze({...this.#privateAccounting,...this.#privateBytes.snapshot(),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
