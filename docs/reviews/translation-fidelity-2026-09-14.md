@@ -1,5 +1,12 @@
 ## Automatic covering-index and independent standalone Bloom consumers (author repair)
 
+Production-private snapshots now distinguish fresh executions and retained program
+identity across reset, with immutable detached observations. Reprepare retains the
+execution and replaces the program identity; these are realm-local diagnostics,
+not full resource accounting. Identity owner and actual consumer controls:
+[[card:card-s-j-c]]. Deeper placement, emitted/dispatched coverage and the finite
+capacity/fault/cancel/lifetime schedule remain unfinished.
+
 Ordinary two-physical-rowid INNER/CROSS equality-only SQL now enrolls the existing standalone descriptor and executes Once/source-local build/FilterAdd plus live-affinity Filter before persistent seek. Native-FIRST typed rows, five metadata fields and reset agree across three encodings; the standalone witness reduces persistent seeks from1023 to34. Two-rowid INNER/LEFT SQL now lowers native-costed automatic descriptors through shared packed build/probe/covering and LEFT null-extension ownership. Absent/collision/empty native-FIRST controls pass all encodings/reset with dispatched build/insert/filter/seek counters. Outer/IN/range/frame standalone Bloom placement, complete emitted-versus-dispatched observation and finite fault/resource acceptance remain open. This is partial author evidence, not independent acceptance or full finding closure: [[card:card-s-j-b]] status.
 
 ## Scalar comparison affinity correction

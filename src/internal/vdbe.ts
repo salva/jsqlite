@@ -309,6 +309,9 @@ export interface Program {
 /** Production-private sqlite3_stmt_status-shaped accounting. It deliberately
  * does not extend the public Statement contract. */
 export interface VdbePrivateAccounting {
+  /** Opaque realm-local identities. Null before execution, never SQL hashes. */
+  readonly executionId:string|null;
+  readonly planId:string|null;
   readonly automaticBuilds:number;
   readonly automaticInserts:number;
   readonly automaticSeeks:number;
@@ -330,7 +333,15 @@ export interface VdbePrivateAccounting {
   readonly orBranchRoots:readonly number[];
   readonly orDuplicateSkips:number;
 }
-const zeroPrivateAccounting=():VdbePrivateAccounting=>({automaticBuilds:0,automaticInserts:0,automaticSeeks:0,automaticCoveringReads:0,filterAdds:0,filterAbsent:0,filterPresent:0,plannerCandidates:0,plannerPaths:0,indexSeeks:0,indexNext:0,tableSeeks:0,tableNext:0,residualTests:0,sorterRows:0,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0});
+// Weak keys avoid retaining finalized programs; BigInt identities never wrap.
+let nextExecutionIdentity=0n,nextPlanIdentity=0n;
+const planIdentities=new WeakMap<Program,string>();
+function planIdentity(program:Program):string {
+  let identity=planIdentities.get(program);
+  if(identity===undefined){identity=`plan-${++nextPlanIdentity}`;planIdentities.set(program,identity);}
+  return identity;
+}
+const zeroPrivateAccounting=():VdbePrivateAccounting=>({executionId:null,planId:null,automaticBuilds:0,automaticInserts:0,automaticSeeks:0,automaticCoveringReads:0,filterAdds:0,filterAbsent:0,filterPresent:0,plannerCandidates:0,plannerPaths:0,indexSeeks:0,indexNext:0,tableSeeks:0,tableNext:0,residualTests:0,sorterRows:0,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0});
 export type WindowDeleteMode="retain"|"agg-inverse"|"return-row"|"agg-step";
 export interface WindowSetupLayer {
   readonly compatibleGroup:number;
@@ -9732,7 +9743,7 @@ export class VdbeStatement implements Statement {
   clearBindings(): void { this.#assertIdle(); this.#bindings.forEach(value => value.setNull()); if(this.#program.expmask)this.#expired=true; }
   async step(options: OperationOptions = {}): Promise<StepResult> {
     this.#assertIdle();
-    if(!this.#executionStarted){const plan=this.#program.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};this.#executionStarted=true;}
+    if(!this.#executionStarted){const plan=this.#program.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),executionId:`execution-${++nextExecutionIdentity}`,planId:planIdentity(this.#program),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};this.#executionStarted=true;}
     if (this.#state === "failed") throw this.#savedError;
     if (this.#state === "done") return "done";
     const requestedLimit = options.maxWorkUnits ?? this.#program.maxWorkUnits;
@@ -9758,7 +9769,8 @@ export class VdbeStatement implements Statement {
         this.#halt();for(const value of this.#registers)value.release();
         this.#program=finalizeJsonColumnReads(replacement);this.#registers=registers;this.#pc=0;this.#expired=false;
         this.#inverseAggregates=new Set(replacement.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
-        const plan=replacement.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};
+        // Reprepare replaces code, not the enclosing execution entry.
+        const plan=replacement.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),executionId:this.#privateAccounting.executionId,planId:planIdentity(this.#program),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};
       }
       while (this.#pc < this.#program.ops.length) {
         this.#checkControl(options, limit, started);

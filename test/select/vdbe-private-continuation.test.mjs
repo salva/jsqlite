@@ -35,6 +35,25 @@ function statement(){return new VdbeStatement({ops:[
  {code:'Integer',p1:19n,p2:1},{code:'ResultRow',p1:1,p2:1},{code:'Halt'}
 ],registers:2,columns:[{name:'n'}],parameters:[],encoding:'utf8',maxWorkUnits:10000,maxResultBytes:10000,privateStateLimits:{maxBytes:1100,maxEntries:1,maxKeyBytes:1100}},()=>{},()=>()=>{},()=>{});}
 
+test('production observation owns fresh execution and stable program identities',async()=>{
+ const a=statement(),b=statement();
+ try{
+  assert.equal(a.privateAccounting().executionId,null);
+  assert.equal(await a.step(),'row');
+  const first=a.privateAccounting(),retained=JSON.stringify(first);
+  assert.ok(first.executionId);assert.ok(first.planId);assert.ok(Object.isFrozen(first));
+  assert.equal(await a.step(),'done');assert.equal(a.privateAccounting().executionId,first.executionId);
+  assert.equal(await a.step(),'done');assert.equal(a.privateAccounting().executionId,first.executionId);
+  await b.step();const survivor=b.privateAccounting();
+  assert.notEqual(survivor.executionId,first.executionId);
+  a.reset();assert.equal(a.privateAccounting().executionId,null);
+  await a.step();const second=a.privateAccounting();
+  assert.notEqual(second.executionId,first.executionId);assert.equal(second.planId,first.planId);
+  assert.equal(JSON.stringify(first),retained);
+  assert.deepEqual(b.privateAccounting(),survivor);
+ }finally{a.finalize();b.finalize();}
+});
+
 test('PRIVATE units>256 resumes multiple pending/void quanta exactly, failures clean up and reset',async()=>{
  const insert=SorterCursor.prototype.insert,host=VdbeHostAdmission.prototype.checkpoint;
  const clock=Date.now;

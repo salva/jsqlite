@@ -1,5 +1,16 @@
 # SQLite source map
 
+### Execution observation identity
+
+`vdbeaux.c:sqlite3VdbeRewind`/`sqlite3VdbeReset` ready/run lifetime →
+`VdbeStatement.step/reset` production-private identities. Opaque realm-local IDs
+distinguish executions and retained programs; reprepare preserves execution but
+replaces program identity. No cross-worker identity or native pointer is implied.
+Frozen snapshot/reset/done/concurrent-statement controls:
+`test/select/vdbe-private-continuation.test.mjs`; actual auto/Bloom consumer
+controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
+obligations and revision evidence: [[card:card-s-j-c]].
+
 ### Shared automatic/Bloom prerequisites (not SQL enrollment)
 
 `vdbe.c:filterHash`, `vdbemem.c:sqlite3VdbeIntValue` →

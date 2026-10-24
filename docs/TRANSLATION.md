@@ -470,6 +470,14 @@ The [runtime automatic-index/Bloom decision](research/where-autoindex-admission.
 is the current bounded beta.5 proposal: native costed transient covering indexes,
 shared packed private-Btree build/probe, source Bloom hash/filter and execution-owned
 Once/resource lifetime, with native-FIRST captures and existing-owner handoff.
+Production-private dispatch snapshots carry opaque realm-local execution and program
+identities: reset starts a fresh execution, while retained code keeps its plan
+identity; reprepare changes the plan, not the execution entry. Snapshots are detached
+and frozen. These are diagnostic identities, not SQL/schema hashes or cross-worker
+identities. The lifetime follows `vdbeaux.c:sqlite3VdbeRewind`/Reset readiness and the
+actual TS execution entry, not a test adapter. Identity controls live in
+`test/select/vdbe-private-continuation.test.mjs` and the existing native-receipt
+consumer baseline; they do not establish complete resource/safety observation.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for bounded INNER/CROSS persistent equality loops. Wider consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-b]] status for exact evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.
