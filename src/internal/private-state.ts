@@ -240,6 +240,16 @@ export class EphemeralIndexCursor {
   get nullRow():boolean{this.#live();return this.#nullRow}
   setNullRow():void{this.#live();this.#nullRow=true;this.#at=-1;this.#deleted=false}
   first():boolean{this.#live();this.#nullRow=this.#shared.entries.length===0;this.#deleted=false;this.#at=0;return !this.#nullRow}
+  /** vdbe.c Last and prefix SeekGE for window.c application indices. */
+  last():boolean{this.#live();this.#at=this.#shared.entries.length-1;this.#deleted=false;this.#nullRow=this.#at<0;return !this.#nullRow}
+  async seekGE(key:readonly Mem[],control:PrivateStateControl):Promise<boolean>{
+   this.#live();let lo=0,hi=this.#shared.entries.length;
+   while(lo<hi){const mid=lo+Math.floor((hi-lo)/2),entry=this.#shared.entries[mid]!;
+    let cmp=0;for(let i=0;i<key.length&&!cmp;i++){await control.checkpoint(1);cmp=compareMem(entry.key[i]!,key[i]!,this.keyInfo.terms[i]?.collation??'binary');if(this.keyInfo.terms[i]?.desc)cmp=-cmp;}
+    if(cmp<0)lo=mid+1;else hi=mid;
+   }
+   this.#at=lo;this.#deleted=false;this.#nullRow=lo>=this.#shared.entries.length;return !this.#nullRow;
+  }
   /** window.c1948ff / vdbe.c OP_SeekRowid: a completed integer seek
    * clears nullRow even on a miss; failed lookup follows the caller's jump.
    * Browser linear lookup charges every visited shared record;

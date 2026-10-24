@@ -1,5 +1,15 @@
 ## Beta5 window producer retention correction (author evidence)
 
+Review28 independently exposed bounded extrema's oldest numeric tie. The current
+owner repair dispatches inverse-capable extrema to shared keyed application
+state/sequence/prefix SeekGE/Delete/Last and preserves ordinary aggregate ties.
+Typed tests cover both directions/all encodings and cleanup. Shared ordered
+storage versus packed B-tree remains unfinished algorithm reconciliation, not a
+platform-justified exception. Concat now owns UTF-8 StrAccum capacity, nAccum and
+separator-length inverse state instead of row chunks; window lowering explicitly
+selects application ownership instead of scanning inverse opcodes. These changed
+paths require independent acceptance. [Bounded evidence](../research/card-s-i/review28-extrema-application.md).
+
 Current scoped repair makes sourceRow snapshot policy caller-owned: complete
 physical/module payload and identity by default for AggInfo, modules-only for the
 window caller whose physical cursors stay positioned across Yield. The previous

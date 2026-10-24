@@ -1234,6 +1234,20 @@ Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms an
 
 ## Windows and private storage
 
+Bounded inverse min/max uses independent value+sequence application state,
+KeyInfo prefix SeekGE/Delete and Last/Column; equal values publish the newest
+retained representation. Ordinary minmax retains its first best on equality.
+Shared ephemeral ordered storage remains an inherited non-packed adaptation;
+its native B-tree algorithm reconciliation remains an explicit inherited boundary.
+Window lowering selects inverse application ownership on AggStep; ordinary
+aggregate routing does not depend on scanning other opcodes. Concat now owns a
+UTF-8 StrAccum buffer, nAccum and separator-length variation state; inverse
+removes departing UTF-8 bytes plus the following separator, resetting separator
+tracking on zero nChar. Retained buffer capacity and separator lengths debit the
+statement byte budget. EXCLUDE NO OTHERS retains the full-scan result owner rather than
+being overwritten by the ordinary sliding application's newest-equal result.
+[Source and tests](research/card-s-i/review28-extrema-application.md).
+
 Private-budget regression fixtures distinguish retained aggregate payload from
 simultaneously live input/expression/result Mem and selected automatic-index
 storage. Zero capacity is not a promise to bypass a selected automatic index;

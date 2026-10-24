@@ -145,7 +145,7 @@ type Op =
   | { readonly code:"Affinity"; readonly p1:number; readonly affinity:MemAffinity }
   | { readonly code: "Cast"; readonly p1:number; readonly p2:number; readonly affinity:MemAffinity }
   | { readonly code: "Function" | "PureFunc"; readonly p5?:'generated'; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
-  | { readonly code: "AggStep"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation; readonly changed?:number }
+  | { readonly code: "AggStep"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation; readonly changed?:number; readonly windowInverse?:boolean }
   | { readonly code: "AggInverse"; readonly name:string; readonly args:readonly number[]; readonly p2:number; readonly collation:BuiltinCollation }
   | { readonly code: "AggFinal"; readonly name:string; readonly p1:number }
   | { readonly code: "AggValue"; readonly name:string; readonly p1:number; readonly p2:number }
@@ -434,7 +434,7 @@ function windowAggregateCallback(ops:Op[],win:WindowCodeLayer['windows'][number]
  const args=Array.from({length:win.window.argumentCount},(_,i)=>source+win.argumentColumn+i);
  const filter=win.filterColumn===null?-1:ops.length;
  if(filter>=0)ops.push({code:'IfNot',p1:source+win.filterColumn!,p2:0});
- ops.push({code:inverse?'AggInverse':'AggStep',name:win.window.functionName,args,p2:accumulator,collation:args.length?collation:'binary'});
+ ops.push({code:inverse?'AggInverse':'AggStep',name:win.window.functionName,args,p2:accumulator,...(!inverse?{windowInverse:accumulator===win.regAccum&&win.window.frame.start.kind!=='unbounded'}:{}),collation:args.length?collation:'binary'});
  if(filter>=0)(ops[filter] as {p2:number}).p2=ops.length;
 }
 function pendingPriorPeerLayer(layer:WindowRewriteGraph['layers'][number]):boolean {
@@ -1843,7 +1843,7 @@ export function compileWindowSelectLowering(
       // frame before the current row is exactly the retained context. Snapshot
       // it first, then admit the current cached row for the next output.
       for(const win of pending.layer.windows)ops.push({code:"AggValue",name:win.window.functionName,p1:win.regAccum,p2:win.regResult});
-      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;}
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let filterJump:number|null=null;if(win.filterColumn!==null){filterJump=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const stepAt=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,windowInverse:win.window.frame.start.kind!=='unbounded',collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(filterJump!==null)(ops[filterJump] as {p2:number}).p2=stepAt+1;}
     }
     if(sharedBoundedExcludeCurrent){
       const frame=pending.layer.windows[0]!.window.frame,bounded=windowConstantInteger(expressionFromReduction(frame.start.expr!.reduction!));
@@ -1859,7 +1859,7 @@ export function compileWindowSelectLowering(
       // payload before stepping current; the sorter payload remains retained in
       // pending.payload across this Gosub and no host row object is introduced.
       for(let column=0;column<state.inputRegisters.length;column++)ops.push({code:"Copy",p1:pending.payload+column,p2:state.regNew+column});
-      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);let skip:number|null=null;if(win.filterColumn!==null){skip=ops.length;ops.push({code:"IfNot",p1:state.regNew+win.filterColumn,p2:0});}const at=ops.length;ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,windowInverse:win.window.frame.start.kind!=='unbounded',collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});if(skip!==null)(ops[skip] as {p2:number}).p2=at+1;}
     }
     if(sharedBoundedPeerExclusion){
       builder.registers=Math.max(builder.registers,registers);
@@ -1894,8 +1894,8 @@ export function compileWindowSelectLowering(
       registers=builder.registers;
     }
     const sharedSliding=!scannedRowsLayer(pending.layer)&&pending.layer.windows.length>0&&pending.layer.windows.every(win=>{const frame=win.window.frame;return frame.type==="rows"&&frame.end.kind==="current"&&(frame.exclusion===null||frame.exclusion==="no-others")&&(frame.start.kind==="current"||(frame.start.kind==="preceding"&&!!frame.start.expr?.reduction));});
-    if(sharedSliding&&!pendingEndRows){
-      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);}
+    if(sharedSliding&&!sharedBoundedPeerExclusion&&!pendingEndRows){
+      for(const win of pending.layer.windows){const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,windowInverse:win.window.frame.start.kind!=='unbounded',collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);}
       const frame=pending.layer.windows[0]!.window.frame,bounded=frame.start.expr?.reduction?windowConstantInteger(expressionFromReduction(frame.start.expr.reduction)):null;
       const inverse=builder.label(),done=builder.label();builder.jump(inverse,{code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,...(frame.start.kind==="current"?{threshold:1}:bounded!==null?{threshold:bounded+1}:{thresholdRegister:state.boundRegisters.start!}),jump:0},(op,pc)=>({...op,jump:pc} as Op));builder.jump(done,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc} as Op));builder.mark(inverse);ops.push({code:"EphemeralAdvanceData",p1:pending.layer.duplicateCursors[0],p2:state.regNew,count:state.inputRegisters.length});windowCodeOp({ops,layer:pending.layer,state,collationOf:column=>collation(expressionFromReduction(pending.layer.bufferExpressions[column]!.reduction!))},"WINDOW_AGGINVERSE");builder.mark(done);
       // windowReturnOneRow publishes the current output row, not the row most
@@ -1911,7 +1911,7 @@ export function compileWindowSelectLowering(
       for(const win of pending.layer.windows){
         const args=Array.from({length:win.window.argumentCount},(_,index)=>state.regNew+win.argumentColumn+index);
         const afterStep=builder.label();if(win.filterColumn!==null)builder.jump(afterStep,{code:"IfNot",p1:state.regNew+win.filterColumn,p2:0},(op,pc)=>({...op,p2:pc} as Op));
-        ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);
+        ops.push({code:"AggStep",name:win.window.functionName,args,p2:win.regAccum,windowInverse:win.window.frame.start.kind!=='unbounded',collation:args.length?collation(expressionFromReduction(pending.layer.bufferExpressions[win.argumentColumn]!.reduction!)):"binary"});builder.mark(afterStep);
       }
       const snapshot=builder.label(),done=builder.label();
       builder.jump(snapshot,{code:"IfCursorSizeGt",p1:pending.layer.iEphCsr,thresholdRegister:state.boundRegisters.end!,registerAdjustment:0,jump:0},(op,pc)=>({...op,jump:pc} as Op));
@@ -9514,8 +9514,8 @@ interface DistributionCtx {nStep:bigint;nValue:bigint;nTotal:bigint}
 interface NtileCtx {nTotal:bigint;nParam:bigint;iRow:bigint}
 interface NthValueCtx {nStep:bigint;value:Mem|null}
 interface LastValueCtx {nVal:bigint;value:Mem|null}
-interface ExtremaCtx {values:Mem[];bytes:number;inverseCapable:boolean}
-interface ConcatCtx {values:{text:string;separator:string;bytes:number}[];bytes:number}
+interface ExtremaCtx {values:Mem[];bytes:number}
+interface ConcatCtx {buffer:Uint8Array;nChar:number;nAccum:number;initialized:boolean;nFirstSepLength:number;sepLengths:number[]|null;bytes:number}
 interface JsonAggregateCtx {buffer:Uint8Array;used:number;bytes:number;error:unknown}
 const emptySum=():SumCtx=>({rSum:0,rErr:0,iSum:0n,cnt:0n,approx:false,ovrfl:false});
 const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Object.freeze({
@@ -9553,10 +9553,52 @@ const aggregateDefinitions:Readonly<Record<string,AggregateDefinition<any>>>=Obj
  json_group_array:jsonAggregateDefinition("json_group_array"),jsonb_group_array:jsonAggregateDefinition("jsonb_group_array"),
  json_group_object:jsonAggregateDefinition("json_group_object"),jsonb_group_object:jsonAggregateDefinition("jsonb_group_object"),
 });
-function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:c=>({values:[],bytes:0,inverseCapable:c.inverseCapable}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return !c.currentState()?.values.length;const state=c.state(),bytes=valueBytes(value);if(!state.inverseCapable&&state.values.length){const best=state.values[0]!,better=name==="min"?compareMem(best,value,c.collation)>0:compareMem(best,value,c.collation)<0;if(!better)return false;const oldBytes=state.bytes,next=new Mem();c.budget.replace(oldBytes,bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.replace(bytes,oldBytes);throw error}best.release();state.values[0]=next;state.bytes=bytes;return true}const next=new Mem();c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.release(bytes);throw error}let at=0;while(at<state.values.length&&(name==="min"?compareMem(state.values[at]!,next,c.collation)<=0:compareMem(state.values[at]!,next,c.collation)>=0))at++;state.values.splice(at,0,next);state.bytes+=bytes;return at===0},inverse:(c,a)=>{const value=a[0],state=c.currentState();if(!value||value.initialStorageClass==="null"||!state)return;if(!state.inverseCapable)throw new JSQLiteError("internal",`${name} inverse without inverse-capable state`);const at=state.values.findIndex(candidate=>compareMem(candidate,value,c.collation)===0);if(at<0)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const [removed]=state.values.splice(at,1),bytes=valueBytes(removed!);removed!.release();state.bytes-=bytes;c.budget.release(bytes)},value:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},final:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},cleanup:s=>{for(const value of s.values)value.release();s.values.length=0}}}
-function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{name,arities:name==="string_agg"?[2]:[1,2],create:()=>({values:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return;const text=aggregateText(value),separator=a[1]?.initialStorageClass==="null"?"":a[1]?aggregateText(a[1]):",",state=c.state(),prefix=state.values.length?separator:"",bytes=new TextEncoder().encode(prefix+text).byteLength;if(state.bytes+bytes>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{state.values.push({text,separator:prefix,bytes})}catch(error){c.budget.release(bytes);throw error}state.bytes+=bytes},inverse:(c,a)=>{if(!a[0]||a[0]!.initialStorageClass==="null")return;const state=c.currentState();if(!state?.values.length)throw new JSQLiteError("internal",`${name} inverse without stepped value`);const removed=state.values.shift()!;state.bytes-=removed.bytes;c.budget.release(removed.bytes);if(state.values.length){const first=state.values[0]!,separatorBytes=new TextEncoder().encode(first.separator).byteLength;first.separator="";first.bytes-=separatorBytes;state.bytes-=separatorBytes;c.budget.release(separatorBytes)}},value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>s.values.length=0}}
+function extremaDefinition(name:"min"|"max"):AggregateDefinition<ExtremaCtx>{return{name,arities:[1],create:()=>({values:[],bytes:0}),step:(c,a)=>{const value=a[0];if(!value||value.initialStorageClass==="null")return !c.currentState()?.values.length;const state=c.state(),bytes=valueBytes(value);if(state.values.length){const best=state.values[0]!,better=name==="min"?compareMem(best,value,c.collation)>0:compareMem(best,value,c.collation)<0;if(!better)return false;const oldBytes=state.bytes,next=new Mem();c.budget.replace(oldBytes,bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.replace(bytes,oldBytes);throw error}best.release();state.values[0]=next;state.bytes=bytes;return true}const next=new Mem();c.budget.reserve(bytes,"aggregate state exceeds total byte limit");try{next.copyFrom(value)}catch(error){c.budget.release(bytes);throw error}state.values.push(next);state.bytes=bytes;return true},inverse:()=>{throw new JSQLiteError('internal','minmax callback has no inverse; bounded windows require application cursor')},value:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},final:c=>{const out=new Mem(),best=c.currentState()?.values[0];if(best)out.copyFrom(best);c.setResult(out)},cleanup:s=>{for(const value of s.values)value.release();s.values.length=0}}}
+// func.c GroupConcatCtx and printf.c StrAccum. Uint8Array owns UTF-8 bytes;
+// separator lengths are retained only after the first variation, never row text.
+function concatAppend(c:AggregateFunctionContext<ConcatCtx>,s:ConcatCtx,text:Uint8Array):void{
+ const needed=s.nChar+text.length;
+ c.control.snapshotCheckpoint?.(Math.max(1,Math.ceil(text.length/64)));
+ if(needed>c.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");
+ if(needed>=s.buffer.length){
+  let capacity=needed+1;if(capacity+s.nChar<=c.maxResultBytes+1)capacity+=s.nChar;
+  const oldCapacity=s.buffer.length;c.budget.reserve(capacity,"aggregate state exceeds total byte limit");
+  try{const next=new Uint8Array(capacity);next.set(s.buffer.subarray(0,s.nChar));s.buffer=next;s.bytes+=capacity-oldCapacity;c.budget.release(oldCapacity)}catch(error){c.budget.release(capacity);throw error}
+ }
+ s.buffer.set(text,s.nChar);s.nChar=needed;
+}
+function concatDefinition(name:"group_concat"|"string_agg"):AggregateDefinition<ConcatCtx>{return{
+ name,arities:name==="string_agg"?[2]:[1,2],
+ create:()=>({buffer:new Uint8Array(0),nChar:0,nAccum:0,initialized:false,nFirstSepLength:0,sepLengths:null,bytes:0}),
+ step:(c,a)=>{
+  if(!a[0]||a[0].initialStorageClass==="null")return;
+  const s=c.state(),encode=new TextEncoder(),first=!s.initialized;s.initialized=true;
+  const separator=a.length===1?encode.encode(','):a[1]!.initialStorageClass==='null'?new Uint8Array(0):encode.encode(aggregateText(a[1]!));
+  if(first)s.nFirstSepLength=separator.length;
+  else{
+   concatAppend(c,s,separator);
+   if(separator.length!==s.nFirstSepLength||s.sepLengths!==null){
+    const count=s.nAccum,oldCount=s.sepLengths?.length??0,extra=(count-oldCount)*4;
+    c.budget.reserve(extra,"aggregate separator state exceeds total byte limit");
+    try{if(s.sepLengths===null)s.sepLengths=Array(Math.max(0,count-1)).fill(s.nFirstSepLength);s.sepLengths.push(separator.length);s.bytes+=extra}catch(error){c.budget.release(extra);throw error}
+   }
+  }
+  s.nAccum++;concatAppend(c,s,encode.encode(aggregateText(a[0])));
+ },
+ inverse:(c,a)=>{
+  if(!a[0]||a[0].initialStorageClass==='null')return;
+  const s=c.currentState();if(!s)throw new JSQLiteError('internal',`${name} inverse without stepped value`);
+  let remove=new TextEncoder().encode(aggregateText(a[0])).length;--s.nAccum;
+  if(s.sepLengths!==null){if(s.nAccum>0){remove+=s.sepLengths.shift()!;s.bytes-=4;c.budget.release(4)}}else remove+=s.nFirstSepLength;
+  c.control.snapshotCheckpoint?.(Math.max(1,Math.ceil(s.nChar/64)));
+  if(remove>=s.nChar)s.nChar=0;else{s.buffer.copyWithin(0,remove,s.nChar);s.nChar-=remove}
+  if(s.nChar===0){s.initialized=false;const bytes=(s.sepLengths?.length??0)*4;s.sepLengths=null;s.bytes-=bytes;c.budget.release(bytes)}
+ },
+ value:c=>concatResult(c),final:c=>concatResult(c),cleanup:s=>{s.buffer=new Uint8Array(0);s.sepLengths=null}
+}}
+
 function aggregateText(input:Mem):string{const copy=new Mem();copy.copyFrom(input);if(copy.initialStorageClass!=="text")copy.stringify("utf-8");return copy.textValue()}
-function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),state=c.currentState();if(state?.values.length)out.setText(new TextEncoder().encode(state.values.map(value=>value.separator+value.text).join("")),"utf-8");c.setResult(out)}
+function concatResult(c:AggregateFunctionContext<ConcatCtx>):void{const out=new Mem(),s=c.currentState();if(s&&(s.nAccum>0||s.nChar>0))out.setText(s.buffer.slice(0,s.nChar),"utf-8");c.setResult(out)}
 async function jsonAggregateAppend(c:AggregateFunctionContext<JsonAggregateCtx>,bytes:Uint8Array):Promise<void>{
  const s=c.state();if(s.error)throw s.error;
  const used=s.used+bytes.length;
@@ -9785,7 +9827,9 @@ export class VdbeStatement implements Statement {
   #filters = new Map<number,PrivateBloomFilter>();
   #privateBytes: PrivateStateByteBudget;
   #once = new Set<number>();
-  #inverseAggregates: ReadonlySet<number>;
+  // Application selection is emitted by window lowering, not inferred by a VM scan.
+  // window.c csrApp/regApp: independent keyed state, never an aggregate callback.
+  #windowExtrema=new Map<number,{cursor:EphemeralIndexCursor;sequence:bigint}>();
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
@@ -9801,7 +9845,7 @@ export class VdbeStatement implements Statement {
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem(()=>this.#privateBytes));
     this.#bindings = program.parameters.map(() => new Mem());
     this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
-    this.#inverseAggregates = new Set(program.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
+
   }
   get columnCount(): number { return this.#program.columns.length; }
   /** Internal conformance seam. A detached immutable snapshot prevents tests
@@ -9840,7 +9884,7 @@ export class VdbeStatement implements Statement {
         const registers=Array.from({length:replacement.registers+1},()=>new Mem(()=>this.#privateBytes));
         this.#halt();for(const value of this.#registers)value.release();
         this.#program=finalizeJsonColumnReads(replacement);this.#registers=registers;this.#pc=0;this.#expired=false;
-        this.#inverseAggregates=new Set(replacement.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
+
         // Reprepare replaces code, not the enclosing execution entry.
         const plan=replacement.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),executionId:this.#privateAccounting.executionId,planId:planIdentity(this.#program),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};
       }
@@ -10448,14 +10492,25 @@ export class VdbeStatement implements Statement {
           case "CollSeq": break;
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
           case "Binary": {let a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;if(op.affinity&&["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(op.op)){const left=new Mem(),right=new Mem();left.copyFrom(a);right.copyFrom(b);left.applyAffinity(op.affinity,this.#program.encoding);right.applyAffinity(op.affinity,this.#program.encoding);a=left;b=right}this.#registers[op.p3]!.moveFrom(op.op==="||"?concatenateMem(a,b,this.#program.encoding,this.#program.maxResultBytes):evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
-          case "AggReset": for(const register of op.registers)this.#registers[register]!.setNull();break;
+          case "AggReset": for(const register of op.registers){this.#windowExtrema.get(register)?.cursor.close();this.#windowExtrema.delete(register);this.#registers[register]!.setNull();}break;
           case "WindowRangeTest": {if(windowRangeTest(this.#registers[op.candidate]!,this.#registers[op.current]!,op.offset===undefined?undefined:this.#registers[op.offset]!,op.mode,op.descending,op.collation,op.bigNull))this.#pc=op.jump;break;}
           case "CompareJump": {let result=0;const control=this.#privateControl(options,limit,started);for(let i=0;i<op.count;i++){await control.checkpoint(1);const index=op.permutation?.[i]??i,term=op.keyInfo.terms[i]!;result=compareMem(this.#registers[op.left+index]!,this.#registers[op.right+index]!,term.collation);if(result!==0){if(term.nullsLarge&&(this.#registers[op.left+index]!.initialStorageClass === "null"||this.#registers[op.right+index]!.initialStorageClass === "null"))result=-result;if(term.desc)result=-result;break;}}this.#pc=result<0?op.less:result>0?op.greater:op.equal;break;}
           case "CompareGroup": {let equal=true;const control=this.#privateControl(options,limit,started);for(let i=0;i<op.count;i++){await control.checkpoint(1);if(compareMem(this.#registers[op.left+i]!,this.#registers[op.right+i]!,op.keyInfo.terms[i]!.collation)!==0){equal=false;break}}if(equal)this.#pc=op.jump;break;}
-          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const changed=await aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#inverseAggregates.has(op.p2),this.#privateControl(options,limit,started));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
-          case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);await aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#privateControl(options,limit,started));break;}
-          case "AggFinal": this.#registers[op.p1]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true,this.#privateControl(options,limit,started)));break;
-          case "AggValue": this.#registers[op.p2]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false,this.#privateControl(options,limit,started)));break;
+          case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);if((op.name==='min'||op.name==='max')&&!!op.windowInverse){
+            const value=args[0]!;if(value.initialStorageClass==='null')break;
+            let app=this.#windowExtrema.get(op.p2);
+            if(!app){app={cursor:new EphemeralIndexCursor(new KeyInfo({encoding:this.#program.encoding,totalFieldCount:2,keyFieldCount:2,terms:[{collation:op.collation,desc:op.name==='min'},{collation:'binary'}]}),this.#program.privateStateLimits,this.#privateBytes),sequence:0n};this.#windowExtrema.set(op.p2,app);const owned=app;this.#registers[op.p2]!.setAggregate({definition:'window-minmax-application',context:owned,cleanup:()=>{owned.cursor.close();this.#windowExtrema.delete(op.p2)}})}
+            const sequence=new Mem();sequence.setInt64(++app.sequence);
+            try{await app.cursor.insert([value,sequence],this.#privateControl(options,limit,started),true)}finally{sequence.release()}break;
+          }const changed=await aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,!!op.windowInverse,this.#privateControl(options,limit,started));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
+          case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);if(op.name==='min'||op.name==='max'){
+            if(args[0]!.initialStorageClass==='null')break;
+            const app=this.#windowExtrema.get(op.p2),control=this.#privateControl(options,limit,started);
+            if(!app||!await app.cursor.seekGE([args[0]!],control))throw new JSQLiteError('internal','window extrema inverse without stepped value');
+            await app.cursor.deleteCurrent(control);break;
+          }await aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#privateControl(options,limit,started));break;}
+          case "AggFinal": {const app=this.#windowExtrema.get(op.p1);if(app){const out=new Mem();if(app.cursor.last())out.copyFrom(app.cursor.data()[0]!);this.#registers[op.p1]!.moveFrom(publishFunctionResult(out,this.#program.encoding,this.#program.maxResultBytes));break;}this.#registers[op.p1]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true,this.#privateControl(options,limit,started)));break;}
+          case "AggValue": {const app=this.#windowExtrema.get(op.p1);if(app){const out=new Mem();if(app.cursor.last())out.copyFrom(app.cursor.data()[0]!);this.#registers[op.p2]!.moveFrom(publishFunctionResult(out,this.#program.encoding,this.#program.maxResultBytes));break;}this.#registers[op.p2]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false,this.#privateControl(options,limit,started)));break;}
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={notPure:()=>new FunctionContext({name:op.name,...(op.code==='PureFunc'&&op.p5?{pureContext:op.p5}:{})}).notPure(),maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>{if(this.#currentTime!==null)return this.#currentTime;const sample=acquireDateTimeClock(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment);if(sample!==invalidDateTimeClock)this.#currentTime=sample;return sample;},...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
  const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:async(units:number)=>{await this.#privateControl(options,limit,started).checkpoint(units)},charge:control.charge,check:control.check,checkSize:control.checkSize};
  this.#registers[op.p2]!.moveFrom(publishFunctionResult(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)),this.#program.encoding,this.#program.maxResultBytes));
@@ -10600,6 +10655,8 @@ export class VdbeStatement implements Statement {
     this.#once.clear();
     this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.releaseRecord(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
+    for(const app of this.#windowExtrema.values())app.cursor.close();
+    this.#windowExtrema.clear();
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateKeys.clear();this.#automaticBuildExits.clear();this.#coveringTables.clear();this.#pendingFilterProbes.clear();this.#automaticCursors.clear();
     for(const filter of this.#filters.values())try{filter.close()}catch(error){if(diagnostic===null)diagnostic=error}
