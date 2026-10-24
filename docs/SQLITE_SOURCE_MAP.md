@@ -1102,6 +1102,10 @@ these branches, not general storage/complexity parity.
   [repeated-reader comparison and typed native/public evidence](research/recursive-join/repeated-evidence.md).
   [Native/public evidence and boundaries](research/recursive-join/README.md).
   Evidence [[card:card-n]], [[card:card-n-c]], [[card:card-t-d]].
+- `window.c:selectWindowRewriteExprCb` terminal projection → shared
+  `compileInnerTableSelect` module-only sourceRow snapshots and physical cursor
+  Yield handoff; regression `physical window input retains only rewritten terminals`
+  in window-rewrite.test.mjs. [Beta5 evidence](research/card-s-i/window-owner-correction.md).
 - `window.c:sqlite3WindowRewrite`, `sqlite3WindowCodeInit`,
   `sqlite3WindowCodeStep`, `windowCacheFrame` →
   [window-rewrite.ts](../src/internal/window-rewrite.ts): `sqlite3WindowRewrite`,

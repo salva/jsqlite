@@ -1,3 +1,12 @@
+## Beta5 window producer retention correction (author evidence)
+
+Current scoped repair restricts module-row snapshots to module sources; physical
+window producers keep positioned cursors and read rewritten terminals directly.
+The previous unused b/c copies caused the reproduced366-versus359 peak. Live Mem
+charges remain; cache85-byte boundary and done-time context release controls are
+now explicit. [Source comparison and evidence](../research/card-s-i/window-owner-correction.md).
+This does not certify whole-window, installed/browser or full-matrix acceptance.
+
 ## Automatic covering-index and independent standalone Bloom consumers (author repair)
 
 The original research consumer now executes admitted INNER record/page faults,

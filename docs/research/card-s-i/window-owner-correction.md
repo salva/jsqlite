@@ -3,6 +3,32 @@
 Owner: [[card:card-o-c-b]]. This is an incomplete correction receipt, not root,
 full-browser, original225 or alpha acceptance. See [independent source decision](window-overlap-decision.md).
 
+## Beta5 physical producer correction (current scoped evidence)
+
+On ea41e61f4c3739a678faa7d26e2e65abd5a493f5 the module-row callback
+caused compileInnerTableSelect to copy every physical source column, although
+its window caller ignores physical register rows and reads positioned cursors.
+Unused b/c TEXT retained seven bytes. Restricting that callback's snapshots to
+moduleRows restores the observed bounded witness to359 without removing Mem
+charges or changing limits. This translates window.c selectWindowRewriteExprCb's
+terminal projection; native EXPLAIN on pinned3530400 for a,sum(d) over ordered d
+reads rowid/d/d, not b/c (proc-7ed3a60e0381). Native built successfully in disposable
+source/build directories with executable modes restored (proc-f40d3470e799).
+
+The synthetic cache witness has a distinct legitimate boundary: live String
+register3 + packed record71 + logical row11 =85;84 rejects,85 succeeds. Input
+Mem remains owned across MakeRecord/Insert. No production cap changed. Lifecycle
+observer now checks every row yield, done-time releases and finalize idempotence;
+vdbeaux.c closeAllCursors/sqlite3VdbeHalt releases register contexts at done.
+The earlier4-versus2 observation was halt timing, not duplicate AggValue.
+
+Focused correction initially passed4/5 (proc-eb8d8c68b904), leaving the stale
+cache82 witness. After boundary controls, three complete suites passed
+(proc-c54971155a98); added physical projection and cache controls pass2/2 plus
+typecheck (proc-224b57426e8d). These are author evidence, not independent full522,
+installed/browser or whole-card acceptance. Exact process stdout resources and
+remaining obligations are in [[card:card-o-c-b]] status.
+
 ## Current implemented boundary
 
 For compatible ordinary `sum`, `total`, `avg`, `count`, `min`, `max`,

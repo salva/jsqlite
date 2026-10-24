@@ -45,6 +45,13 @@ test('compiler exposes the source-shaped window rewrite handoff', () => {
   );
 });
 
+test('physical window input retains only rewritten terminals, not module-row snapshots', () => {
+  const compilation=compileWindow(resolve('SELECT a, sum(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t1'),'utf-8');
+  const columns=compilation.program.ops.filter(op=>op.code==='Column');
+  assert.ok(columns.length>0);
+  assert.ok(columns.every(op=>op.p1===0),'unused b must not be materialized by sourceRow handoff');
+});
+
 test('rewrite shares compatible windows and nests incompatible windows in source order', () => {
   const resolved = resolve(
     'SELECT sum(a) OVER w, avg(a) OVER w, row_number() OVER (ORDER BY a) ' +
@@ -341,7 +348,10 @@ test('AggInverse schedules the registered sliding callback without destroying co
 
 
 test('window cache MakeRecord/NewRowid/Insert execute through budgeted ephemeral ownership', async () => {
-  const limits = {...vdbe.DEFAULT_PRIVATE_STATE_LIMITS, maxEntries: 1, maxKeyBytes: 32, maxBytes: 82};
+  // Live String register (3) + packed record (71) + logical row (11).
+  // The input remains owned across Insert; native MakeRecord does not consume it.
+  for (const cap of [84,85]) {
+  const limits = {...vdbe.DEFAULT_PRIVATE_STATE_LIMITS, maxEntries: 1, maxKeyBytes: 32, maxBytes: cap};
   const program = {ops: [
     {code: 'OpenEphemeral', p1: 1, keyInfo: new (await import('../../src/internal/comparison.ts')).KeyInfo({encoding: 'utf-8', totalFieldCount: 2, keyFieldCount: 0, terms: []})},
     {code: 'Integer', p1: 7n, p2: 1}, {code: 'String', p1: 'abc', p2: 2},
@@ -352,10 +362,12 @@ test('window cache MakeRecord/NewRowid/Insert execute through budgeted ephemeral
   ], registers: 7, encoding: 'utf-8', columns: ['rowid', 'a', 'b'].map(name => ({name, declaredType: null, database: null, table: null, origin: null})), parameters: [], maxRows: 1, maxWorkUnits: 100, maxResultBytes: 1000, privateStateLimits: limits};
   const statement = new vdbe.VdbeStatement(program, () => {}, () => () => {}, () => {});
   try {
+    if(cap===84){let saved;await assert.rejects(()=>statement.step(),error=>{saved=error;return error.kind==='limit'});assert.throws(()=>statement.reset(),error=>error===saved);continue;}
     assert.equal(await statement.step(), 'row');
     assert.deepEqual([statement.column(0), statement.column(1), statement.column(2)], [1n, 7n, 'abc']);
     assert.equal(await statement.step(), 'done');
-  } finally { statement.finalize(); }
+  } finally {try{statement.finalize()}catch(error){if(cap!==84)throw error;} }
+  }
 });
 
 
@@ -1410,6 +1422,6 @@ test('aggregate window suspended cache deadline preserves first error and restar
 
 test('window AggValue is non-destructive and reset/finalize tear aggregate contexts down exactly once', async () => {
   const {Mem}=await import('../../src/internal/mem.ts');const setNull=Mem.prototype.setNull;let aggregateReleases=0;Mem.prototype.setNull=function(...args){if(this.aggregateState())aggregateReleases++;return setNull.apply(this,args)};
-  const backend=await startFixtureServer(fixtures);let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`));statement=db.prepare('SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), count(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t1').statement;assert.equal(await statement.step(),'row');assert.deepEqual([statement.column(0),statement.column(1)],[1n,1n]);assert.equal(aggregateReleases,0,'AggValue must not destroy contexts at row yield');statement.reset();assert.equal(aggregateReleases,2);while(await statement.step()==='row'){}assert.equal(aggregateReleases,2,'partition output uses non-destructive AggValue');statement.finalize();statement=undefined;assert.equal(aggregateReleases,4,'finalize releases each rebuilt context once');
+  const backend=await startFixtureServer(fixtures);let db,statement;try{db=await openFixture(new Request(`http://127.0.0.1:${backend.port}/fixture/${backend.token}/subquery-utf8`));statement=db.prepare('SELECT sum(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW), count(a) OVER (ORDER BY a ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t1').statement;assert.equal(await statement.step(),'row');assert.deepEqual([statement.column(0),statement.column(1)],[1n,1n]);assert.equal(aggregateReleases,0,'AggValue must not destroy contexts at row yield');statement.reset();assert.equal(aggregateReleases,2);while(await statement.step()==='row'){assert.equal(aggregateReleases,2,'each AggValue row yield preserves both rebuilt contexts');}assert.equal(aggregateReleases,4,'vdbeaux.c sqlite3VdbeHalt releases contexts at done');statement.finalize();statement=undefined;assert.equal(aggregateReleases,4,'finalize after halt does not release contexts twice');
   }finally{Mem.prototype.setNull=setNull;try{statement?.finalize()}catch{}try{db?.closeDeferred()}catch{}await closeTestServer(backend.server)}
 });
