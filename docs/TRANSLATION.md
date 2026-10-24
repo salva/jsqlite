@@ -1272,11 +1272,13 @@ Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms an
 
 ## Windows and private storage
 
-Bounded inverse min/max uses independent value+sequence application state,
-KeyInfo prefix SeekGE/Delete and Last/Column; equal values publish the newest
-retained representation. Ordinary minmax retains its first best on equality.
-Shared ephemeral ordered storage remains an inherited non-packed adaptation;
-its native B-tree algorithm reconciliation remains an explicit inherited boundary.
+Bounded inverse min/max uses the shared packed PrivateKeyVmCursor application
+index with value+sequence, KeyInfo prefix SeekGE/Delete and Last/Column; equal
+values publish the newest retained representation. Ordinary minmax retains its
+first best on equality. Application insertion charges its packed record while
+page/cursor/operation ownership is charged by the shared arena. Other ephemeral
+consumers retain their existing representation; this is not an all-consumer
+migration or a claim of native heap/Pager rollback parity.
 Window lowering selects inverse application ownership on AggStep; ordinary
 aggregate routing does not depend on scanning other opcodes. Concat now owns a
 UTF-8 StrAccum buffer, nAccum and separator-length variation state; inverse

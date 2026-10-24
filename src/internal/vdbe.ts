@@ -9829,7 +9829,7 @@ export class VdbeStatement implements Statement {
   #once = new Set<number>();
   // Application selection is emitted by window lowering, not inferred by a VM scan.
   // window.c csrApp/regApp: independent keyed state, never an aggregate callback.
-  #windowExtrema=new Map<number,{cursor:EphemeralIndexCursor;sequence:bigint}>();
+  #windowExtrema=new Map<number,{cursor:PrivateKeyVmCursor;sequence:bigint}>();
   #borrow = new BorrowLifetime();
   #rows = 0;
   #work = 0;
@@ -10499,18 +10499,31 @@ export class VdbeStatement implements Statement {
           case "AggStep": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);if((op.name==='min'||op.name==='max')&&!!op.windowInverse){
             const value=args[0]!;if(value.initialStorageClass==='null')break;
             let app=this.#windowExtrema.get(op.p2);
-            if(!app){app={cursor:new EphemeralIndexCursor(new KeyInfo({encoding:this.#program.encoding,totalFieldCount:2,keyFieldCount:2,terms:[{collation:op.collation,desc:op.name==='min'},{collation:'binary'}]}),this.#program.privateStateLimits,this.#privateBytes),sequence:0n};this.#windowExtrema.set(op.p2,app);const owned=app;this.#registers[op.p2]!.setAggregate({definition:'window-minmax-application',context:owned,cleanup:()=>{owned.cursor.close();this.#windowExtrema.delete(op.p2)}})}
+            if(!app){
+              const control=this.#privateControl(options,limit,started),info=new KeyInfo({encoding:this.#program.encoding,totalFieldCount:2,keyFieldCount:2,terms:[{collation:op.collation,desc:op.name==='min'},{collation:'binary'}]});
+              const arena=await PrivateBlobkeyPages.open(this.#privateBytes,control,()=>{},this.#program.privateStateLimits);
+              try{app={cursor:new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,info,this.#program.privateStateLimits,{owning:true}),info),sequence:0n}}
+              catch(error){try{arena.close()}catch{}throw error}
+              this.#windowExtrema.set(op.p2,app);const owned=app;this.#registers[op.p2]!.setAggregate({definition:'window-minmax-application',context:owned,cleanup:()=>{owned.cursor.close();this.#windowExtrema.delete(op.p2)}});
+            }
             const sequence=new Mem();sequence.setInt64(++app.sequence);
-            try{await app.cursor.insert([value,sequence],this.#privateControl(options,limit,started),true)}finally{sequence.release()}break;
+            const control=this.#privateControl(options,limit,started),conversion=value.recordConversionBytes(undefined,this.#program.encoding);
+            this.#privateBytes.reserveScratch(conversion);
+            try{
+              if(value.initialStorageClass==='text')value.changeEncoding(this.#program.encoding);
+              const charge=recordSize([value,sequence])+64;
+              this.#privateBytes.reserveRecord(charge);
+              try{await control.checkpoint(charge);await app.cursor.insert(packRecord([value,sequence],this.#program.encoding),control)}finally{this.#privateBytes.releaseRecord(charge)}
+            }finally{this.#privateBytes.releaseScratch(conversion);sequence.release()}break;
           }const changed=await aggregateStep(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,!!op.windowInverse,this.#privateControl(options,limit,started));if(op.changed!==undefined)this.#registers[op.changed]!.setInt64(changed?1n:0n);break;}
           case "AggInverse": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);if(op.name==='min'||op.name==='max'){
             if(args[0]!.initialStorageClass==='null')break;
             const app=this.#windowExtrema.get(op.p2),control=this.#privateControl(options,limit,started);
-            if(!app||!await app.cursor.seekGE([args[0]!],control))throw new JSQLiteError('internal','window extrema inverse without stepped value');
-            await app.cursor.deleteCurrent(control);break;
+            if(!app||!await app.cursor.seekBound([args[0]!],'SeekGE',control))throw new JSQLiteError('internal','window extrema inverse without stepped value');
+            await app.cursor.deleteCurrent({},control);break;
           }await aggregateInverse(this.#registers[op.p2]!,op.name,args,op.collation,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,this.#privateControl(options,limit,started));break;}
-          case "AggFinal": {const app=this.#windowExtrema.get(op.p1);if(app){const out=new Mem();if(app.cursor.last())out.copyFrom(app.cursor.data()[0]!);this.#registers[op.p1]!.moveFrom(publishFunctionResult(out,this.#program.encoding,this.#program.maxResultBytes));break;}this.#registers[op.p1]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true,this.#privateControl(options,limit,started)));break;}
-          case "AggValue": {const app=this.#windowExtrema.get(op.p1);if(app){const out=new Mem();if(app.cursor.last())out.copyFrom(app.cursor.data()[0]!);this.#registers[op.p2]!.moveFrom(publishFunctionResult(out,this.#program.encoding,this.#program.maxResultBytes));break;}this.#registers[op.p2]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false,this.#privateControl(options,limit,started)));break;}
+          case "AggFinal": {const app=this.#windowExtrema.get(op.p1);if(app){const out=new Mem(),control=this.#privateControl(options,limit,started);if(await app.cursor.last(control))await app.cursor.column(0,out,control);this.#registers[op.p1]!.moveFrom(publishFunctionResult(out,this.#program.encoding,this.#program.maxResultBytes));break;}this.#registers[op.p1]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,true,this.#privateControl(options,limit,started)));break;}
+          case "AggValue": {const app=this.#windowExtrema.get(op.p1);if(app){const out=new Mem(),control=this.#privateControl(options,limit,started);if(await app.cursor.last(control))await app.cursor.column(0,out,control);this.#registers[op.p2]!.moveFrom(publishFunctionResult(out,this.#program.encoding,this.#program.maxResultBytes));break;}this.#registers[op.p2]!.moveFrom(await aggregateResult(this.#registers[op.p1]!,op.name,this.#program.encoding,this.#program.maxResultBytes,this.#privateBytes,false,this.#privateControl(options,limit,started)));break;}
           case "Function": case "PureFunc": {const args=op.args.map(x=>this.#registers[x]!);await this.#chargeScalarInputs(args,options,limit,started);const control:ScalarControl={notPure:()=>new FunctionContext({name:op.name,...(op.code==='PureFunc'&&op.p5?{pureContext:op.p5}:{})}).notPure(),maxResultBytes:this.#program.maxResultBytes,checkSize:(bytes)=>{if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big")},check:()=>this.#checkControl(options,limit,started),charge:(units)=>{for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;}},now:()=>{if(this.#currentTime!==null)return this.#currentTime;const sample=acquireDateTimeClock(this.#program.dateTimeEnvironment??defaultDateTimeEnvironment);if(sample!==invalidDateTimeClock)this.#currentTime=sample;return sample;},...(this.#program.dateTimeEnvironment?{dateTimeEnvironment:this.#program.dateTimeEnvironment}:{})};if(op.name==="json_pretty"){
  const prettyControl={reserve:(bytes:number)=>this.#privateBytes.reserve(bytes),release:(bytes:number)=>this.#privateBytes.release(bytes),checkpoint:async(units:number)=>{await this.#privateControl(options,limit,started).checkpoint(units)},charge:control.charge,check:control.check,checkSize:control.checkSize};
  this.#registers[op.p2]!.moveFrom(publishFunctionResult(await runAsyncFunctionContext(()=>jsonPretty(args[0]!,args[1],prettyControl)),this.#program.encoding,this.#program.maxResultBytes));

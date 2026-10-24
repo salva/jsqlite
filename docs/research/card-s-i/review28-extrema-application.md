@@ -11,18 +11,23 @@ inverse SeekGE on the value prefix deletes the earliest equal sequence.
 `windowAggFinal` publishes NULL or Column0 at Last. Ordinary
 `func.c:minmaxStep` instead keeps its best on equality. These owners must differ.
 
-The corrective implementation uses shared `EphemeralIndexCursor`, KeyInfo,
-Mem, statement limits and byte budget, not an extrema-specific sorted Mem array.
-The existing VM aggregate instruction envelope dispatches inverse-capable extrema
-to the independent application state, bypassing aggregate callbacks. The
-accumulator Mem owns its cleanup so Null/AggReset/reset/error/finalization release
-the cursor; sequence is monotonic until that state is cleared. Shared prefix
-SeekGE and Last now own positioning. Ordinary minmax callbacks retain exactly
-one best and reject inverse dispatch. The shared cursor still uses its existing
-ordered in-memory record representation rather than native packed B-tree pages;
-this change does not claim to settle that inherited algorithm substitution.
-Packed PrivateBlobkeyCursor currently has no Delete consumer implementation;
-absence is an implementation gap, not a browser necessity.
+The corrective implementation now uses shared packed `PrivateKeyVmCursor`,
+`PrivateBlobkeyPages`, KeyInfo, Mem and statement limits/budget. The VM aggregate
+instruction envelope dispatches inverse-capable extrema to independent application
+state, bypassing ordinary aggregate callbacks. Its accumulator owns cleanup;
+Null/AggReset/reset/error/finalization close the arena's owning cursor. Sequence
+is monotonic until state is cleared. Step packs `(value,sequence)` and charges the
+record during insertion; inverse uses facade prefix SeekGE/Delete; publication
+awaits Last and copies Column into owned Mem before the payload borrow expires.
+The supplied packed Delete primitive replaces the previous ordered Mem-entry
+application, not every ephemeral consumer. Ordinary minmax remains first-best.
+
+Primitive delta was fast-forward integrated from f43e4ffb to independently
+accepted 76add691/tree49da6000 (implementation80fceb43). It preserves the original
+foundation because f43e4ffb is its ancestor and the checkout/index were clean.
+Local primitive acceptance is not independent acceptance of this new caller.
+No native heap/Pager rollback parity is claimed. Current revision/test details
+and still-unperformed broader gates remain in [[card:card-o-c-b]] status.
 
 `test/conformance/window-extrema-application.test.mjs` preserves review28 SQL and
 checks min/max both numeric representation orders, eviction, replay, all three

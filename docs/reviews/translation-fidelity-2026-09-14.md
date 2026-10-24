@@ -3,9 +3,11 @@
 Review28 independently exposed bounded extrema's oldest numeric tie. The current
 owner repair dispatches inverse-capable extrema to shared keyed application
 state/sequence/prefix SeekGE/Delete/Last and preserves ordinary aggregate ties.
-Typed tests cover both directions/all encodings and cleanup. Shared ordered
-storage versus packed B-tree remains unfinished algorithm reconciliation, not a
-platform-justified exception. Concat now owns UTF-8 StrAccum capacity, nAccum and
+Typed tests cover both directions/all encodings and cleanup. Bounded extrema now
+uses the supplied packed PrivateKeyVmCursor facade for insert, prefix seek,
+Delete, Last and owned Column. The earlier array application is removed; other
+ephemeral consumers are unchanged. Integrated caller/resource/native/browser
+acceptance remains pending, not established by local primitive approval. Concat now owns UTF-8 StrAccum capacity, nAccum and
 separator-length inverse state instead of row chunks; window lowering explicitly
 selects application ownership instead of scanning inverse opcodes. These changed
 paths require independent acceptance. [Bounded evidence](../research/card-s-i/review28-extrema-application.md).
