@@ -6,6 +6,26 @@ import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem,BorrowLifetime} from '../../src/internal/mem.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
 
+test('numeric stringify admits before byte production and refunds producer failure',()=>{
+ for(const force of [false,true])for(const cap of [3,4,5]){
+  const budget=new PrivateStateByteBudget(cap),mem=new Mem(()=>budget);
+  mem.setInt64(1234n);const before=budget.snapshot();let produced=0;
+  const original=Uint8Array.from;
+  Uint8Array.from=function(...args){assert.equal(budget.snapshot().memBytes,4);const result=Reflect.apply(original,this,args);produced+=result.byteLength;return result};
+  try{if(cap<4)assert.throws(()=>mem.stringify('utf-8',force));else mem.stringify('utf-8',force)}finally{Uint8Array.from=original}
+  assert.equal(produced,cap<4?0:4);
+  if(cap<4){assert.deepEqual(budget.snapshot(),before);assert.equal(mem.initialStorageClass,'integer')}
+  else {assert.equal(mem.textValue(),'1234');assert.equal(budget.snapshot().memBytes,4)}
+  mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+ }
+ const budget=new PrivateStateByteBudget(4),mem=new Mem(()=>budget);mem.setInt64(1234n);
+ const original=Uint8Array.from,error=new Error('producer failure');
+ Uint8Array.from=function(){assert.equal(budget.snapshot().memBytes,4);throw error};
+ try{assert.throws(()=>mem.stringify('utf-8'),e=>e===error)}finally{Uint8Array.from=original}
+ assert.equal(budget.snapshot().ownedBytes,0);assert.equal(mem.initialStorageClass,'integer');
+ mem.stringify('utf-8');assert.equal(mem.textValue(),'1234');mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+});
+
 test('endian translation admits borrowed backing before copy and swaps owned backing in place',()=>{
  const original=globalThis.Uint8Array;
  for(const ownership of ['owned','borrowed','static']){

@@ -103,7 +103,13 @@ The same regression covers actual String→Copy capacity64 and H−1/H/H+1,
 borrow versus owned copies, move/numeric refund, reset/finalize and independent
 live statement survival. Live/highwater Mem backing excludes scalar slots,
 bindings, detached temporaries and aggregate/rowset internals; encoding/adopt
-producer allocation overlap remains unproved except UTF-16 endian swap.
+producer allocation overlap remains unproved except UTF-16 endian swap and
+numeric stringify byte production. `vdbemem.c:sqlite3VdbeMemStringify`
+ClearAndResize-before-render maps to `mem.ts:stringify` admitting exact ASCII
+backing demand via #ownBytes before encoding; producer exceptions refund.
+Demand tests instrument actual production at cap3/4/5 and injected failure.
+This counts logical backing bytes, not native reusable32-byte capacity or JS
+numeric-rendering temporaries; [[card:card-s-j-c]] status37 retains red evidence.
 `utf.c:sqlite3VdbeMemTranslate` endian MakeWriteable/swap maps to
 `mem.ts:changeEncoding` using existing makeWriteable admission before copying
 borrowed/static storage and no allocation for owned storage. Demand tests

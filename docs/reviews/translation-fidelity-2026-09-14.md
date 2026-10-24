@@ -29,7 +29,10 @@ replacement/consume/halt. These are admitted deterministic units, not all VM Mem
 or JS storage. Ordinary register owned TEXT/BLOB backing now shares admission
 and live/highwater Mem observation, with copy/borrow/move/replacement and
 halt/error/reset/finalize controls (`private-demand-observation.test.mjs`). Detached
-temporaries, scalar slots, aggregate/rowset internals and encoding/adopt producer
+temporaries, scalar slots and aggregate/rowset internals remain outside that proof.
+Numeric stringify now admits exact ASCII backing demand before byte production
+and refunds producer failure; native reusable allocator capacity and JS numeric
+rendering are not heap accounting. Other conversion/adopt producer
 allocation overlap remain outside that proof except UTF-16 endian translation:
 it now follows native MakeWriteable/in-place swap, reusing owned backing and
 admitting borrowed/static copying before allocation. Isolated allocation

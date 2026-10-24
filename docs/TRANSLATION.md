@@ -581,6 +581,9 @@ numeric replacement/reset/error/halt/finalize refund owned backing. Scalar slots
 bindings, detached temporary Mem and aggregate/rowset internals are not counted
 by this category. Encoding/adopt paths admit at publication (their producer
 allocation still needs separate overlap inventory, except UTF-16 endian swap).
+Numeric stringify admits its exact ASCII byte demand before byte production
+through the same Mem owner, refunding a failed producer; JS numeric rendering
+and native reusable allocator capacity are not heap-accounted units.
 UTF-16 endian translation follows pinned MakeWriteable then in-place swap:
 owned backing is reused; borrowed/static backing is admitted before copying,
 with odd trailing bytes preserved. Arena control, leases/raw

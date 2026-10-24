@@ -508,10 +508,13 @@ export class Mem {
   stringify(encoding: DatabaseEncoding, force = false, limits: MemLimits = {}): void {
     if (this.#bytes?.kind === "text") { this.changeEncoding(encoding, limits); if (force) { this.#numeric = null; this.#manifest = "text"; } return; }
     if (this.#numeric === null) throw new MemStateError("stringify requires a numeric Mem");
-    const bytes = encodeSqliteString(sqliteNumberText(this.#numeric), "utf-8");
-    checkedLength(bytes.byteLength, limits.maxLength);
+    // vdbeMemStringify admits storage before rendering bytes. Numeric text
+    // is ASCII, so its code-unit length is its exact UTF-8 backing demand
+    // (logical bytes, not SQLite's reusable 32-byte allocator capacity).
+    const text = sqliteNumberText(this.#numeric);
+    checkedLength(text.length, limits.maxLength);
+    this.#ownBytes(text.length,()=>({ kind: "text", bytes: encodeSqliteString(text, "utf-8"), encoding: "utf-8", terminated: true, ownership: "owned", zeroTail: 0 }));
     this.#generation.invalidate();
-    this.#ownBytes(bytes.length,()=>({ kind: "text", bytes, encoding: "utf-8", terminated: true, ownership: "owned", zeroTail: 0 }));
     this.#subtype = null;
     this.#fromBind = false;
     if (force) { this.#numeric = null; this.#manifest = "text"; }
