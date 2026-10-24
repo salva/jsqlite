@@ -8,7 +8,11 @@ exclusions → `vdbe.ts` local Bloom enrollment and `bloomPullDownEligible`.
 `emitBloomProbe` next-IN/outer fixup (NULL equality remains level exit).
 Independent native capture/actual public SQL regression:
 `docs/research/where-bloom-boundaries-{native.py,real.mjs}`; bounded evidence and
-remaining skip/frame obligations: [boundary research](research/where-autoindex-boundary.md).
+remaining constructed-filter skip/frame obligations: [boundary research](research/where-autoindex-boundary.md).
+The boundary drivers also map actual range nSkip>0/no-filter selection and
+mixed inner/local-LEFT two-Once/separate-continuation execution to native EQP,
+EXPLAIN and public typed rows. Range skip does not cover filterPullDown's nSkip
+branch (no WHERE_COLUMN_EQ).
 
 ### Execution observation identity
 

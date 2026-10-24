@@ -9,15 +9,17 @@ assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId']
 cases={
  'outer':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z LEFT JOIN t y ON y.a=99 AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
  'in':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t y WHERE y.a IN (NULL,-1,98,99) AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
+ 'group-outer':"SELECT x.id,r.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t r LEFT JOIN t y ON y.a=98 AND y.b=x.b AND y.s='cold' WHERE r.a=99 AND r.b=x.b AND r.s='cold' ORDER BY x.id,r.id,y.id",
  'frame':"SELECT (SELECT count(*) FROM t y WHERE y.a=99 AND y.b=x.b AND y.s='cold') FROM t x CROSS JOIN tiny z WHERE x.id<10 ORDER BY x.id"
 }
 variants=[]
-for enc in ['UTF-8','UTF-16le','UTF-16be']:
- fixture=ROOT/'docs/research/card-s-h'/f'{enc}.db';db=C.c_void_p()
+for enc,family in [(enc,family) for enc in ['UTF-8','UTF-16le','UTF-16be'] for family in ['local','skip']]:
+ fixture=ROOT/'docs/research/card-s-h'/ (f'{enc}.db' if family=='local' else f'skiprange-{enc}.db');db=C.c_void_p()
  assert d.sqlite3_open_v2(str(fixture).encode(),C.byref(db),1,None)==0
  captures=[]
  try:
-  for name,sql in cases.items():
+  selected=cases if family=='local' else {'skip-range':"SELECT x.id,y.id FROM t x CROSS JOIN t y WHERE x.id<3 AND y.b>199 ORDER BY x.id,y.id"}
+  for name,sql in selected.items():
    st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
    try:
     columns=[]
@@ -38,8 +40,10 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    ops=[{'addr':int(r[0]['value']),'opcode':n.text(r[1]),'p1':int(r[2]['value']),'p2':int(r[3]['value']),'p3':int(r[4]['value'])} for r in program]
    filters=[o for o in ops if o['opcode']=='Filter']
    # Outer and IN exclude later grouped construction, NOT their local filter.
-   assert len(filters)==(0 if name=='frame' else 1)
-   assert any('BLOOM FILTER' in p for p in eqp)==(name!='frame')
+   no_filter=name in ('frame','skip-range')
+   assert len(filters)==(0 if no_filter else 2 if name=='group-outer' else 1)
+   assert any('BLOOM FILTER' in p for p in eqp)==(not no_filter)
+   if name=='skip-range':assert any('ANY(a)' in p and 'b>?' in p for p in eqp)
    if name=='outer':assert any(o['opcode']=='NullRow' for o in ops)
    if name=='in':assert any(o['opcode']=='OpenEphemeral' for o in ops)
    captures.append({'case':name,'sql':sql,'columns':columns,'runs':runs,'eqp':eqp,'program':ops})

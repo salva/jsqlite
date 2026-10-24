@@ -22,9 +22,13 @@ exit; this preserves LEFT null extension and remaining IN values. Equal rows
 alone are not placement credit: the actual driver now requires positive
 FilterAdd/probe/seek and standalone plan kind for both local witnesses. Native
 frame witness has no filter and actual TS agrees on rows; this does not establish
-all frame/drain exclusions. Skip witness remains unresolved: the attempted
-b-only join on existing ab selected SCAN y, not native skip-scan, and confers no
-skip-branch credit.
+all frame/drain exclusions. A genuine unforced range skip-scan now uses existing
+skiprange images: x.id<3 and y.b>199 selects native ANY(a)/b>? and an actual TS
+nSkip>0 path, with no filter and matching rows. This does not execute the native
+filterPullDown nSkip branch: range-only lacks WHERE_COLUMN_EQ. Equality skip
+controls with INDEXED BY ab selected skip but no Bloom; not credit for a
+constructed-filter skip. The earlier b-only join selecting SCAN remains a failed
+witness, not relabeled as skip evidence.
 
 Executed `proc-9d644d33a4fe` exit0: capture then real driver, three encodings ×
 three cases × two reset runs. Outer5000/IN1000 rows; bounded correlated frame
@@ -40,7 +44,14 @@ construction failure and eight exits). Initial expanded IN97 capture had three
 matching keys, so it did not prove absent-value continuation. Final capture adds
 NULL and absent -1 before98/99; its output/identity is recorded in card status.
 The prior diagnostic receipts are preserved, not relabeled as final input.
-Remaining: find a real skip-scan witness and broaden frame/drain comparison.
+The extended group-outer witness supplies two real filters separated by the
+first authoritative seek: native and TS assert two pre-seek build Once controls,
+separate miss continuations, and second Filter after first seek (no outer
+pull-down), then compare full rows/metadata/reset/release. Native has a third
+postscan Once for sorter output; an initial assertion counting all Once failed
+and was narrowed to the source-owned construction interval, not engine behavior.
+Exact final command/results and receipt hashes are in card status.
+Remaining: constructed-filter skip branch and broader frame/drain comparison.
 Existing positive ready/dependent/IPK and construction/lifetime evidence remains
 applicable at its stated revisions; this is not full acceptance.
 
