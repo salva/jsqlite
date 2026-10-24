@@ -69,7 +69,13 @@ def prerequisite_commands(files, library, work_root):
     return commands
 
 
-def test_command(file, work_root=None):
+def discover_files(root):
+    return sorted({str(f.relative_to(root)) for pattern in (
+        'test/conformance/*.test.mjs', 'test/conformance/run-*-ts.mjs',
+        'test/storage/*.test.mjs', 'test/parser/*.test.mjs') for f in root.glob(pattern)})
+
+
+def test_command(file, work_root=None, file_seconds=100):
     if file in DATE_FIXTURES:
         if work_root is None:
             raise ValueError('date fixture command requires a planned work root')
@@ -78,7 +84,8 @@ def test_command(file, work_root=None):
     # This script requires a positional fixture, unlike node:test suites.
     if file == 'test/conformance/run-audit-chinook-b1-b5-ts.mjs':
         return ['node', '--experimental-strip-types', file, 'examples/browser/chinook.sqlite']
-    return ['node', '--experimental-strip-types', '--test', file]
+    return ['node', '--experimental-strip-types', '--test',
+            f'--test-timeout={file_seconds * 1000}', file]
 
 
 def component(command, log, seconds, env):
@@ -132,7 +139,7 @@ def run_batches(files, work, work_root, env, file_seconds, batch_size,
                 batch['not_run'] = selected[offset:]
                 report['not_run'].extend(batch['not_run'])
                 break
-            result = component(test_command(file, work_root),
+            result = component(test_command(file, work_root, file_seconds),
                                work/f'{start + offset:03d}.log',
                                min(file_seconds, remaining), env)
             result['file'] = file
@@ -160,7 +167,7 @@ def main():
     p.add_argument('--jobs', type=int, default=1, help='must be 1: batches execute serially')
     p.add_argument('--batch-size', type=int, default=80, help='maximum files per serial batch (default: 80)')
     p.add_argument('--batch-seconds', type=int, default=600, help='independent per-batch safety ceiling (default: 600)')
-    p.add_argument('--watchdog-seconds', type=int, default=60, help='positive per-file watchdog (default: 60)')
+    p.add_argument('--watchdog-seconds', type=int, default=100, help='positive per-file watchdog (default: 100)')
     p.add_argument('--oracle-library', type=pathlib.Path, help='existing dev oracle; capture producers verify the pinned source identity')
     args = p.parse_args()
     if args.watchdog_seconds < 1:
@@ -174,11 +181,7 @@ def main():
     work = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']) / 'integration-run'
     work.mkdir(parents=True, exist_ok=True)
     root = pathlib.Path.cwd()
-    files = args.files or sorted({str(f) for pattern in (
-        'test/conformance/*.test.mjs', 'test/conformance/run-*-ts.mjs',
-        'test/storage/*.test.mjs', 'test/parser/*.test.mjs') for f in root.glob(pattern)
-        for f in [f.relative_to(root)]
-        })
+    files = args.files or discover_files(root)
     if not files:
         raise SystemExit('empty inventory')
     env = dict(os.environ, CHINOOK_DB='examples/browser/chinook.sqlite',

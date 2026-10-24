@@ -18,7 +18,7 @@ class Runner(unittest.TestCase):
   proc=subprocess.run([sys.executable,'tools/test/integration.py','--batch-size','2','--batch-seconds','1',*files],env=env,capture_output=True,text=True,timeout=15)
   self.assertEqual(proc.returncode,1,proc.stdout+proc.stderr)
   report=json.loads((work/'bounded/integration-run/manifest.json').read_text())
-  self.assertEqual(report['watchdog_seconds'],60)
+  self.assertEqual(report['watchdog_seconds'],100)
   self.assertEqual(report['concurrency'],1)
   self.assertEqual(report['files'],files)
   self.assertEqual(report['not_run'],[files[1]])
@@ -32,8 +32,52 @@ class Runner(unittest.TestCase):
   proc=subprocess.run([sys.executable,'tools/test/integration.py',files[2]],env=env,capture_output=True,text=True,timeout=15)
   self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
   report=json.loads((work/'defaults/integration-run/manifest.json').read_text())
-  self.assertEqual((report['batch_size'],report['batch_seconds'],report['watchdog_seconds']),(80,600,60))
+  self.assertEqual((report['batch_size'],report['batch_seconds'],report['watchdog_seconds']),(80,600,100))
   self.assertEqual(report['not_run'],[])
+
+ def test_policy_commands_and_nullable_partition_inventory(self):
+  import ast
+  root=pathlib.Path.cwd()
+  files=runner.discover_files(root)
+  expected={}
+  for join in ['RIGHT','FULL']:
+   for encoding,suffix in [('UTF-8',''),('UTF-16le','-utf16le'),('UTF-16be','-utf16be')]:
+    file=f'test/conformance/or-wr-{join.lower()}{suffix}.test.mjs'
+    expected[file]=(join,encoding)
+    self.assertEqual(files.count(file),1)
+    # Every partition must invoke the same unchanged assertion/fixture owner.
+    text=(root/file).read_text()
+    self.assertIn("from './or-wr-nullable-cases.mjs'",text)
+    self.assertIn(f"registerNullableComposition('{join}','{encoding}')",text)
+    self.assertEqual(runner.test_command(file),['node','--experimental-strip-types','--test','--test-timeout=100000',file])
+    self.assertIn('--test-timeout=7000',runner.test_command(file,file_seconds=7))
+  self.assertEqual([f for f in files if f in expected],sorted(expected))
+  self.assertNotIn('test/conformance/or-wr-nullable-cases.mjs',files)
+  self.assertIn('{timeout:100000}',(root/'test/conformance/or-wr-nullable-cases.mjs').read_text())
+  # Inspect the actual wrapper's argument list, not an unrelated policy constant.
+  tree=ast.parse((root/'tools/test/selected-in-gate.py').read_text())
+  commands=[n for n in ast.walk(tree) if isinstance(n,ast.List) and any(isinstance(e,ast.Constant) and e.value=='tools/test/integration.py' for e in n.elts)]
+  self.assertEqual(len(commands),1)
+  values=[e.value for e in commands[0].elts if isinstance(e,ast.Constant)]
+  for flag,value in [('--jobs','1'),('--batch-size','80'),('--batch-seconds','600'),('--watchdog-seconds','100')]:
+   self.assertEqual(values[values.index(flag)+1],value)
+
+ def test_batch_passes_configured_allowance_to_node_and_watchdog(self):
+  from unittest.mock import patch
+  report={'results':[]}
+  work=pathlib.Path('/purpose/policy-controls')
+  calls=[]
+  def component(command,log,seconds,env):
+   calls.append((command,seconds))
+   return {'classification':'completed','exit':0}
+  # Frozen clock makes the independent batch budget exact, without a100s sleep.
+  with patch.object(runner,'component',side_effect=component),patch.object(runner.time,'monotonic',return_value=0):
+   runner.run_batches(['a.test.mjs','b.test.mjs'],work,work,{},100,1,600,report,lambda:None)
+  self.assertEqual(len(report['batches']),2)
+  self.assertEqual(report['not_run'],[])
+  for command,seconds in calls:
+   self.assertIn('--test-timeout=100000',command)
+   self.assertEqual(seconds,100)
 
  def test_exits_and_watchdog(self):
   work=pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT'])/'integration-runner-tests';work.mkdir(exist_ok=True)

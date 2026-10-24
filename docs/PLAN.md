@@ -21,6 +21,21 @@ The root Planner directs goals and sequencing, not an exhaustive leaf-task
 inventory.
 
 
+## Current validation policy (owner update)
+
+For subsequent validation runs, performance is not an acceptance objective for
+this stage. Execute test files serially with a 100-second (100000ms) per-file
+watchdog, batches of at most80 files, and an independent600-second batch ceiling.
+These supersede earlier current60-second wording below; historical60-second
+failures remain failures on their original inputs. Explicit outer process limits
+must allow100 seconds plus termination grace, not silently enforce60 seconds.
+Partition long RIGHT/FULL nullable-OR cases by database encoding, preserving each
+original400×400 fixture, SQL/native expectations, storage classes, all five
+metadata fields, two executions/reset and finalize/database/server cleanup plus
+all correctness/resource assertions. Preserve UTF-8/UTF-16le/UTF-16be coverage.
+This is test orchestration, not an API timeout, performance promise or permission
+to weaken actual cancellation/deadline/resource guarantees. No SPEC change.
+
 ## Functional-first beta view
 
 This is a development prioritization view, **not publication or a compatibility

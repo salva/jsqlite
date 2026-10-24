@@ -69,7 +69,7 @@ def main():
     (work / 'fixture-inputs.json').write_text(json.dumps(inputs, indent=2) + '\n')
     result = subprocess.run([
         'python3', 'tools/test/integration.py', '--jobs', '1', '--batch-size', '80',
-        '--batch-seconds', '600', '--watchdog-seconds', '60',
+        '--batch-seconds', '600', '--watchdog-seconds', '100',
         '--oracle-library', str(args.oracle_library.resolve()), *files,
     ], env=env)
     drift = [p for p, digest in inputs.items()

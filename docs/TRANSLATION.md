@@ -4,12 +4,14 @@ Development integration orchestration (`tools/test/integration.py`) uses one
 frozen ordered inventory; prerequisites are prepared once per invocation with
 a 180-second ceiling per prerequisite. Test files execute serially in
 batches of at most 80 files. Owner-selected independent safety ceilings are
-60 seconds per file and 600 seconds per batch; there is no whole-suite time cap.
+100 seconds per file (also passed to Node's test runner) and 600 seconds per
+batch; there is no whole-suite time cap. The external file watchdog is followed
+only by termination cleanup (up to 3 seconds before forced kill).
 A batch ceiling interrupts its current component, records that batch's unrun
 tail and proceeds to the next batch; any failure, timeout, unrun file or input
 drift makes the invocation fail. These are runner limits, not acceptable SQL
 latency or permission to weaken resource/abort assertions. Historical 30-second
-failures retain their original status. Controls: `test/integration-runner.test.py`;
+and 60-second failures retain their original status. Controls: `test/integration-runner.test.py`;
 current integration evidence: [[card:card-w]].
 
 ### JSON5 value-name and label admission
