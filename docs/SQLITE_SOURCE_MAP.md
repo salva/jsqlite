@@ -103,8 +103,14 @@ The same regression covers actual String→Copy capacity64 and H−1/H/H+1,
 borrow versus owned copies, move/numeric refund, reset/finalize and independent
 live statement survival. Live/highwater Mem backing excludes scalar slots,
 bindings, detached temporaries and aggregate/rowset internals; encoding/adopt
-producer allocation overlap remains unproved except UTF-16 endian swap and
-numeric stringify byte production. `vdbemem.c:sqlite3VdbeMemStringify`
+producer allocation overlap remains unproved for UTF16→UTF8 and adopt.
+`utf.c:sqlite3VdbeMemTranslate` allocation-before-conversion maps for UTF8→UTF16
+to `Mem.changeEncoding`: decoded JS code-unit length predicts exact logical
+byte demand; #ownBytes admits replacement overlap before encoding, refunding
+producer failure. Demand tests preserve cap5/6/7 production instrumentation for
+both endian outputs, failure/retry and malformed/supplementary/NUL controls.
+JS string storage and native worst-case allocation capacity are not counted.
+UTF-16 endian swap remains in-place/admitted-copy as mapped below. `vdbemem.c:sqlite3VdbeMemStringify`
 ClearAndResize-before-render maps to `mem.ts:stringify` admitting exact ASCII
 backing demand via #ownBytes before encoding; producer exceptions refund.
 Demand tests instrument actual production at cap3/4/5 and injected failure.

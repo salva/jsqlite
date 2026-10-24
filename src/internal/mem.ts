@@ -524,7 +524,6 @@ export class Mem {
   changeEncoding(encoding: DatabaseEncoding, limits: MemLimits = {}): void {
     if (this.#bytes?.kind !== "text" || this.#bytes.encoding === encoding) return;
     const old = this.#checkedBytes();
-    let bytes: Uint8Array;
     if (old.encoding !== "utf-8" && encoding !== "utf-8") {
       // utf.c:sqlite3VdbeMemTranslate first makes storage writable, then
       // swaps in place. Owned backing needs no replacement allocation;
@@ -538,10 +537,20 @@ export class Mem {
       // SQLite's endian-swap path preserves an unmatched trailing byte.
       state.encoding = encoding;
       return;
-    } else {
-      const source = old.encoding === "utf-8" ? old.bytes : old.bytes.subarray(0, old.bytes.byteLength & ~1);
-      bytes = old.encoding !== "utf-8" ? sqliteUtf16ToUtf8(source,old.encoding) : encodeSqliteString(decodeSqliteText(source, old.encoding), encoding);
     }
+    if (old.encoding === "utf-8") {
+      // utf.c allocates before conversion. The decoded JS string supplies
+      // exact UTF-16 demand without producing a byte buffer. Logical backing
+      // bytes exclude native worst-case capacity and JS string storage.
+      const text = decodeSqliteText(old.bytes, old.encoding);
+      const size = text.length * 2;
+      checkedLength(size, limits.maxLength);
+      this.#ownBytes(size,()=>({ kind: "text", bytes: encodeSqliteString(text, encoding), encoding, terminated: true, ownership: "owned", zeroTail: 0 }));
+      this.#generation.invalidate();
+      return;
+    }
+    const source = old.bytes.subarray(0, old.bytes.byteLength & ~1);
+    const bytes = sqliteUtf16ToUtf8(source,old.encoding);
     checkedLength(bytes.byteLength, limits.maxLength);
     this.#generation.invalidate();
     this.#ownBytes(bytes.length,()=>({ kind: "text", bytes, encoding, terminated: true, ownership: "owned", zeroTail: 0 }));

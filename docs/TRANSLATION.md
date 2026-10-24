@@ -579,8 +579,11 @@ register owned TEXT/BLOB backing now uses the same execution owner and reports
 borrowed/static bytes retain their producer owner, move transfers ownership, and
 numeric replacement/reset/error/halt/finalize refund owned backing. Scalar slots,
 bindings, detached temporary Mem and aggregate/rowset internals are not counted
-by this category. Encoding/adopt paths admit at publication (their producer
-allocation still needs separate overlap inventory, except UTF-16 endian swap).
+by this category. UTF8→UTF16 conversion derives exact byte demand from decoded
+JS code units and admits replacement overlap before encoding bytes; JS string
+storage is not counted. Reverse UTF16→UTF8 and adopt producer allocation remain
+publication-admitted and need separate inventory. UTF-16 endian swap reuses
+owned storage or admits borrowed/static copying before allocation.
 Numeric stringify admits its exact ASCII byte demand before byte production
 through the same Mem owner, refunding a failed producer; JS numeric rendering
 and native reusable allocator capacity are not heap-accounted units.

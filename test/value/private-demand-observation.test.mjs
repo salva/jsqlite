@@ -6,6 +6,30 @@ import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem,BorrowLifetime} from '../../src/internal/mem.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
 
+test('UTF8 to UTF16 admits replacement overlap before byte production',()=>{
+ for(const encoding of ['utf-16le','utf-16be'])for(const cap of [5,6,7]){
+  const budget=new PrivateStateByteBudget(cap),mem=new Mem(()=>budget);
+  mem.setText(new Uint8Array([65,66]),'utf-8');const before=budget.snapshot();let produced=0;
+  const original=Uint8Array.from;
+  Uint8Array.from=function(...args){assert.equal(budget.snapshot().memBytes,6);const r=Reflect.apply(original,this,args);produced+=r.byteLength;return r};
+  try{if(cap<6)assert.throws(()=>mem.changeEncoding(encoding));else mem.changeEncoding(encoding)}finally{Uint8Array.from=original}
+  assert.equal(produced,cap<6?0:4);
+  if(cap<6)assert.deepEqual(budget.snapshot(),before);
+  assert.equal(mem.textValue(),'AB');mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+ }
+ const budget=new PrivateStateByteBudget(6),mem=new Mem(()=>budget);mem.setText(new Uint8Array([65,66]),'utf-8');
+ const error=new Error('conversion producer failure'),original=Uint8Array.from;
+ Uint8Array.from=function(){assert.equal(budget.snapshot().memBytes,6);throw error};
+ try{assert.throws(()=>mem.changeEncoding('utf-16le'),e=>e===error)}finally{Uint8Array.from=original}
+ assert.equal(budget.snapshot().memBytes,2);assert.equal(mem.textValue(),'AB');
+ mem.changeEncoding('utf-16le');mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+ // Exact demand also covers paired supplementary characters and malformed UTF8.
+ for(const input of [[240,159,152,128],[192,128],[65,0,66]]){
+  const b=new PrivateStateByteBudget(100),m=new Mem(()=>b);m.setText(new Uint8Array(input),'utf-8');
+  const expected=m.textValue();m.changeEncoding('utf-16be');assert.equal(m.textValue(),expected);m.release();
+ }
+});
+
 test('numeric stringify admits before byte production and refunds producer failure',()=>{
  for(const force of [false,true])for(const cap of [3,4,5]){
   const budget=new PrivateStateByteBudget(cap),mem=new Mem(()=>budget);

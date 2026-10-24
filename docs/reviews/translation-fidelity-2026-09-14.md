@@ -32,8 +32,11 @@ halt/error/reset/finalize controls (`private-demand-observation.test.mjs`). Deta
 temporaries, scalar slots and aggregate/rowset internals remain outside that proof.
 Numeric stringify now admits exact ASCII backing demand before byte production
 and refunds producer failure; native reusable allocator capacity and JS numeric
-rendering are not heap accounting. Other conversion/adopt producer
-allocation overlap remain outside that proof except UTF-16 endian translation:
+rendering are not heap accounting. UTF8→UTF16 now admits exact byte demand
+before encoding, using decoded JS code-unit length (JS string storage excluded).
+Production instrumentation covers rejected/admitted replacement overlap and
+producer failure/refund/retry. Reverse UTF16→UTF8 and adopt producer
+allocation overlap remain outside that proof. UTF-16 endian translation:
 it now follows native MakeWriteable/in-place swap, reusing owned backing and
 admitting borrowed/static copying before allocation. Isolated allocation
 instrumentation and boundary/odd-byte tests cover this bounded correction.
