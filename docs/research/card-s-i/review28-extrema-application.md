@@ -15,7 +15,15 @@ The corrective implementation now uses shared packed `PrivateKeyVmCursor`,
 `PrivateBlobkeyPages`, KeyInfo, Mem and statement limits/budget. The VM aggregate
 instruction envelope dispatches inverse-capable extrema to independent application
 state, bypassing ordinary aggregate callbacks. Its accumulator owns cleanup;
-Null/AggReset/reset/error/finalization close the arena's owning cursor. Sequence
+Null/AggReset/reset/error/finalization close the arena's owning cursor. Halt
+retains cursor-before-Mem ordering, but detaches the map entry before calling
+close; the accumulator cleanup uses that same idempotent owner. Throwing TS
+destructors are collected while remaining owners are released, with saved
+execution error precedence. This adapts void C cleanup in vdbeaux.c
+closeAllCursors/sqlite3VdbeHalt and vdbemem.c aggregate release, not SQLite
+exception behavior. `window-extrema-cleanup.test.mjs` covers primary inverse plus
+secondary/later post-release errors, done, reset and finalize with two apps and
+unrelated ephemeral owners; zero ownership is required before reset. Sequence
 is monotonic until state is cleared. Step packs `(value,sequence)` and charges the
 record during insertion; inverse uses facade prefix SeekGE/Delete; publication
 awaits Last and copies Column into owned Mem before the payload borrow expires.

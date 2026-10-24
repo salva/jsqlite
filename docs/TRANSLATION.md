@@ -1276,7 +1276,10 @@ Bounded inverse min/max uses the shared packed PrivateKeyVmCursor application
 index with value+sequence, KeyInfo prefix SeekGE/Delete and Last/Column; equal
 values publish the newest retained representation. Ordinary minmax retains its
 first best on equality. Application insertion charges its packed record while
-page/cursor/operation ownership is charged by the shared arena. Other ephemeral
+page/cursor/operation ownership is charged by the shared arena. Application
+cleanup detaches ownership before close, continues remaining releases after a
+throwing TS destructor and preserves the saved execution error; accumulator
+cleanup and cursor-before-Mem halt share that exactly-once owner. Other ephemeral
 consumers retain their existing representation; this is not an all-consumer
 migration or a claim of native heap/Pager rollback parity.
 Window lowering selects inverse application ownership on AggStep; ordinary

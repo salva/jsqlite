@@ -10492,7 +10492,7 @@ export class VdbeStatement implements Statement {
           case "CollSeq": break;
           case "Cast": {const value=new Mem();value.copyFrom(this.#registers[op.p1]!);value.cast(op.affinity,this.#program.encoding);this.#registers[op.p2]!.moveFrom(value);break;}
           case "Binary": {let a=this.#registers[op.p1]!,b=this.#registers[op.p2]!;if(op.affinity&&["=","==","!=","<>","<",">","<=",">=","IS","IS NOT"].includes(op.op)){const left=new Mem(),right=new Mem();left.copyFrom(a);right.copyFrom(b);left.applyAffinity(op.affinity,this.#program.encoding);right.applyAffinity(op.affinity,this.#program.encoding);a=left;b=right}this.#registers[op.p3]!.moveFrom(op.op==="||"?concatenateMem(a,b,this.#program.encoding,this.#program.maxResultBytes):evaluateExpression({kind:"binary",op:op.op,left:{kind:"mem",value:a,collation:op.collation},right:{kind:"mem",value:b}},this.#program.encoding));break;}
-          case "AggReset": for(const register of op.registers){this.#windowExtrema.get(register)?.cursor.close();this.#windowExtrema.delete(register);this.#registers[register]!.setNull();}break;
+          case "AggReset": for(const register of op.registers)this.#registers[register]!.setNull();break;
           case "WindowRangeTest": {if(windowRangeTest(this.#registers[op.candidate]!,this.#registers[op.current]!,op.offset===undefined?undefined:this.#registers[op.offset]!,op.mode,op.descending,op.collation,op.bigNull))this.#pc=op.jump;break;}
           case "CompareJump": {let result=0;const control=this.#privateControl(options,limit,started);for(let i=0;i<op.count;i++){await control.checkpoint(1);const index=op.permutation?.[i]??i,term=op.keyInfo.terms[i]!;result=compareMem(this.#registers[op.left+index]!,this.#registers[op.right+index]!,term.collation);if(result!==0){if(term.nullsLarge&&(this.#registers[op.left+index]!.initialStorageClass === "null"||this.#registers[op.right+index]!.initialStorageClass === "null"))result=-result;if(term.desc)result=-result;break;}}this.#pc=result<0?op.less:result>0?op.greater:op.equal;break;}
           case "CompareGroup": {let equal=true;const control=this.#privateControl(options,limit,started);for(let i=0;i<op.count;i++){await control.checkpoint(1);if(compareMem(this.#registers[op.left+i]!,this.#registers[op.right+i]!,op.keyInfo.terms[i]!.collation)!==0){equal=false;break}}if(equal)this.#pc=op.jump;break;}
@@ -10504,7 +10504,7 @@ export class VdbeStatement implements Statement {
               const arena=await PrivateBlobkeyPages.open(this.#privateBytes,control,()=>{},this.#program.privateStateLimits);
               try{app={cursor:new PrivateKeyVmCursor(arena,new PrivateBlobkeyCursor(arena,info,this.#program.privateStateLimits,{owning:true}),info),sequence:0n}}
               catch(error){try{arena.close()}catch{}throw error}
-              this.#windowExtrema.set(op.p2,app);const owned=app;this.#registers[op.p2]!.setAggregate({definition:'window-minmax-application',context:owned,cleanup:()=>{owned.cursor.close();this.#windowExtrema.delete(op.p2)}});
+              this.#windowExtrema.set(op.p2,app);const owned=app;this.#registers[op.p2]!.setAggregate({definition:'window-minmax-application',context:owned,cleanup:()=>{this.#closeWindowExtrema(op.p2)}});
             }
             const sequence=new Mem();sequence.setInt64(++app.sequence);
             const control=this.#privateControl(options,limit,started),conversion=value.recordConversionBytes(undefined,this.#program.encoding);
@@ -10627,6 +10627,13 @@ export class VdbeStatement implements Statement {
   async #chargeScalarInputs(values:readonly Mem[],options:OperationOptions,limit:number,started:number):Promise<void>{let units=0;for(const value of values)units+=Math.ceil(valueBytes(value)/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;if(this.#work%256===0){this.#state="suspended";await this.#taskScheduler.checkpoint();this.#state="running";}}}
   #checkResultValue(value:Mem):void {if(valueBytes(value)>this.#program.maxResultBytes)throw new JSQLiteError("limit","string or blob too big");}
   #chargeValue(value:Mem,options:OperationOptions,limit:number,started:number):void { const bytes=valueBytes(value);const units=Math.ceil(bytes/256);for(let i=0;i<units;i++){this.#checkControl(options,limit,started);this.#work++;} }
+  // closeAllCursors precedes releaseMemArray. Both paths may reach the same
+  // aggregate: detach before the TS destructor, including when it reports failure.
+  #closeWindowExtrema(register:number):void {
+    const app=this.#windowExtrema.get(register);
+    this.#windowExtrema.delete(register);
+    app?.cursor.close();
+  }
   #mapExecutionError(error: unknown): unknown {
     // This is the single lazy execution boundary. Existing public errors retain
     // identity; only known storage provenance is classified here.
@@ -10668,8 +10675,7 @@ export class VdbeStatement implements Statement {
     this.#once.clear();
     this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.releaseRecord(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
-    for(const app of this.#windowExtrema.values())app.cursor.close();
-    this.#windowExtrema.clear();
+    for(const register of this.#windowExtrema.keys())try{this.#closeWindowExtrema(register)}catch(error){if(diagnostic===null)diagnostic=error}
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateKeys.clear();this.#automaticBuildExits.clear();this.#coveringTables.clear();this.#pendingFilterProbes.clear();this.#automaticCursors.clear();
     for(const filter of this.#filters.values())try{filter.close()}catch(error){if(diagnostic===null)diagnostic=error}

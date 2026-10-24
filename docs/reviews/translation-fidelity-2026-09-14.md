@@ -6,7 +6,11 @@ state/sequence/prefix SeekGE/Delete/Last and preserves ordinary aggregate ties.
 Typed tests cover both directions/all encodings and cleanup. Bounded extrema now
 uses the supplied packed PrivateKeyVmCursor facade for insert, prefix seek,
 Delete, Last and owned Column. The earlier array application is removed; other
-ephemeral consumers are unchanged. Integrated caller/resource/native/browser
+ephemeral consumers are unchanged. Reviewer31's post-release close failure is
+corrected at the application teardown owner: detach before close, collect errors
+while completing halt and make accumulator cleanup idempotent. Focused throwing
+destructor coverage accompanies the correction; independent acceptance remains
+required. Integrated caller/resource/native/browser
 acceptance remains pending, not established by local primitive approval. Concat now owns UTF-8 StrAccum capacity, nAccum and
 separator-length inverse state instead of row chunks; window lowering explicitly
 selects application ownership instead of scanning inverse opcodes. These changed
