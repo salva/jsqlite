@@ -21,10 +21,13 @@ to descriptor enrollment; `sqlite3ConstructBloomFilter` all-nEq physical-field
 build and `filterPullDown` nSkip consumer skip map to vdbe build/probe owners.
 The two-skip boundary asserts local build Once controls and positioned
 probes separated by the first authoritative seek, with native/public rows.
-The boundary drivers also map actual range nSkip>0/no-filter selection and
-mixed inner/local-LEFT two-Once/separate-continuation execution to native EQP,
-EXPLAIN and public typed rows. Range skip does not cover filterPullDown's nSkip
-branch (no WHERE_COLUMN_EQ).
+The boundary drivers retain the unhinted range workload as native SCAN/no-filter
+control; an additional explicit `INDEXED BY ab` range witness asserts native
+ANY(a)/b>? and actual TS nSkip>0/no-filter selection. This is SQL-directed access,
+not unforced planner parity. Neither range control covers filterPullDown's nSkip
+branch (no WHERE_COLUMN_EQ). Mixed inner/local-LEFT two-Once/separate-continuation
+execution remains separately mapped to native EQP, EXPLAIN and public typed rows.
+F2 input/placement reconciliation and exact evidence: [boundary research](research/where-autoindex-boundary.md).
 
 ### Execution observation identity
 

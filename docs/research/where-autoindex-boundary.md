@@ -152,13 +152,26 @@ exit; this preserves LEFT null extension and remaining IN values. Equal rows
 alone are not placement credit: the actual driver now requires positive
 FilterAdd/probe/seek and standalone plan kind for both local witnesses. Native
 frame witness has no filter and actual TS agrees on rows; this does not establish
-all frame/drain exclusions. A genuine unforced range skip-scan now uses existing
-skiprange images: x.id<3 and y.b>199 selects native ANY(a)/b>? and an actual TS
-nSkip>0 path, with no filter and matching rows. This does not execute the native
-filterPullDown nSkip branch: range-only lacks WHERE_COLUMN_EQ. Equality skip
-controls with INDEXED BY ab selected skip but no Bloom; not credit for a
-constructed-filter skip. The earlier b-only join selecting SCAN remains a failed
-witness, not relabeled as skip evidence.
+all frame/drain exclusions. The unchanged unhinted range workload x.id<3 and
+y.b>199 on current skiprange images selects native SCAN y, not ANY(a)/b>?;
+its retained no-filter/typed-row control is not skip placement credit. A separate
+`skip-range-indexed` witness adds explicit SQL `INDEXED BY ab` and requires native
+ANY(a)/b>? plus actual TS nSkip>0 with no filter and matching rows. This is a
+SQL-directed access-path requirement, not unforced optimizer parity. Neither range
+control executes native filterPullDown's nSkip branch: range-only lacks
+WHERE_COLUMN_EQ. The prior unforced range claim is superseded by F2 reconciliation
+in [[card:card-s-j-c]] status; older receipts below remain revision-bound, not fresh
+coverage on current input. Fresh F2 skip-family native/public execution compares
+four cases × three encodings × two reset executions (24 comparisons), including
+positive native/TS equality and explicit-index range placement, five metadata
+fields, immutable fresh execution/stable plan IDs and balanced release accounting.
+Exact inputs, commands and receipt identity are in [[card:card-s-j-c]] current
+status; accepted status99 retains the pre-correction diagnosis.
+`--family skip` is a bounded partition; the default still retains both families
+and all original SQL/assertions except the disproven range-plan expectation.
+Equality skip controls below remain distinct positive
+constructed-filter evidence. The earlier b-only join selecting SCAN remains a
+failed witness, not relabeled as skip evidence.
 
 Executed `proc-9d644d33a4fe` exit0: capture then real driver, three encodings ×
 three cases × two reset runs. Outer5000/IN1000 rows; bounded correlated frame

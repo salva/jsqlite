@@ -16,6 +16,7 @@ const native=JSON.parse(fs.readFileSync(process.argv[2]));
 const pin=JSON.parse(fs.readFileSync(new URL('../../reference/sqlite/manifest.json',import.meta.url)));
 assert.equal(native.sourceId,pin.sqliteSourceId);
 function cell(s,i){const type=s.columnType(i),value=s.column(i);if(type==='null')return {type};if(type==='integer')return {type,value:String(value)};throw Error(`unexpected witness type ${type}`);}
+const executionIds=new Set();
 for(const v of native.variants){
  const bytes=fs.readFileSync(v.fixture);assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),v.sha256);
  const server=http.createServer((_q,r)=>{r.writeHead(200,{'Content-Length':bytes.length});r.end(bytes)});
@@ -23,7 +24,7 @@ for(const v of native.variants){
  try{
   const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
   try{for(const c of v.cases){
-   if(c.case==='skip-range'||c.case==='skip-equality'||c.case==='skip-group'){
+   if(c.case==='skip-range-indexed'||c.case==='skip-equality'||c.case==='skip-group'){
     const storage=ImmutableStorage.open(bytes);
     try{
      const schema=loadSchemaGraph({[storageOwner]:storage}),resolved=expandAndResolveSelect(parseSql(c.sql).statement,schema);
@@ -84,11 +85,17 @@ for(const v of native.variants){
    const s=db.prepare(c.sql).statement;
    try{
     assert.deepEqual(Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i)),c.columns);
+    let previous;
     for(const expected of c.runs){
      const rows=[];while(await s.step()==='row')rows.push(Array.from({length:s.columnCount},(_,i)=>cell(s,i)));
      assert.deepEqual(rows,expected,`${v.encoding} ${c.case}`);
      const o=privateAccounting(s);assert.equal(o.ownedBytes,0);assert.equal(o.openCursors,0);
-     if(c.case==='frame'||c.case==='skip-range'){assert.equal(o.filterAdds,0);assert.equal(o.probes,0);}
+     assert.equal(Object.isFrozen(o),true);assert.equal(typeof o.executionId,'string');
+     assert.ok(o.executionId.length>0);assert.equal(executionIds.has(o.executionId),false);executionIds.add(o.executionId);
+     assert.equal(typeof o.planId,'string');assert.ok(o.planId.length>0);
+     if(previous)assert.equal(o.planId,previous.planId);previous=o;
+     assert.equal(o.chargedBytes,o.refundedBytes);
+     if(c.case==='frame'||c.case==='skip-range'||c.case==='skip-range-indexed'){assert.equal(o.filterAdds,0);assert.equal(o.probes,0);}
      else {assert.equal(o.planKind,'standalone-bloom');assert.ok(o.filterAdds>0);assert.ok(o.probes>0);assert.ok(o.indexSeeks>0);}
      console.log(v.encoding,c.case,'native rows/metadata/reset/release passed',JSON.stringify({filterAdds:o.filterAdds,probes:o.probes,planKind:o.planKind}));
      s.reset();

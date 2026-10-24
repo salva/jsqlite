@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Read-only native placement boundary witnesses; never used as a TS backend."""
-import ctypes as C, hashlib, importlib.util, json, pathlib, sys
+import argparse, ctypes as C, hashlib, importlib.util, json, pathlib, sys
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 s=importlib.util.spec_from_file_location('n',ROOT/'test/conformance/capture-index-planner.py')
 n=importlib.util.module_from_spec(s);s.loader.exec_module(n)
-d=n.load(sys.argv[1]);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('library');parser.add_argument('output')
+parser.add_argument('--family',choices=('local','skip'),help='bounded capture partition; default both')
+args=parser.parse_args()
+d=n.load(args.library);pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
 assert d.sqlite3_sourceid().decode()==pin['sqliteSourceId']
 cases={
  'derived-after':"SELECT x.id,y.id FROM t x CROSS JOIN tiny z CROSS JOIN t y CROSS JOIN (SELECT * FROM tiny LIMIT -1) q WHERE y.a=99 AND y.b=x.b AND y.s='cold' ORDER BY x.id,y.id",
@@ -17,12 +21,16 @@ cases={
  'frame':"SELECT (SELECT count(*) FROM t y WHERE y.a=99 AND y.b=x.b AND y.s='cold') FROM t x CROSS JOIN tiny z WHERE x.id<10 ORDER BY x.id"
 }
 variants=[]
-for enc,family in [(enc,family) for enc in ['UTF-8','UTF-16le','UTF-16be'] for family in ['local','skip']]:
+for enc,family in [(enc,family) for enc in ['UTF-8','UTF-16le','UTF-16be'] for family in ([args.family] if args.family else ['local','skip'])]:
  fixture=ROOT/'docs/research/card-s-h'/ (f'{enc}.db' if family=='local' else f'skiprange-{enc}.db');db=C.c_void_p()
  assert d.sqlite3_open_v2(str(fixture).encode(),C.byref(db),1,None)==0
  captures=[]
  try:
   selected=cases if family=='local' else {'skip-range':"SELECT x.id,y.id FROM t x CROSS JOIN t y WHERE x.id<3 AND y.b>199 ORDER BY x.id,y.id", 'skip-group':"SELECT x.id,z.id,r.id,y.id FROM t x CROSS JOIN t z CROSS JOIN t r INDEXED BY ab CROSS JOIN t y INDEXED BY ab WHERE x.id<3 AND z.id<3 AND r.b=199 AND r.c=0 AND y.b=198 AND y.c=6 ORDER BY x.id,z.id,r.id,y.id", 'skip-equality':"SELECT x.id,z.id,y.id FROM t x CROSS JOIN t z CROSS JOIN t y INDEXED BY ab WHERE x.id<3 AND z.id<3 AND y.b=199 AND y.c=0 ORDER BY x.id,z.id,y.id"}
+  if family=='skip':
+   # Keep unhinted SQL as a negative placement control. INDEXED BY is an
+   # explicit SQL access-path requirement, not unforced planner parity.
+   selected={**selected,'skip-range-indexed':selected['skip-range'].replace('t y WHERE','t y INDEXED BY ab WHERE')}
   for name,sql in selected.items():
    st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
    try:
@@ -44,14 +52,16 @@ for enc,family in [(enc,family) for enc in ['UTF-8','UTF-16le','UTF-16be'] for f
    ops=[{'addr':int(r[0]['value']),'opcode':n.text(r[1]),'p1':int(r[2]['value']),'p2':int(r[3]['value']),'p3':int(r[4]['value'])} for r in program]
    filters=[o for o in ops if o['opcode']=='Filter']
    # Outer and IN exclude later grouped construction, NOT their local filter.
-   no_filter=name in ('frame','skip-range')
+   no_filter=name in ('frame','skip-range','skip-range-indexed')
    assert len(filters)==(0 if no_filter else 2 if name in ('group-outer','skip-group') else 1)
    assert any('BLOOM FILTER' in p for p in eqp)==(not no_filter)
-   if name=='skip-range':assert any('ANY(a)' in p and 'b>?' in p for p in eqp)
+   if name=='skip-range':assert 'SCAN y' in eqp,eqp
+   if name=='skip-range-indexed':assert any('ANY(a)' in p and 'b>?' in p for p in eqp),eqp
+   if name in ('skip-equality','skip-group','skip-range-indexed'):assert any('ANY(a)' in p for p in eqp),eqp
    if name=='outer':assert any(o['opcode']=='NullRow' for o in ops)
    if name=='in':assert any(o['opcode']=='OpenEphemeral' for o in ops)
    captures.append({'case':name,'sql':sql,'columns':columns,'runs':runs,'eqp':eqp,'program':ops})
   variants.append({'encoding':enc,'fixture':str(fixture),'sha256':hashlib.sha256(fixture.read_bytes()).hexdigest(),'cases':captures})
  finally:assert d.sqlite3_close(db)==0
-pathlib.Path(sys.argv[2]).write_text(json.dumps({'sourceId':pin['sqliteSourceId'],'librarySha256':hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest(),'variants':variants},indent=2)+'\n')
-print('captured outer/IN local-filter and frame-boundary witnesses; three encodings, two runs')
+pathlib.Path(args.output).write_text(json.dumps({'sourceId':pin['sqliteSourceId'],'librarySha256':hashlib.sha256(pathlib.Path(args.library).read_bytes()).hexdigest(),'variants':variants},indent=2)+'\n')
+print(f'captured {len(variants)} encoding/family variants; two runs each')
