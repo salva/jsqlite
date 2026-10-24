@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs';
 import {startFixtureServer} from './fixture-server.mjs';
-import {openFixture} from './public-api-adapter.mjs';
+import {openFixture,privateAccounting} from './public-api-adapter.mjs';
 import {open,JSQLiteError} from '../../src/index.ts';
 import {SorterCursor,EphemeralIndexCursor} from '../../src/internal/private-state.ts';
 const root=path.resolve('test/fixtures');
@@ -30,12 +30,33 @@ test('grouped DISTINCT insertion failure remains authoritative over cleanup fail
 
 test('min/max retained text and blob share the private byte budget and release it',async()=>{const b=await server();try{
  for(const [sql,expected,bytes] of [
-  ["SELECT min(a) FROM t",'abc',3],
-  ["SELECT max(CASE x WHEN 31 THEN 'a' ELSE 'longer' END) FROM t1 WHERE x>=30",'longer',6],
-  ["SELECT min(CASE x WHEN 31 THEN 'longer' ELSE 'a' END) FROM t1 WHERE x>=30",'a',6],
-  ["SELECT max(CAST(a AS BLOB)) FROM t",new Uint8Array([97,98,99]),3],
- ]){let db,s;try{const fixture=sql.includes('t1')?'expr-relational':'expr-where';db=await connect(b,fixture,{limits:{maxRows:100,maxResultBytes:1000,maxPrivateBytes:bytes}});s=db.prepare(sql).statement;assert.equal(await s.step(),'row');assert.deepEqual(s.column(0),expected);s.reset();assert.equal(await s.step(),'row');assert.deepEqual(s.column(0),expected);s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}}}
- let db,s;try{db=await connect(b,'expr-where',{limits:{maxRows:100,maxResultBytes:1000,maxPrivateBytes:2}});s=db.prepare('SELECT min(a) FROM t').statement;await assert.rejects(s.step(),e=>e instanceof JSQLiteError&&e.kind==='limit'&&e.message==='aggregate state exceeds total byte limit');assert.throws(()=>s.reset(),e=>e.kind==='limit');s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}}
+  // Complete live statement peaks (input, retained best, result copies), not
+  // just the aggregate payload; see docs/research/card-s-i/review27-resource-reconciliation.md.
+  ["SELECT min(a) FROM t",'abc',9],
+  ["SELECT max(CASE x WHEN 31 THEN 'a' ELSE 'longer' END) FROM t1 WHERE x>=30",'longer',31],
+  ["SELECT min(CASE x WHEN 31 THEN 'longer' ELSE 'a' END) FROM t1 WHERE x>=30",'a',19],
+  ["SELECT max(CAST(a AS BLOB)) FROM t",new Uint8Array([97,98,99]),12],
+ ]){let db,s;try{const fixture=sql.includes('t1')?'expr-relational':'expr-where';
+ // One byte below the actual coexistence peak must reject and refund, too.
+ db=await connect(b,fixture,{limits:{maxRows:100,maxResultBytes:1000,maxPrivateBytes:bytes-1}});
+ s=db.prepare(sql).statement;let first;
+ await assert.rejects(s.step(),e=>{first=e;return e instanceof JSQLiteError&&e.kind==='limit'});
+ assert.equal(privateAccounting(s).ownedBytes,0);
+ assert.equal(privateAccounting(s).chargedBytes,privateAccounting(s).refundedBytes);
+ assert.throws(()=>s.reset(),e=>e===first);s.finalize();s=undefined;db.close();db=undefined;
+ db=await connect(b,fixture,{limits:{maxRows:100,maxResultBytes:1000,maxPrivateBytes:bytes}});
+ s=db.prepare(sql).statement;
+ assert.equal(await s.step(),'row');assert.deepEqual(s.column(0),expected);
+ s.reset();assert.equal(privateAccounting(s).ownedBytes,0);
+ for(let replay=0;replay<2;replay++){
+  assert.equal(await s.step(),'row');assert.deepEqual(s.column(0),expected);
+  assert.ok(privateAccounting(s).ownedBytes>0,'yield retains live Mem');
+  assert.equal(await s.step(),'done');const a=privateAccounting(s);
+  assert.equal(a.highwaterBytes,bytes);assert.equal(a.ownedBytes,0);
+  assert.equal(a.chargedBytes,a.refundedBytes);s.reset();
+ }
+ s.finalize();s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}}}
+ let db,s;try{db=await connect(b,'expr-where',{limits:{maxRows:100,maxResultBytes:1000,maxPrivateBytes:2}});s=db.prepare('SELECT min(a) FROM t').statement;await assert.rejects(s.step(),e=>e instanceof JSQLiteError&&e.kind==='limit'&&e.message.includes('total byte limit'));assert.throws(()=>s.reset(),e=>e.kind==='limit');s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}}
 }finally{await closeServer(b)}});
 
 test('aggregate-local DISTINCT and ordered queues release budget after failure',async()=>{const b=await server();try{for(const sql of ['SELECT count(DISTINCT a) FROM t','SELECT group_concat(a ORDER BY a) FROM t']){let db,s;try{db=await connect(b,'expr-where',{limits:{maxRows:100,maxResultBytes:1000,maxPrivateBytes:2}});s=db.prepare(sql).statement;await assert.rejects(s.step(),e=>e instanceof JSQLiteError&&e.kind==='limit');assert.throws(()=>s.reset(),e=>e.kind==='limit');s=undefined;const admitted=db.prepare('SELECT 1').statement;assert.equal(await admitted.step(),'row');admitted.finalize()}finally{try{s?.finalize()}catch{}try{db?.closeDeferred()}catch{}}}}finally{await closeServer(b)}});

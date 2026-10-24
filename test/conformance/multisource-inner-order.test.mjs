@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import test from 'node:test';
 import {startFixtureServer} from './fixture-server.mjs';
-import {openFixture} from './public-api-adapter.mjs';
+import {openFixture,privateAccounting} from './public-api-adapter.mjs';
 import {ExecutionTaskScheduler} from '../../src/internal/task-scheduler.ts';
 
 const root=path.resolve(new URL('../fixtures',import.meta.url).pathname);
@@ -568,7 +568,20 @@ test('public unordered INNER product streams with zero private-state budgets',as
   assert.deepEqual(await rows(s),[[31n,31n],[31n,30n],[31n,29n]]);
   s.finalize();s=null;
   s=db.prepare('SELECT a.x,b.a FROM t1 AS a INNER JOIN t2 AS b ON b.a=a.y LIMIT 2').statement;
-  assert.deepEqual(await rows(s),[[23n,1n],[13n,1n]]);
+  // The second query selects a real automatic index (where.c constructs it
+  // with OP_OpenAutoindex). Zero private capacity must reject, not silently
+  // replace that selected path with a Cartesian scan.
+  await assert.rejects(s.step(),e=>e.kind==='limit');
+  assert.equal(privateAccounting(s).ownedBytes,0);
+  assert.equal(privateAccounting(s).chargedBytes,privateAccounting(s).refundedBytes);
+  assert.throws(()=>s.reset(),e=>e.kind==='limit');
+  s.finalize();s=null;db.close();db=null;
+  db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/expr-relational`));
+  s=db.prepare('SELECT a.x,b.a FROM t1 AS a INNER JOIN t2 AS b ON b.a=a.y LIMIT 2').statement;
+  assert.deepEqual(await rows(s),[[3n,1n],[13n,1n]]);
+  assert.equal(privateAccounting(s).automaticBuilds,1);
+  assert.equal(privateAccounting(s).ownedBytes,0);
+  assert.equal(privateAccounting(s).chargedBytes,privateAccounting(s).refundedBytes);
  }finally{
   try{s?.finalize()}catch{}
   try{db?.closeDeferred()}catch{}

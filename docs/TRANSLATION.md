@@ -1234,6 +1234,12 @@ Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms an
 
 ## Windows and private storage
 
+Private-budget regression fixtures distinguish retained aggregate payload from
+simultaneously live input/expression/result Mem and selected automatic-index
+storage. Zero capacity is not a promise to bypass a selected automatic index;
+completion/error/reset must refund all admitted owners. [Source comparison and
+bounded fixture evidence](research/card-s-i/review27-resource-reconciliation.md).
+
 Current registered bounded frame paths retain pending input/end-peer ownership,
 independent current/start/end positions, EOF-before-inverse and deletion before
 Next. RANGE offsets use typed Mem int64/overflow and storage-class/collation

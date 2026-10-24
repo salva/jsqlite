@@ -1,5 +1,16 @@
 # SQLite source map
 
+### Ordinary aggregate and selected-INNER resource fixtures
+
+`func.c:minmaxStep/minMaxValueFinalize` independent argument/best/publication →
+`extremaDefinition`, `AggregateContext`, AggFinal and budget-backed `Mem` copies;
+`where.c:constructAutomaticIndex` OpenAutoindex/build → shared INNER lowering and
+`PrivateBlobkeyPages` admission. `aggregate-group-lifecycle.test.mjs` checks whole
+live peaks, peak−1 rejection and error/reset/refund; `multisource-inner-order.test.mjs`
+keeps zero-cap streaming CROSS and rejects zero-cap selected automatic storage;
+`aggregate-where-chinook.test.mjs` checks selected counters and live/refund contract
+without closing the diagnostic schema. [Ownership/source and pinned-path evidence](research/card-s-i/review27-resource-reconciliation.md).
+
 ### MakeRecord conversion and register ownership
 
 `vdbe.c:OP_MakeRecord` live input affinity then separate packed output,

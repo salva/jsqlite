@@ -9,6 +9,12 @@ witness. The unused window b/c copies caused the366-versus359 peak. Live Mem
 charges remain; cache85-byte boundary and done-time context release controls are
 now explicit. [Source comparison and evidence](../research/card-s-i/window-owner-correction.md).
 This does not certify whole-window, installed/browser or full-matrix acceptance.
+Review27 prior-regression fixtures now distinguish complete live aggregate/Mem
+peaks from retained-best bytes, and zero-cap streaming CROSS from selected
+OpenAutoindex storage. Chinook asserts selected counters plus balanced live
+ownership rather than absence of new diagnostics. These are test-owner
+reconciliations, not a runtime accounting exemption or a new window algorithm.
+[Source comparison and bounded evidence](../research/card-s-i/review27-resource-reconciliation.md).
 
 ## Automatic covering-index and independent standalone Bloom consumers (author repair)
 

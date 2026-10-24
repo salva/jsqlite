@@ -33,13 +33,19 @@ test('aggregate join producer consumes shared WHERE candidates before grouping',
  // Native searches IFK_TrackAlbumId then Album by rowid. There are 204
  // matching Track rows: one range seek, 204 advances, and deferred Track plus
  // Album rowid seeks per row (not the superseded 3503-row full scan).
- assert.deepEqual(accounting,{plannerCandidates:4,plannerPaths:2,indexSeeks:1,indexNext:204,tableSeeks:408,tableNext:0,residualTests:408,sorterRows:222,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0},'phase-linked selected producer accounting');
+ const selectedCounters={plannerCandidates:4,plannerPaths:2,indexSeeks:1,indexNext:204,tableSeeks:408,tableNext:0,residualTests:408,sorterRows:222,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0};
+ assert.deepEqual(Object.fromEntries(Object.keys(selectedCounters).map(k=>[k,accounting[k]])),selectedCounters,'phase-linked selected producer accounting');
+ assert.equal(accounting.ownedBytes,0);assert.equal(accounting.memBytes,0);
+ assert.equal(accounting.scratchBytes,0);assert.equal(accounting.packedPages,0);
+ assert.ok(accounting.chargedBytes>0);assert.equal(accounting.chargedBytes,accounting.refundedBytes);
  assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i)),[
  {name:'album',declaredType:'NVARCHAR(160)',database:'main',table:'Album',origin:'Title'},
  ...['tracks','total_minutes','average_price','tracks_over_5_minutes'].map(name=>({name,declaredType:null,database:null,table:null,origin:null}))]);
  // A second execution rebuilds the selected producer and grouping state.
  statement.reset();const replay=[];while(await statement.step({maxWorkUnits:200000})==='row')replay.push(Array.from({length:statement.columnCount},(_,i)=>statement.column(i)));
- assert.deepEqual(replay,expected);assert.deepEqual(privateAccounting(statement),accounting);
+ assert.deepEqual(replay,expected);const replayAccounting=privateAccounting(statement);
+ assert.deepEqual(Object.fromEntries(Object.keys(selectedCounters).map(k=>[k,replayAccounting[k]])),selectedCounters);
+ assert.equal(replayAccounting.ownedBytes,0);assert.equal(replayAccounting.chargedBytes,replayAccounting.refundedBytes);
  statement.reset();assert.equal(await statement.step({maxWorkUnits:200000}),'row');statement.reset();const afterYield=[];while(await statement.step({maxWorkUnits:200000})==='row')afterYield.push(Array.from({length:statement.columnCount},(_,i)=>statement.column(i)));assert.deepEqual(afterYield,expected);
 
  }finally{statement.finalize()}
