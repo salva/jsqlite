@@ -4,8 +4,18 @@ import {assertReleased,assertRuntimeWork} from './where-autoindex-contract.mjs';
 
 // Real public statements, independently positioned on the same immutable DB.
 // Expectations belong to the native receipt caller, not this observation seam.
-export async function realSurvivor(db,sql,expected,cell,workExpected){
- const survivor=db.prepare(sql).statement;let owner=db.prepare(sql).statement,ownerFinalized=false;
+export async function realDeferredSurvivor(open,sql,expected,cell,workExpected){
+ const db=await open();
+ let completed=false;
+ try{await realSurvivor(db,sql,expected,cell,workExpected,{deferredClose:true});completed=true;}
+ finally{if(!completed){try{db.closeDeferred();}catch{/* Preserve failed assertion; driver finalized both owned statements. */}}}
+}
+
+export async function realSurvivor(db,sql,expected,cell,workExpected,{deferredClose=false}={}){
+ // Native LIMIT -1 preserves the complete independently captured result.
+ const ownerSql=`${sql.replace(/;\s*$/,'')} LIMIT ?1`;
+ const prepareOwner=()=>{const s=db.prepare(ownerSql).statement;s.bind(1,-1n);return s;};
+ const survivor=db.prepare(sql).statement;let owner=prepareOwner(),ownerFinalized=false;
  try{
   const columns=s=>Array.from({length:s.columnCount},(_,i)=>s.columnMetadata(i));
   assert.deepEqual(columns(owner),expected.columns);assert.deepEqual(columns(survivor),expected.columns);
@@ -16,10 +26,11 @@ export async function realSurvivor(db,sql,expected,cell,workExpected){
   assert.throws(()=>db.close(),error=>error.kind==='sqlite'&&error.code===5&&error.message==='unable to close due to unfinalized statements');
   assert.deepEqual(privateAccounting(survivor),before,'legacy busy close must not destroy the live survivor');
   const executions=new Set();
-  for(const exit of ['done','reset','cancel','timeout','cancel-finalize','timeout-finalize','finalize']){
+  for(const exit of ['done','reset','rebind','cancel','timeout','cancel-finalize','timeout-finalize','finalize']){
    assert.equal(await owner.step(),'row');
    const live=privateAccounting(owner);assert.ok(live.openCursors>0);assert.ok(live.filterBytes>0);assert.equal(live.onceActive,true);
    assert.notEqual(live.ownerId,before.ownerId);
+   assert.ok(live.ownedBytes>0);assert.ok(before.ownedBytes>0,'distinct owners simultaneously retain live resources');
    assert.ok(live.executionId);assert.ok(!executions.has(live.executionId),'new entry has a fresh execution identity');executions.add(live.executionId);
    if(exit==='done'){
     const rows=[Array.from({length:owner.columnCount},(_,i)=>cell(owner,i))];
@@ -43,10 +54,29 @@ export async function realSurvivor(db,sql,expected,cell,workExpected){
      assert.throws(()=>owner.reset(),error=>error===primary,'reset returns saved first error');
      owner.reset(); // Saved error was consumed; repeated reset is harmless.
     }
-   }else if(exit==='reset')owner.reset();else {owner.finalize();ownerFinalized=true;}
+   }else if(exit==='rebind'){
+    owner.reset();assertReleased(privateAccounting(owner),before,privateAccounting(survivor));
+    owner.bind(1,-1n);
+    const rows=[];
+    while(await owner.step()==='row')rows.push(Array.from({length:owner.columnCount},(_,i)=>cell(owner,i)));
+    assert.deepEqual(rows,expected.runs[0].rows);
+    const rebound=privateAccounting(owner);
+    assert.notEqual(rebound.executionId,live.executionId);
+    assert.equal(rebound.planId,live.planId,'non-sensitive LIMIT rebind retains program');
+    if(typeof workExpected==='function')workExpected(rebound);else assertRuntimeWork(rebound,workExpected);
+    owner.reset();
+   }else if(exit==='reset')owner.reset();else {
+    if(deferredClose){
+     db.closeDeferred();
+     assert.deepEqual(privateAccounting(owner),live,'zombie close preserves owner');
+     assert.deepEqual(privateAccounting(survivor),before,'zombie close preserves survivor');
+     assert.throws(()=>db.prepare(sql),error=>error.kind==='misuse');
+    }
+    owner.finalize();ownerFinalized=true;
+   }
    assertReleased(privateAccounting(owner),before,privateAccounting(survivor));
    if(exit==='done')owner.reset();
-   if(ownerFinalized&&exit!=='finalize'){owner=db.prepare(sql).statement;ownerFinalized=false;}
+   if(ownerFinalized&&exit!=='finalize'){owner=prepareOwner();ownerFinalized=false;}
   }
   while(await survivor.step()==='row')survivorRows.push(Array.from({length:survivor.columnCount},(_,i)=>cell(survivor,i)));
   assert.deepEqual(survivorRows,expected.runs[0].rows);

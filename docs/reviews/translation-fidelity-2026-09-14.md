@@ -68,6 +68,11 @@ entered code. Partial-build and positive table-access controls prevent constant
 completion/zero lookup claims. Actual distinct cursor slots, Once state and
 Bloom bytes now supply release snapshots; actual SQL survivor controls cover
 done/reset/finalize and post-row cancel/timeout with native row continuation.
+The same owner now enrolls positive INNER/LEFT, actual unlimited-LIMIT rebind,
+and separate zombie-close connections with two distinct live owners and
+independent survivor completion. This does not cover parameter-sensitive
+reprepare; retained-plan LIMIT binding is explicitly distinct. Evidence:
+[[card:card-s-j-c]] status.
 Additional source-owned serial controls now interrupt actual build/probe after
 confirmed progress for automatic and standalone, inject second-page and reserved
 filter-init faults, and require exact first/saved error, release, unchanged real

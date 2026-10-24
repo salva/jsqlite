@@ -308,6 +308,27 @@ closure or full resource acceptance. Exact input/commands and failed targeting
 hypotheses are retained in current card status; prior captures remain native
 provenance, not authority for untested production paths.
 
+## Finite real-consumer lifetime extension (author evidence)
+
+The existing survivor owner now uses a bound unlimited LIMIT and includes an
+actual reset/rebind execution with native complete rows, fresh execution identity
+and retained program identity. Positive INNER/LEFT enroll the same driver.
+Separate connections run deferred close while both distinct owners have positive
+live bytes: owner finalize releases only its resources, new prepare is rejected,
+and survivor completes the independently captured native rows before finalize.
+The existing post-row cancel/timeout and saved-first-error controls remain.
+
+Author runs `AUTO_INDEX_RUNTIME=1 AUTO_REAL_SURVIVOR=1 node
+--experimental-strip-types docs/research/where-autoindex-baseline.mjs RECEIPT`
+passed for INNER (`proc-f1693793f21d`), LEFT (`proc-c1ea81d11336`) and persistent
+standalone (`proc-b7a4e8f23316`): all three encodings, ordinary native comparisons
+and the eight owner exits on ordinary/deferred-close connections. Exact receipts,
+commands and durable output references are in [[card:card-s-j-c]] status.
+These are selected lifetime schedules, not parameter-sensitive reprepare proof.
+Two exploratory STAT4 self-joins changed program identity on bind but executed
+neither automatic nor standalone Bloom work; they confer no consumer coverage.
+Next work must obtain a real parameter-sensitive consumer, not force an expmask.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic

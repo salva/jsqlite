@@ -512,8 +512,14 @@ post-row cancel/timeout cleanup, then resumes complete native-expected rows.
 It also checks saved-error identity on repeated step and direct error-finalize,
 consumption on reset/repeated reset, fresh execution identities on retry, and
 legacy busy-close refusal without destroying the live statement. The runner
-covers automatic and persistent standalone fixtures. These specific boundaries
-are not exhaustive rebind/reprepare/deferred-close/fault safety.
+covers automatic (including positive INNER/LEFT) and persistent standalone
+fixtures. The owner uses a bound unlimited LIMIT: reset/rebind repeats complete
+native rows with a fresh execution and unchanged program. Separate connections
+exercise deferred close with both distinct owners live, owner finalization,
+rejected new prepare and complete independent survivor continuation. Existing
+cancel/timeout first-error schedules remain intact. Parameter-sensitive reprepare
+and residual fault/lifetime acceptance remain open; LIMIT rebinding does not
+claim program replacement.
 `AUTO_REAL_PROGRESS=1` interrupts automatic build after successful insertion and
 probe after completed build/positive probes; standalone requires positive actual
 FilterAdd with zero probes for build, positive FilterAdd/probes for probe. These
