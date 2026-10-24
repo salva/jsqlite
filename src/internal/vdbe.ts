@@ -10165,6 +10165,7 @@ export class VdbeStatement implements Statement {
                       if(sorted.length>=this.#program.privateStateLimits.maxEntries)throw new PrivateStateLimitError('IN RHS exceeds private-state entry limit');
                       const size=value.initialStorageClass==='text'?value.textBytes().byteLength:value.initialStorageClass==='blob'?value.blobValue().byteLength:8;
                       if(size>this.#program.privateStateLimits.maxKeyBytes)throw new PrivateStateLimitError('IN RHS key exceeds private-state key limit');
+                      this.#privateBytes.observeDemand(sorted.length+1,size);
                       this.#privateBytes.reserve(size,'IN RHS exceeds total private-state byte limit');bytes+=size;
                       sorted.splice(at,0,value);owned=true;
                     }

@@ -515,7 +515,14 @@ maxBytes H−1/H/H+1 runs with all other limits nonbinding and a separate live S
 survivor excluded. H includes build and probe scratch, so H−1 may fail at a probe
 after successful build but must precede any result row in these fixtures. Public
 limit errors preserve the underlying PrivateStateLimitError cause and reset
-returns the identical saved error. maxEntries/maxKeyBytes boundaries remain open.
+returns the identical saved error. The same runner separately exercises
+maxEntries and maxKeyBytes H−1/H/H+1 with other limits nonbinding. Their H is
+the maximum policy demand across execution-owned consumers, not a sum of
+per-cursor entry counts. Key demand includes both packed payload bytes and
+unpacked seek Mem bytes; the larger representation can set H. Entry counts
+include pending packed cells; balancing transfers must not count new entries.
+The observations describe configured private limits, not total JS memory.
+Fault/internal phase and standalone safety schedules remain open.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for bounded INNER/CROSS persistent equality loops. Wider consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-b]] status for exact evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.

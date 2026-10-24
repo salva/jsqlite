@@ -29,6 +29,7 @@ export class RowSet {
     await this.control.checkpoint(0);
     if (!this.#fresh) {
       if ((this.#chunks.length + 1) * CHUNK_ENTRIES > this.maxEntries) throw new PrivateStateLimitError('RowSet exceeds entry limit');
+      this.budget.observeDemand((this.#chunks.length+1)*CHUNK_ENTRIES);
       this.budget.reserve(CHUNK_BYTES);
       this.#chunks.push([]);
       this.#fresh = CHUNK_ENTRIES;

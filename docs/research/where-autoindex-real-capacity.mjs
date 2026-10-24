@@ -9,26 +9,29 @@ export async function realByteCapacity(open,db,sql,expected,cell,workExpected,li
  try{
   assert.equal(await survivor.step(),'row');const before=privateAccounting(survivor);
   while(await measure.step()==='row'){}
-  const H=privateAccounting(measure).highwaterBytes;assert.ok(H>1);
-  console.error(JSON.stringify({control:'actual-byte-capacity',H,capacities:[H-1,H,H+1]}));
+  const measured=privateAccounting(measure);
+  for(const [dimension,field,message] of [['maxPrivateBytes','highwaterBytes',limitMessage.bytes],['maxPrivateEntries','highwaterEntries',limitMessage.entries],['maxPrivateKeyBytes','highwaterKeyBytes',limitMessage.key]]){
+  const H=measured[field];assert.ok(H>1);
+  console.error(JSON.stringify({control:'actual-capacity',dimension,H,capacities:[H-1,H,H+1]}));
   for(const cap of [H-1,H,H+1]){
-   const limited=await open({maxPrivateBytes:cap,maxPrivateEntries:100000,maxPrivateKeyBytes:1000000});
+   const limited=await open({maxPrivateBytes:100000000,maxPrivateEntries:100000,maxPrivateKeyBytes:1000000,[dimension]:cap});
    const statement=limited.prepare(sql).statement;let failed=false;
    try{
     const rows=[];
     if(cap<H){
-     let primary;try{await statement.step();assert.fail('below-boundary query published a row or DONE');}catch(error){assert.equal(error.kind,'limit');assert.ok(error.cause instanceof PrivateStateLimitError);assert.equal(error.message,limitMessage);primary=error;failed=true;}
+     let primary;try{await statement.step();assert.fail('below-boundary query published a row or DONE');}catch(error){assert.equal(error.kind,'limit');assert.ok(error.cause instanceof PrivateStateLimitError);assert.equal(error.message,message);primary=error;failed=true;}
      assertReleased(privateAccounting(statement),before,privateAccounting(survivor));
      assert.throws(()=>statement.reset(),error=>error===primary);
     }else{
      while(await statement.step()==='row')rows.push(Array.from({length:statement.columnCount},(_,i)=>cell(statement,i)));
      assert.deepEqual(rows,expected.runs[0].rows);
      assert.deepEqual(Array.from({length:statement.columnCount},(_,i)=>statement.columnMetadata(i)),expected.columns);
-     const result=privateAccounting(statement);assert.equal(result.highwaterBytes,H);assertRuntimeWork(result,workExpected);
+     const result=privateAccounting(statement);assert.equal(result[field],H);assertRuntimeWork(result,workExpected);
      assertReleased(result,before,privateAccounting(survivor));
     }
    }finally{statement.finalize();limited.closeDeferred();}
    assert.equal(failed,cap<H);
+  }
   }
   const rows=[Array.from({length:survivor.columnCount},(_,i)=>cell(survivor,i))];
   while(await survivor.step()==='row')rows.push(Array.from({length:survivor.columnCount},(_,i)=>cell(survivor,i)));

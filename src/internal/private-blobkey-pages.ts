@@ -708,6 +708,7 @@ export class PrivateBlobkeyPages {
   #check(t:ArenaOperation):void{if(t!==this.#operation||!this.#busy)throw new Error("invalid arena operation token")}
   #end(t:ArenaOperation):void{this.#check(t);this.#operation=null;this.#busy=false}
   get epoch():number{return this.#epoch}
+  observeKeyDemand(bytes:number):void{this.#budget.observeDemand(0,bytes)}
   get pageCount():number{return this.#pages.size}
   referenceCount(pgno:number):number{return this.#pages.get(pgno)?.refs??0}
   #live():void{if(this.#closed)throw new Error("private page arena closed");if(this.#fault!==undefined)throw this.#fault}
@@ -1021,9 +1022,11 @@ export class PrivateBlobkeyPages {
     // page state have changed, so it must not terminally FAULT the arena.
     this.#live();
     if(key.length>this.#maxKeyBytes)throw new PrivateStateLimitError("private index key exceeds byte limit");
+    this.#budget.observeDemand(0,key.length);
     return this.#arenaMutation(()=>this.#fillCell(pgno,key,control));
   }
   async #fillCell(pgno:number,key:Uint8Array,control:PrivateStateControl):Promise<{bytes:Uint8Array;release():void}>{
+      this.#budget.observeDemand(0,key.length);
       const entry=this.#pages.get(pgno);if(!entry)corrupt("fill cell page outside arena");
       const page=new PrivateIndexPage(pgno,entry!.bytes);const length=key.length;
       if(length>0x7fffffff)throw new PrivateStateLimitError("private key too large");
@@ -1149,6 +1152,7 @@ export class PrivateBlobkeyPages {
   #entryCount():number{let total=this.#transit;for(const p of this.#pages.values())total+=p.entries;return total}
   #newEntry(entry:ArenaPage):()=>void{
     if(this.#entryCount()>=this.#maxEntries)throw new PrivateStateLimitError("private index entry limit");
+    this.#budget.observeDemand(this.#entryCount()+1);
     entry.entries++;let undone=false;return ()=>{if(!undone){undone=true;entry.entries--}};
   }
   #consumeTransit(entry:ArenaPage):()=>void{
@@ -1722,6 +1726,7 @@ export class PrivateBlobkeyCursor {
       let bytes=0;
       for(const value of caller.values){const d=value.diagnostic();if(d.manifest==="aggregate"||d.manifest==="rowset")throw new Error("invalid private seek target");bytes+=d.byteLength+(d.numeric?8:0)}
       if(bytes>this.#limits.maxKeyBytes)throw new PrivateStateLimitError("private seek target exceeds byte limit");
+      this.#arena.observeKeyDemand(bytes);
       control.snapshotCheckpoint?.(0);
       const charge=128+caller.values.length*128+bytes;
       this.#arena.reserveScratch(charge);targetCharge=charge;

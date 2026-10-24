@@ -28,8 +28,14 @@ fault/cancel and exhaustive reprepare/close schedules remain pending.
 `where-autoindex-real-capacity.mjs` exercises the actual public maxPrivateBytes
 limit at measured whole-execution H−1/H/H+1 (build and probe scratch included),
 with independent live SQL survivor, exact native rows/metadata, no below-boundary
-row and preserved public limit/cause/reset identity. maxEntries/maxKeyBytes
-capacity schedules remain pending.
+row and preserved public limit/cause/reset identity. The same real driver now
+separately exercises maxEntries and maxKeyBytes boundaries. Demand observation
+is owned by existing admission points: packed arena newEntry/fillCell and
+unpacked cursor moveto; sorter insert/bounded replacement; ephemeral/FIFO/
+priority/IN/RowSet policies. Maxima across per-cursor policies are not summed;
+byte ownership remains aggregate. `private-demand-observation.test.mjs` checks
+shared cursor max semantics; actual fixture controls include packed and sorter
+limiting branches and encoding-dependent unpacked target byte demand.
 Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
