@@ -9,6 +9,7 @@ spec=importlib.util.spec_from_file_location('capture',ROOT/'test/conformance/cap
 h=importlib.util.module_from_spec(spec);spec.loader.exec_module(h)
 p=argparse.ArgumentParser();p.add_argument('--library',required=True);p.add_argument('--output',required=True);p.add_argument('--case',default='original',choices=['original','absent','collision','inner','on','where','is','empty-inner','empty-outer','types','nocase','rtrim','binary','lifetime','representations','standalone','standalone-ipk','pulldown-ipk','pulldown-ipk-dependent','pulldown','pulldown-dependent','overflow','overflow-offpath','affinity','affinity-reverse']);p.add_argument('--collision-payload-bytes',type=int,default=0)
 p.add_argument('--capacity-order',action='store_true',help='Complete result sort for multi-filter pre-publication capacity checks')
+p.add_argument('--semantic-probes',action='store_true',help='Independent pulled-filter heterogeneous probe boundary')
 a=p.parse_args()
 out=pathlib.Path(a.output);out.mkdir(parents=True,exist_ok=True)
 d=h.load(a.library)
@@ -44,10 +45,13 @@ if ipk_multi:
  key='l.k' if a.case=='pulldown-ipk' else 'r.id'
  join=' CROSS JOIN ' if a.case=='pulldown-ipk-dependent' else ' JOIN '
  sql=f"SELECT l.id AS lid,r.id AS rid,t.id AS tid FROM lhs l{join}rhs r{join}tail t WHERE r.k=l.k AND t.id={key} AND r.payload='v2' AND t.payload='v2' ORDER BY l.id,r.id,t.id"
+if a.semantic_probes:
+ assert a.case in ['pulldown','pulldown-ipk'] and not a.capacity_order
+ sql=sql.replace('t.id=l.k' if ipk_multi else 't.k=l.k','t.id=l.p' if ipk_multi else 't.k=l.p')
 if a.capacity_order:
  assert multi
  sql=sql.replace('ORDER BY l.id,r.id,t.id','ORDER BY l.id+r.id,t.id,l.id,r.id')
-result={'case':a.case,'capacityOrder':a.capacity_order,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
+result={'case':a.case,'capacityOrder':a.capacity_order,'semanticProbes':a.semantic_probes,'sourceId':d.sqlite3_sourceid().decode(),'librarySha256':hashlib.sha256(pathlib.Path(a.library).read_bytes()).hexdigest(),'sql':sql,'variants':[]}
 for enc in ['UTF-8','UTF-16le','UTF-16be']:
  path=out/(enc+'.db');assert not path.exists(),path
  db=C.c_void_p();assert d.sqlite3_open(str(path).encode(),C.byref(db))==0
@@ -84,6 +88,9 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
   h.execsql(d,db,"DROP TABLE lhs; CREATE TABLE lhs(id INTEGER PRIMARY KEY,k); WITH RECURSIVE n(x) AS(VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<1024) INSERT INTO lhs SELECT x,CASE x%8 WHEN 0 THEN 2 WHEN 1 THEN 2.0 WHEN 2 THEN '2.0' WHEN 3 THEN 2.5 WHEN 4 THEN 'bad' WHEN 5 THEN x'32' WHEN 6 THEN NULL ELSE 80002 END FROM n; ANALYZE;")
  if multi:
   h.execsql(d,db,'CREATE TABLE tail(id INTEGER PRIMARY KEY,k INTEGER,payload TEXT); INSERT INTO tail SELECT * FROM rhs; CREATE INDEX tk ON tail(k); ANALYZE;')
+ if a.semantic_probes:
+  # No affinity on p: preserve storage until pulled MustBeInt/Affinity owns conversion.
+  h.execsql(d,db,"ALTER TABLE lhs ADD COLUMN p; UPDATE lhs SET k=2,p=CASE id%8 WHEN 0 THEN 2 WHEN 1 THEN 2.0 WHEN 2 THEN '2.0' WHEN 3 THEN 2.5 WHEN 4 THEN 'bad' WHEN 5 THEN x'32' WHEN 6 THEN NULL ELSE 80002 END; ANALYZE;")
  assert d.sqlite3_close(db)==0
  assert d.sqlite3_open_v2(str(path).encode(),C.byref(db),1,None)==0
  variant={'encoding':enc,'fixture':path.name,'sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'modes':[]}
@@ -160,7 +167,12 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    if a.case in ['overflow','overflow-offpath']: runs[-1].update({'error':error,'resetRc':reset_rc})
   for i in range(0,len(runs),2): assert runs[i]==runs[i+1]
   if multi:
-   assert len(rows)==34 and runs[0]['autoindexRows']==0
+   assert (len(rows)>0 if a.semantic_probes else len(rows)==34) and runs[0]['autoindexRows']==0
+   if a.semantic_probes:
+    later=filters[1]
+    guard=names.index('MustBeInt') if ipk_multi else max(i for i in range(later) if names[i]=='Affinity')
+    assert guard<later<seeks[0] if enabled else guard<later<seeks[1]
+    if ipk_multi: assert ops[guard][3]==ops[later][3]
   if cross_affinity:
    assert len(rows)==2080
    matches=[row for row in rows if row[1]['type']!='null']

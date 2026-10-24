@@ -8,6 +8,13 @@ regression and exact revision-bound execution evidence: [[card:card-s-j-c]] stat
 and `where-autoindex-enrollment.test.mjs`. This resolves the missing consumer
 coverage finding, not exhaustive safety or independent combined acceptance.
 
+The finite consumed-IPK/live-affinity coverage gap is exercised by the existing
+native capture `--semantic-probes` and baseline consumer: independent pulled
+filters receive preserved INTEGER/REAL/TEXT/fraction/BLOB/NULL probes, with native
+on/off placement and typed reset results plus MustBeInt borrowed-target checks.
+This adds representative semantic evidence, not every IPK safety permutation or
+new runtime machinery. Revision-bound results: [[card:card-s-j-c]] status.
+
 Current standalone persistent-index safety consumers now enroll the admitted
 multi-filter pulldown cases. Fault/progress controls select the second actual
 filter owner, require prior live ownership for allocation failure, and observe

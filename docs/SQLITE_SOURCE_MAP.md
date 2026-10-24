@@ -9,6 +9,13 @@ exclusions → `vdbe.ts` local Bloom enrollment and `bloomPullDownEligible`.
 Independent native capture/actual public SQL regression:
 `docs/research/where-bloom-boundaries-{native.py,real.mjs}`; bounded evidence and
 remaining frame obligations: [boundary research](research/where-autoindex-boundary.md).
+`filterPullDown` live Affinity/IPK MustBeInt → `emitBloomProbe` consumed eligibility,
+borrowed failure target and later authoritative seek. Existing capture
+`--semantic-probes` plus baseline consumer exercise heterogeneous independent
+pulled probes with pinned native on/off placement, typed rows and reset across
+encodings; `where-autoindex-semantic-probes.test.mjs` retains enrollment controls.
+This is representative semantic-boundary evidence, not every safety permutation;
+exact results and remaining acceptance are in [[card:card-s-j-c]] status.
 `whereLoopAddBtreeIndex`/`whereCheckIfBloomFilterIsUseful` nSkip equality now maps
 to descriptor enrollment; `sqlite3ConstructBloomFilter` all-nEq physical-field
 build and `filterPullDown` nSkip consumer skip map to vdbe build/probe owners.

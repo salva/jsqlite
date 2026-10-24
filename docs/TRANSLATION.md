@@ -654,7 +654,11 @@ required offpath slot; exact applicability is in [[card:card-s-j-c]] status and
 `where-autoindex-enrollment.test.mjs`. SQL consumers emit these operations. Lowering applies native
 probe affinity to the live key registers **before Filter**, not only to the
 private snapshot inside IndexSeekPrefix; build FilterAdd follows MakeRecord's
-live-register affinity. Shared hash intentionally does not coerce by itself.
+live-register affinity. Independent pulled indexed/IPK semantic controls retain
+unaffinitized heterogeneous probes until live Affinity/MustBeInt and compare
+native pull-down on/off typed rows, reset and borrowed-target/seek placement via
+existing capture `--semantic-probes` and baseline. Evidence and remaining
+acceptance: [[card:card-s-j-c]] status. Shared hash intentionally does not coerce by itself.
 MakeRecord currently publishes a fresh packed Uint8Array instead of reusing
 native Mem.zMalloc: replacement admits old plus new packed charges until
 publication, then refunds the old charge. This bounded representation trades
