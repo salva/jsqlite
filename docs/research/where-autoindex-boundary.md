@@ -74,7 +74,17 @@ measures whole-execution maxBytes highwater then exercises H−1/H/H+1 with othe
 limits nonbinding and survivor excluded. The limiting owner may be auto packed
 build/probe scratch or sorter; public limit message is caller-owned per fixture,
 with PrivateStateLimitError cause. Other dimensions/internal phase schedules
-remain pending. Historical no-runtime statements below apply to that baseline
+remain pending. Positive `inner` and `original` (LEFT) receipts now run the same
+capacity driver via `AUTO_INDEX_RUNTIME=1 AUTO_REAL_CAPACITY=1 node
+--experimental-strip-types docs/research/where-autoindex-baseline.mjs RECEIPT`.
+Both retain native typed rows/metadata and all three encodings. The shared
+`assertPositiveCoveringWork` verifies actual build128/probe63, covering zero table
+lookups, positive record/scratch/Mem/payload/page highwaters and zero live backing
+categories after halt; individual peaks are not simultaneous-overlap evidence.
+The byte limiter is private state, entries limiter sorter, and key limiter
+unpacked private seek demand for these receipts. Revision evidence and earlier
+failed caller-error expectations: [[card:card-s-j-c]] status46 and successor.
+Historical no-runtime statements below apply to that baseline
 revision, not current work/release observation.
 
 `where-autoindex-contract.mjs` exports executable assertions, exercised by

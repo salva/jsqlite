@@ -79,8 +79,11 @@ backing pages errors; untraversed page-one signature damage preserves native
 rows. This is not isolated selected-child/offpath-subtree coverage. Physical packed backing-page live/highwater observations
 now cover partial opens, concurrent arenas and actual automatic progress/halt;
 full scratch/Mem completeness remains open as qualified above. Actual byte
-capacity H−1/H/H+1 now includes the combined auto/Bloom/sorter/scratch owner
-and separately the standalone filter/sorter owner;
+capacity H−1/H/H+1 now includes positive INNER/LEFT covering consumers in all
+three encodings, with positive record/scratch/Mem/payload/page highwaters,
+zero live categories after release and actual build/probe/covering work. These
+individual peaks do not prove simultaneous category maxima. Coverage includes
+the combined auto/Bloom/sorter/scratch owner and separately the standalone filter/sorter owner;
 independently live SQL survivor remains excluded and unchanged. The same schedules separately cover maxEntries and maxKeyBytes with other
 limits nonbinding; these are maximum per-cursor policy demands, including
 unpacked seek target bytes, not aggregate entries or JS heap. Deeper placement

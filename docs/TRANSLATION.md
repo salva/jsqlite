@@ -539,7 +539,11 @@ full release, independent real survivor and native retry.
 They add no production seam. Evidence and scope: `record:///status.md?card=card-s-j-c`.
 `AUTO_REAL_CAPACITY=1` adds actual
 maxBytes H−1/H/H+1 runs with all other limits nonbinding and a separate live SQL
-survivor excluded. H includes build and probe scratch, so H−1 may fail at a probe
+survivor excluded. The same runner admits positive `inner` and `original`
+(LEFT) receipts and asserts actual completed builds/inserts/seeks, zero postbuild
+table lookups, positive record/scratch/Mem/payload/page highwaters and zero live
+backing categories after release in every encoding. These are separate peaks,
+not proof of simultaneous category maxima. H includes build and probe scratch, so H−1 may fail at a probe
 after successful build but must precede any result row in these fixtures. Public
 limit errors preserve the underlying PrivateStateLimitError cause and reset
 returns the identical saved error. The same runner separately exercises

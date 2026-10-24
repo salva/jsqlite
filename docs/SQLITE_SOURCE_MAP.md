@@ -54,6 +54,11 @@ Record allocation, selected/offpath corruption, exhaustive reprepare/close and
 page/scratch/Mem observation remain pending.
 `where-autoindex-real-capacity.mjs` exercises the actual public maxPrivateBytes
 limit at measured whole-execution H−1/H/H+1 (build and probe scratch included),
+including positive INNER/LEFT covering consumers (`inner`/`original` receipts).
+`assertPositiveCoveringWork` checks their actual build/probe/covering path and
+positive record/scratch/Mem/payload/page highwaters (individual peaks, not
+simultaneous maxima), plus zero live backing categories on release. Evidence:
+[[card:card-s-j-c]] status. No engine allocation algorithm changes for this coverage.
 with independent live SQL survivor, exact native rows/metadata, no below-boundary
 row and preserved public limit/cause/reset identity. The same real driver now
 separately exercises maxEntries and maxKeyBytes boundaries. Demand observation

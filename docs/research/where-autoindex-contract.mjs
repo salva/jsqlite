@@ -17,6 +17,19 @@ export function assertRuntimeWork(o, {buildRows, probes, absent, collisions}) {
   assert.equal(o.collisionRejects, collisions);
   assert.equal(o.coveringTableLookups, 0);
 }
+// Positive highwaters are separate peaks, not simultaneous-peak evidence.
+export function assertPositiveCoveringWork(o) {
+  assertRuntimeWork(o, {buildRows:128, probes:63, absent:0, collisions:0});
+  assert.equal(o.automaticInserts,128);
+  assert.equal(o.filterAdds,128);
+  assert.equal(o.automaticSeeks,63);
+  assert.ok(o.automaticCoveringReads>0);
+  for(const field of ['recordHighwaterBytes','scratchHighwaterBytes',
+    'memHighwaterBytes','payloadScratchHighwaterBytes','packedPagesHighwater'])
+    assert.ok(o[field]>0,field);
+  for(const field of ['recordBytes','scratchBytes','memBytes','payloadScratchBytes'])
+    assert.equal(o[field],0,field);
+}
 export function assertReleased(o, independentBefore, independentAfter) {
   assert.ok(Number.isSafeInteger(o.ownerId) && o.ownerId>0);
   for(const field of ['chargedBytes','refundedBytes','ownedBytes'])

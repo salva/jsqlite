@@ -14,7 +14,7 @@ test('pending observation rejects scan and incorrect filter/covering work',()=>{
  for(const [k,v] of Object.entries({planKind:'table-scan',builds:63,insertedRecords:127,filterAbsent:0,indexSeeks:63,coveringTableLookups:1}))
   assert.throws(()=>assertRuntimeWork({...good,[k]:v},expected));
  assertRuntimeWork({...good,filterAbsent:0,filterPresent:63,indexSeeks:63,collisionRejects:63},{...expected,absent:0,collisions:63});
- const released={ownerId:1,chargedBytes:128,refundedBytes:128,ownedBytes:0,openCursors:0,onceActive:false,filterBytes:0};
+ const released={ownerId:1,chargedBytes:128,refundedBytes:128,ownedBytes:0,openCursors:0,onceActive:false,filterBytes:0,packedPages:0,payloadScratchBytes:0};
  const survivor={ownerId:2,ownedBytes:64};
  assertReleased(released,survivor,{...survivor});
  for(const mutation of [{ownerId:0},{chargedBytes:0,refundedBytes:0},{refundedBytes:127},{ownedBytes:1},{openCursors:1},{filterBytes:1},{onceActive:true}])
