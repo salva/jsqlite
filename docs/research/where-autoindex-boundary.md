@@ -17,7 +17,7 @@ Pinned where.c7438–7472 constructs selected filters inside each WHERE invocati
 TS already shares one SelectProgramBuilder register/cursor namespace, resolves
 local binding through cursorFor/columnAccess, and directs aggregate callbacks only
 after positioned WHERE rows. Those two callback-presence exclusions are removed;
-RIGHT drains and derived source producers remain gated pending their own work.
+Independent materialized derived readers now support automatic covering builds after their fill Gosub; coroutine conversion and separate RIGHT match-membership Bloom remain open. Detailed native/author evidence: [[card:card-s-j-c]] status.
 No independent evaluator, SQL special case, fixture edit or budget change.
 
 The existing capture/public boundary drivers now retain the exact scalar count
@@ -433,11 +433,11 @@ that level's selected filter. `compileResolvedTableProducer` already preserves
 physical reader identities and installs a source-owned Once inside callable fill;
 `compileInnerTableSelect` already emits Gosub at that source's level. Its blanket
 sourceProducers exclusion nevertheless suppressed filters on unrelated physical
-siblings. Enrollment now excludes only producer-owned build targets; physical
+siblings. Standalone enrollment excludes producer-owned build targets; physical
 sources reuse their existing Once/build/probe, ready-mask, authoritative seek and
 outer continuation. No producer is materialized early for a filter, no payload
 is treated as a physical Btree, and no substitute evaluator or algorithm is added.
-Derived-target/generalized producer and RIGHT-drain work remains open.
+Independent materialized producer targets now use the automatic covering owner after Gosub, with per-source ephemeral setup costs; they are not standalone persistent-filter targets. Coroutine conversion, generalized bound consumers and separate RIGHT match-membership Bloom remain open. The native RIGHT drain's one-source sub-WHERE does not select standalone Bloom.
 
 The original accepted red SQL/receipt is preserved in [[card:card-s-j-c]] status65.
 Existing boundary capture/public drivers now retain that exact query as

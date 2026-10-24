@@ -4466,11 +4466,15 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const multiOrder=resolvedWhereOrder(expanded);
   // wherecode.c:codeINTerm admits a per-slot RHS cursor after its
   // prerequisites are positioned; the selected loop below lowers each slot.
-  const automaticEligible=!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers
-    &&expanded.sources.length===2&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid
+  // where.c invokes a materialized SrcItem before constructAutomaticIndex.
+  // Its reader supports the schema-table Rewind/Column/Next build. Coroutine
+  // builds still need the native Yield/translateColumnToCopy handoff.
+  const materializedAutomatic=!!owner?.sourceProducers&&[...owner.sourceProducers.values()].every(producer=>!!producer.materialize&&!producer.coroutine);
+  const automaticEligible=!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&(!owner?.sourceProducers||materializedAutomatic)
+    &&(expanded.sources.length===2||materializedAutomatic)&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid
       &&!source.table.columns.some(column=>column.generatedExpr)&&!source.joinFromLeft.right);
   try {
-    multiWhere=planWhere(expanded,{...(automaticEligible?{automaticIndex:{enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n}}:{}),neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...((source.table.kind==='table'&&source.table.withoutRowid)?[]:[ROWID_NEEDED])])),orderBy:multiOrder,externalAvailable:owner?.expressionBinding?.positionedSources??new Set(),planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
+    multiWhere=planWhere(expanded,{automaticIndexEphemeralSources:new Set(owner?.sourceProducers?.keys()),...(automaticEligible?{automaticIndex:{enabled:true,orOptimization:false,rightJoinDrain:false,orSubclause:false,correlated:false,recursive:false,ephemeral:false,costMultiplier:0n,sourcePrereq:0n}}:{}),neededColumns:expanded.sources.map(source=>new Set([...source.table.columns,...((source.table.kind==='table'&&source.table.withoutRowid)?[]:[ROWID_NEEDED])])),orderBy:multiOrder,externalAvailable:owner?.expressionBinding?.positionedSources??new Set(),planBudget:Object.assign(builder.wherePlanBudget,{reserveProbe:(bytes:number)=>database.reserveSchemaTemporary(bytes)})});
   } catch(error) {
     // Shared scalar/CTE callers use this producer too. Preserve the same
     // public admission boundary as the singleton planner, without hiding
