@@ -6,15 +6,21 @@ NULL continuation; dependent RHS remains local. Pinned three-source independent/
 dependent receipts now have actual public execution and structural placement
 assertions in `where-autoindex-baseline.mjs` (current [[card:card-s-j-c]] status).
 This supersedes the two-source-only implementation boundary, not the unfinished
-dependent-IPK planner enrollment, IN/outer/frame, scratch/Mem, exhaustive lifetime and WR/FULL gates.
+scratch/Mem, exhaustive lifetime and outer/IN/frame placement obligations.
 The existing MustBeInt primitive translates native nonzero-P2 no-match and
 zero/omitted-P2 mismatch branches, with shared NUMERIC affinity and sentinel-aware
 relocation. IPK standalone now builds Rowid keys and probes with MustBeInt before
 Filter/SeekRowid. Native heterogeneous local and independent deeper-ready public
 controls pass. A dependent CROSS JOIN control also passes native and public TS
 placement (second Filter after its prerequisite seek); this isolates runtime
-continuation ownership, not ordinary JOIN planning. The unforced ordinary-JOIN
-dependent-IPK witness still differs in costed order and fails TS enrollment.
+continuation ownership, not ordinary JOIN planning. The ordinary-JOIN dependent-IPK witness now enrolls both filters after correcting
+ordered-path rowid-prefix continuation (`wherePathSatisfiesOrderBy` →
+`where-plan.ts:joinedOrder`). The old solver discarded order after a non-singleton
+outer loop instead of retaining order-distinct rowid ownership. The correction
+is at path selection, not Bloom eligibility or query-specific forcing; native
+public all-encoding controls and prefix/direction regressions are recorded in
+[[card:card-s-j-c]] status. This is bounded physical-rowid direct-column proof,
+not generalized expression-index/WR ordering or full placement acceptance.
 Payload-copy scratch now has actual live/highwater observation on the shared
 budget, with paused-await/failing-callback controls; all other scratch/Mem
 categories and exhaustive lifetime obligations remain open.

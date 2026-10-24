@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {parseSql} from '../../src/internal/parse.ts';import {btreeLoops,whereClause,sourceBit} from '../../src/internal/where-plan.ts';
+import test from 'node:test';import assert from 'node:assert/strict';import {parseSql} from '../../src/internal/parse.ts';import {btreeLoops,whereClause,sourceBit,wherePathSolver} from '../../src/internal/where-plan.ts';
 const table=Object.freeze({kind:'table',name:'t',tableName:'t',rootPage:2,szTabRow:16,nRowLogEst:200,hasStat1:false,columns:[],indexes:[],withoutRowid:false,primaryKey:[]}),source=Object.freeze({...parseSql('SELECT 1 FROM t').statement.from.items[0],table,cursorId:0});
 function term(sql,id=0){return {id,expression:parseSql(`SELECT 1 WHERE ${sql}`).statement.where,origin:{kind:'where'},operator:sql.includes('=')?'eq':'gt',left:null,rightAffinity:null,effectiveCollation:'binary',originalIndexedOperand:'left',prereqRight:0n,prereqAll:sourceBit(0),parentId:null,childIds:[],virtual:false,outerJoinSafe:{mayDrive:false,mayOmitResidual:false}}}
 const scan=terms=>btreeLoops(source,0,whereClause(terms),{forcedIndex:null,neededColumns:new Set(),orderBy:[]})[0];
@@ -15,4 +15,16 @@ test('admitted IPK equality and its virtual parent are not residual decrements',
 test('residual single-row output may become negative, without changing IPK work',()=>{
  const used={...term('a=2'),left:{source,sourceOrdinal:0,column:null,columnIndex:-1,rowid:true},outerJoinSafe:{mayDrive:true,mayOmitResidual:true}};
  const base=scan([used]),filtered=scan([used,term('a>2',1)]);assert.equal(base.outputRows,0n);assert.equal(filtered.outputRows,-1n);assert.equal(filtered.runCost,base.runCost);
+});
+// where.c:wherePathSatisfiesOrderBy retains order-distinct rowid prefixes.
+// This must be a path proof, not a special case for a Bloom-bearing query.
+for(const descending of [false,true])test(`joined rowid prefix continues into inner loop (${descending})`,()=>{
+ const sources=[0,1].map(i=>({...source,table:{...table,name:`t${i}`},cursorId:i}));
+ const order=sources.map((_,sourceOrdinal)=>({sourceOrdinal,column:null,descending,collation:'binary',nulls:null}));
+ const groups=sources.map((s,i)=>btreeLoops(s,i,whereClause([]),{neededColumns:new Set(),orderBy:order}));
+ const outer=groups[0][0],inner=groups[1][0];assert.equal(outer.capability.orderTermsSatisfied,1);
+ const path=wherePathSolver([[outer],[{...inner,prereq:1n}]],2,5,2,2,400n,0n,order);
+ assert.equal(path.orderTermsSatisfied,2);assert.equal(path.reverse,descending?3n:0n);
+ const reversed=wherePathSolver([[{...outer,prereq:2n}],[inner]],2,5,2,2,400n,0n,order);
+ assert.equal(reversed.orderTermsSatisfied,0);
 });

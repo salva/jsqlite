@@ -26,9 +26,14 @@ This is a subset of aggregate bytes, not all scratch/Mem. Paused callback and
 failure/refund controls: `test/value/private-demand-observation.test.mjs`;
 actual SQL release zero-check: `where-autoindex-baseline.mjs`. Native uses
 caller storage; the TS copy bounds page borrows across awaits, without changing
-seek/record semantics. Dependent-IPK CROSS JOIN native/public placement evidence
-isolates runtime continuation from the still-open ordinary JOIN costed-order gap;
-see [[card:card-s-j-c]] status for receipts and exact input.
+seek/record semantics. Native `where.c:wherePathSatisfiesOrderBy` matched-mask/order-distinct rowid
+prefix continuation → `where-plan.ts:joinedOrder` and ordered solver call.
+Multi-source ORDER retains local full-scan/range rowid direction; consumed IPK
+one-row loops do not disrupt the prefix. Ordinary dependent-IPK native/public
+placement now enrolls both filters, while CROSS remains a separate continuation
+control. Ascending/descending prefix and wrong-leading-loop regressions:
+`test/conformance/row-width-output-adjust.test.mjs`. Expression-index and WR
+extensions remain conservative. See [[card:card-s-j-c]] status for exact evidence.
 `vdbeaux.c:closeAllCursors`/Halt
 maps to VM halt-owned cursor/filter/Once release snapshots; Bloom storage size
 comes directly from `PrivateBloomFilter`. The existing receipt runner's

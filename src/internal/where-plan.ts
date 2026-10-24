@@ -608,7 +608,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  if(primary&&!primary.physical){const collation=missingCollation(primary);if(collation)throw new SqlParseError(`no such collation sequence: ${collation}`);}
  const completion=options.completion??{done:false};completion.done=false;
  const sourcePrereq=options.sourcePrereq??0n;
- const scanOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
+ const scanOrder=options.orderBy.find(term=>term.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(table,term.column)&&!(term.nulls!=null&&term.nulls!==(term.descending?"last":"first")))??null;
  const scanCapability:BtreeCapability=freeze({index:null,physicalIndex:null,nEq:0,nSkip:0,equalitySlots:Object.freeze([]),lower:null,upper:null,constrainedFields:0,orderTermsSatisfied:scanOrder?1:0,reverse:scanOrder?.descending??false,covering:true,needsTableLookup:false,rowidEquality:null,rowidLower:null,rowidUpper:null});
  // whereScanNext walks pWC then pOuter for constraint lookup. Keep the
  // clause-local residual inventory separate: outer constraints are not owned
@@ -632,7 +632,7 @@ export function btreeLoops(source:ResolvedSource,sourceOrdinal:number,clause:Whe
  // A successful scan insertion is OK even when it consumed the last slot.
  if(!options.orSet&&budget.remaining===0n)return Object.freeze(loops);
  const rowid=own.filter(term=>term.left?.rowid&&term.operator!==null&&term.operator!=="is-null").sort((a,b)=>a.prereqRight<b.prereqRight?-1:a.prereqRight>b.prereqRight?1:a.id-b.id),rowEquals=rowid.filter(term=>term.operator==="eq"||term.operator==="is"),rowLowers=rowid.filter(term=>term.operator==="gt"||term.operator==="ge"),rowUppers=rowid.filter(term=>term.operator==="lt"||term.operator==="le");
- const rowOrder=options.orderBy.length===1&&options.orderBy[0]!.sourceOrdinal===sourceOrdinal&&isIntegerPrimaryKeyAlias(source.table,options.orderBy[0]!.column)?options.orderBy[0]:null;
+ const rowOrder=scanOrder;
  function* rowCostTerms(upperOnly=false):Generator<WhereTerm> {
   // Suspend semantic admission at each proposal, including the enclosing
   // upper-only restart. Exhaustion closes both for-of iterators.
@@ -967,7 +967,50 @@ export function wherePathChoiceWidth(sourceCount:number):1|5|12{return sourceCou
 // Case5's recursive SrcList excludes already-positioned enclosing sources.
 // Original source ordinals remain stable here: initialReady represents those
 // outer sources, never remaining/unpositioned sources. Normal planning uses0.
-export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount),orderTerms=0,resultColumns=1,sortRows:bigint|null=null,initialReady=0n):WherePath {
+/** wherePathSatisfiesOrderBy: direct-column ORDER proof for physical rowid
+ * loops. Keep the matched mask and order-distinct state across loop boundaries;
+ * a unique rowid prefix may be followed by an ordered inner loop. */
+function joinedOrder(loops:readonly WhereLoop[],order:readonly OrderRequirement[]):number|null {
+ let matched=0n,distinct=true;
+ const done=(1n<<BigInt(order.length))-1n;
+ for(const loop of loops){
+  if(!distinct||matched===done)break;
+  const cap=loop.capability;
+  if(!cap||loop.source.table.kind!=="table"||loop.source.table.withoutRowid||cap.index?.unordered){distinct=false;break;}
+  const table=loop.source.table;
+  const same=(term:OrderRequirement,column:ColumnNode|null)=>term.sourceOrdinal===loop.sourceOrdinal&&(term.column===column||isIntegerPrimaryKeyAlias(table,term.column)&&isIntegerPrimaryKeyAlias(table,column));
+  const fixed=cap.rowidEquality?[{column:null,operator:cap.rowidEquality.operator,collation:"binary"}]:cap.equalitySlots.flatMap(a=>a&&!a.field.expression&&a.operator!=="in"?[{column:a.field.column,operator:a.operator,collation:a.field.collation}]:[]);
+  for(let i=0;i<order.length;i++)if(fixed.some(f=>same(order[i]!,f.column)&&order[i]!.collation===f.collation))matched|=1n<<BigInt(i);
+  if(cap.rowidEquality)continue; // WHERE_ONEROW
+  distinct=cap.index?.unique===true&&cap.nSkip===0;
+  const fields=cap.physicalIndex?.fields??[{column:null,role:"rowid-tail",descending:false,collation:"binary"}];
+  let reverse:boolean|null=null,rowidMatched=false;
+  for(let j=0;j<fields.length;j++){
+   const field=fields[j]!;
+   if('expression' in field&&field.expression){distinct=false;break;}
+   const eq=cap.equalitySlots[j];
+   if(eq&&eq.operator!=="in"){if(eq.operator==="is"||eq.operator==="is-null")distinct=false;continue;}
+   if(field.column&&!field.column.notNull)distinct=false;
+   const i=order.findIndex((_,i)=>(matched&(1n<<BigInt(i)))===0n),term=order[i];
+   const rowid=field.role==="rowid-tail"||isIntegerPrimaryKeyAlias(loop.source.table,field.column);
+   if(!term||!same(term,field.column)||(!rowid&&term.collation!==field.collation)||term.nulls!=null&&term.nulls!==(term.descending?"last":"first")){
+    if(j===0||j<(cap.index?.terms.length??1))distinct=false;
+    break;
+   }
+   const rev=field.descending!==term.descending;
+   if(reverse!==null&&reverse!==rev){distinct=false;break;}
+   // Lowering already consumes each loop's retained reverse capability.
+   if(rev!==cap.reverse){distinct=false;break;}
+   reverse=rev;matched|=1n<<BigInt(i);if(rowid)rowidMatched=true;
+  }
+  if(rowidMatched)distinct=true;
+  if(distinct)for(let i=0;i<order.length;i++)if(order[i]!.sourceOrdinal===loop.sourceOrdinal)matched|=1n<<BigInt(i);
+ }
+ if(matched===done)return order.length;
+ if(distinct)return null;
+ let prefix=0;while(matched&(1n<<BigInt(prefix)))prefix++;return prefix;
+}
+export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sourceCount:number,maxChoices=wherePathChoiceWidth(sourceCount),orderTerms=0,resultColumns=1,sortRows:bigint|null=null,initialReady=0n,order:readonly OrderRequirement[]=[]):WherePath {
  if(!Number.isSafeInteger(maxChoices)||maxChoices<1)throw new RangeError("invalid WHERE choice width");
  let paths:WherePath[]=[freeze({loops:Object.freeze([]),ready:initialReady,reverse:0n,rows:0n,cost:0n,unsortedCost:0n,orderTermsSatisfied:orderTerms&&sourceCount?null:0})];
  // where.c:5812: indexed production loops always carry their immutable width.
@@ -988,7 +1031,7 @@ export function wherePathSolver(candidates:readonly (readonly WhereLoop[])[],sou
    // Partial joined proofs remain conservative.
    const singleton=(item:WhereLoop)=>item.kind==="rowid"&&item.capability?.rowidEquality!==null&&item.capability?.rowidEquality!==undefined;
    const ordered=path.orderTermsSatisfied===null
-    ? (path.loops.every(singleton)
+    ? order.length?joinedOrder([...path.loops,loop],order): (path.loops.every(singleton)
        ? (loop.capability?.orderTermsSatisfied??0)>0&&(depth===sourceCount-1||(loop.capability?.orderTermsSatisfied??0)===orderTerms)?(loop.capability?.orderTermsSatisfied??0):singleton(loop)&&depth<sourceCount-1?null:0
        : 0)
     : path.orderTermsSatisfied;
@@ -1903,7 +1946,7 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
   if(!(loop.capability?.nEq||loop.capability?.rowidEquality))break;
   groups=groups.map((group,ordinal)=>ordinal===loop.sourceOrdinal?group.filter(candidate=>candidate.kind!=="table-scan"&&(candidate.kind!=="index"||candidate.capability!.constrainedFields!==0)):group);
  }
- const path=request.orderBy.length?wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length),request.orderBy.length,resolved.result.length,unsorted.rows+1n):unsorted;return freeze({analysis,truth:publishTruth(planBudget.truth),path,plannerCandidates:groups.reduce((sum,group)=>sum+group.length,0),plannerPaths:path.loops.length});
+ const path=request.orderBy.length?wherePathSolver(groups,resolved.sources.length,wherePathChoiceWidth(resolved.sources.length),request.orderBy.length,resolved.result.length,unsorted.rows+1n,0n,request.orderBy):unsorted;return freeze({analysis,truth:publishTruth(planBudget.truth),path,plannerCandidates:groups.reduce((sum,group)=>sum+group.length,0),plannerPaths:path.loops.length});
 }
 
 /** SELECT resolver owns alias/ordinal precedence. Only a complete resolved
