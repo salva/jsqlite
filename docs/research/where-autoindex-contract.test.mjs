@@ -4,9 +4,13 @@ import {capacity,interrupted,workAndLifetime} from './where-autoindex-pending-co
 import {assertRuntimeWork,assertReleased,assertFresh} from './where-autoindex-contract.mjs';
 // Contract self-test only: cannot confer runtime feature credit.
 test('pending observation rejects scan and incorrect filter/covering work',()=>{
- const good={version:1,planKind:'automatic-index',executedOps:['OpenAutoindex','FilterAdd','Filter'],builds:1,insertedRecords:128,probes:63,filterAbsent:63,filterPresent:0,indexSeeks:0,collisionRejects:0,coveringTableLookups:0};
+ const good={version:1,planKind:'automatic-index',emittedOps:['OpenAutoindex','FilterAdd','Filter'],executedOps:['OpenAutoindex','FilterAdd','Filter'],builds:1,insertedRecords:128,probes:63,filterAbsent:63,filterPresent:0,indexSeeks:0,collisionRejects:0,coveringTableLookups:0};
  const expected={buildRows:128,probes:63,absent:63,collisions:0};
  assertRuntimeWork(good,expected);
+ const empty={...good,insertedRecords:0,executedOps:['OpenAutoindex','Filter']};
+ assertRuntimeWork(empty,{...expected,buildRows:0});
+ assert.throws(()=>assertRuntimeWork({...empty,executedOps:good.executedOps},{...expected,buildRows:0}));
+ assert.throws(()=>assertRuntimeWork({...empty,emittedOps:['Filter']},{...expected,buildRows:0}));
  for(const [k,v] of Object.entries({planKind:'table-scan',builds:63,insertedRecords:127,filterAbsent:0,indexSeeks:63,coveringTableLookups:1}))
   assert.throws(()=>assertRuntimeWork({...good,[k]:v},expected));
  assertRuntimeWork({...good,filterAbsent:0,filterPresent:63,indexSeeks:63,collisionRejects:63},{...expected,absent:0,collisions:63});

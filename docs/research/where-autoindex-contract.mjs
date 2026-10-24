@@ -1,12 +1,13 @@
-// Executable future private contract, NOT an implemented observation seam.
-// Implementers supply an observation only after actual public execution. Never
-// synthesize it from SQL or native counters. See where-autoindex-boundary.md.
+// Runtime work contract for actual public execution. Resource/lifetime
+// contracts below remain pending full production acceptance. Never synthesize
+// observations from SQL or native counters. See where-autoindex-boundary.md.
 import assert from 'node:assert/strict';
 export function assertRuntimeWork(o, {buildRows, probes, absent, collisions}) {
   assert.equal(o.version, 1);
   assert.equal(o.planKind, 'automatic-index');
   assert.deepEqual(o.executedOps.filter(x=>['OpenAutoindex','FilterAdd','Filter'].includes(x)).sort(),
-    ['Filter','FilterAdd','OpenAutoindex']);
+    (buildRows>0?['Filter','FilterAdd','OpenAutoindex']:['Filter','OpenAutoindex']));
+  assert.ok(o.emittedOps.includes('FilterAdd'),'empty build retains emitted insert path');
   assert.equal(o.builds, 1);
   assert.equal(o.insertedRecords, buildRows);
   assert.equal(o.probes, probes);

@@ -13,7 +13,12 @@ opcodes. Snapshots detach/freeze both arrays and reset clears entered history;
 entry is not successful-completion evidence. Filter-to-cursor candidate tracking
 resolves rejection at failed Seek or first IndexPrefixEnd, not duplicate exhaustion;
 `test/value/filter-probe-observation.test.mjs` covers both rejection branches,
-duplicate matches and reset. Actual auto/Bloom consumer
+duplicate matches and reset. Once build-exit observation and covered source
+cursor reads map to `where.c:constructAutomaticIndex` fill-loop/covering ownership;
+`test/value/automatic-build-observation.test.mjs` distinguishes failed partial
+builds from completion and detects a deliberately introduced postbuild table read.
+Version1 work contract is asserted by the actual consumer runner, including empty
+builds (emitted FilterAdd is not dispatched). Actual auto/Bloom consumer
 controls: `docs/research/where-autoindex-baseline.mjs`. Remaining finite safety
 obligations and revision evidence: [[card:card-s-j-c]].
 The existing execution-shared `PrivateStateByteBudget` now exposes cumulative

@@ -10,8 +10,12 @@ with reset retaining release totals until next entry. VM-owner controls are not
 full SQL lifetime acceptance. Identity owner and actual consumer controls:
 [[card:card-s-j-c]]. Initial candidate rejection now follows the actual seek and
 first prefix test, with duplicate-exhaustion/reset controls and63 actual collision
-rejects per selected collision execution. Deeper placement, covering observation
-and the finite capacity/fault/cancel/lifetime schedule remain unfinished.
+rejects per selected collision execution. Once build-exit and covered source
+cursor observations now support the finite version1 work contract on actual
+absent/collision/empty consumers; empty builds distinguish emitted FilterAdd from
+entered code. Partial-build and positive table-access controls prevent constant
+completion/zero lookup claims. Deeper placement and the finite
+capacity/fault/cancel/lifetime schedule remain unfinished.
 
 Ordinary two-physical-rowid INNER/CROSS equality-only SQL now enrolls the existing standalone descriptor and executes Once/source-local build/FilterAdd plus live-affinity Filter before persistent seek. Native-FIRST typed rows, five metadata fields and reset agree across three encodings; the standalone witness reduces persistent seeks from1023 to34. Two-rowid INNER/LEFT SQL now lowers native-costed automatic descriptors through shared packed build/probe/covering and LEFT null-extension ownership. Absent/collision/empty native-FIRST controls pass all encodings/reset with dispatched build/insert/filter/seek counters. Outer/IN/range/frame standalone Bloom placement, complete emitted-versus-dispatched observation and finite fault/resource acceptance remain open. This is partial author evidence, not independent acceptance or full finding closure: [[card:card-s-j-b]] status.
 

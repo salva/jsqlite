@@ -158,7 +158,7 @@ type Op =
   | { readonly code: "ShortCircuit"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly jump:number }
   | { readonly code: "Boolean"; readonly kind:"and"|"or"; readonly p1:number; readonly p2:number; readonly p3:number }
   | { readonly code: "NotNull"; readonly p1:number; readonly p2:number; readonly jump:number }
-  | { readonly code: "Once"; readonly p1:number; readonly p2:number }
+  | { readonly code: "Once"; readonly p1:number; readonly p2:number; readonly automaticTable?:number }
   | { readonly code: "RowSetTest"; readonly p1:number; readonly p2:number; readonly p3:number; readonly p4:number }
   | { readonly code: "Gosub"; readonly p1:number; readonly p2:number }
   | { readonly code: "BeginSubrtn"; readonly p2:number }
@@ -4844,7 +4844,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(continuation.covering)orCovering.set(level,{physical:continuation.covering,cursor:continuation.indexCursor,tableCursor:cursorFor(source),start:ops.length});
   }else if(automaticLevels.has(ordinal)){
     const automatic=automaticLevels.get(ordinal)!,descriptor=automatic.descriptor;
-    const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0},{code:'OpenAutoindex',p1:automatic.cursor,keyInfo:descriptor.keyInfo,p4KeyInfo:descriptor.keyInfo});
+    const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0,automaticTable:cursorFor(source)},{code:'OpenAutoindex',p1:automatic.cursor,keyInfo:descriptor.keyInfo,p4KeyInfo:descriptor.keyInfo});
     if(automatic.filter!==undefined)ops.push({code:'FilterInit',p1:automatic.filter,bytes:10000});
     const rewind=ops.length;ops.push({code:'Rewind',p1:cursorFor(source),p2:0});
     const top=ops.length,failures:number[]=[];
@@ -9715,6 +9715,11 @@ export class VdbeStatement implements Statement {
   // until the first prefix test, never through duplicate iteration.
   #pendingFilterProbes = new Set<number>();
   #collisionRejects=0;
+  #completedAutomaticBuilds=0;
+  #automaticBuildExits=new Map<number,number>();
+  #coveringTables=new Set<number>();
+  #coveringTableLookups=0;
+  #observeTableLookup(cursor:number):void {if(this.#coveringTables.has(cursor))this.#coveringTableLookups++;}
   #finishFilterProbe(cursor:number,rejected:boolean):void {
     if(this.#pendingFilterProbes.delete(cursor)&&rejected)this.#collisionRejects++;
   }
@@ -9743,7 +9748,7 @@ export class VdbeStatement implements Statement {
   /** Internal conformance seam. A detached immutable snapshot prevents tests
    * from mutating statement execution state. */
   #dispatchedOps=new Set<Op['code']>();
-  privateAccounting(){return Object.freeze({...this.#privateAccounting,...this.#privateBytes.snapshot(),collisionRejects:this.#collisionRejects,emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
+  privateAccounting(){return Object.freeze({version:1,planKind:this.#program.ops.some(op=>op.code==='OpenAutoindex')?'automatic-index':this.#program.ops.some(op=>op.code==='Filter')?'standalone-bloom':'other',builds:this.#completedAutomaticBuilds,insertedRecords:this.#privateAccounting.automaticInserts,probes:this.#privateAccounting.filterAbsent+this.#privateAccounting.filterPresent,planIdentity:this.#privateAccounting.planId,...this.#privateAccounting,...this.#privateBytes.snapshot(),completedAutomaticBuilds:this.#completedAutomaticBuilds,coveringTableLookups:this.#coveringTableLookups,collisionRejects:this.#collisionRejects,emittedOps:Object.freeze([...new Set(this.#program.ops.map(op=>op.code))]),executedOps:Object.freeze([...this.#dispatchedOps]),orBranchRoots:Object.freeze([...this.#privateAccounting.orBranchRoots])});}
   get parameterCount(): number { return this.#program.parameters.length; }
   parameterName(index: number): string | null { this.#assertLive(); if (!Number.isInteger(index) || index < 1 || index > this.parameterCount) range(); return this.#program.parameters[index - 1]!.name; }
   parameterIndex(name: string): number { this.#assertLive(); const found = this.#program.parameters.findIndex(parameter => parameter.name === name); return found < 0 ? 0 : found + 1; }
@@ -9783,8 +9788,16 @@ export class VdbeStatement implements Statement {
       while (this.#pc < this.#program.ops.length) {
         this.#checkControl(options, limit, started);
         if (this.#work !== 0 && this.#work % 256 === 0) { this.#state = "suspended"; await this.#taskScheduler.checkpoint(); this.#state = "running"; this.#checkControl(options, limit, started); }
+        const completedTable=this.#automaticBuildExits.get(this.#pc);
+        if(completedTable!==undefined){this.#automaticBuildExits.delete(this.#pc);this.#completedAutomaticBuilds++;this.#coveringTables.add(completedTable);}
         const op = this.#program.ops[this.#pc++]!; this.#work++;
         this.#dispatchedOps.add(op.code);
+        // Count actual post-build accesses to the covered source, including
+        // accidental scans, not just explicit rowid seeks. Build reads precede
+        // completion and are deliberately outside this covering guarantee.
+        if(op.code==='Column')this.#observeTableLookup(op.p3??0);
+        else if(op.code==='Rowid'||op.code==='Rewind'||op.code==='Next'||op.code==='Last'||op.code==='Prev'||op.code==='SeekRowid'||op.code==='SeekRowidRange')this.#observeTableLookup(op.p1??0);
+        else if(op.code==='DeferredSeek'||op.code==='DeferredIndexSeek')this.#observeTableLookup(op.p2);
         // vdbe.c shares Btree positioning between ephemeral IN sets and
         // persistent indices. Await private movement before publishing jumps.
         if((op.code==='IndexRewind'||op.code==='IndexLast'||op.code==='IndexNext'||op.code==='IndexPrev'||op.code==='Column')&&this.#privateKeys.has(op.code==='Column'?(op.p3??0):op.p1)){
@@ -10195,6 +10208,7 @@ export class VdbeStatement implements Statement {
             if(this.#automaticCursors.has(op.p1))this.#privateAccounting={...this.#privateAccounting,automaticSeeks:this.#privateAccounting.automaticSeeks+1};
             const packed=this.#privateKeys.get(op.p1);
             if(packed){
+              this.#privateAccounting={...this.#privateAccounting,indexSeeks:this.#privateAccounting.indexSeeks+1};
               if(op.seekScan)throw new JSQLiteError('internal','private SeekScan not lowered');
               if(packed.info!==op.keyInfo)throw new JSQLiteError('internal','private prefix KeyInfo mismatch');
               // Affinity belongs to the key registers before Seek*, as native
@@ -10347,7 +10361,7 @@ export class VdbeStatement implements Statement {
             const value=cursor.column!(op.column);target.copyFrom(value);if(target.initialStorageClass==="text")target.changeEncoding(this.#program.encoding);this.#chargeValue(target,options,limit,started);break;
           }
           case "Copy": {const source=this.#registers[op.p1]!;this.#chargeValue(source,options,limit,started);this.#registers[op.p2]!.copyFrom(source);break;}
-          case "Once": if(this.#once.has(op.p1))this.#pc=op.p2;else this.#once.add(op.p1); break;
+          case "Once": if(this.#once.has(op.p1))this.#pc=op.p2;else {this.#once.add(op.p1);if(op.automaticTable!==undefined){this.#coveringTables.delete(op.automaticTable);this.#automaticBuildExits.set(op.p2,op.automaticTable);}} break;
           case "Gosub": this.#registers[op.p1]!.setInt64(BigInt(this.#pc));this.#pc=op.p2;break;
           case "BeginSubrtn": this.#registers[op.p2]!.setNull();break;
           case "Return": {const address=this.#registers[op.p1]!;if(address.initialStorageClass==='integer')this.#pc=Number(address.integerValue());else if(!op.fallthrough)throw new JSQLiteError('internal','Return without integer address');break;}
@@ -10427,7 +10441,7 @@ export class VdbeStatement implements Statement {
     // sqlite3VdbeReset returns the saved execution error after cleanup. TS
     // destructors may throw: finish releases and restore READY first.
     for (const value of this.#registers) try { value.setNull(); } catch (error) { if (cleanup === null) cleanup = error; }
-    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#dispatchedOps.clear(); this.#collisionRejects=0; this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
+    this.#rows=0; this.#work=0; this.#taskScheduler.reset(); this.#currentTime=null; this.#executionStarted=false; this.#dispatchedOps.clear(); this.#collisionRejects=0; this.#completedAutomaticBuilds=0; this.#coveringTableLookups=0; this.#privateAccounting=zeroPrivateAccounting(); this.#once.clear();
     this.#pc = 0; this.#state = "prepared";
     if (primary !== null) throw primary;
     if (cleanup !== null) throw cleanup;
@@ -10519,7 +10533,7 @@ export class VdbeStatement implements Statement {
     this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
-    this.#privateKeys.clear();this.#pendingFilterProbes.clear();this.#automaticCursors.clear();
+    this.#privateKeys.clear();this.#automaticBuildExits.clear();this.#coveringTables.clear();this.#pendingFilterProbes.clear();this.#automaticCursors.clear();
     for(const filter of this.#filters.values())try{filter.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#filters.clear();
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}

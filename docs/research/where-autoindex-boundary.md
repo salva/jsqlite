@@ -55,18 +55,30 @@ and `work:///cards/card-s-a-c/processes/proc-8937c5dff754/stdout.log` (collation
 Receipts live under `work:///cards/card-s-a-c/boundary/CASE/native.json`.
 Earlier diagnose receipt remains independent evidence, not overwritten.
 
-## Pending exact private observation contract
+## Work observation and pending safety contracts
+
+Current work observation is implemented by the actual production VM and asserted
+in `where-autoindex-baseline.mjs` for absent/collision/empty consumers. Builds are
+successful completion at the Once build-exit, not mere OpenAutoindex entry;
+empty builds do not dispatch FilterAdd although it remains emitted. Actual
+private prefix seeks now contribute to indexSeeks. Covered source-table cursor
+accesses are observed only after build completion. Positive-access and failed-build
+VM controls prevent constant-zero/entry-only claims. Detailed revision evidence
+is in [[card:card-s-j-c]] status; this does not establish finite safety acceptance.
+The remainder of this section describes pending lifetime/capacity/interruption
+controls; historical no-runtime statements below apply to that baseline revision,
+not current work observation.
 
 `where-autoindex-contract.mjs` exports executable assertions, exercised by
 `node --test docs/research/where-autoindex-contract.test.mjs`. Synthetic contract
 self-tests are NOT runtime tests. Explicitly skipped feature cases mark missing
-implementation; skipped tests never count as runtime passing. No runtime counter
-was added. Future adapter must capture actual production execution, not infer
-work from SQL or alias existing persistent-index counters.
+implementation; skipped tests never count as runtime passing. The work snapshot
+now comes from production; finite safety adapters remain pending and must capture
+actual execution rather than infer work from SQL or alias unrelated counters.
 
 Version1 snapshot fields: `version=1`; `planKind` chosen retained loop kind;
 `executedOps` unique actually-dispatched opcode names (not emitted-only ops);
-`builds` successful OpenAutoindex per execution/frame; `insertedRecords` successful
+`builds` successful completion of the Once-controlled automatic build per execution/frame; `insertedRecords` successful
 IdxInsert calls (128 here, NOT native statement-status127); `probes` Filter calls
 excluding EQ NULL bypass; `filterAbsent` taken absent branches; `filterPresent`
 fallthrough; `indexSeeks` actual automatic-cursor SeekGE calls; `collisionRejects`

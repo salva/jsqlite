@@ -487,8 +487,13 @@ Filter lowering also identifies its authoritative probe cursor for observation.
 A present candidate is resolved once: failed lower-bound seek or the initial
 prefix rejection increments `collisionRejects`; a matching first prefix clears
 it so duplicate exhaustion is not a collision. New Filter and halt clear pending
-candidates. This does not change Filter/seek decisions or claim successful-build
-or covering-table-lookup coverage.
+candidates. Completed automatic builds are counted only on reaching the Once
+build-exit address, including empty Rewind exits, not OpenAutoindex entry.
+Postbuild reads/movements of that source-table cursor are counted explicitly;
+build-phase reads are excluded. Version1 work snapshots expose these completions,
+successful inserts, Filter probes, actual private/persistent prefix seeks and
+covering-table accesses. They do not establish resource/fault/lifetime acceptance.
+Empty builds retain emitted FilterAdd but never report it dispatched.
 The same private snapshot exposes the actual shared byte-budget owner ID,
 cumulative successful charges/refunds, live owned bytes and byte highwater.
 These count deterministic private-state budget units, not total JS heap or Mem
