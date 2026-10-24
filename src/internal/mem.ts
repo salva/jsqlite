@@ -523,10 +523,18 @@ export class Mem {
     const old = this.#checkedBytes();
     let bytes: Uint8Array;
     if (old.encoding !== "utf-8" && encoding !== "utf-8") {
-      const evenLength = old.bytes.byteLength & ~1;
-      bytes = copyBytes(old.bytes);
-      for (let i = 0; i < evenLength; i += 2) { const first = bytes[i]!; bytes[i] = bytes[i + 1]!; bytes[i + 1] = first; }
+      // utf.c:sqlite3VdbeMemTranslate first makes storage writable, then
+      // swaps in place. Owned backing needs no replacement allocation;
+      // borrowed/static backing is admitted by makeWriteable before copying.
+      checkedLength(old.bytes.byteLength, limits.maxLength);
+      this.makeWriteable();
+      const state = this.#checkedBytes();
+      const evenLength = state.bytes.byteLength & ~1;
+      this.#generation.invalidate();
+      for (let i = 0; i < evenLength; i += 2) { const first = state.bytes[i]!; state.bytes[i] = state.bytes[i + 1]!; state.bytes[i + 1] = first; }
       // SQLite's endian-swap path preserves an unmatched trailing byte.
+      state.encoding = encoding;
+      return;
     } else {
       const source = old.encoding === "utf-8" ? old.bytes : old.bytes.subarray(0, old.bytes.byteLength & ~1);
       bytes = old.encoding !== "utf-8" ? sqliteUtf16ToUtf8(source,old.encoding) : encodeSqliteString(decodeSqliteText(source, old.encoding), encoding);

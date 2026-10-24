@@ -30,7 +30,11 @@ or JS storage. Ordinary register owned TEXT/BLOB backing now shares admission
 and live/highwater Mem observation, with copy/borrow/move/replacement and
 halt/error/reset/finalize controls (`private-demand-observation.test.mjs`). Detached
 temporaries, scalar slots, aggregate/rowset internals and encoding/adopt producer
-allocation overlap remain outside that proof. Internal arena control, lease/raw
+allocation overlap remain outside that proof except UTF-16 endian translation:
+it now follows native MakeWriteable/in-place swap, reusing owned backing and
+admitting borrowed/static copying before allocation. Isolated allocation
+instrumentation and boundary/odd-byte tests cover this bounded correction.
+Internal arena control, lease/raw
 lease capabilities and derived/packed temporary staging now report through the
 same scratch owner, retaining packed backing as aggregate-only/page-counted.
 The accepted v31 acquisition witness and boundary/init-failure/raw-view controls

@@ -3,8 +3,34 @@ import assert from 'node:assert/strict';
 import {PrivateStateByteBudget,SorterCursor} from '../../src/internal/private-state.ts';
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/private-blobkey-pages.ts';
 import {KeyInfo} from '../../src/internal/comparison.ts';
-import {Mem} from '../../src/internal/mem.ts';
+import {Mem,BorrowLifetime} from '../../src/internal/mem.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
+
+test('endian translation admits borrowed backing before copy and swaps owned backing in place',()=>{
+ const original=globalThis.Uint8Array;
+ for(const ownership of ['owned','borrowed','static']){
+  for(const cap of [3,4,5]){
+   const budget=new PrivateStateByteBudget(cap),mem=new Mem(()=>budget);
+   const source=new original([65,0,66,0]);
+   if(ownership==='owned'&&cap<4){assert.throws(()=>mem.setText(source,'utf-16le'));continue}
+   mem.setText(source,'utf-16le',{ownership,...(ownership==='borrowed'?{lifetime:new BorrowLifetime()}: {})});
+   const before=budget.snapshot();let allocated=0;
+   globalThis.Uint8Array=new Proxy(original,{construct(target,args){const result=Reflect.construct(target,args);allocated+=result.byteLength;return result}});
+   try{
+    if(cap<4)assert.throws(()=>mem.changeEncoding('utf-16be'));
+    else mem.changeEncoding('utf-16be');
+   }finally{globalThis.Uint8Array=original}
+   assert.equal(allocated,cap<4||ownership==='owned'?0:4);
+   if(cap<4){assert.deepEqual(budget.snapshot(),before);assert.equal(mem.textValue(),'AB')}
+   else {assert.equal(mem.textValue(),'AB');assert.equal(budget.snapshot().ownedBytes,4);assert.equal(budget.snapshot().highwaterBytes,4);mem.changeEncoding('utf-16le');assert.equal(mem.textValue(),'AB')}
+   assert.deepEqual([...source],[65,0,66,0]);
+   mem.release();assert.equal(budget.snapshot().ownedBytes,0);
+  }
+ }
+ const budget=new PrivateStateByteBudget(5),mem=new Mem(()=>budget);
+ mem.setText(new original([65,0,7]),'utf-16le');mem.changeEncoding('utf-16be');
+ assert.deepEqual([...mem.textBytes()],[0,65,7]);mem.release();
+});
 
 test('arena lease, raw capabilities and init failure share scratch ownership',async()=>{
  for(const cap of [8703,8704,8705,100000]){

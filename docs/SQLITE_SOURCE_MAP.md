@@ -103,7 +103,13 @@ The same regression covers actual String→Copy capacity64 and H−1/H/H+1,
 borrow versus owned copies, move/numeric refund, reset/finalize and independent
 live statement survival. Live/highwater Mem backing excludes scalar slots,
 bindings, detached temporaries and aggregate/rowset internals; encoding/adopt
-producer allocation overlap remains unproved. `pager.c:sqlite3PagerGet` /
+producer allocation overlap remains unproved except UTF-16 endian swap.
+`utf.c:sqlite3VdbeMemTranslate` endian MakeWriteable/swap maps to
+`mem.ts:changeEncoding` using existing makeWriteable admission before copying
+borrowed/static storage and no allocation for owned storage. Demand tests
+instrument actual Uint8Array construction under rejected admission and preserve
+odd-byte/round-trip behavior; [[card:card-s-j-c]] status34 retains red evidence.
+`pager.c:sqlite3PagerGet` /
 `sqlite3PagerUnref` acquisition lifetimes map to private arena leases/raw leases;
 their revoked-view capabilities, arena control and derived/packed staging now
 share scratch admission/refund in `private-blobkey-pages.ts`. Packed page backing

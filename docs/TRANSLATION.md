@@ -580,7 +580,10 @@ borrowed/static bytes retain their producer owner, move transfers ownership, and
 numeric replacement/reset/error/halt/finalize refund owned backing. Scalar slots,
 bindings, detached temporary Mem and aggregate/rowset internals are not counted
 by this category. Encoding/adopt paths admit at publication (their producer
-allocation still needs separate overlap inventory). Arena control, leases/raw
+allocation still needs separate overlap inventory, except UTF-16 endian swap).
+UTF-16 endian translation follows pinned MakeWriteable then in-place swap:
+owned backing is reused; borrowed/static backing is admitted before copying,
+with odd trailing bytes preserved. Arena control, leases/raw
 leases, revoked-view capabilities, derived overflow-cell staging, balance/transfer
 controls and packed temporary copies now use this same scratch category. Packed
 page backing stays aggregate-only with separate page counts; replacement overlap
