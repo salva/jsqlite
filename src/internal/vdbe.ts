@@ -10005,7 +10005,7 @@ export class VdbeStatement implements Statement {
             let conversion=0;
             for(let i=0;i<values.length;i++)conversion+=values[i]!.recordConversionBytes(op.p4Affinity?.[i],this.#program.encoding);
             await control.checkpoint(0);
-            this.#privateBytes.reserve(conversion);
+            this.#privateBytes.reserveScratch(conversion);
             try{
             // vdbe.c OP_MakeRecord applies P4 to the live input registers,
             // before sizing/serialization; REAL affinity retains IntReal.
@@ -10021,10 +10021,10 @@ export class VdbeStatement implements Statement {
             for(const value of values)if(value.initialStorageClass==='text')value.changeEncoding(this.#program.encoding);
             const charge=recordSize(values)+64;
             await control.checkpoint(charge);
-            this.#privateBytes.reserve(charge);
-            try{const packed=packRecord(values,this.#program.encoding),old=this.#packedRecords.get(op.p3);this.#packedRecords.set(op.p3,{packed,charge});if(old)this.#privateBytes.release(old.charge)}
-            catch(error){this.#privateBytes.release(charge);throw error}
-            }finally{this.#privateBytes.release(conversion);}
+            this.#privateBytes.reserveRecord(charge);
+            try{const packed=packRecord(values,this.#program.encoding),old=this.#packedRecords.get(op.p3);this.#packedRecords.set(op.p3,{packed,charge});if(old)this.#privateBytes.releaseRecord(old.charge)}
+            catch(error){this.#privateBytes.releaseRecord(charge);throw error}
+            }finally{this.#privateBytes.releaseScratch(conversion);}
             break;
           }
           case "NewRowid": this.#registers[op.p2]!.setInt64((this.#privateCursors.get(op.p1) as EphemeralIndexCursor).newRowid());break;
@@ -10032,7 +10032,7 @@ export class VdbeStatement implements Statement {
             const record=this.#packedRecords.get(op.p2);if(!record)throw new JSQLiteError("internal","Insert record register was not packed");
             const values=decodeRecord(record.packed,this.#program.encoding).values.map(value=>memFromRawRecord(value,this.#borrow));
             try{await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).insert(values,this.#privateControl(options,limit,started))}finally{for(const value of values)value.release()}
-            this.#privateBytes.release(record.charge);this.#packedRecords.delete(op.p2);break;
+            this.#privateBytes.releaseRecord(record.charge);this.#packedRecords.delete(op.p2);break;
           }
           case "SorterInsert": {this.#privateAccounting={...this.#privateAccounting,sorterRows:this.#privateAccounting.sorterRows+1};const cursor=this.#privateCursors.get(op.p1) as SorterCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),payload=this.#registers.slice(op.payload,op.payload+op.payloadCount),control=this.#privateControl(options,limit,started);if(op.topN!==undefined){const capacity=this.#registers[op.topN]!.integerValue();if(capacity>=0n)await cursor.insertBounded(key,payload,capacity,control);else await cursor.insert(key,payload,control);}else await cursor.insert(key,payload,control);break;}
           case "SorterSort": {const cursor=this.#privateCursors.get(op.p1) as SorterCursor;await cursor.sort(this.#privateControl(options,limit,started));if(!cursor.first())this.#pc=op.emptyJump;break;}
@@ -10152,7 +10152,7 @@ export class VdbeStatement implements Statement {
               // No trusted token is exported by the primitive. USESEEKRESULT
               // therefore requests its accepted packed reseek, never scalar loc.
               try{await typed.insert(record.packed,this.#privateControl(options,limit,started));if(this.#automaticCursors.has(op.p1))this.#privateAccounting={...this.#privateAccounting,automaticInserts:this.#privateAccounting.automaticInserts+1};}
-              finally{if(op.consumeRecord){this.#packedRecords.delete(op.p2!);this.#privateBytes.release(record.charge);}}
+              finally{if(op.consumeRecord){this.#packedRecords.delete(op.p2!);this.#privateBytes.releaseRecord(record.charge);}}
               break}
             const cursor=this.#privateCursors.get(op.p1) as EphemeralIndexCursor,key=this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),control=this.#privateControl(options,limit,started);if(op.replace)await cursor.replace(key,control);else await cursor.insert(key,control);break;}
           case "SetDelete": await (this.#privateCursors.get(op.p1) as EphemeralIndexCursor).remove(this.#registers.slice(op.keyStart,op.keyStart+op.keyCount),this.#privateControl(options,limit,started));break;
@@ -10578,7 +10578,7 @@ export class VdbeStatement implements Statement {
     // Once belongs to this execution; no halted/error path can reuse its
     // successful initialization. Retained program identity is independent.
     this.#once.clear();
-    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.release(record.charge);this.#packedRecords.clear();
+    this.#invalidateRow();this.#cursors.clear();this.#indexCursors.clear();this.#indexPhysical.clear();this.#tableSeekCursors.clear();this.#deferredRowids.clear();for(const cursor of this.#jsonCursors.values())cursor.close();this.#jsonCursors.clear();this.#jsonNullColumns.clear();for(const cursor of this.#metadataCursors.values())cursor.rows.return(undefined);this.#metadataCursors.clear();this.#cursorRoots.clear();this.#records.clear();this.#recordRowids.clear();for(const record of this.#packedRecords.values())this.#privateBytes.releaseRecord(record.charge);this.#packedRecords.clear();
     let diagnostic:unknown=null;
     for(const owner of this.#privateKeys.values())try{owner.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateKeys.clear();this.#automaticBuildExits.clear();this.#coveringTables.clear();this.#pendingFilterProbes.clear();this.#automaticCursors.clear();

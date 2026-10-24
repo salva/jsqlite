@@ -4,6 +4,42 @@ import {PrivateStateByteBudget,SorterCursor} from '../../src/internal/private-st
 import {PrivateBlobkeyPages,PrivateBlobkeyCursor} from '../../src/internal/private-blobkey-pages.ts';
 import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem} from '../../src/internal/mem.ts';
+import {VdbeStatement} from '../../src/internal/vdbe.ts';
+
+test('MakeRecord replacement and halt preserve distinct record ownership',async()=>{
+ const program={encoding:'utf-8',registers:3,parameters:[],columns:[{name:'n'}],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:10000},ops:[
+  {code:'Integer',p1:7n,p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},
+  {code:'ResultRow',p1:1,p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},
+  {code:'ResultRow',p1:1,p2:1},{code:'Halt'}]};
+ const statement=new VdbeStatement(program,()=>{},()=>()=>{},()=>{});
+ try{
+  assert.equal(await statement.step(),'row');const first=statement.privateAccounting();
+  assert.ok(first.recordBytes>64);assert.equal(first.recordHighwaterBytes,first.recordBytes);
+  assert.equal(await statement.step(),'row');const second=statement.privateAccounting();
+  assert.equal(second.recordBytes,first.recordBytes);assert.equal(second.recordHighwaterBytes,2*first.recordBytes);
+  assert.equal(await statement.step(),'done');const done=statement.privateAccounting();
+  assert.equal(done.recordBytes,0);assert.equal(done.scratchBytes,0);assert.equal(done.ownedBytes,0);
+ }finally{statement.finalize()}
+});
+
+test('non-payload scratch observes admission, payload overlap and failure refund',async()=>{
+ const budget=new PrivateStateByteBudget(100000),control={checkpoint(){}};
+ const arena=await PrivateBlobkeyPages.open(budget,control);
+ try{
+  const before=budget.snapshot();arena.reserveScratch(576);const live=budget.snapshot();
+  assert.equal(live.ownedBytes-before.ownedBytes,576);assert.equal(live.scratchBytes,576);
+  assert.equal(live.payloadScratchBytes,0);
+  arena.reservePayloadScratch(67);
+  assert.equal(budget.snapshot().scratchBytes,643);assert.equal(budget.snapshot().payloadScratchBytes,67);
+  assert.equal(budget.snapshot().ownedBytes-before.ownedBytes,643);
+  arena.releasePayloadScratch(67);arena.releaseScratch(576);
+  assert.equal(budget.snapshot().scratchBytes,0);assert.equal(budget.snapshot().scratchHighwaterBytes,643);
+  assert.equal(live.scratchBytes,576,'snapshot is detached');
+  const snapshot=budget.snapshot();assert.throws(()=>arena.reserveScratch(100001));
+  assert.deepEqual(budget.snapshot(),snapshot);
+ }finally{arena.close()}
+ assert.equal(budget.snapshot().ownedBytes,0);
+});
 
 test('policy demand is the maximum per cursor, not aggregate entries',async()=>{
  const budget=new PrivateStateByteBudget(10000);
@@ -52,6 +88,7 @@ test('actual payload scratch remains charged across await and refunds callback f
   const pending=cursor.withPayload(control,async bytes=>{assert.deepEqual([...bytes],[2,1,7]);entered();await gate;throw primary});
   await ready;const live=budget.snapshot();
   assert.equal(live.payloadScratchBytes,67);assert.ok(live.payloadScratchHighwaterBytes>=67);
+  assert.ok(live.scratchBytes>=67);assert.ok(live.scratchHighwaterBytes>=live.scratchBytes);
   assert.ok(live.ownedBytes>=before.ownedBytes+67);assert.deepEqual(survivor.snapshot(),independent);
   release();await assert.rejects(pending,error=>error===primary);
   assert.equal(budget.snapshot().payloadScratchBytes,0);

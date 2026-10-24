@@ -1360,9 +1360,9 @@ export class PrivateBlobkeyPages {
     }
     if(primary!==undefined)throw primary;
   }
-  reserveCursor(maxBytes:number,maxEntries:number):void{this.#live();if(this.#busy)throw new Error("private arena operation in progress");if(maxBytes!==this.#budget.maxBytes)throw new PrivateStateLimitError("private byte limit mismatch with aggregate budget");if(maxEntries!==this.#maxEntries)throw new PrivateStateLimitError("private entry limit mismatch with arena publication limit");this.#budget.reserve(PRIVATE_CURSOR_CHARGE)}
-  reserveScratch(bytes:number):void{this.#budget.reserve(bytes)}
-  releaseScratch(bytes:number):void{this.#budget.release(bytes)}
+  reserveCursor(maxBytes:number,maxEntries:number):void{this.#live();if(this.#busy)throw new Error("private arena operation in progress");if(maxBytes!==this.#budget.maxBytes)throw new PrivateStateLimitError("private byte limit mismatch with aggregate budget");if(maxEntries!==this.#maxEntries)throw new PrivateStateLimitError("private entry limit mismatch with arena publication limit");this.#budget.reserveScratch(PRIVATE_CURSOR_CHARGE)}
+  reserveScratch(bytes:number):void{this.#budget.reserveScratch(bytes)}
+  releaseScratch(bytes:number):void{this.#budget.releaseScratch(bytes)}
   reservePayloadScratch(bytes:number):void{this.#budget.reservePayloadScratch(bytes)}
   releasePayloadScratch(bytes:number):void{this.#budget.releasePayloadScratch(bytes)}
   allocationCheckpoint(pgno:number):void{this.#hook("allocate",pgno)}

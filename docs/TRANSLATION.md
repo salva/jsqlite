@@ -567,7 +567,17 @@ uses caller storage; the TS copy bounds borrowed-page lifetime across awaits.
 Focused paused-callback/error controls exercise positive live/highwater and
 cleanup; actual SQL receipt controls require zero live payload scratch on release.
 Absent-bit and collision-with-no-match probes need not read a payload through
-this owner. Remaining scratch/Mem categories are still open.
+this owner. The same budget also reports `scratchBytes`/`scratchHighwaterBytes`
+for explicit arena cursor scratch, seek-prefix copies and MakeRecord conversion
+overlap, including payload scratch as a subset (not a second aggregate charge).
+`recordBytes`/`recordHighwaterBytes` separately track packed MakeRecord register
+ownership through replacement, insertion consumption and halt. Admission still
+precedes allocation; failed admission changes no counters. These are deterministic
+admitted units, not a count of all live VM Mem or JS temporaries. Arena-internal
+unclassified reservations and ordinary register copies remain to be inventoried;
+all-consumer capacity and full Mem acceptance are still open. Owner regression
+and evidence: `test/value/private-demand-observation.test.mjs`,
+[[card:card-s-j-c]] status.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for ordinary rowid INNER/CROSS persistent equality loops, including deeper-ready construction/pull-down. IPK standalone equality is now enrolled: build hashes Rowid, probe uses MustBeInt's no-match continuation before Filter and authoritative SeekRowid. Wider continuation consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-c]] status for exact current evidence.
 The shared `PrivateKeyVmCursor` now supplies packed Seek*/Idx* bounds through
 existing IndexSeekPrefix/IndexPrefixEnd dispatch, independently of exact Found/IN.

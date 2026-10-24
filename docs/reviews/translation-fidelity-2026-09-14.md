@@ -22,8 +22,12 @@ public all-encoding controls and prefix/direction regressions are recorded in
 [[card:card-s-j-c]] status. This is bounded physical-rowid direct-column proof,
 not generalized expression-index/WR ordering or full placement acceptance.
 Payload-copy scratch now has actual live/highwater observation on the shared
-budget, with paused-await/failing-callback controls; all other scratch/Mem
-categories and exhaustive lifetime obligations remain open.
+budget, with paused-await/failing-callback controls. Explicit arena cursor scratch
+and MakeRecord conversion overlap now have shared scratch live/highwater;
+packed output register ownership has separate record live/highwater through
+replacement/consume/halt. These are admitted deterministic units, not all VM Mem
+or JS storage: unclassified internal arena reservations, ordinary register copies,
+all-consumer capacity and exhaustive lifetime obligations remain open.
 This is partial author repair, not full placement acceptance.
 
 Production-private snapshots now distinguish fresh executions and retained program

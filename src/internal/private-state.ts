@@ -24,15 +24,23 @@ export class PrivateStateByteBudget {
   #entryDemand=0; #keyDemand=0;
   #packedPages=0; #packedPagesHighwater=0;
   #payloadScratchBytes=0; #payloadScratchHighwaterBytes=0;
+  #scratchBytes=0; #scratchHighwaterBytes=0;
+  #recordBytes=0; #recordHighwaterBytes=0;
+  /** Admitted cursor/conversion scratch, including payload copies. Not all JS temporaries or VM Mem. */
+  reserveScratch(bytes:number):void{this.reserve(bytes);this.#scratchBytes+=bytes;this.#scratchHighwaterBytes=Math.max(this.#scratchHighwaterBytes,this.#scratchBytes)}
+  releaseScratch(bytes:number):void{this.release(bytes);this.#scratchBytes-=bytes}
+  /** Packed MakeRecord register ownership, separate from conversion scratch. */
+  reserveRecord(bytes:number):void{this.reserve(bytes);this.#recordBytes+=bytes;this.#recordHighwaterBytes=Math.max(this.#recordHighwaterBytes,this.#recordBytes)}
+  releaseRecord(bytes:number):void{this.release(bytes);this.#recordBytes-=bytes}
   /** Await-owned accessPayload copies are a subset of aggregate byte ownership. */
-  reservePayloadScratch(bytes:number):void{this.reserve(bytes);this.#payloadScratchBytes+=bytes;this.#payloadScratchHighwaterBytes=Math.max(this.#payloadScratchHighwaterBytes,this.#payloadScratchBytes)}
-  releasePayloadScratch(bytes:number):void{this.release(bytes);this.#payloadScratchBytes-=bytes}
+  reservePayloadScratch(bytes:number):void{this.reserveScratch(bytes);this.#payloadScratchBytes+=bytes;this.#payloadScratchHighwaterBytes=Math.max(this.#payloadScratchHighwaterBytes,this.#payloadScratchBytes)}
+  releasePayloadScratch(bytes:number):void{this.releaseScratch(bytes);this.#payloadScratchBytes-=bytes}
   /** Physical arena backing pages, including retained freelist pages. */
   acquirePackedPage():void{this.#packedPages++;this.#packedPagesHighwater=Math.max(this.#packedPagesHighwater,this.#packedPages)}
   releasePackedPages(count:number):void{this.#packedPages-=count}
   /** Max per-cursor policy demand; only byte ownership is aggregate. */
   observeDemand(entries:number,keyBytes=0):void{this.#entryDemand=Math.max(this.#entryDemand,entries);this.#keyDemand=Math.max(this.#keyDemand,keyBytes)}
-  snapshot(){return Object.freeze({payloadScratchBytes:this.#payloadScratchBytes,payloadScratchHighwaterBytes:this.#payloadScratchHighwaterBytes,packedPages:this.#packedPages,packedPagesHighwater:this.#packedPagesHighwater,highwaterEntries:this.#entryDemand,highwaterKeyBytes:this.#keyDemand,ownerId:this.ownerId,chargedBytes:this.#charged,refundedBytes:this.#refunded,ownedBytes:this.#used,highwaterBytes:this.#highwater})}
+  snapshot(){return Object.freeze({scratchBytes:this.#scratchBytes,scratchHighwaterBytes:this.#scratchHighwaterBytes,recordBytes:this.#recordBytes,recordHighwaterBytes:this.#recordHighwaterBytes,payloadScratchBytes:this.#payloadScratchBytes,payloadScratchHighwaterBytes:this.#payloadScratchHighwaterBytes,packedPages:this.#packedPages,packedPagesHighwater:this.#packedPagesHighwater,highwaterEntries:this.#entryDemand,highwaterKeyBytes:this.#keyDemand,ownerId:this.ownerId,chargedBytes:this.#charged,refundedBytes:this.#refunded,ownedBytes:this.#used,highwaterBytes:this.#highwater})}
   constructor(maxBytes:number){this.maxBytes=maxBytes}
   reserve(bytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(bytes)||bytes<0)throw new Error("invalid private-state byte reservation");if(this.#used+bytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=bytes;this.#charged+=bytes;this.#highwater=Math.max(this.#highwater,this.#used)}
   replace(oldBytes:number,newBytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(oldBytes)||!Number.isSafeInteger(newBytes)||oldBytes<0||newBytes<0||oldBytes>this.#used)throw new Error("invalid private-state byte replacement");if(this.#used-oldBytes+newBytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=newBytes-oldBytes;this.#charged+=newBytes;this.#refunded+=oldBytes;this.#highwater=Math.max(this.#highwater,this.#used)}
