@@ -5,6 +5,36 @@ Candidate baseline c875487f3607be620ed0057caf2b375103af050f / tree
 [decision](where-autoindex-admission.md), not persistent schema-autoindex tests.
 No runtime implementation, public API change, or feature credit.
 
+## Standalone boundary investigation (continuing author evidence)
+
+`where-bloom-boundaries-native.py` captures read-only pinned public-API outer,
+IN and correlated-frame witnesses from existing card-s-h images; the matching
+`where-bloom-boundaries-real.mjs` compares full typed sequences, five metadata
+fields, reset and release. No fixture or production path changes. Native outer
+and IN each emit a **local** Filter: where.c:sqlite3ConstructBloomFilter excludes
+these levels from later grouped construction, not all Bloom use. Its grouping
+loop skips JT_LEFT/JT_LTORJ and WHERE_COLUMN_IN; wherecode.c:filterPullDown then
+requires no IN, skips nSkip, consumes regFilter and restores the borrowed break.
+The current TS whole-query outer gate and equality-only IN gate suppress even
+these local filters. Equal rows alone do not repair that fidelity gap. Native
+frame witness has no filter and actual TS agrees on rows; this does not establish
+all frame/drain exclusions. Skip witness remains unresolved: the attempted
+b-only join on existing ab selected SCAN y, not native skip-scan, and confers no
+skip-branch credit.
+
+Executed `proc-9d644d33a4fe` exit0: capture then real driver, three encodings ×
+three cases × two reset runs. Outer5000/IN1000 rows; bounded correlated frame
+uses x.id<10. Every TS run reports FilterAdd/probes0, planKind other. Receipt:
+`work:///cards/card-s-j-c/placement-exclusions/bounded-native.json`.
+Earlier `proc-dd16f7a413da` captured the unbounded frame and passed UTF8 outer/IN,
+then hit default maxWorkUnits on the frame; that earlier failure is not repaired
+as an engine defect. Its receipt remains at placement-exclusions/native.json.
+The bounded witness narrows diagnostic work only, not any original mandatory gate.
+Next: implement source-owned local outer/IN construction/probe handoff before
+claiming placement acceptance, and find a real skip-scan witness. Existing
+positive ready/dependent/IPK and construction/lifetime evidence remains applicable
+at its stated revisions; this is not full acceptance.
+
 ## Run and evidence
 
 Build pinned metadata-enabled oracle with `sh tools/oracle/build.sh`. For each
