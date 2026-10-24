@@ -112,7 +112,12 @@ append (not replacement) now also records its backing allocation; this closes an
 observation gap exposed while preparing corruption controls.
 `vdbe.c OP_MakeRecord` sizing/allocation failure maps to actual packRecord
 allocator-failure controls in `where-autoindex-real-record-fault.mjs` (partial
-build, first/saved error, release and independent survivor/retry).
+build, first/saved error, release and independent survivor/retry). The same original
+consumer runs both ordinary cleanup and a secondary diagnostic thrown after actual
+owned Bloom release; `vdbeaux.c:closeCursorsInFrame` / TS halt loops retain exhaustive
+cleanup and failed-step primary precedence. This bounded diagnostic-after-release
+schedule does not cover a destructor failing before release; evidence and receipt
+identity: [[card:card-s-j-c]] status74.
 `where-autoindex-real-corruption.mjs` damages actual index backing pointer arrays
 before collision probes, versus untraversed page-one signature: format error
 versus native rows. This is broad selected-index/untraversed-header evidence,
