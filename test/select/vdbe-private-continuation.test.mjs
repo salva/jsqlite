@@ -28,12 +28,14 @@ test('mixed pending/void compare terms, stable merge publication and failed-sort
 // Pinned vdbe.c check_for_interrupt checks interrupt before progress; reset in
 // vdbeaux.c halts partial execution before transferring the saved error.
 const info=new KeyInfo({encoding:'utf-8',totalFieldCount:1,keyFieldCount:1,terms:[{}]});
+// Whole-owner budget: owned String backing (1100) and independent sorter key
+// (1100) overlap. Native OP_String borrows static P4; this VM owns its text.
 function statement(){return new VdbeStatement({ops:[
  {code:'SorterOpen',p1:0,keyInfo:info},{code:'String',p1:'x'.repeat(1100),p2:0},
  {code:'SorterInsert',p1:0,keyStart:0,keyCount:1,payload:0,payloadCount:0},
  {code:'SorterSort',p1:0,emptyJump:7},{code:'SorterData',p1:0,p2:1,count:0},
  {code:'Integer',p1:19n,p2:1},{code:'ResultRow',p1:1,p2:1},{code:'Halt'}
-],registers:2,columns:[{name:'n'}],parameters:[],encoding:'utf8',maxWorkUnits:10000,maxResultBytes:10000,privateStateLimits:{maxBytes:1100,maxEntries:1,maxKeyBytes:1100}},()=>{},()=>()=>{},()=>{});}
+],registers:2,columns:[{name:'n'}],parameters:[],encoding:'utf8',maxWorkUnits:10000,maxResultBytes:10000,privateStateLimits:{maxBytes:2200,maxEntries:1,maxKeyBytes:1100}},()=>{},()=>()=>{},()=>{});}
 
 test('production observation owns fresh execution and stable program identities',async()=>{
  const a=statement(),b=statement();
@@ -109,7 +111,7 @@ test('PRIVATE units>256 resumes multiple pending/void quanta exactly, failures c
    assert.deepEqual(quanta,mode.endsWith('-late')?[253,509,765]:[253]);assert.deepEqual(charges,[1101]);
    assert.equal(reads,(mode.endsWith('-late')?765:253)+(mode==='throw'||mode.startsWith('reject')?0:1),'first post-resume probe rejects before another debit');
    await assert.rejects(s.step(),e=>e===saved);assert.throws(()=>s.reset(),e=>e===saved);
-   // A retry under the exact one-entry/1100-byte cap proves rollback/close released ownership.
+   // A retry under the exact one-entry/2200-byte whole-owner cap proves rollback/close released ownership.
    aborted=false;expired=false;calls=0;quanta=[];charges=[];reads=0;
    VdbeHostAdmission.prototype.checkpoint=()=>undefined;
    assert.equal(await s.step(),'row');assert.equal(s.columnInteger(0),19n);s.reset();

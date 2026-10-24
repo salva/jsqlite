@@ -34,9 +34,9 @@ unchanged-input reuse is not fresh execution.
 | --- | --- |
 | Original WR/FULL400x400/allenc/six executions, typed rows/five metadata/reset/resources | Unrun on current combined input. Required unchanged workloads; owner100s/file, serial≤80, batch600. Parent routes shared runner/PLAN/encoding partitions. Selected VM tests cannot replace these gates. |
 | Root509+39, package/browser, independent exact combined source/control/caller/resources adjudication | Parent-arranged, unwaived. Author evidence is not independent approval; beta5 incomplete. |
-| Unordered LIMIT native910/TS10 (`proc-9e558deae0a9`) | Unresolved source/control-order defect; owning WHERE/LIMIT investigation through parent scope allocation. Ordered controls do not resolve it. |
-| Aggregate-derived prepare `no such table: q` (`proc-73b1286614a6`) | Unresolved producer/name-resolution path; exact SQL unrecovered, so no claimed reproducer/repair. Parent must recover input before diagnosis/acceptance. |
-| Unbounded frame work-limit (`proc-dd16f7a413da`) | Unresolved frame/work-accounting applicability, routed through parent to frame/work owner. Bounded controls do not resolve it. |
+| Unordered LIMIT native910/TS10 (`proc-9e558deae0a9`) | Unresolved historical equality assertion, not a diagnosed source/control-order defect. Artifact alone lacks exact original unordered SQL/ordering guarantee; recover SQL and establish membership/cardinality/order applicability before requiring native-identical subset. Ordered controls do not settle that question; parent routes recovery. |
+| Aggregate-derived prepare `no such table: q` (`proc-73b1286614a6`) | Historical prepare failure through compileAggregateSelect; exact aggregate SQL and original process invocation unrecovered. Nearby nonaggregate q receipt is not its reproducer. Parent must recover input before owning diagnosis/acceptance; no claimed repair. |
+| Unbounded frame work-limit (`proc-dd16f7a413da`) | Historical work-limit exit, not alone proof of an engine defect: maxWorkUnits is implementation-defined, not native-performance parity. Mandatory workload applicability or erroneous repeated work remains unestablished. Parent routes frame/work applicability; bounded controls do not settle it. |
 | Skips/placeholders and killed60 run | Noncredit. Killed run is neither pass nor demonstrated watchdog timeout. No permanent exclusions inferred. |
 
 [Accepted red status92](record:///status.md?card=card-s-j-c&v=92) and

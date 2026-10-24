@@ -33,7 +33,9 @@ branch (no WHERE_COLUMN_EQ).
 distinguish executions and retained programs; reprepare preserves execution but
 replaces program identity. No cross-worker identity or native pointer is implied.
 Frozen snapshot/reset/done/concurrent-statement controls:
-`test/select/vdbe-private-continuation.test.mjs`; VM dispatch entry records
+`test/select/vdbe-private-continuation.test.mjs` (owned String backing plus
+independent sorter-key budget, preserving exact continuation work; F1 evidence
+in [[card:card-s-j-c]] status); VM dispatch entry records
 unique actually entered TS opcodes separately from retained-program emitted
 opcodes. Snapshots detach/freeze both arrays and reset clears entered history;
 entry is not successful-completion evidence. Filter-to-cursor candidate tracking

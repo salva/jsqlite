@@ -1290,6 +1290,10 @@ observes the production VM control through sorter insertion across alternating
 pending/void checkpoints, with exact work probes and saved-error/reset cleanup;
 a separate mixed comparison/merge probe checks stable publication and accounting.
 These bounded injections do not establish host latency or native allocation parity.
+The fixture retains both owned 1100-byte String backing and a separate 1100-byte
+sorter key under a 2200-byte whole-owner cap; native OP_String instead borrows
+static P4. This test budget does not change production admission or work quanta.
+Exact F1 correction and isolated/combined evidence: [[card:card-s-j-c]] status.
 
 ## Functions, text and JSON
 
