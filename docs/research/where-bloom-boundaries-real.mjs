@@ -59,6 +59,21 @@ for(const v of native.variants){
      assert.equal(c.program.filter(o=>o.opcode==='Once'&&o.addr<ns[1].addr).length,2);assert.notEqual(nf[0].p2,nf[1].p2);
     }finally{storage.close();}
    }
+   if(c.case.startsWith('derived-')){
+    const storage=ImmutableStorage.open(bytes);
+    try{
+     const schema=loadSchemaGraph({[storageOwner]:storage});
+     const p=compileTableSelect(parseSql(c.sql).statement,schema,btreeFromStorage(storage),Number.MAX_SAFE_INTEGER),names=programOpcodeNames(p);
+     const filter=names.indexOf('Filter'),add=names.indexOf('FilterAdd'),seek=names.findIndex((n,i)=>i>filter&&n==='IndexSeekPrefix');
+     assert.ok(add>=0&&add<filter&&filter<seek,'physical build, probe and authoritative seek');
+     const calls=programControlTargets(p).filter(t=>t.code==='Gosub');
+     assert.equal(calls.length,1,'one retained materialized source invocation');
+     const nf=c.program.find(o=>o.opcode==='Filter'),na=c.program.find(o=>o.opcode==='FilterAdd');
+     const call=c.program.find(o=>o.opcode==='Gosub'&&o.addr>nf.addr);
+     assert.ok(na.addr<nf.addr&&call,'native materialized invocation after physical probe');
+     assert.ok(calls[0].index>seek);
+    }finally{storage.close();}
+   }
    if(c.case==='frame-bloom'||c.case==='frame-first'){
     // Child WHERE work shares the builder but retains its own Once and cursor
     // IDs. Demand native construction/probe structure, not only equal rows.

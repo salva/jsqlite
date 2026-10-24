@@ -425,6 +425,33 @@ and unchanged independent survivor. It uses public maxWorkUnits after one succes
 construction check, not a synthetic compiler or forced expmask. It does not cover
 partial-allocation failures or every construction ordering.
 
+## Independent retained sibling placement — author repair
+
+The scalar/aggregate callback fix did not cover retained-source owners. Pinned
+`where.c:7438–7472` invokes a materialized source at its level before constructing
+that level's selected filter. `compileResolvedTableProducer` already preserves
+physical reader identities and installs a source-owned Once inside callable fill;
+`compileInnerTableSelect` already emits Gosub at that source's level. Its blanket
+sourceProducers exclusion nevertheless suppressed filters on unrelated physical
+siblings. Enrollment now excludes only producer-owned build targets; physical
+sources reuse their existing Once/build/probe, ready-mask, authoritative seek and
+outer continuation. No producer is materialized early for a filter, no payload
+is treated as a physical Btree, and no substitute evaluator or algorithm is added.
+Derived-target/generalized producer and RIGHT-drain work remains open.
+
+The original accepted red SQL/receipt is preserved in [[card:card-s-j-c]] status65.
+Existing boundary capture/public drivers now retain that exact query as
+`derived-after`, plus ordered LIMIT1 as `derived-first`. Both demand actual native
+and TS physical FilterAdd/Filter before the materialized sibling invocation,
+positive runtime filter work, complete typed rows/five metadata fields, two actual
+resets and release across all three encodings. Ordered LIMIT is intentional:
+unordered first rows differed (native x.id910 versus TS10), so unordered parity
+is not claimed. Moving the derived source first did not induce native Bloom;
+that attempted test supplied no coverage and was replaced, not engine-patched.
+Exact commands, receipt identity, outcomes and remaining gates are recorded in
+current [[card:card-s-j-c]] status. This bounded repair does not close fault,
+resource, generalized producer or independent acceptance obligations.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
