@@ -2,6 +2,17 @@
 
 This document records bounded evidence; it is not a claim of whole-SQLite compatibility. The product scope is [`SPEC.md`](SPEC.md), sequencing is [`PLAN.md`](PLAN.md), the pinned source identity is [`reference/sqlite/manifest.json`](../reference/sqlite/manifest.json), and protocol/fixture rules are in [`oracle.md`](oracle.md). Counts below always state their denominator. Excluded and local/no-credit companions do not become upstream passes.
 
+## MakeRecord internal accounting observer
+
+`test/value/record-pack.test.mjs` retains the original147/148 inputs but corrects
+the pre-register-ownership148 success expectation: UTF16 packing requires154
+logical admitted units (scratch76 + register6 + record72). All encodings,
+category transitions,153/154/155 boundaries, reset/error identity and independent
+survivor are local accounting companions, not native oracle credit. Existing
+Mem production/borrow/copy tests retain their own source/safety distinctions.
+Exact delivery checks and independent acceptance still needed are recorded in
+[[card:card-f-a-b]] status; no whole integration/browser acceptance follows.
+
 ## Source and evidence boundaries
 
 All upstream references below are against SQLite **3.53.4**, source ID `2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc`. [`SQLITE_SOURCE_MAP.md`](SQLITE_SOURCE_MAP.md) maps the relevant C routines and Tcl tests. Native code, generated databases, fixture serving, and the oracle are development evidence only; the shipped runtime does not use native SQLite as a backend.

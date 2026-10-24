@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 import {Mem} from '../../src/internal/mem.ts';
 import {packRecord,recordSize} from '../../src/internal/record-pack.ts';
 import {decodeRecord} from '../../src/internal/record.ts';
@@ -22,11 +23,69 @@ test('MakeRecord integer widths, header fixed point and encoding/zero blob paylo
   }
 });
 
+// Independent category/ordering witness: do not derive expected peak from the
+// production predictor or only observe zero after Halt. Hook budget boundaries,
+// not a second evaluator, to observe the actual VM path before allocation.
+test('MakeRecord keeps source/replacement overlap and all three owners through packing',async()=>{
+ const {VdbeStatement}=await import('../../src/internal/vdbe.ts');
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const events=[];
+  const original=new Map();
+  for(const method of ['reserveMem','releaseMem','reserveScratch','releaseScratch','reserveRecord','releaseRecord']){
+   original.set(method,PrivateStateByteBudget.prototype[method]);
+   PrivateStateByteBudget.prototype[method]=function(bytes){
+    const before=this.snapshot();const result=original.get(method).call(this,bytes);
+    events.push({method,bytes,before,after:this.snapshot()});return result;
+   };
+  }
+  const st=new VdbeStatement({encoding,registers:2,parameters:[],columns:[],maxWorkUnits:10000,maxResultBytes:1000,privateStateLimits:{maxEntries:0,maxKeyBytes:1000,maxBytes:1000},ops:[{code:'String',p1:'abc',p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},{code:'Halt'}]},()=>{},()=>()=>{},()=>{});
+  try{assert.equal(await st.step(),'done')}finally{st.finalize();for(const [method,fn] of original)PrivateStateByteBudget.prototype[method]=fn}
+  const packed=events.find(e=>e.method==='reserveRecord');
+  assert.equal(packed.before.memBytes,encoding==='utf-8'?3:6);
+  assert.equal(packed.before.scratchBytes,encoding==='utf-8'?0:76);
+  assert.equal(packed.after.ownedBytes,encoding==='utf-8'?72:154);
+  if(encoding!=='utf-8'){
+   const replacement=events.find(e=>e.method==='reserveMem'&&e.bytes===6);
+   assert.equal(replacement.before.memBytes,3);assert.equal(replacement.after.memBytes,9);
+   const oldRelease=events.find(e=>e.method==='releaseMem'&&e.bytes===3);
+   assert.equal(oldRelease.before.memBytes,9);assert.equal(oldRelease.after.memBytes,6);
+   const scratchRelease=events.find(e=>e.method==='releaseScratch'&&e.bytes===76);
+   assert.equal(scratchRelease.before.recordBytes,72);assert.equal(scratchRelease.before.memBytes,6);
+  }
+  assert.equal(events.at(-1).after.ownedBytes,0);
+ }
+});
+
+test('MakeRecord boundary failure reset retains error identity and independent survivor',async()=>{
+ const {VdbeStatement}=await import('../../src/internal/vdbe.ts');
+ const program=(encoding,maxBytes)=>({encoding,registers:2,parameters:[],columns:[{name:'x'}],maxWorkUnits:10000,maxResultBytes:1000,privateStateLimits:{maxEntries:0,maxKeyBytes:1000,maxBytes},ops:[{code:'String',p1:'abc',p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},{code:'ResultRow',p1:1,p2:1},{code:'Halt'}]});
+ for(const encoding of ['utf-8','utf-16le','utf-16be']){
+  const survivor=new VdbeStatement(program(encoding,154),()=>{},()=>()=>{},()=>{});
+  const failed=new VdbeStatement(program(encoding,encoding==='utf-8'?71:153),()=>{},()=>()=>{},()=>{});
+  try{
+   assert.equal(await survivor.step(),'row');const live=survivor.privateAccounting();
+   let error;await assert.rejects(failed.step(),e=>{error=e;return e.kind==='limit'});
+   assert.equal(failed.privateAccounting().ownedBytes,0);
+   assert.throws(()=>failed.reset(),e=>e===error);
+   assert.deepEqual(survivor.privateAccounting(),live);
+   await assert.rejects(failed.step(),e=>e.kind==='limit');
+   assert.equal(failed.privateAccounting().ownedBytes,0);
+   survivor.reset();assert.equal(survivor.privateAccounting().ownedBytes,0);
+   assert.equal(await survivor.step(),'row');assert.equal(await survivor.step(),'done');
+   assert.equal(survivor.privateAccounting().ownedBytes,0);
+  }finally{assert.throws(()=>failed.finalize());survivor.finalize()}
+ }
+});
+
 test('MakeRecord conversion allowance is admitted through packing and refunded on failure',async()=>{
  const {VdbeStatement}=await import('../../src/internal/vdbe.ts');
- for(const encoding of ['utf-16le','utf-16be'])for(const maxBytes of [147,148]){
+ for(const encoding of ['utf-8','utf-16le','utf-16be'])for(const maxBytes of [147,148,153,154,155]){
   const st=new VdbeStatement({encoding,registers:2,parameters:[],columns:[],maxWorkUnits:10000,maxResultBytes:1000,privateStateLimits:{maxEntries:4,maxKeyBytes:1000,maxBytes},ops:[{code:'String',p1:'abc',p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},{code:'Halt'}]},()=>{},()=>()=>{},()=>{});
-  if(maxBytes===147){let first;try{await st.step();assert.fail('overlap allowance must reject')}catch(error){first=error;assert.equal(error.kind,'limit')};assert.throws(()=>st.finalize(),error=>error===first)}
-  else{assert.equal(await st.step(),'done');st.finalize()}
+  // Original 147/148 pair remains exercised. It predates ordinary register
+  // ownership: UTF16 needs scratch76 + owned Mem6 + record72 = 154, not148.
+  // UTF8 has no conversion allowance and needs Mem3 + record69 =72.
+  const peak=encoding==='utf-8'?72:154;
+  if(maxBytes<peak){let first;try{await st.step();assert.fail('overlap allowance must reject')}catch(error){first=error;assert.equal(error.kind,'limit')};assert.equal(st.privateAccounting().ownedBytes,0);assert.throws(()=>st.finalize(),error=>error===first)}
+  else{assert.equal(await st.step(),'done');const done=st.privateAccounting();assert.equal(done.highwaterBytes,peak);assert.equal(done.memHighwaterBytes,encoding==='utf-8'?3:9);assert.equal(done.scratchHighwaterBytes,encoding==='utf-8'?0:76);assert.equal(done.recordHighwaterBytes,encoding==='utf-8'?69:72);assert.equal(done.memBytes,0);assert.equal(done.scratchBytes,0);assert.equal(done.recordBytes,0);assert.equal(done.chargedBytes,done.refundedBytes);st.finalize()}
  }
 });

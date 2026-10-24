@@ -1,5 +1,20 @@
 # SQLite source map
 
+### MakeRecord conversion and register ownership
+
+`vdbe.c:OP_MakeRecord` live input affinity then separate packed output,
+`utf.c:sqlite3VdbeMemTranslate` allocate-before-free and endian writable swap,
+`vdbemem.c:sqlite3VdbeMemCopy` nonstatic writable copy → `Mem` backing admission,
+`VdbeStatement` MakeRecord scratch/record owners and `PrivateStateByteBudget`
+categories. `test/value/record-pack.test.mjs` directly observes all three
+categories and old/new transitions across UTF8/16le/16be, exact153/154/155
+UTF16 packing bounds, original147/148 rejection controls, zero-entry admission,
+error identity/reset and independent survivor. Logical scratch remains an
+additional conservative allowance, not a native malloc measurement. Original148
+success observer predates register ownership; correction provenance and actual
+checks are in [[card:card-f-a-b]] status. Backing-production failure/borrow/copy
+controls remain in `private-demand-observation.test.mjs`.
+
 ### Local standalone filter boundaries
 
 `where.c:sqlite3ConstructBloomFilter` current build versus later LEFT/LTORJ/IN

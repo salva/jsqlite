@@ -596,7 +596,16 @@ admitted units, not a count of all live VM Mem or JS temporaries. Ordinary VM
 register owned TEXT/BLOB backing now uses the same execution owner and reports
 `memBytes`/`memHighwaterBytes`: copy/set admission precedes backing allocation,
 borrowed/static bytes retain their producer owner, move transfers ownership, and
-numeric replacement/reset/error/halt/finalize refund owned backing. Scalar slots,
+numeric replacement/reset/error/halt/finalize refund owned backing. MakeRecord's
+conditional conversion allowance is additional conservative scratch, retained
+through packed admission; it does not replace register backing. For UTF16
+String('abc') packing, scratch76 + live Mem6 + record72 requires154 admitted
+units (conversion separately overlaps source3/new6). The earlier148 success
+observer predates register admission and is obsolete;147/148 remain rejection
+controls, with153/154/155 and UTF8 controls in `test/value/record-pack.test.mjs`.
+This corrects an internal observer, not a configured quota or public guarantee.
+Source/lifetime comparison and delivery evidence: [[card:card-f-a-b]] status.
+Scalar slots,
 bindings, detached temporary Mem and aggregate/rowset internals are not counted
 by this category. UTF8→UTF16 conversion derives exact byte demand from decoded
 JS code units and admits replacement overlap before encoding bytes; JS string
