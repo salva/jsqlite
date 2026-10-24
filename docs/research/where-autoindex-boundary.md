@@ -51,7 +51,18 @@ pull-down), then compare full rows/metadata/reset/release. Native has a third
 postscan Once for sorter output; an initial assertion counting all Once failed
 and was narrowed to the source-owned construction interval, not engine behavior.
 Exact final command/results and receipt hashes are in card status.
-Remaining: constructed-filter skip branch and broader frame/drain comparison.
+A constructed-filter equality skip witness now uses two real outer searches
+and local residual, on the same unchanged skiprange images. The initial
+single-outer witness had insufficient accumulated searches; adding the second
+outer loop emits native Bloom even with bounded x.id<3/z.id<3. INDEXED BY ab
+selects a real native/TS skip path (not optimizer test forcing). The pre-repair
+public driver reproduced missing standalone plan/work. `where-plan.ts` now
+retains native EQ enrollment for nSkip; `vdbe.ts` builds all nEq physical index
+fields, supplies the positioned skipped prefix to the local Filter, and excludes
+nSkip only from pulled probes, not ready grouped builds. The two-skip control retains native prerequisite-local
+construction Once controls and probes on opposite sides of the first seek. Rows/metadata/reset/release and positive work are compared through
+public APIs; exact commands, hashes and result qualifications are in card status.
+Remaining: broader frame/drain comparison and original fault obligations.
 Existing positive ready/dependent/IPK and construction/lifetime evidence remains
 applicable at its stated revisions; this is not full acceptance.
 

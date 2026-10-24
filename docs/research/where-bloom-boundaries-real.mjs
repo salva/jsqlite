@@ -23,12 +23,25 @@ for(const v of native.variants){
  try{
   const db=await openFixture(new Request(`http://127.0.0.1:${server.address().port}/db`));
   try{for(const c of v.cases){
-   if(c.case==='skip-range'){
+   if(c.case==='skip-range'||c.case==='skip-equality'||c.case==='skip-group'){
     const storage=ImmutableStorage.open(bytes);
     try{
      const schema=loadSchemaGraph({[storageOwner]:storage}),resolved=expandAndResolveSelect(parseSql(c.sql).statement,schema);
      const path=planWhere(resolved,{neededColumns:resolved.sources.map(s=>new Set(s.table.columns)),orderBy:[]}).path;
      assert.ok(path?.loops.some(l=>(l.capability?.nSkip??0)>0),'actual selected skip-scan loop');
+    }finally{storage.close();}
+   }
+   if(c.case==='skip-group'){
+    const storage=ImmutableStorage.open(bytes);
+    try{
+     const schema=loadSchemaGraph({[storageOwner]:storage}),p=compileTableSelect(parseSql(c.sql).statement,schema,btreeFromStorage(storage),Number.MAX_SAFE_INTEGER),names=programOpcodeNames(p);
+     const filters=names.flatMap((n,i)=>n==='Filter'?[i]:[]),seeks=filters.map(at=>names.findIndex((n,i)=>i>at&&n==='IndexSeekPrefix'));
+     assert.equal(filters.length,2);assert.equal(seeks.length,2);
+     assert.ok(filters[0]<seeks[0]&&seeks[0]<filters[1]&&filters[1]<seeks[1]);
+     assert.equal(names.filter((n,i)=>n==='Once'&&i<seeks[1]).length,2,'skip builds retain native prerequisite placement');
+     const nf=c.program.filter(o=>o.opcode==='Filter'),ns=c.program.filter(o=>o.opcode==='SeekGE');
+     assert.equal(nf.length,2);assert.equal(ns.length,2);assert.ok(nf[0].addr<ns[0].addr&&ns[0].addr<nf[1].addr&&nf[1].addr<ns[1].addr);
+     assert.equal(c.program.filter(o=>o.opcode==='Once'&&o.addr<ns[1].addr).length,2);
     }finally{storage.close();}
    }
    if(c.case==='group-outer'){

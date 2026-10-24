@@ -10,8 +10,12 @@ scratch/Mem and exhaustive lifetime obligations. Local LEFT/IN filters now
 translate current-level construction/probe separately from the later-group
 outer/IN exclusions; Filter miss targets next-IN/outer continuation. Native-first
 three-encoding rows, metadata, reset and positive dispatched filters are mapped
-in [boundary evidence](../research/where-autoindex-boundary.md). Skip/frame/drain
-placement breadth remains open.
+in [boundary evidence](../research/where-autoindex-boundary.md). Equality skip
+now retains native descriptor enrollment, builds all nEq fields including skipped
+prefixes, and supplies locally positioned prefixes before Filter/seek. Ready
+skip filters may share construction Once but are not consumed by filterPullDown;
+native-first two-filter control asserts this distinction and compares public
+rows/metadata/reset/release. Range/frame/drain placement breadth remains open.
 The existing MustBeInt primitive translates native nonzero-P2 no-match and
 zero/omitted-P2 mismatch branches, with shared NUMERIC affinity and sentinel-aware
 relocation. IPK standalone now builds Rowid keys and probes with MustBeInt before

@@ -238,7 +238,7 @@ export function standaloneBloomDescriptors(path:WherePath,enabled:boolean):reado
    const cap=loop.capability;
    const equality:readonly (IndexConstraintAdmission|RowidConstraint)[]=loop.kind==="rowid"
     ? cap?.rowidEquality?[cap.rowidEquality]:[]
-    : cap&&cap.nSkip===0?cap.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null):[];
+    : cap?cap.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null):[];
    // WHERE_COLUMN_EQ is set by native WO_EQ|WO_IS producers.
    if(equality.length&&equality.some(slot=>slot.operator==="eq"||slot.operator==="is")&&searches>BigInt(table.nRowLogEst)){
     let n=BigInt(table.nRowLogEst)%10n,x=BigInt(table.nRowLogEst)/10n;

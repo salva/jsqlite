@@ -18,7 +18,7 @@ for enc,family in [(enc,family) for enc in ['UTF-8','UTF-16le','UTF-16be'] for f
  assert d.sqlite3_open_v2(str(fixture).encode(),C.byref(db),1,None)==0
  captures=[]
  try:
-  selected=cases if family=='local' else {'skip-range':"SELECT x.id,y.id FROM t x CROSS JOIN t y WHERE x.id<3 AND y.b>199 ORDER BY x.id,y.id"}
+  selected=cases if family=='local' else {'skip-range':"SELECT x.id,y.id FROM t x CROSS JOIN t y WHERE x.id<3 AND y.b>199 ORDER BY x.id,y.id", 'skip-group':"SELECT x.id,z.id,r.id,y.id FROM t x CROSS JOIN t z CROSS JOIN t r INDEXED BY ab CROSS JOIN t y INDEXED BY ab WHERE x.id<3 AND z.id<3 AND r.b=199 AND r.c=0 AND y.b=198 AND y.c=6 ORDER BY x.id,z.id,r.id,y.id", 'skip-equality':"SELECT x.id,z.id,y.id FROM t x CROSS JOIN t z CROSS JOIN t y INDEXED BY ab WHERE x.id<3 AND z.id<3 AND y.b=199 AND y.c=0 ORDER BY x.id,z.id,y.id"}
   for name,sql in selected.items():
    st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
    try:
@@ -41,7 +41,7 @@ for enc,family in [(enc,family) for enc in ['UTF-8','UTF-16le','UTF-16be'] for f
    filters=[o for o in ops if o['opcode']=='Filter']
    # Outer and IN exclude later grouped construction, NOT their local filter.
    no_filter=name in ('frame','skip-range')
-   assert len(filters)==(0 if no_filter else 2 if name=='group-outer' else 1)
+   assert len(filters)==(0 if no_filter else 2 if name in ('group-outer','skip-group') else 1)
    assert any('BLOOM FILTER' in p for p in eqp)==(not no_filter)
    if name=='skip-range':assert any('ANY(a)' in p and 'b>?' in p for p in eqp)
    if name=='outer':assert any(o['opcode']=='NullRow' for o in ops)

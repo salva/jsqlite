@@ -4501,7 +4501,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   if(!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid&&!source.joinFromLeft.right)&&multiWhere.path){
     for(const descriptor of standaloneBloomDescriptors(multiWhere.path,true)){
       const loop=descriptor.loop,cap=loop.capability;
-      if((loop.kind==='rowid'&&cap?.rowidEquality&&(cap.rowidEquality.operator==='eq'||cap.rowidEquality.operator==='is'))||(loop.kind==='index'&&cap&&cap.physicalIndex?.fields.slice(0,cap.nEq).every(field=>field.column!==null)&&cap.nSkip===0&&!cap.lower&&!cap.upper&&!cap.inSeekScan&&cap.equalitySlots.every(slot=>slot!==null&&(slot.operator==='eq'||slot.operator==='is'||slot.operator==='in'))))
+      if((loop.kind==='rowid'&&cap?.rowidEquality&&(cap.rowidEquality.operator==='eq'||cap.rowidEquality.operator==='is'))||(loop.kind==='index'&&cap&&cap.physicalIndex?.fields.slice(0,cap.nEq).every(field=>field.column!==null)&&!cap.lower&&!cap.upper&&!cap.inSeekScan&&cap.equalitySlots.every(slot=>slot===null||slot.operator==='eq'||slot.operator==='is'||slot.operator==='in')))
         bloomLevels.set(loop.sourceOrdinal,{register:allocate(),bytes:descriptor.bytes});
     }
   }
@@ -4839,10 +4839,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       const at=compilePredicate(term.expression);if(at!==undefined)failures.push(at);
     }
     bloomBuildSource=undefined;
-    const equality=selected.capability!.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
-    const count=selected.kind==='rowid'?1:equality.length,first=range(count);
+    const count=selected.kind==='rowid'?1:selected.capability!.nEq,first=range(count);
     if(selected.kind==='rowid')ops.push({code:'Rowid',p1:cursorFor(source),p2:first});
-    else equality.forEach((_,i)=>{
+    else Array.from({length:count}).forEach((_,i)=>{
+      // sqlite3ConstructBloomFilter hashes all nEq fields, including the
+      // skipped prefix. The local probe supplies that positioned prefix.
       const column=selected.capability!.physicalIndex!.fields[i]!.column!,index=source.table.columns.indexOf(column);
       if(isIntegerPrimaryKeyAlias(source.table,index))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
       else ops.push({code:'Column',p1:index,p2:first+i,p3:cursorFor(source)});
@@ -4852,12 +4853,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     ops.push({code:'Next',p1:cursorFor(source),p2:top});
     (ops[rewind] as {p2:number}).p2=ops.length;
   };
-  const emitBloomProbe=(ordinal:number,level:number,readyMask:bigint,keys?:readonly number[],affinities?:readonly MemAffinity[]):void=>{
+  const emitBloomProbe=(ordinal:number,level:number,readyMask:bigint,keys?:readonly number[],affinities?:readonly MemAffinity[],skippedKeys:readonly number[]=[]):void=>{
     const bloom=bloomLevels.get(ordinal),loop=selectedBySource.get(ordinal)!;
     if(!bloom||consumedBloom.has(ordinal))return;
     const cap=loop.capability!;
     const slots=loop.kind==='rowid'?[cap.rowidEquality!]:cap.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
-    const first=range(slots.length);
+    const first=range(skippedKeys.length+slots.length);
+    skippedKeys.forEach((key,i)=>ops.push({code:'Copy',p1:key,p2:first+i}));
     slots.forEach((slot,i)=>{
       let value=keys?.[i];
       if(value===undefined){
@@ -4873,16 +4875,16 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         const affinity=affinities?.[i]??(comparison?.kind==='comparison'?comparison.affinity:'blob');
         ops.push({code:'Affinity',p1:value,affinity});
       }
-      ops.push({code:'Copy',p1:value,p2:first+i});
+      ops.push({code:'Copy',p1:value,p2:first+skippedKeys.length+i});
     });
     startNullGuards.push({at:ops.length,level});
-    ops.push({code:'Filter',p1:bloom.register,p2:0,p3:first,p4:slots.length,probeCursor:indexCursors.get(ordinal)??cursorFor(expanded.sources[ordinal]!)});
+    ops.push({code:'Filter',p1:bloom.register,p2:0,p3:first,p4:skippedKeys.length+slots.length,probeCursor:indexCursors.get(ordinal)??cursorFor(expanded.sources[ordinal]!)});
     consumedBloom.add(ordinal);
     // filterPullDown borrows the initiating continuation only while emitting
     // each ready later filter. It does not change the later seek's break label.
     for(const later of loopOrdinals.slice(level+1)){
       const next=selectedBySource.get(later)!;
-      if(bloomPullDownEligible(later)&&builtBloom.has(later)&&(next.prereq&~readyMask)===0n)emitBloomProbe(later,level,readyMask);
+      if(!next.capability?.nSkip&&bloomPullDownEligible(later)&&builtBloom.has(later)&&(next.prereq&~readyMask)===0n)emitBloomProbe(later,level,readyMask);
     }
   };
   for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){const nullPass=nullPasses.get(level)!;ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!},{code:'Integer',p1:0n,p2:nullPass});}const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;
@@ -5017,7 +5019,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // codeAllEqualityTerms: SRT_Set already applied SELECT-IN affinity.
       // Seek and equality-prefix termination share this no-op slot vector.
       const affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
-      emitBloomProbe(loopOrdinals[level]!,level,readyMask,keys,affinities);
+      emitBloomProbe(loopOrdinals[level]!,level,readyMask,keys,affinities,skippedKeys);
       const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
       rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);
     }else ops.push(indexCursor===undefined&&!(source.table.kind==='table'&&source.table.withoutRowid)?{code:capability?.reverse?'Last':'Rewind',p1:scanCursor,p2:0}:{code:capability?.reverse?'IndexLast':'IndexRewind',p1:scanCursor,p2:0});

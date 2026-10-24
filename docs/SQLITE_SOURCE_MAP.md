@@ -8,7 +8,12 @@ exclusions → `vdbe.ts` local Bloom enrollment and `bloomPullDownEligible`.
 `emitBloomProbe` next-IN/outer fixup (NULL equality remains level exit).
 Independent native capture/actual public SQL regression:
 `docs/research/where-bloom-boundaries-{native.py,real.mjs}`; bounded evidence and
-remaining constructed-filter skip/frame obligations: [boundary research](research/where-autoindex-boundary.md).
+remaining frame obligations: [boundary research](research/where-autoindex-boundary.md).
+`whereLoopAddBtreeIndex`/`whereCheckIfBloomFilterIsUseful` nSkip equality now maps
+to descriptor enrollment; `sqlite3ConstructBloomFilter` all-nEq physical-field
+build and `filterPullDown` nSkip consumer skip map to vdbe build/probe owners.
+The two-skip boundary asserts local build Once controls and positioned
+probes separated by the first authoritative seek, with native/public rows.
 The boundary drivers also map actual range nSkip>0/no-filter selection and
 mixed inner/local-LEFT two-Once/separate-continuation execution to native EQP,
 EXPLAIN and public typed rows. Range skip does not cover filterPullDown's nSkip
