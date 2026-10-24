@@ -26,8 +26,12 @@ budget, with paused-await/failing-callback controls. Explicit arena cursor scrat
 and MakeRecord conversion overlap now have shared scratch live/highwater;
 packed output register ownership has separate record live/highwater through
 replacement/consume/halt. These are admitted deterministic units, not all VM Mem
-or JS storage: unclassified internal arena reservations, ordinary register copies,
-all-consumer capacity and exhaustive lifetime obligations remain open.
+or JS storage. Ordinary register owned TEXT/BLOB backing now shares admission
+and live/highwater Mem observation, with copy/borrow/move/replacement and
+halt/error/reset/finalize controls (`private-demand-observation.test.mjs`). Detached
+temporaries, scalar slots, aggregate/rowset internals and encoding/adopt producer
+allocation overlap remain outside that proof. Unclassified internal arena
+reservations, all-consumer capacity and exhaustive lifetime remain open.
 This is partial author repair, not full placement acceptance.
 
 Production-private snapshots now distinguish fresh executions and retained program
@@ -57,7 +61,7 @@ with a live real survivor. Collision-probe pointer-array damage across index
 backing pages errors; untraversed page-one signature damage preserves native
 rows. This is not isolated selected-child/offpath-subtree coverage. Physical packed backing-page live/highwater observations
 now cover partial opens, concurrent arenas and actual automatic progress/halt;
-scratch/Mem highwater remain missing. Actual byte
+full scratch/Mem completeness remains open as qualified above. Actual byte
 capacity H−1/H/H+1 now includes the combined auto/Bloom/sorter/scratch owner
 and separately the standalone filter/sorter owner;
 independently live SQL survivor remains excluded and unchanged. The same schedules separately cover maxEntries and maxKeyBytes with other

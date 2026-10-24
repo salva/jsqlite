@@ -96,8 +96,16 @@ ownership through replacement/consume/halt. `vdbe.c:OP_MakeRecord` retains nativ
 output Mem; TS retains immutable packed register storage with old/new overlap,
 not native buffer reuse parity. `private-demand-observation.test.mjs` covers
 non-payload scratch, rejected admission, subset overlap and actual VM record
-replacement/halt. Unclassified arena reservations and ordinary VM Mem remain
-outside these category observations; full resource acceptance remains open.
+replacement/halt. `vdbe.c:OP_Copy`, `vdbemem.c:sqlite3VdbeMemSetStr`,
+Deephemeralize/release map to optional register-owned admission in `mem.ts`
+(set/copy/snapshot/writeable/move/drop) and VDBE execution-owner register factories.
+The same regression covers actual String→Copy capacity64 and H−1/H/H+1,
+borrow versus owned copies, move/numeric refund, reset/finalize and independent
+live statement survival. Live/highwater Mem backing excludes scalar slots,
+bindings, detached temporaries and aggregate/rowset internals; encoding/adopt
+producer allocation overlap remains unproved. Unclassified arena reservations
+and all-consumer resource acceptance remain open. Evidence: [[card:card-s-j-c]]
+status (accepted red evidence v28 and subsequent repair evidence).
 Reset retains release totals
 until next execution entry installs a fresh budget owner; VM continuation tests
 check distinct execution owners, balanced cleanup and paused independent budgets.

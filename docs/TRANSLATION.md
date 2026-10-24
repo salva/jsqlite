@@ -573,9 +573,16 @@ overlap, including payload scratch as a subset (not a second aggregate charge).
 `recordBytes`/`recordHighwaterBytes` separately track packed MakeRecord register
 ownership through replacement, insertion consumption and halt. Admission still
 precedes allocation; failed admission changes no counters. These are deterministic
-admitted units, not a count of all live VM Mem or JS temporaries. Arena-internal
-unclassified reservations and ordinary register copies remain to be inventoried;
-all-consumer capacity and full Mem acceptance are still open. Owner regression
+admitted units, not a count of all live VM Mem or JS temporaries. Ordinary VM
+register owned TEXT/BLOB backing now uses the same execution owner and reports
+`memBytes`/`memHighwaterBytes`: copy/set admission precedes backing allocation,
+borrowed/static bytes retain their producer owner, move transfers ownership, and
+numeric replacement/reset/error/halt/finalize refund owned backing. Scalar slots,
+bindings, detached temporary Mem and aggregate/rowset internals are not counted
+by this category. Encoding/adopt paths admit at publication (their producer
+allocation still needs separate overlap inventory). Unclassified arena leases and
+staging, temporary/conversion allocation completeness and all-consumer capacity
+remain open; this is not native heap parity or full Mem acceptance. Owner regression
 and evidence: `test/value/private-demand-observation.test.mjs`,
 [[card:card-s-j-c]] status.
 Ordinary two-physical-rowid INNER/LEFT SQL now enrolls native-costed automatic candidates and lowers selected descriptors to shared packed build/probe/covering execution. Independent standalone Bloom is enrolled for ordinary rowid INNER/CROSS persistent equality loops, including deeper-ready construction/pull-down. IPK standalone equality is now enrolled: build hashes Rowid, probe uses MustBeInt's no-match continuation before Filter and authoritative SeekRowid. Wider continuation consumers and finite safety/observation acceptance remain unfinished; see [[card:card-s-j-c]] status for exact current evidence.

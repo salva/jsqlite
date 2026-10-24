@@ -6,6 +6,38 @@ import {KeyInfo} from '../../src/internal/comparison.ts';
 import {Mem} from '../../src/internal/mem.ts';
 import {VdbeStatement} from '../../src/internal/vdbe.ts';
 
+test('ordinary VM String/Copy bytes share admission and refund on every exit',async()=>{
+ const program=(n,maxBytes)=>({encoding:'utf-8',registers:3,parameters:[],columns:[{name:'x'}],maxWorkUnits:1000000,maxResultBytes:100000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes},ops:[
+  {code:'String',p1:'x'.repeat(n),p2:1},{code:'Copy',p1:1,p2:2},
+  {code:'ResultRow',p1:2,p2:1},{code:'Halt'}]});
+ const statement=(n,limit)=>new VdbeStatement(program(n,limit),()=>{},()=>()=>{},()=>{});
+ for(const n of [0,4096])for(const cap of [64,2*n-1,2*n,2*n+1].filter((x,i,a)=>x>=0&&a.indexOf(x)===i)){
+  const s=statement(n,cap);
+  try{
+   if(cap<2*n){await assert.rejects(s.step(),error=>error.kind==='limit');assert.equal(s.privateAccounting().ownedBytes,0);await assert.rejects(s.step(),error=>error.kind==='limit');}
+   else {assert.equal(await s.step(),'row');const live=s.privateAccounting();assert.ok(live.executedOps.includes('Copy'));assert.equal(live.memBytes,2*n);assert.equal(live.ownedBytes,2*n);assert.equal(live.memHighwaterBytes,2*n);assert.equal(await s.step(),'done');assert.equal(s.privateAccounting().memBytes,0);assert.equal(live.memBytes,2*n);}
+  }finally{if(cap<2*n)assert.throws(()=>s.finalize());else s.finalize()}
+ }
+ const survivor=statement(4096,8192),other=statement(4096,64);
+ try{assert.equal(await survivor.step(),'row');const live=survivor.privateAccounting();await assert.rejects(other.step());assert.deepEqual(survivor.privateAccounting(),live);assert.equal(await survivor.step(),'done');assert.equal(survivor.privateAccounting().ownedBytes,0)}finally{assert.throws(()=>other.finalize());survivor.finalize()}
+ const reset=statement(4096,8192);try{assert.equal(await reset.step(),'row');reset.reset();assert.equal(reset.privateAccounting().ownedBytes,0);assert.equal(await reset.step(),'row')}finally{reset.finalize()}assert.equal(reset.privateAccounting().ownedBytes,0);
+});
+
+test('Mem copy, borrow, move and numeric replacement preserve backing ownership',()=>{
+ const budget=new PrivateStateByteBudget(100),a=new Mem(()=>budget),b=new Mem(()=>budget),borrow=new Mem(()=>budget);
+ try{
+  a.setText(new Uint8Array([49,50]),'utf-8');assert.equal(budget.snapshot().memBytes,2);
+  borrow.shallowCopyFrom(a);assert.equal(budget.snapshot().memBytes,2);
+  borrow.makeWriteable();assert.equal(budget.snapshot().memBytes,4);
+  b.moveFrom(a);assert.equal(budget.snapshot().memBytes,4);
+  b.applyAffinity('numeric','utf-8');assert.equal(budget.snapshot().memBytes,2);
+  borrow.setInt64(1n);assert.equal(budget.snapshot().memBytes,0);
+  a.setBlob(new Uint8Array([7]),{zeroTail:3});b.copyFrom(a);assert.equal(budget.snapshot().memBytes,5);
+  assert.deepEqual([...b.blobValue()],[7,0,0,0]);
+ }finally{a.release();b.release();borrow.release()}
+ assert.equal(budget.snapshot().ownedBytes,0);
+});
+
 test('MakeRecord replacement and halt preserve distinct record ownership',async()=>{
  const program={encoding:'utf-8',registers:3,parameters:[],columns:[{name:'n'}],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:10000},ops:[
   {code:'Integer',p1:7n,p2:1},{code:'MakeRecord',p1:1,p2:1,p3:2},

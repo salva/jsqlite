@@ -25,6 +25,9 @@ export class PrivateStateByteBudget {
   #packedPages=0; #packedPagesHighwater=0;
   #payloadScratchBytes=0; #payloadScratchHighwaterBytes=0;
   #scratchBytes=0; #scratchHighwaterBytes=0;
+  #memBytes=0; #memHighwaterBytes=0;
+  reserveMem(bytes:number):void{this.reserve(bytes);this.#memBytes+=bytes;this.#memHighwaterBytes=Math.max(this.#memHighwaterBytes,this.#memBytes)}
+  releaseMem(bytes:number):void{this.release(bytes);this.#memBytes-=bytes}
   #recordBytes=0; #recordHighwaterBytes=0;
   /** Admitted cursor/conversion scratch, including payload copies. Not all JS temporaries or VM Mem. */
   reserveScratch(bytes:number):void{this.reserve(bytes);this.#scratchBytes+=bytes;this.#scratchHighwaterBytes=Math.max(this.#scratchHighwaterBytes,this.#scratchBytes)}
@@ -40,7 +43,7 @@ export class PrivateStateByteBudget {
   releasePackedPages(count:number):void{this.#packedPages-=count}
   /** Max per-cursor policy demand; only byte ownership is aggregate. */
   observeDemand(entries:number,keyBytes=0):void{this.#entryDemand=Math.max(this.#entryDemand,entries);this.#keyDemand=Math.max(this.#keyDemand,keyBytes)}
-  snapshot(){return Object.freeze({scratchBytes:this.#scratchBytes,scratchHighwaterBytes:this.#scratchHighwaterBytes,recordBytes:this.#recordBytes,recordHighwaterBytes:this.#recordHighwaterBytes,payloadScratchBytes:this.#payloadScratchBytes,payloadScratchHighwaterBytes:this.#payloadScratchHighwaterBytes,packedPages:this.#packedPages,packedPagesHighwater:this.#packedPagesHighwater,highwaterEntries:this.#entryDemand,highwaterKeyBytes:this.#keyDemand,ownerId:this.ownerId,chargedBytes:this.#charged,refundedBytes:this.#refunded,ownedBytes:this.#used,highwaterBytes:this.#highwater})}
+  snapshot(){return Object.freeze({memBytes:this.#memBytes,memHighwaterBytes:this.#memHighwaterBytes,scratchBytes:this.#scratchBytes,scratchHighwaterBytes:this.#scratchHighwaterBytes,recordBytes:this.#recordBytes,recordHighwaterBytes:this.#recordHighwaterBytes,payloadScratchBytes:this.#payloadScratchBytes,payloadScratchHighwaterBytes:this.#payloadScratchHighwaterBytes,packedPages:this.#packedPages,packedPagesHighwater:this.#packedPagesHighwater,highwaterEntries:this.#entryDemand,highwaterKeyBytes:this.#keyDemand,ownerId:this.ownerId,chargedBytes:this.#charged,refundedBytes:this.#refunded,ownedBytes:this.#used,highwaterBytes:this.#highwater})}
   constructor(maxBytes:number){this.maxBytes=maxBytes}
   reserve(bytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(bytes)||bytes<0)throw new Error("invalid private-state byte reservation");if(this.#used+bytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=bytes;this.#charged+=bytes;this.#highwater=Math.max(this.#highwater,this.#used)}
   replace(oldBytes:number,newBytes:number,message="private state exceeds total byte limit"):void{if(!Number.isSafeInteger(oldBytes)||!Number.isSafeInteger(newBytes)||oldBytes<0||newBytes<0||oldBytes>this.#used)throw new Error("invalid private-state byte replacement");if(this.#used-oldBytes+newBytes>this.maxBytes)throw new PrivateStateLimitError(message);this.#used+=newBytes-oldBytes;this.#charged+=newBytes;this.#refunded+=oldBytes;this.#highwater=Math.max(this.#highwater,this.#used)}

@@ -9778,7 +9778,7 @@ export class VdbeStatement implements Statement {
   readonly recompile:((bindings:readonly Mem[],check:()=>void)=>Program)|undefined;
   constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void, recompile?: (bindings:readonly Mem[],check:()=>void)=>Program) {
     this.recompile=recompile;this.#program = finalizeJsonColumnReads(program); this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
-    this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem());
+    this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem(()=>this.#privateBytes));
     this.#bindings = program.parameters.map(() => new Mem());
     this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
     this.#inverseAggregates = new Set(program.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
@@ -9817,7 +9817,7 @@ export class VdbeStatement implements Statement {
         if(!this.recompile)throw new JSQLiteError("internal","missing saved preparation context");
         const replacement=this.recompile(this.#bindings,()=>{this.#checkControl(options,limit,started);this.#work++;});
         if(replacement.parameters.length!==this.#bindings.length)throw new JSQLiteError("internal","reprepare parameter count changed");
-        const registers=Array.from({length:replacement.registers+1},()=>new Mem());
+        const registers=Array.from({length:replacement.registers+1},()=>new Mem(()=>this.#privateBytes));
         this.#halt();for(const value of this.#registers)value.release();
         this.#program=finalizeJsonColumnReads(replacement);this.#registers=registers;this.#pc=0;this.#expired=false;
         this.#inverseAggregates=new Set(replacement.ops.filter((op):op is Extract<Op,{code:"AggInverse"}>=>op.code==="AggInverse").map(op=>op.p2));
@@ -10586,6 +10586,7 @@ export class VdbeStatement implements Statement {
     this.#filters.clear();
     for(const cursor of this.#privateCursors.values())try{cursor.close()}catch(error){if(diagnostic===null)diagnostic=error}
     this.#privateCursors.clear();for(const register of this.#registers)if(register.rowSet())try{register.setNull()}catch(error){if(diagnostic===null)diagnostic=error}for(const set of this.#inSets.values()){for(const value of set.values)value.release();this.#privateBytes.release(set.bytes);}this.#inSets.clear();this.#borrow.invalidate();
+    for(const register of this.#registers)try{register.release()}catch(error){if(diagnostic===null)diagnostic=error}
     return diagnostic;
   }
   #assertLive(): void { if (this.#state === "finalized") misuse("statement is finalized"); }

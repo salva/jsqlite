@@ -330,7 +330,25 @@ export function sqliteQuoteReal(value: number): string {
   return sqliteNumberText({ kind: "real", value });
 }
 
+interface MemByteOwner { reserveMem(bytes:number):void; releaseMem(bytes:number):void }
 export class Mem {
+  readonly #budget: (() => MemByteOwner) | undefined;
+  #byteOwner: MemByteOwner | null = null;
+  #byteCharge = 0;
+  constructor(budget?: () => MemByteOwner) { this.#budget=budget; }
+  /** Owned register backing is admitted before allocation. Borrowed/static
+   * storage retains its original owner; replacement overlaps old/new bytes. */
+  #ownBytes(size:number, build:()=>BytesState):void {
+    const owner=this.#budget?.();owner?.reserveMem(size);
+    let state:BytesState;
+    try { state=build(); } catch(error) { owner?.releaseMem(size);throw error; }
+    this.#releaseBytes();this.#bytes=state;
+    this.#byteOwner=owner??null;this.#byteCharge=owner?size:0;
+  }
+  #releaseBytes():void {
+    this.#byteOwner?.releaseMem(this.#byteCharge);
+    this.#byteOwner=null;this.#byteCharge=0;
+  }
   #manifest: MemManifest = "null";
   #numeric: Numeric | null = null;
   #bytes: BytesState | null = null;
@@ -348,6 +366,7 @@ export class Mem {
   }
   #drop(runCleanup = true): void {
     this.#generation.invalidate();
+    this.#releaseBytes();
     // vdbemem.c clears dynamic ownership to MEM_Null after xDel. C xDel
     // cannot throw; detach first so a TS cleanup exception cannot retain an
     // already-destroyed owner or repeat its destructor on reset.
@@ -384,14 +403,14 @@ export class Mem {
   adoptText(bytes: Uint8Array, encoding: DatabaseEncoding): void {
     checkedLength(bytes.byteLength, undefined);
     this.#drop(); this.#manifest = "text";
-    this.#bytes = { kind:"text",bytes,encoding,ownership:"owned",terminated:false,zeroTail:0 };
+    this.#ownBytes(bytes.length,()=>({ kind:"text",bytes,encoding,ownership:"owned",terminated:false,zeroTail:0 }));
   }
   /** Private SQLITE_DYNAMIC BLOB handoff. Caller relinquishes every mutable
    * alias to the backing allocation; public setBlob keeps copying its input. */
   adoptBlob(bytes: Uint8Array, encoding: DatabaseEncoding = "utf-8"): void {
     checkedLength(bytes.byteLength, undefined);
     this.#drop(); this.#manifest = "blob";
-    this.#bytes = { kind:"blob",bytes,encoding,ownership:"owned",terminated:false,zeroTail:0 };
+    this.#ownBytes(bytes.length,()=>({ kind:"blob",bytes,encoding,ownership:"owned",terminated:false,zeroTail:0 }));
   }
   setBlob(bytes: Uint8Array, options: SetBytesOptions = {}): void {
     this.#setBytes("blob", bytes, options.encoding ?? "utf-8", options);
@@ -404,8 +423,8 @@ export class Mem {
     const token = tokenOf(options.lifetime);
     if (ownership === "borrowed" && token === undefined) throw new MemError("invalid-state", "borrowed bytes require a lifetime");
     this.#drop(); this.#manifest = kind;
-    this.#bytes = { kind, bytes: ownership === "owned" ? copyBytes(bytes) : bytes, encoding,
-      terminated: options.terminated ?? false, ownership, ...(token === undefined ? {} : { token }), zeroTail };
+    this.#ownBytes(ownership === "owned" ? bytes.byteLength : 0, () => ({ kind, bytes: ownership === "owned" ? copyBytes(bytes) : bytes, encoding,
+      terminated: options.terminated ?? false, ownership, ...(token === undefined ? {} : { token }), zeroTail }));
   }
   setRowSet(rowset: RowSet): void { this.#drop(); this.#manifest = "rowset"; this.#rowset = rowset; }
   rowSet(): RowSet | null { return this.#rowset; }
@@ -454,6 +473,7 @@ export class Mem {
   }
   #replaceWithNumeric(numeric: Numeric): void {
     this.#generation.invalidate();
+    this.#releaseBytes();
     this.#bytes = null;
     this.#aggregate = null;
     this.#clearedNull = false;
@@ -463,8 +483,8 @@ export class Mem {
   }
   #forceByteType(kind: "text" | "blob", encoding: DatabaseEncoding): void {
     const state = this.#checkedBytes();
-    const bytes = state.zeroTail === 0 ? state.bytes : this.blobValue();
-    this.#bytes = { ...state, kind, bytes, encoding, zeroTail: 0 };
+    if(state.zeroTail!==0)this.#ownBytes(state.bytes.length+state.zeroTail,()=>({ ...state, kind, bytes:this.blobValue(), encoding, ownership:'owned', zeroTail:0 }));
+    else this.#bytes = { ...state, kind, encoding, zeroTail: 0 };
     this.#numeric = null;
     this.#manifest = kind;
     // MemSetTypeFlag leaves subtype and FromBind outside MEM_TypeMask.
@@ -491,7 +511,7 @@ export class Mem {
     const bytes = encodeSqliteString(sqliteNumberText(this.#numeric), "utf-8");
     checkedLength(bytes.byteLength, limits.maxLength);
     this.#generation.invalidate();
-    this.#bytes = { kind: "text", bytes, encoding: "utf-8", terminated: true, ownership: "owned", zeroTail: 0 };
+    this.#ownBytes(bytes.length,()=>({ kind: "text", bytes, encoding: "utf-8", terminated: true, ownership: "owned", zeroTail: 0 }));
     this.#subtype = null;
     this.#fromBind = false;
     if (force) { this.#numeric = null; this.#manifest = "text"; }
@@ -513,7 +533,7 @@ export class Mem {
     }
     checkedLength(bytes.byteLength, limits.maxLength);
     this.#generation.invalidate();
-    this.#bytes = { kind: "text", bytes, encoding, terminated: true, ownership: "owned", zeroTail: 0 };
+    this.#ownBytes(bytes.length,()=>({ kind: "text", bytes, encoding, terminated: true, ownership: "owned", zeroTail: 0 }));
   }
   /** MakeRecord's transient conversion admission, predicted without mutation.
    * vdbe.c applies affinity before serialization. JS numeric scanners build a
@@ -691,9 +711,8 @@ export class Mem {
   makeWriteable(): void {
     const state = this.#checkedBytes();
     if (state.ownership !== "owned" || state.zeroTail !== 0) {
-      const bytes = state.kind === "blob" ? this.blobValue() : copyBytes(state.bytes);
       const { token: _token, ...withoutToken } = state;
-      this.#bytes = { ...withoutToken, bytes, ownership: "owned", zeroTail: 0 };
+      this.#ownBytes(state.bytes.length+state.zeroTail,()=>({ ...withoutToken, bytes: state.kind === "blob" && state.zeroTail!==0 ? this.blobValue() : copyBytes(state.bytes), ownership: "owned", zeroTail: 0 }));
     }
   }
   shallowCopyFrom(source: Mem, ownership: "borrowed" | "static" = "borrowed"): void {
@@ -719,7 +738,7 @@ export class Mem {
     if (source.#bytes) {
       source.#checkedBytes();
       const { token: _token, ...withoutToken } = source.#bytes;
-      this.#bytes = { ...withoutToken, bytes: source.#bytes.kind === "blob" ? source.blobValue() : copyBytes(source.#bytes.bytes), ownership: "owned", zeroTail: 0 };
+      this.#ownBytes(source.#bytes.bytes.length+source.#bytes.zeroTail, () => ({ ...withoutToken, bytes: source.#bytes!.kind === "blob" && source.#bytes!.zeroTail!==0 ? source.blobValue() : copyBytes(source.#bytes!.bytes), ownership: "owned", zeroTail: 0 }));
     }
   }
   /** Private async consumers need a nonyielding owned snapshot. Probe must not
@@ -729,19 +748,24 @@ export class Mem {
     if(source.#manifest==="rowset"||source.#manifest==="aggregate")throw new MemError("invalid-state","special state cannot be copied");
     const state=source.#bytes?source.#checkedBytes():null;
     probe(1+(source.#numeric?8:0));
-    let bytes:Uint8Array|null=null;
-    if(state){
-      bytes=new Uint8Array(state.bytes.length+state.zeroTail);
-      for(let offset=0;offset<bytes.length;offset+=4096){const end=Math.min(offset+4096,bytes.length);probe(end-offset);bytes.set(state.bytes.subarray(offset,Math.min(end,state.bytes.length)),offset)}
-    }
     this.#drop();this.#manifest=source.#manifest;this.#numeric=source.#numeric;this.#subtype=source.#subtype;
     this.#fromBind=source.#fromBind;this.#clearedNull=source.#clearedNull;
-    if(state&&bytes){const {token:_token,...rest}=state;this.#bytes={...rest,bytes,ownership:"owned",zeroTail:0}}
+    if(state){const {token:_token,...rest}=state;this.#ownBytes(state.bytes.length+state.zeroTail,()=>{
+      const bytes=new Uint8Array(state.bytes.length+state.zeroTail);
+      for(let offset=0;offset<bytes.length;offset+=4096){const end=Math.min(offset+4096,bytes.length);probe(end-offset);bytes.set(state.bytes.subarray(offset,Math.min(end,state.bytes.length)),offset)}
+      return {...rest,bytes,ownership:"owned",zeroTail:0};
+    });}
   }
   moveFrom(source: Mem): void {
     if (source === this) return;
-    source.#bytes?.token?.assertValid(); this.#drop();
+    source.#bytes?.token?.assertValid();
+    const target=this.#budget?.();
+    const charge=source.#bytes?.ownership==='owned'?source.#bytes.bytes.length:0;
+    if(target!==source.#byteOwner)target?.reserveMem(charge);
+    this.#drop();
     this.#manifest = source.#manifest; this.#numeric = source.#numeric; this.#bytes = source.#bytes;
+    if(target===source.#byteOwner){this.#byteOwner=source.#byteOwner;this.#byteCharge=source.#byteCharge;source.#byteOwner=null;source.#byteCharge=0;}
+    else {this.#byteOwner=target??null;this.#byteCharge=target?charge:0;}
     this.#subtype = source.#subtype; this.#aggregate = source.#aggregate; this.#rowset = source.#rowset; this.#fromBind = source.#fromBind; this.#clearedNull = source.#clearedNull;
     source.#aggregate = null; source.#rowset = null; source.#drop(false); source.#manifest = "null";
   }

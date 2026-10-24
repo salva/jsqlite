@@ -10,7 +10,7 @@ test('shared byte owner records only successful transfers and preserves survivor
  assert.throws(()=>a.reserve(41),PrivateStateLimitError);assert.deepEqual(a.snapshot(),retained);
  assert.throws(()=>a.replace(10,51),PrivateStateLimitError);assert.deepEqual(a.snapshot(),retained);
  a.replace(30,50);a.release(80);
- assert.deepEqual(a.snapshot(),{scratchBytes:0,scratchHighwaterBytes:0,recordBytes:0,recordHighwaterBytes:0,payloadScratchBytes:0,payloadScratchHighwaterBytes:0,packedPages:0,packedPagesHighwater:0,highwaterEntries:0,highwaterKeyBytes:0,ownerId:a.ownerId,chargedBytes:110,refundedBytes:110,ownedBytes:0,highwaterBytes:80});
+ assert.deepEqual(a.snapshot(),{memBytes:0,memHighwaterBytes:0,scratchBytes:0,scratchHighwaterBytes:0,recordBytes:0,recordHighwaterBytes:0,payloadScratchBytes:0,payloadScratchHighwaterBytes:0,packedPages:0,packedPagesHighwater:0,highwaterEntries:0,highwaterKeyBytes:0,ownerId:a.ownerId,chargedBytes:110,refundedBytes:110,ownedBytes:0,highwaterBytes:80});
  assert.equal(retained.ownedBytes,60);assert.deepEqual(b.snapshot(),survivor);
  b.release(19);assert.equal(b.snapshot().ownedBytes,0);
 });
