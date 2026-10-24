@@ -1,5 +1,13 @@
 ## Automatic covering-index and independent standalone Bloom consumers (author repair)
 
+Current standalone persistent-index lowering now groups deeper ready builds under
+one Once and consumes their filters before the initiating seek, with its absent/
+NULL continuation; dependent RHS remains local. Pinned three-source independent/
+dependent receipts now have actual public execution and structural placement
+assertions in `where-autoindex-baseline.mjs` (current [[card:card-s-j-c]] status).
+This supersedes the two-source-only implementation boundary, not the unfinished
+IPK/MustBeInt, IN/outer/frame, scratch/Mem, exhaustive lifetime and WR/FULL gates.
+
 Production-private snapshots now distinguish fresh executions and retained program
 identity across reset, with immutable detached observations. Reprepare retains the
 execution and replaces the program identity; these are realm-local diagnostics,

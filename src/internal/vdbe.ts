@@ -1980,7 +1980,7 @@ export function programMembershipStorage(program:Program):readonly Readonly<{cur
 }
 export function programControlTargets(program:Program):readonly Readonly<{index:number;code:string;target:number;targetCode:string|undefined}>[]{
   return Object.freeze(program.ops.flatMap((op,index)=>{
-    const target=op.code==="IfPos"||op.code==="DecrJumpZero"||op.code==="Once"||op.code==="Gosub"||op.code==="InitCoroutine"||op.code==="Yield"||op.code==="EndCoroutine"?op.p2:undefined;
+    const target=op.code==="Filter"||op.code==="IfPos"||op.code==="DecrJumpZero"||op.code==="Once"||op.code==="Gosub"||op.code==="InitCoroutine"||op.code==="Yield"||op.code==="EndCoroutine"?op.p2:undefined;
     return target===undefined?[]:[Object.freeze({index,code:op.code,target,targetCode:program.ops[target]?.code})];
   }));
 }
@@ -4492,10 +4492,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     }
   }
   // sqlite3ConstructBloomFilter is independent of automatic-index selection.
-  // Initially enroll only ordinary two-rowid equality-only SQL consumers:
-  // IN, outer and frame/drain continuations need their own lowering handoff.
+  // Enroll ordinary rowid equality-only SQL consumers; deeper ready levels
+  // share construction and pull-down below. IN, outer and frame/drain
+  // continuations still need their own lowering handoff.
   const bloomLevels=new Map<number,{register:number;bytes:number}>();
-  if(!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers&&expanded.sources.length===2&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid&&!source.joinFromLeft.left&&!source.joinFromLeft.right)&&multiWhere.path){
+  if(!owner?.rightJoinDrain&&!owner?.expressionBinding&&!owner?.consumeRow&&!owner?.sourceProducers&&expanded.sources.every(source=>source.table.kind==='table'&&!source.table.withoutRowid&&!source.joinFromLeft.left&&!source.joinFromLeft.right)&&multiWhere.path){
     for(const descriptor of standaloneBloomDescriptors(multiWhere.path,true)){
       const loop=descriptor.loop,cap=loop.capability;
       if(loop.kind==='index'&&cap&&cap.physicalIndex?.fields.slice(0,cap.nEq).every(field=>field.column!==null)&&cap.nSkip===0&&!cap.lower&&!cap.upper&&!cap.inSeekScan&&cap.equalitySlots.every(slot=>slot!==null&&(slot.operator==='eq'||slot.operator==='is')))
@@ -4818,6 +4819,30 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(body){for(const call of calls)(ops[call] as {p2:number}).p2=ops.length;body();ops.push({code:'Return',p1:returnRegister});(ops[exit] as {p2:number}).p2=ops.length;}
     return {exit,returnRegister,calls,covering,indexCursor:commonIndexCursor};
   };
+  const builtBloom=new Set<number>(),consumedBloom=new Set<number>();
+  const emitBloomBuild=(ordinal:number):void=>{
+    const source=expanded.sources[ordinal]!,selected=selectedBySource.get(ordinal)!,bloom=bloomLevels.get(ordinal)!;
+    builtBloom.add(ordinal);
+    ops.push({code:'FilterInit',p1:bloom.register,bytes:bloom.bytes});
+    const rewind=ops.length;ops.push({code:'Rewind',p1:cursorFor(source),p2:0});
+    const top=ops.length,failures:number[]=[];
+    bloomBuildSource=source;
+    for(const term of multiWhere.analysis.clause.terms)if(automaticIndexBuildPredicate(term,expanded,ordinal)){
+      const at=compilePredicate(term.expression);if(at!==undefined)failures.push(at);
+    }
+    bloomBuildSource=undefined;
+    const equality=selected.capability!.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
+    const first=range(equality.length),physical=selected.capability!.physicalIndex!;
+    equality.forEach((_,i)=>{
+      const column=physical.fields[i]!.column!,index=source.table.columns.indexOf(column);
+      if(isIntegerPrimaryKeyAlias(source.table,index))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
+      else ops.push({code:'Column',p1:index,p2:first+i,p3:cursorFor(source)});
+    });
+    ops.push({code:'FilterAdd',p1:bloom.register,p3:first,p4:equality.length});
+    for(const at of failures)(ops[at] as {p2:number}).p2=ops.length;
+    ops.push({code:'Next',p1:cursorFor(source),p2:top});
+    (ops[rewind] as {p2:number}).p2=ops.length;
+  };
   for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){const nullPass=nullPasses.get(level)!;ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!},{code:'Integer',p1:0n,p2:nullPass});}const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;
   const producer=owner?.sourceProducers?.get(source);
   if(producer?.materialize)ops.push({code:'Gosub',p1:producer.materialize.register,p2:producer.materialize.entry});
@@ -4881,29 +4906,15 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     singleRows[level]=false;
   }else {
   const bloom=bloomLevels.get(ordinal);
-  if(bloom){
-    // where.c: Once -> Blob -> Rewind -> source-local predicates ->
-    // key columns -> FilterAdd -> Next. No prepare-time scan or cache.
-    const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0},{code:'FilterInit',p1:bloom.register,bytes:bloom.bytes});
-    const rewind=ops.length;ops.push({code:'Rewind',p1:cursorFor(source),p2:0});
-    const top=ops.length,failures:number[]=[];
-    bloomBuildSource=source;
-    for(const term of multiWhere.analysis.clause.terms)if(automaticIndexBuildPredicate(term,expanded,ordinal)){
-      const at=compilePredicate(term.expression);if(at!==undefined)failures.push(at);
+  if(bloom&&!builtBloom.has(ordinal)){
+    // sqlite3ConstructBloomFilter groups ready later filters under this Once.
+    const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0});
+    emitBloomBuild(ordinal);
+    for(const later of loopOrdinals.slice(level+1)){
+      const loop=selectedBySource.get(later)!;
+      if(bloomLevels.has(later)&&!builtBloom.has(later)&&(loop.prereq&~readyMask)===0n)emitBloomBuild(later);
     }
-    bloomBuildSource=undefined;
-    const equality=selected!.capability!.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
-    const first=range(equality.length),physical=selected!.capability!.physicalIndex!;
-    equality.forEach((_,i)=>{
-      const column=physical.fields[i]!.column!;
-      const index=source.table.columns.indexOf(column);
-      if(isIntegerPrimaryKeyAlias(source.table,index))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
-      else ops.push({code:'Column',p1:index,p2:first+i,p3:cursorFor(source)});
-    });
-    ops.push({code:'FilterAdd',p1:bloom.register,p3:first,p4:equality.length});
-    for(const at of failures)(ops[at] as {p2:number}).p2=ops.length;
-    ops.push({code:'Next',p1:cursorFor(source),p2:top});
-    (ops[rewind] as {p2:number}).p2=ops.length;(ops[once] as {p2:number}).p2=ops.length;
+    (ops[once] as {p2:number}).p2=ops.length;
   }
   rewinds.push(ops.length);
   if(rowEq){const tree=resolveTree(expressionFromReduction(rowEq.term.expression.reduction!),rowEq.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
@@ -4964,7 +4975,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // codeAllEqualityTerms: SRT_Set already applied SELECT-IN affinity.
       // Seek and equality-prefix termination share this no-op slot vector.
       const affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
-      if(bloom){
+      if(bloom&&!consumedBloom.has(loopOrdinals[level]!)){
         // codeApplyAffinity precedes Filter on the live probe values. The
         // contiguous copies borrow those same coerced values; a present bit
         // still reaches the authoritative ordinary persistent seek.
@@ -4972,6 +4983,23 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         keys.forEach((key,i)=>ops.push({code:'Affinity',p1:key,affinity:affinities[i]!},{code:'Copy',p1:key,p2:first+i}));
         equalityNullGuards.push({at:ops.length,level});
         ops.push({code:'Filter',p1:bloom.register,p2:0,p3:first,p4:keys.length,probeCursor:indexCursor!});
+        // filterPullDown consumes only initialized later levels whose RHS is
+        // ready before this seek. Their failures use this level's continuation,
+        // not the later break label; no later duplicate Filter is emitted.
+        for(const later of loopOrdinals.slice(level+1)){
+          const laterBloom=bloomLevels.get(later),loop=selectedBySource.get(later)!;
+          if(!laterBloom||!builtBloom.has(later)||consumedBloom.has(later)||(loop.prereq&~readyMask)!==0n)continue;
+          const slots=loop.capability!.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null);
+          const first=range(slots.length);
+          slots.forEach((slot,i)=>{
+            const key=compileExpressionTree(bound(slot.term),ops,allocate,parameters,compileJoinSubquery);
+            if(slot.operator==='eq'){equalityNullGuards.push({at:ops.length,level});ops.push({code:'IsNull',p1:key,p2:0});}
+            ops.push({code:'Affinity',p1:key,affinity:slot.comparison.kind==='comparison'?slot.comparison.affinity:'blob'},{code:'Copy',p1:key,p2:first+i});
+          });
+          equalityNullGuards.push({at:ops.length,level});
+          ops.push({code:'Filter',p1:laterBloom.register,p2:0,p3:first,p4:slots.length,probeCursor:indexCursors.get(later)!});
+          consumedBloom.add(later);
+        }
       }
       const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
       rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);

@@ -282,6 +282,22 @@ Do not skip this fixture, replace native expectations, or infer runtime
 automatic-index/Bloom feature acceptance.
 See [[card:card-s-a-c]] current status for exact evidence and correction scope.
 
+## Current deeper-ready runtime placement evidence
+
+[[card:card-s-j-c]] extends the actual ordinary rowid persistent-index equality
+producer beyond two sources. Pinned `where.c:sqlite3ConstructBloomFilter` groups
+later ready builds under the initiating Once; `wherecode.c:filterPullDown`
+consumes initialized ready filters before its seek, clears their later use, and
+uses the initiating absent/NULL continuation. The independent three-source
+fixture now has two Filters before the first seek and one Once; dependent RHS
+has a local second Filter after the first seek and two Once blocks. The current
+baseline companion asserts these structures, shared early failure targets and
+public typed rows/five metadata fields, twice/all encodings plus NOT INDEXED.
+This is persistent-index equality placement, not IPK/MustBeInt/IN/outer/frame
+closure or full resource acceptance. Exact input/commands and failed targeting
+hypotheses are retained in current card status; prior captures remain native
+provenance, not authority for untested production paths.
+
 ## Remaining acceptance obligations
 
 Bounded new meaningful coverage is native absent-bit/collision plus semantic
