@@ -378,12 +378,28 @@ test('descriptor MakeRecord covering payload admission fails before FilterAdd an
   function owner(maxBytes){return new VdbeStatement({encoding,registers:9,parameters:[],columns:[{name:'phase'}],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes},ops},()=>{},()=>()=>{},()=>{});}
   // 10128 bytes are occupied by FilterInit. Reject a packed payload before
   // publication, rather than relying on a later Btree capacity failure.
-  const failed=owner(10128),survivor=owner(1000000);
+  // Preserve the original cap as an early input-admission negative: it
+  // cannot reach MakeRecord because FilterInit already owns all 10128 units.
+  const original=owner(10128);
+  try{
+   let primary;await assert.rejects(original.step(),e=>{primary=e;return e.kind==='limit'});
+   await assert.rejects(original.step(),e=>e===primary);
+   assert.throws(()=>original.reset(),e=>e===primary);
+  }finally{original.finalize();}
+  // Native MakeRecord retains live input registers. String('é') owns two
+  // UTF-8 bytes and Blob owns 6000; admit precisely those before probing
+  // packed-output rejection (conversion scratch is separately charged).
+  const failed=owner(10128+6002),survivor=owner(1000000);
   try{
    assert.equal(await survivor.step(),'row');assert.equal(survivor.column(0),0n);
    for(let run=0;run<2;run++){
     assert.equal(await failed.step(),'row');assert.equal(failed.column(0),0n);
     let primary;await assert.rejects(failed.step(),error=>{primary=error;return error.kind==='limit'});
+    const rejected=failed.privateAccounting();
+    assert.ok(rejected.executedOps.includes('MakeRecord'));
+    assert.ok(!rejected.executedOps.includes('FilterAdd'));
+    assert.ok(!rejected.executedOps.includes('OpenEphemeral'));
+    assert.equal(rejected.ownedBytes,0);assert.equal(rejected.chargedBytes,rejected.refundedBytes);
     await assert.rejects(failed.step(),error=>error===primary);
     assert.throws(()=>failed.reset(),error=>error===primary);
    }
@@ -411,9 +427,19 @@ test('descriptor MakeRecord exact admission separates conversion scratch and ret
    assert.equal(charge,6073);assert.equal(packRecord(fields,encoding).length,6009);
    assert.equal(scratch,encoding==='utf-8'?0:72);
   }finally{fields.forEach(v=>v.release());}
+  // Preserve both pre-register-accounting threshold formulas as negatives.
+  for(const oldCap of [10128+scratch+charge,10128+charge*2]){
+   const vm=new VdbeStatement({encoding,registers:9,parameters:[],columns:[],maxWorkUnits:100000,maxResultBytes:10000,privateStateLimits:{maxEntries:10,maxKeyBytes:10000,maxBytes:oldCap},ops:[
+    {code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},
+    {code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:1n,p2:2},{code:'Integer',p1:7n,p2:4},
+    {code:'MakeRecord',p1:1,p2:4,p3:5},{code:'MakeRecord',p1:1,p2:4,p3:5},{code:'Halt'}]},()=>{},()=>()=>{},()=>{});
+   try{let primary;await assert.rejects(vm.step(),e=>{primary=e;return e.kind==='limit'});assert.throws(()=>vm.reset(),e=>e===primary);}finally{vm.finalize();}
+  }
   // Same-output replacement allocates a new immutable byte array; unlike
   // native reusable Mem.zMalloc, old/new packed owners coexist until publish.
-  const replacementThreshold=10128+charge*2;
+  // String and Blob retain 6002 input bytes alongside both packed outputs.
+  const inputBytes=6002;
+  const replacementThreshold=10128+inputBytes+charge*2;
   for(const delta of [-1,0]){
    const ops=[{code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},
     {code:'Integer',p1:1n,p2:2},{code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:7n,p2:4},
@@ -429,7 +455,7 @@ test('descriptor MakeRecord exact admission separates conversion scratch and ret
    }}finally{vm.finalize();}
   }
   t.diagnostic(`${encoding}: same-output replacement threshold ${replacementThreshold}`);
-  const threshold=10128+scratch+charge;t.diagnostic(`${encoding}: threshold ${threshold}, scratch ${scratch}, retained ${charge}`);
+  const threshold=10128+inputBytes+scratch+charge;t.diagnostic(`${encoding}: threshold ${threshold}, scratch ${scratch}, retained ${charge}`);
   for(const delta of [-1,0]){
    const ops=[{code:'FilterInit',p1:8,bytes:10000},{code:'String',p1:'é',p2:1},
     {code:'Integer',p1:1n,p2:2},{code:'Blob',p1:new Uint8Array(6000),p2:3},{code:'Integer',p1:7n,p2:4},
@@ -725,7 +751,13 @@ test('compare affinity follows expression affinity, not literal storage class, i
 
 test('loop alternatives preserve exact admissions and are text-order invariant',()=>{const s=schema();for(const pair of [["t.a=u.a AND t.a='x'","t.a='x' AND t.a=u.a"],["t.a>u.a AND t.a>'m' AND t.a<'z'","t.a<'z' AND t.a>'m' AND t.a>u.a"]]){const selected=[];for(const predicates of pair){const r=resolve(`SELECT t.a FROM t JOIN t AS u ON 1 WHERE ${predicates}`,s),analysis=analyzeWhere(r),loops=btreeLoops(r.sources[0],0,analysis.clause,{forcedIndex:s.i,neededColumns:new Set([s.a]),orderBy:[]}),indexLoops=loops.filter(loop=>loop.kind==='index');assert.ok(indexLoops.length>=1);assert.ok(indexLoops.some(loop=>loop.prereq===0n));for(const loop of indexLoops)for(const admission of [...loop.capability.equalitySlots,loop.capability.lower,loop.capability.upper].filter(Boolean))assert.equal(admission.term,analysis.clause.terms[admission.term.id]);selected.push(planWhere(r,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]}).path.loops[0].prereq);}assert.deepEqual(selected,[0n,0n]);}const left=resolve("SELECT t.a FROM t LEFT JOIN t AS u ON t.a=u.a WHERE t.a='x'",s),lp=planWhere(left,{neededColumns:[new Set([s.a]),new Set()],orderBy:[]});assert.equal(lp.path.loops[0].prereq,0n);assert.equal(lp.path.loops[0].capability.equalitySlots[0].term.origin.kind,'where');});
 
-test('multi-source path order is conservatively zero despite local index order facts',()=>{const s=schema(),r=resolve('SELECT t.a FROM t JOIN t AS u ON 1',s),order=[{sourceOrdinal:1,column:s.a,descending:false,collation:'nocase'}],analysis=analyzeWhere(r),groups=r.sources.map((source,i)=>btreeLoops(source,i,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:order}));assert.ok(groups[1].some(loop=>loop.capability?.orderTermsSatisfied===1));const path=wherePathSolver(groups,2);assert.equal(path.orderTermsSatisfied,0);const reverse=[{sourceOrdinal:0,column:s.a,descending:true,collation:'nocase'},{sourceOrdinal:1,column:s.a,descending:false,collation:'nocase'}],rp=planWhere(r,{neededColumns:[new Set([s.a]),new Set([s.a])],orderBy:reverse}).path;assert.equal(rp.orderTermsSatisfied,0);assert.equal(rp.reverse===0n||rp.reverse!==0n,true);const single=resolve("SELECT a FROM t WHERE a='x'",s),sp=planWhere(single,{neededColumns:[new Set([s.a])],orderBy:[{sourceOrdinal:0,column:s.a,descending:true,collation:'nocase'}]}).path;assert.equal(sp.orderTermsSatisfied,1);});
+test('multi-source path retains only the proven outer order prefix',()=>{const s=schema(),r=resolve('SELECT t.a FROM t JOIN t AS u ON 1',s),order=[{sourceOrdinal:1,column:s.a,descending:false,collation:'nocase'}],analysis=analyzeWhere(r),groups=r.sources.map((source,i)=>btreeLoops(source,i,analysis.clause,{forcedIndex:null,neededColumns:new Set([s.a]),orderBy:order}));assert.ok(groups[1].some(loop=>loop.capability?.orderTermsSatisfied===1));const path=wherePathSolver(groups,2);assert.equal(path.orderTermsSatisfied,0);const reverse=[{sourceOrdinal:0,column:s.a,descending:true,collation:'nocase'},{sourceOrdinal:1,column:s.a,descending:false,collation:'nocase'}],rp=planWhere(r,{neededColumns:[new Set([s.a]),new Set([s.a])],orderBy:reverse}).path;
+ // wherePathSatisfiesOrderBy returns the matched prefix when the outer
+ // nonunique nullable key is not order-distinct. It cannot extend to u.a.
+ assert.equal(rp.orderTermsSatisfied,1);assert.ok(rp.orderTermsSatisfied<reverse.length);
+ const wrongCollation=reverse.map(term=>({...term,collation:'binary'}));
+ assert.equal(planWhere(r,{neededColumns:[new Set([s.a]),new Set([s.a])],orderBy:wrongCollation}).path.orderTermsSatisfied,0);
+ const single=resolve("SELECT a FROM t WHERE a='x'",s),sp=planWhere(single,{neededColumns:[new Set([s.a])],orderBy:[{sourceOrdinal:0,column:s.a,descending:true,collation:'nocase'}]}).path;assert.equal(sp.orderTermsSatisfied,1);});
 
 test('covering analysis retains non-index residual reads instead of projection-only narrowing',()=>{
   for(const encoding of ['utf-8','utf-16le','utf-16be']){

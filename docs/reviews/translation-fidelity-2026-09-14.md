@@ -1,3 +1,16 @@
+## W198 descriptor/joined quota observers (author evidence)
+
+On4b314d36, six reproduced two-file failures include omitted live input Mem
+charges in descriptor exact/replacement formulas, a zero-quota WR phase assertion
+that precedes selected access, and an obsolete blanket-zero joined-order
+expectation. Current controls retain original negatives, separately admit input
+backing, and retain matched outer prefix1 without claiming full two-term order;
+wrong-collation/inner-only controls still require0. WR tests measure whole-operation
+H, reject0/H−1, succeed at H twice, and distinguish independent TEXT recovery
+from same-connection numeric survival. This is observer reconciliation, not a
+public quota change or independent fidelity approval. Exact evidence and remaining
+obligations: [[card:card-s-c-d-e]] current status.
+
 ## Selected-IN register-boundary observer correction (author evidence)
 
 On base4ca2e8b, no-ephemeral reuse does not imply zero total private bytes:

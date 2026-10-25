@@ -113,15 +113,39 @@ for(const fixture of original.variants){
   const fresh=db.prepare(native.variants.find(v=>v.encoding===fixture.encoding).cases[1].sql).statement;
   fresh.bind(1,Uint8Array.of(255));assert.deepEqual(await rows(fresh),native.variants.find(v=>v.encoding===fixture.encoding).cases[1].runs[0].rows);fresh.finalize();
  }));
- test(`joined WR private-byte admission error before publication and cleanup ${fixture.encoding}`,async()=>withBytes(fs.readFileSync(fixture.fixture),async db=>{
-  const st=db.prepare("SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a").statement;
-  let error;await assert.rejects(st.step(),e=>{error=e;return e.kind==='limit'&&/byte limit/.test(e.message)});
-  assert.ok(privateAccounting(st).indexSeeks>0,'sorter admission follows selected joined access');
+ test(`joined WR private-byte admission error before publication and cleanup ${fixture.encoding}`,async()=>{
+  const bytes=fs.readFileSync(fixture.fixture);
+  const sql="SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a";
+  let peak,expected;
+  await withBytes(bytes,async db=>{
+   const st=db.prepare(sql).statement;
+   expected=await rows(st);peak=privateAccounting(st).highwaterBytes;
+   assert.ok(peak>0);assert.ok(privateAccounting(st).indexSeeks>0);
+   st.finalize();
+  });
+  for(const cap of [0,peak-1,peak])await withBytes(bytes,async db=>{
+  const st=db.prepare(sql).statement;
+  if(cap===peak){assert.deepEqual(await rows(st),expected);st.reset();assert.deepEqual(await rows(st),expected);st.finalize();return;}
+  let error;await assert.rejects(rows(st),e=>{error=e;return e.kind==='limit'&&/byte limit/.test(e.message)});
+  if(cap===0)assert.equal(privateAccounting(st).indexSeeks,0,'input backing rejects before selected access');
+  else assert.ok(privateAccounting(st).indexSeeks>0,'whole-operation peak follows selected joined access');
   await assert.rejects(st.step(),e=>e===error);assert.throws(()=>st.reset(),e=>e===error);
   let repeated;await assert.rejects(st.step(),e=>{repeated=e;return e.kind==='limit'});assert.throws(()=>st.finalize(),e=>e===repeated);
-  const fresh=db.prepare('SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a').statement;
-  assert.equal((await rows(fresh)).length,2);assert.ok(privateAccounting(fresh).indexNext>0);fresh.finalize();
- },{limits:{maxPrivateBytes:0}}));
+  const released=privateAccounting(st);
+  assert.equal(released.ownedBytes,0);assert.equal(released.memBytes,0);
+  assert.equal(released.recordBytes,0);assert.equal(released.scratchBytes,0);
+  assert.equal(released.chargedBytes,released.refundedBytes);
+  // Same connection remains usable even at zero quota for numeric output.
+  const survivor=db.prepare('SELECT 1').statement;
+  assert.deepEqual(await rows(survivor),[[{type:'integer',value:'1'}]]);survivor.finalize();
+  // The independent text-projection recovery has its own register demand;
+  // original zero quota cannot admit it merely because the failed owner closed.
+  await withBytes(bytes,async recovery=>{
+   const fresh=recovery.prepare('SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a').statement;
+   assert.equal((await rows(fresh)).length,2);assert.ok(privateAccounting(fresh).indexNext>0);fresh.finalize();
+  });
+ },{limits:{maxPrivateBytes:cap}});
+ });
 }
 
 // Operation work ceilings tighten (do not mutate) the prepared connection

@@ -23,6 +23,15 @@ without closing the diagnostic schema. [Ownership/source and pinned-path evidenc
 
 ### MakeRecord conversion and register ownership
 
+`vdbe.c:OP_MakeRecord` retains live input registers while producing output →
+`where-plan-analysis.test.mjs` descriptor input/filter/scratch/record accounting,
+original-cap negatives and below/exact replacement controls. Native
+`where.c:wherePathSatisfiesOrderBy` partial matched-prefix return → joined-order
+outer-prefix positive, inner-only and collation-mismatch negatives in that file.
+`without-rowid-joined.test.mjs` separates zero-quota input rejection from measured
+whole-operation H−1/H and reset/release controls. Revision-bound W198 evidence
+and outstanding independent acceptance: [[card:card-s-c-d-e]] current status.
+
 `vdbe.c:OP_Insert` retains packed input across `sqlite3BtreeInsert`; the bounded
 logical ephemeral carrier retains separate copied cells. `EphemeralIndexCursor.insert`
 sizes through existing `Mem.diagnostic().byteLength` (borrow-checked prefix+nZero,
