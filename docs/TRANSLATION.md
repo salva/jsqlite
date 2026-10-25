@@ -89,6 +89,12 @@ module projection, retaining positioned sourceRow payload and independent rowid.
 Finite typed/full-metadata and lifecycle author evidence, source comparison and
 remaining acceptance gates: [mixed Window correction](research/mixed-json-window/README.md).
 
+Shared FROM-backed aggregate subqueries use one inline destination/Once owner
+in `compileScalarSelect`, independently of grouped/ungrouped AggInfo production;
+GROUP BY without aggregate calls remains admitted. The preceding materialized
+aggregate specialization retains priority. This consolidates ownership, not an
+algorithm or public behavior change. [Source comparison and native/public controls](research/beta6-destination.md).
+
 Shared scalar aggregate expressions now dispatch to AggInfo by aggregate
 ownership throughout EList rather than only a root aggregate node. The metadata
 producer receives the linked argument carrier and positioned parent binding;

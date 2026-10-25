@@ -3946,29 +3946,10 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
         return destination;
       }
     }
-    // expr.c:sqlite3CodeSubselect calls sqlite3Select with the enclosing
-    // Parse/Vdbe. The no-GROUP accumulator writes its SRT destination here,
-    // rather than publishing a child Program for opcode relocation.
-    if(selectHasAggregate(nested)&&aggregateShapeSupported(nested)&&nested.from.items.length>=1&&!nested.hasGroupBy){
-      const destination=allocate(),isIn=expression.kind==="in-subquery";
-      const setCursor=isIn?selectProgramBuilder.cursor():-1;
-      if(isIn)resultOps.push({code:"OpenEphemeral",p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
-      else resultOps.push(expression.exists?{code:"Integer",p1:0n,p2:destination}:{code:"Null",p2:destination});
-      const once=allocate(),onceAt=resultOps.length;
-      resultOps.push({code:"Once",p1:once,p2:0});
-      // selectExpander enrolls retained SrcItem SELECT metadata before
-      // resolution. Preserve its producer for the aggregate coroutine owner;
-      // resolving against the catalog alone mistakes the alias for a table.
-      const linkedPlan=resolveTransientArm(nested,schema);
-      compileAggregateSelect(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,ops:resultOps,parameters,linkedPlan,destination:isIn?{kind:"set",cursor:setCursor,packedRegister:allocate()}:expression.exists?{kind:"exists",register:destination}:{kind:"mem",register:destination}});
-      (resultOps[onceAt] as {p2:number}).p2=resultOps.length;
-      if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);resultOps.push({code:"InSet",p1:setCursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
-      return destination;
-    }
-    // select.c:sqlite3Select's GROUP BY accumulator and selectInnerLoop
-    // share one Parse and SRT destination even for a bounded multi-source
-    // group. Do not relocate a completed grouped child into this caller.
-    if(aggregateShapeSupported(nested)&&nested.hasGroupBy&&nested.from.items.length>=1){
+    // expr.c:sqlite3CodeSubselect owns destination/Once in the enclosing
+    // Parse/Vdbe independently of select.c's grouped/ungrouped accumulator.
+    // GROUP BY without an aggregate call must retain the same destination.
+    if(aggregateShapeSupported(nested)&&nested.from.items.length>=1&&(nested.hasGroupBy||selectHasAggregate(nested))){
       const destination=allocate(),isIn=expression.kind==="in-subquery";
       const setCursor=isIn?selectProgramBuilder.cursor():-1;
       if(isIn)resultOps.push({code:"OpenEphemeral",p1:setCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});

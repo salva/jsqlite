@@ -1,0 +1,2475 @@
+{
+  "sourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "librarySha256": "b8ba542c98b52a3b7a8644f44d1dc0f9eb69488165c482f574753537b9543dea",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "sha256": "b204738929478585e65b6efa68506644d852252a9180447fadeb2ffccbd80160",
+      "cases": [
+        {
+          "sql": "SELECT (SELECT x FROM t GROUP BY x ORDER BY x DESC LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT x FROM t GROUP BY x) AS hit, 7 IN (SELECT x FROM t GROUP BY x) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT max(x) FROM t GROUP BY x%3 HAVING max(x)>?1 ORDER BY max(x) DESC LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT x FROM t WHERE x>?1 GROUP BY x HAVING x>0) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT sum(x) FROM t WHERE x>?1) AS v, EXISTS(SELECT sum(x) FROM t WHERE x>?1) AS hit, 7 IN (SELECT sum(x) FROM t WHERE x>?1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT max(x) FROM t WHERE 0) AS v, EXISTS(SELECT max(x) FROM t WHERE 0) AS hit, 7 NOT IN (SELECT max(x) FROM t WHERE 0) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT NULL FROM t GROUP BY x) AS v, NULL IN (SELECT x FROM t GROUP BY x) AS member, 7 NOT IN (SELECT NULL FROM t GROUP BY x) AS absent",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "absent",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT x FROM t WHERE x>?1 GROUP BY x LIMIT 1 OFFSET 99) AS v, EXISTS(SELECT x FROM t WHERE 0 GROUP BY x) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM (SELECT x FROM t) q WHERE x>?1) AS v",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT missing FROM t GROUP BY x) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT missing FROM t GROUP BY x) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "sha256": "53ff881f91a31c52f78b83a26da358748458a9c94ccbb75563afadd81a34de2c",
+      "cases": [
+        {
+          "sql": "SELECT (SELECT x FROM t GROUP BY x ORDER BY x DESC LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT x FROM t GROUP BY x) AS hit, 7 IN (SELECT x FROM t GROUP BY x) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT max(x) FROM t GROUP BY x%3 HAVING max(x)>?1 ORDER BY max(x) DESC LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT x FROM t WHERE x>?1 GROUP BY x HAVING x>0) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT sum(x) FROM t WHERE x>?1) AS v, EXISTS(SELECT sum(x) FROM t WHERE x>?1) AS hit, 7 IN (SELECT sum(x) FROM t WHERE x>?1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT max(x) FROM t WHERE 0) AS v, EXISTS(SELECT max(x) FROM t WHERE 0) AS hit, 7 NOT IN (SELECT max(x) FROM t WHERE 0) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT NULL FROM t GROUP BY x) AS v, NULL IN (SELECT x FROM t GROUP BY x) AS member, 7 NOT IN (SELECT NULL FROM t GROUP BY x) AS absent",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "absent",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT x FROM t WHERE x>?1 GROUP BY x LIMIT 1 OFFSET 99) AS v, EXISTS(SELECT x FROM t WHERE 0 GROUP BY x) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM (SELECT x FROM t) q WHERE x>?1) AS v",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT missing FROM t GROUP BY x) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT missing FROM t GROUP BY x) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "sha256": "7d60f087dd5871f73f2e1a6854a1059c3d2b76f898e5105f3a59c251913a7b44",
+      "cases": [
+        {
+          "sql": "SELECT (SELECT x FROM t GROUP BY x ORDER BY x DESC LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT x FROM t GROUP BY x) AS hit, 7 IN (SELECT x FROM t GROUP BY x) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT max(x) FROM t GROUP BY x%3 HAVING max(x)>?1 ORDER BY max(x) DESC LIMIT 1 OFFSET 1) AS v, EXISTS(SELECT x FROM t WHERE x>?1 GROUP BY x HAVING x>0) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT sum(x) FROM t WHERE x>?1) AS v, EXISTS(SELECT sum(x) FROM t WHERE x>?1) AS hit, 7 IN (SELECT sum(x) FROM t WHERE x>?1) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "3"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT max(x) FROM t WHERE 0) AS v, EXISTS(SELECT max(x) FROM t WHERE 0) AS hit, 7 NOT IN (SELECT max(x) FROM t WHERE 0) AS member",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT NULL FROM t GROUP BY x) AS v, NULL IN (SELECT x FROM t GROUP BY x) AS member, 7 NOT IN (SELECT NULL FROM t GROUP BY x) AS absent",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "member",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            },
+            {
+              "name": "absent",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "null",
+                    "value": null
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT x FROM t WHERE x>?1 GROUP BY x LIMIT 1 OFFSET 99) AS v, EXISTS(SELECT x FROM t WHERE 0 GROUP BY x) AS hit",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": "INTEGER",
+              "database": "main",
+              "table": "t",
+              "origin": "x"
+            },
+            {
+              "name": "hit",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "null",
+                    "value": null
+                  },
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT count(*) FROM (SELECT x FROM t) q WHERE x>?1) AS v",
+          "prepare": 0,
+          "metadata": [
+            {
+              "name": "v",
+              "declaredType": null,
+              "database": null,
+              "table": null,
+              "origin": null
+            }
+          ],
+          "runs": [
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": null,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 2,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            },
+            {
+              "binding": 7,
+              "rows": [
+                [
+                  {
+                    "type": "integer",
+                    "value": "0"
+                  }
+                ]
+              ],
+              "end": 101
+            }
+          ]
+        },
+        {
+          "sql": "SELECT (SELECT missing FROM t GROUP BY x) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        },
+        {
+          "sql": "SELECT EXISTS(SELECT missing FROM t GROUP BY x) AS invalid",
+          "prepare": 1,
+          "message": "no such column: missing"
+        }
+      ]
+    }
+  ]
+}

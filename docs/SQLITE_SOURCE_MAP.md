@@ -761,6 +761,13 @@ remaining acceptance gates: [mixed Window correction](research/mixed-json-window
 
 ## Shared scalar metadata admission
 
+`expr.c:sqlite3CodeSubselect` destination/Once initialization independent of
+`select.c:sqlite3Select` grouped/ungrouped production → `vdbe.ts:compileScalarSelect`
+shared FROM-backed aggregate-subquery inline destination body, including GROUP BY
+without aggregate calls. Existing materialized specialization remains first.
+Tests: `beta6-aggregate-subquery-destination.test.mjs` and existing grouped/scalar/
+aggregate/atomic destination controls. [Comparison and evidence](research/beta6-destination.md).
+
 `expr.c:sqlite3CodeSubselect` SRT_Mem and `select.c` aggregate ownership map to
 `resolvedScalarSubqueryEmitter`: aggregate EList expressions dispatch to AggInfo,
 not the physical planner. `pragma.c:pragmaVtabFilter` arguments use linked
