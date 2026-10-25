@@ -26,7 +26,14 @@ SourceID before these producers create outputs, prepares each selected producer
 once, overrides ambient capture roots, and inventories every generated file by
 hash. Producer failure leaves consumers explicitly not run. Original capture
 scripts remain the native semantic authority; enrollment is not a claim that
-all newly reached SQL/resource assertions pass.
+all newly reached SQL/resource assertions pass. The joined-ORDER consumer also
+requires a fresh pinned-native recapture equal to its committed corpus before
+execution; the runner records both commands and hashes the generated capture.
+Final integrity checks revalidate source inputs and every inventoried generated
+file; changed or missing files fail the invocation without rewriting consumer
+exits or classifications.
+The inventory control preserves the original 522 and 527 ordered inventories
+and explicitly enrolls the subsequent joined-ORDER addition.
 
 ### JSON5 value-name and label admission
 

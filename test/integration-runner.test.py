@@ -2,24 +2,72 @@ import importlib.util, os, pathlib, sys, unittest, signal
 spec=importlib.util.spec_from_file_location('runner','tools/test/integration.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 class Runner(unittest.TestCase):
+ def generated_capture_drift(self, action):
+  import subprocess,tempfile,json,hashlib,shutil
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:
+   self.skipTest('INTEGRATION_TEST_ORACLE required for real capture integrity control')
+  # Retain actual CLI manifests and shim for diagnosis of a failed control.
+  root=pathlib.Path(tempfile.mkdtemp(prefix='generated-'+action+'-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']))
+  binary=root/'bin';binary.mkdir()
+  node=shutil.which('node')
+  self.assertIsNotNone(node)
+  shim=binary/'node'
+  shim.write_text('#!'+sys.executable+'\n'+
+   'import os,pathlib,sys\n'+
+   'if sys.argv[1:]==["--version"]: os.execv('+repr(node)+',["node","--version"])\n'+
+   'p=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/"joined-order-boundary-native.json"\n'+
+   ('p.write_text("{}")\n' if action=='mutate' else 'p.unlink()\n')+
+   'raise SystemExit(0)\n')
+  shim.chmod(0o755)
+  env=dict(os.environ,PATH=str(binary)+os.pathsep+os.environ['PATH'],SAIVAGE_CARD_WORK_ROOT=str(root/'run'),PYTHONDONTWRITEBYTECODE='1')
+  file='test/conformance/joined-order-boundary.test.mjs'
+  corpus=pathlib.Path('test/conformance/cases/joined-order-boundary-native.json')
+  expected=hashlib.sha256(corpus.read_bytes()).hexdigest()
+  result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,file],env=env,capture_output=True,text=True,timeout=300)
+  report=json.loads((root/'run/integration-run/manifest.json').read_text())
+  self.assertEqual([r['exit'] for r in report['prerequisites']],[0,0])
+  self.assertEqual(report['generated_inputs'],{'joined-order-boundary-native.json':expected})
+  self.assertEqual([r['exit'] for r in report['results']],[0])
+  self.assertEqual([r['classification'] for r in report['results']],['completed'])
+  self.assertEqual(report['not_run'],[])
+  self.assertEqual(hashlib.sha256(corpus.read_bytes()).hexdigest(),expected)
+  capture=root/'run/joined-order-boundary-native.json'
+  if action=='mutate':
+   self.assertNotEqual(hashlib.sha256(capture.read_bytes()).hexdigest(),expected)
+  else:
+   self.assertFalse(capture.exists())
+  self.assertEqual(result.returncode,1,str(root)+': '+result.stdout+result.stderr)
+  self.assertIn(str(capture),report['input_drift'])
+
+ def test_generated_capture_mutation_fails_actual_cli(self):
+  self.generated_capture_drift('mutate')
+
+ def test_generated_capture_deletion_fails_actual_cli(self):
+  self.generated_capture_drift('delete')
+
  def test_enrolled_fixture_union(self):
   root=pathlib.Path('/purpose/enrolled');library=root/'oracle.so'
   files=runner.discover_files(pathlib.Path.cwd())
   import hashlib
   # Frozen newline-delimited ordered inventories: 9c84706 baseline and
-  # 574085e current integration input. Preserve old coverage and exact additions.
+  # 574085e Window union, plus the explicit 87eebff joined ORDER addition.
   additions={f'test/conformance/{name}.test.mjs' for name in (
    'window-concat-straccum','window-extrema-application','window-extrema-cleanup',
    'window-extrema-lifecycle','window-extrema-native')}
   digest=lambda paths:hashlib.sha256(('\n'.join(paths)+'\n').encode()).hexdigest()
-  self.assertEqual(len(files),527)
+  joined='test/conformance/joined-order-boundary.test.mjs'
+  self.assertIn(joined,files)
+  original=[file for file in files if file!=joined]
+  self.assertEqual(len(files),528)
   self.assertEqual(len(files),len(set(files)))
   self.assertEqual(files,sorted(files))
   self.assertEqual(set(files)&additions,additions)
-  baseline=[file for file in files if file not in additions]
+  baseline=[file for file in original if file not in additions]
   self.assertEqual(len(baseline),522)
   self.assertEqual(digest(baseline),'de85e908c9cfc6946db7ba2e764aa7199e55746112a6984ee4b425b7c522aa8a')
-  self.assertEqual(digest(files),'67590671a15752ca9a41091bb09a4c19936b93219ce7806d8b3c3163ab9200e2')
+  self.assertEqual(len(original),527)
+  self.assertEqual(digest(original),'67590671a15752ca9a41091bb09a4c19936b93219ce7806d8b3c3163ab9200e2')
   selected=runner.selected_fixture_keys(files)
   self.assertEqual(set(selected),set(runner.SELECT_FIXTURES))
   plan=runner.prerequisite_commands(files,library,root)
@@ -27,6 +75,52 @@ class Runner(unittest.TestCase):
    self.assertEqual(plan.count(runner.select_fixture_command(key,library,root)),1,key)
   expected=sorted({str(p) for pattern in ('test/conformance/*.test.mjs','test/conformance/run-*-ts.mjs','test/storage/*.test.mjs','test/parser/*.test.mjs') for p in pathlib.Path('.').glob(pattern)})
   self.assertEqual(files,expected)
+
+ def test_joined_order_recapture_and_compare(self):
+  import subprocess,tempfile,json
+  file='test/conformance/joined-order-boundary.test.mjs'
+  with tempfile.TemporaryDirectory(prefix='joined-order-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory)
+   plan=runner.prerequisite_commands([file,file],root/'oracle.so',root)
+   self.assertEqual(len(plan),2)
+   target=root/'joined-order-boundary-native.json'
+   self.assertEqual(plan[0],['python3','test/conformance/capture-joined-order-boundary.py','--library',str(root/'oracle.so'),'--output',str(target)])
+   corpus=pathlib.Path(plan[1][-1])
+   target.write_bytes(corpus.read_bytes())
+   self.assertEqual(subprocess.run(plan[1],capture_output=True,timeout=10).returncode,0)
+   target.write_text('{}')
+   rejected=subprocess.run(plan[1],capture_output=True,text=True,timeout=10)
+   self.assertNotEqual(rejected.returncode,0)
+   self.assertIn('native corpus mismatch',rejected.stderr)
+   wrong=root/'wrong.so';wrong.write_bytes(b'not a library')
+   env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(root/'failed-cli'),PYTHONDONTWRITEBYTECODE='1')
+   failed=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',str(wrong),file],env=env,capture_output=True,text=True,timeout=30)
+   self.assertEqual(failed.returncode,1,failed.stdout+failed.stderr)
+   report=json.loads((root/'failed-cli/integration-run/manifest.json').read_text())
+   self.assertEqual(report['not_run'],[file])
+   self.assertEqual(report['results'],[])
+   self.assertEqual(len(report['prerequisites']),1)
+   self.assertNotEqual(report['prerequisites'][0]['exit'],0)
+   self.assertFalse((root/'failed-cli/joined-order-boundary-native.json').exists())
+   library=os.environ.get('INTEGRATION_TEST_ORACLE')
+   if library:
+    command=runner.prerequisite_commands([file],pathlib.Path(library),root)[0]
+    subprocess.run(command,check=True,timeout=180)
+    subprocess.run(plan[1],check=True,timeout=10)
+    # Exercise the actual reporting boundary, not only the command builder.
+    env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(root/'cli'),PYTHONDONTWRITEBYTECODE='1')
+    result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,file],env=env,capture_output=True,text=True,timeout=300)
+    self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+    report=json.loads((root/'cli/integration-run/manifest.json').read_text())
+    import hashlib
+    captured=root/'cli/joined-order-boundary-native.json'
+    expected=hashlib.sha256(corpus.read_bytes()).hexdigest()
+    self.assertEqual(hashlib.sha256(captured.read_bytes()).hexdigest(),expected)
+    self.assertEqual(report['generated_inputs'],{captured.name:expected})
+    self.assertEqual([r['exit'] for r in report['prerequisites']],[0,0])
+    self.assertEqual(report['not_run'],[])
+    self.assertEqual(report['input_drift'],[])
+    self.assertEqual([r['exit'] for r in report['results']],[0])
 
  def test_enrollment_wrong_identity_stops_before_outputs(self):
   import subprocess,tempfile,json

@@ -66,6 +66,19 @@ def select_fixture_command(key, library, work_root):
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    if 'test/conformance/joined-order-boundary.test.mjs' in files:
+        # Recapture without overwriting the committed consumer corpus.
+        target = str(work_root/'joined-order-boundary-native.json')
+        commands.extend([
+            ['python3', 'test/conformance/capture-joined-order-boundary.py',
+             '--library', str(library), '--output', target],
+            ['python3', '-c',
+             "import json,pathlib,sys; "
+             "actual=json.loads(pathlib.Path(sys.argv[1]).read_text()); "
+             "expected=json.loads(pathlib.Path(sys.argv[2]).read_text()); "
+             "assert actual==expected,'joined ORDER native corpus mismatch'",
+             target, 'test/conformance/cases/joined-order-boundary-native.json'],
+        ])
     selected_keys = selected_fixture_keys(files)
     if selected_keys:
         # Several original producers mkdir before loading SQLite. Authenticate
@@ -292,6 +305,9 @@ def main():
             for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native', 'covered-deferred-native', *(SELECT_FIXTURES[key][0] for key in selected_fixture_keys(files)))
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
+        if 'test/conformance/joined-order-boundary.test.mjs' in files:
+            capture = work_root/'joined-order-boundary-native.json'
+            report['generated_inputs'][capture.name] = hashlib.sha256(capture.read_bytes()).hexdigest()
         save()
     # Emit once sequentially before concurrent demo units launch a browser.
     # Direct units use the same owner; installed-demo roots are never rebuilt.
@@ -303,6 +319,11 @@ def main():
     run_batches(files, work, work_root, env, args.watchdog_seconds,
                 args.batch_size, args.batch_seconds, report, save)
     report['input_drift'] = [f for f,h in hashes.items() if not pathlib.Path(f).is_file() or hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()!=h]
+    # Generated paths are relative to the invocation work root, unlike source
+    # inputs. Preserve actual component results; drift fails the aggregate.
+    report['input_drift'].extend(
+        str(work_root/f) for f,h in report.get('generated_inputs', {}).items()
+        if not (work_root/f).is_file() or hashlib.sha256((work_root/f).read_bytes()).hexdigest()!=h)
     save()
     return int(bool(report['input_drift']) or bool(report['not_run']) or any(r['classification']!='completed' for r in report['results']))
 
