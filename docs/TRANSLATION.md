@@ -460,7 +460,11 @@ operation addresses, register ranges, cursor allocation and labels, correspondin
 to `Parse.nMem/nTab` and one Vdbe. Parameters and `SelectDest` flow into selected
 producers. A specialized branch may decline **before emission**; after selection
 its error propagates, not a catch-and-try fallback. Enclosing entry publishes
-operations and Halt. Shared destination emission covers output, scalar Mem,
+operations and Halt. RIGHT-interior boundary verification uses read-only explicit
+address visitation, not completed-program relocation or cloned operations; caller
+exemptions, intentional stops, owning Return chains and deferred label validation
+remain with the producer ([source comparison and controls](research/right-control-visitor.md)).
+Shared destination emission covers output, scalar Mem,
 EXISTS, set, sorter, ephemeral, coroutine and represented aggregate-expression
 consumers. Legitimate algorithm-specific schedules remain; accepted migration
 does not mean all semantic analysis or specialization has been translated.

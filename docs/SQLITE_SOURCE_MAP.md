@@ -1010,6 +1010,13 @@ remain required. WITHOUT ROWID primary layouts are not ordinary rowid roots.
 
 ## SELECT resolution and construction
 
+`vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn` (995ff), called by
+`wherecode.c:codeRIGHTJOIN` (2864), maps to `vdbe.ts:visitControlTargets` and
+`compileInnerTableSelect`'s deferred `validateRightInterior`, with
+`select-program.ts:reachesOwningReturn`. Address inspection is read-only; producer
+exemptions and first-error timing remain unchanged. Direct family/sentinel/order
+and public RIGHT/FULL controls: [source comparison](research/right-control-visitor.md).
+
 | Pinned owners | Current TS path | Tests/evidence |
 |---|---|---|
 | `tokenize.c:sqlite3GetToken`, `parse.y`, generated Lemon parser, `prepare.c` tail/error flow | [tokenize.ts](../src/internal/tokenize.ts), [parse.ts](../src/internal/parse.ts), [lemon-runtime.ts](../src/internal/lemon-runtime.ts), [admission.ts](../src/internal/admission.ts) | [test/parser](../test/parser/); prior guide “Stage 3 parser and schema representation decision”; [[card:card-e]] |

@@ -253,12 +253,12 @@ type Op =
   | { readonly code: "ResultRow"; readonly p1: number; readonly p2: number }
   | { readonly code: "Halt" };
 
-/** Relocate every instruction-address field when a complete Program is embedded.
+/** Visit instruction addresses without rewriting the operation.
  * Most p2 fields are registers, columns, roots, or cursors, so address-bearing
  * variants stay explicit. Coroutine p2 zero is a sentinel; ordinary target zero
- * is the first child instruction and must be relocated.
+ * is an address. The RIGHT verifier owns exemptions and boundary checks.
  */
-function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
+function visitControlTargets(original:Op,target:(pc:number)=>void):void {
   switch(original.code){
     case "Goto":case "Once":case "Gosub":case "RowSetTest":case "JsonTableRewind":case "JsonTableNext":case "MetadataFilter":case "MetadataNext":
     case "SorterNext":case "EphemeralRewind":case "EphemeralNext":
@@ -266,27 +266,25 @@ function relocateControlTargets(original:Op,target:(pc:number)=>number):Op {
     case "SeekRowid":case "SeekRowidRange":case "RowidUpperBound":case "RowidLowerBound":
     case "IndexRewind":case "IndexLast":case "InListValue":case "IndexIfNoHope":case "IndexSeekPrefix":case "IndexPrefixEnd":
     case "Filter":case "IndexRangeEnd":case "IsNull":case "IfNot":case "Next":case "Prev":case "IndexNext":case "IndexPrev":
-      return {...original,p2:target(original.p2)} as Op;
+      target(original.p2);return;
     case "MustBeInt":
-      return original.p2?{...original,p2:target(original.p2)}:original;
+      if(original.p2)target(original.p2);return;
     case "CompareJump":
-      return {...original,less:target(original.less),equal:target(original.equal),greater:target(original.greater)};
+      target(original.less);target(original.equal);target(original.greater);return;
     case "InitCoroutine":
-      return {...original,p2:original.p2===0?0:target(original.p2),p3:target(original.p3)};
+      if(original.p2!==0)target(original.p2);target(original.p3);return;
     case "Yield":case "EndCoroutine":
-      return {...original,p2:original.p2===0?0:target(original.p2)};
+      if(original.p2!==0)target(original.p2);return;
     case "SorterSort":
-      return {...original,emptyJump:target(original.emptyJump)};
+      target(original.emptyJump);return;
     case "PriorityShift":case "FifoShift":
-      return {...original,emptyJump:target(original.emptyJump)};
+      target(original.emptyJump);return;
     case "EphemeralPeekNextData":
-      return {...original,emptyJump:target(original.emptyJump)};
+      target(original.emptyJump);return;
     case "EphemeralAdvanceData":
-      return original.emptyJump===undefined?original:{...original,emptyJump:target(original.emptyJump)};
+      if(original.emptyJump!==undefined)target(original.emptyJump);return;
     default:
-      return "jump" in original&&typeof original.jump==="number"
-        ? {...original,jump:target(original.jump)} as Op
-        : original;
+      if("jump" in original&&typeof original.jump==="number")target(original.jump);
   }
 }
 export interface ParameterDescriptor { readonly name: string | null }
@@ -5281,7 +5279,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     for(let at=right.body.entry;at<=right.body.continue;at++){
       const op=ops[at]!;
       if(op.code==='Gosub'||op.code==='Yield'||op.code==='EndCoroutine')continue;
-      relocateControlTargets(op,target=>{
+      visitControlTargets(op,target=>{
         if(target>=right.body.entry&&target<=right.body.continue)return target;
         // LIMIT/scalar destination stop is deliberate producer termination,
         // not a loop continuation. NoJumpsOutsideSubrtn is verification only.
