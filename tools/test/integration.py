@@ -18,9 +18,65 @@ COMPOUND_FIXTURES = {
 }
 
 
+# Exact consumer ownership; dependencies precede their corruption captures.
+# Each tuple is (output directory, capture script, argv style, flags, consumers).
+SELECT_FIXTURES = {
+ 'CORRELATED_IN_CORRUPTION_DIR': ('correlated-corruption','capture-correlated-in-corruption.py','options',(),('correlated-in-corruption',)),
+ 'CORRELATED_IN_WORK_DIR': ('correlated-work','capture-correlated-in-work.py','options',(),('correlated-in-work','correlated-in-work-utf16le','correlated-in-work-utf16be')),
+ 'COMMON_CHECKPOINT_OUTPUT': ('derived-aggregate','derived-order-limit-aggregate-native.py','environment',(),('derived-order-limit-aggregate','derived-aggregate-resources')),
+ 'RETAINED_GROUP_EXTENDED': ('retained-group','retained-group-native.py','environment',(),('retained-group-native-public','retained-group-resources')),
+ 'DERIVED_SELECTED_IN_DIR': ('derived-selected-in','capture-derived-selected-in.py','options',('--nested',),('derived-selected-in',)),
+ 'GROUPED_SELECTED_IN_DIR': ('grouped-selected-in','capture-derived-selected-in.py','options',('--grouped',),('grouped-selected-in',)),
+ 'RETAINED_LIMIT_SELECTED_IN_DIR': ('retained-limit-selected-in','capture-derived-selected-in.py','options',('--retained-limit',),('retained-limit-selected-in',)),
+ 'SELECT_IN_R1_MATRIX_DIR': ('r1-matrix','capture-selected-in-r1-matrix.py','options',(),('selected-in-r1-matrix','selected-correlated-in-lifecycle')),
+ 'SELECT_IN_NATIVE_DIR': ('select-in-native','capture-selected-select-in.py','positional',(),('selected-select-in-affinity','selected-select-in-errors','selected-select-in-lifecycle','selected-select-in-null-prefix','selected-select-in-red','where-in-linked-producer')),
+ 'SELECT_IN_EARLYOUT_DIR': ('select-in-earlyout','capture-select-in-earlyout.py','positional',(),('selected-select-in-earlyout',)),
+ 'SELECT_IN_VECTOR_DIR': ('vector-red','capture-selected-vector-in.py','options',(),('selected-vector-in',)),
+ 'SELECT_IN_REUSE_DIR': ('select-in-reuse','capture-select-in-reuse.py','options',(),('selected-select-in-reuse',)),
+ 'SELECT_IN_REUSE_MATRIX_DIR': ('select-in-reuse-matrix','capture-select-in-reuse-matrix.py','options',(),('selected-select-in-reuse-matrix','selected-select-in-persistent-errors')),
+ 'SELECT_IN_CORRELATED_DIR': ('correlated-red','capture-selected-correlated-in.py','options',(),('selected-correlated-in',)),
+ 'SELECT_IN_CORRUPTION_DIR': ('select-in-corruption','capture-select-in-corruption.py','SELECT_IN_NATIVE_DIR',(),('selected-select-in-errors',)),
+ 'SELECT_IN_PERSISTENT_CORRUPTION_DIR': ('select-in-persistent-corruption','capture-select-in-persistent-corruption.py','SELECT_IN_REUSE_MATRIX_DIR',(),('selected-select-in-persistent-errors',)),
+}
+
+
+def selected_fixture_keys(files):
+    names = {pathlib.Path(f).name for f in files}
+    return [key for key, (_, _, _, _, consumers) in SELECT_FIXTURES.items()
+            if any(name+'.test.mjs' in names for name in consumers)]
+
+
+def select_fixture_command(key, library, work_root):
+    output, script, style, flags, _ = SELECT_FIXTURES[key]
+    script = 'test/conformance/'+script
+    target = str(work_root/output)
+    if style == 'environment':
+        # These original producers both use COMMON_CHECKPOINT_OUTPUT. Give each
+        # its own subprocess environment, never mutate the consumer environment.
+        return ['python3', '-c',
+                "import os,runpy,sys; os.environ['COMMON_CHECKPOINT_OUTPUT']=sys.argv.pop(1); script=sys.argv.pop(1); sys.argv[0]=script; runpy.run_path(script,run_name='__main__')",
+                target, script, str(library)]
+    if style == 'options':
+        return ['python3', script, '--library', str(library), '--output', target, *flags]
+    if style == 'positional':
+        return ['python3', script, str(library), target]
+    return ['python3', script, str(library), str(work_root/SELECT_FIXTURES[style][0]), target]
+
+
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    selected_keys = selected_fixture_keys(files)
+    if selected_keys:
+        # Several original producers mkdir before loading SQLite. Authenticate
+        # both pin fields here before any of those producers can create output.
+        commands.append(['python3', '-c',
+            "import ctypes,json,pathlib,sys; lib=ctypes.CDLL(sys.argv[1]); "
+            "lib.sqlite3_sourceid.restype=ctypes.c_char_p; lib.sqlite3_libversion.restype=ctypes.c_char_p; "
+            "pin=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text()); "
+            "assert lib.sqlite3_sourceid().decode()==pin['sqliteSourceId'],lib.sqlite3_sourceid().decode(); "
+            "assert lib.sqlite3_libversion().decode()==pin['version']; print(pin['sqliteSourceId'])", str(library)])
+        commands.extend(select_fixture_command(key, library, work_root) for key in selected_keys)
     if 'test/conformance/covered-deferred.test.mjs' in files:
         commands.append(['python3', 'test/conformance/capture-covered-deferred.py',
                          '--library', str(library), '--output', str(work_root/'covered-deferred-native')])
@@ -212,6 +268,10 @@ def main():
         if file in files:
             # Planned fresh outputs override ambient roots, never a fallback.
             env[variable] = str(work_root/output)
+    # Fixture variables are invocation-owned, not ambient fallback inputs.
+    env = {k:v for k,v in env.items() if k not in SELECT_FIXTURES}
+    for key in selected_fixture_keys(files):
+        env[key] = str(work_root/SELECT_FIXTURES[key][0])
     if commands:
         if args.oracle_library:
             report['oracle_library'] = dict(path=str(library), sha256=hashlib.sha256(library.read_bytes()).hexdigest())
@@ -221,7 +281,7 @@ def main():
         # WR producer deliberately refuses to overwrite old fixtures.
         if any(pathlib.Path(f).name.startswith('skipscan-') for f in files):
             env['SKIPSCAN_NATIVE_ROOT'] = str(work_root/'skipscan-native')
-        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES','COVERED_DEFERRED_DIR') if k in env}
+        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES','COVERED_DEFERRED_DIR', *SELECT_FIXTURES) if k in env}
         for i, command in enumerate(commands):
             result = component(command, work/f'prerequisite-{i}.log', 180, env)
             report['prerequisites'].append(result); save()
@@ -229,7 +289,7 @@ def main():
                 report['not_run'] = files; save(); return 1
         report['generated_inputs'] = {
             str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native', 'covered-deferred-native')
+            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native', 'covered-deferred-native', *(SELECT_FIXTURES[key][0] for key in selected_fixture_keys(files)))
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
         save()

@@ -12,7 +12,14 @@ tail and proceeds to the next batch; any failure, timeout, unrun file or input
 drift makes the invocation fail. These are runner limits, not acceptable SQL
 latency or permission to weaken resource/abort assertions. Historical 30-second
 and 60-second failures retain their original status. Controls: `test/integration-runner.test.py`;
-current integration evidence: [[card:card-w]].
+current integration evidence: [[card:card-w]]. Selected-IN, retained-group and
+retained-derived consumers have exact producer/environment ownership in the
+runner's fixture table. The runner authenticates the pinned native version and
+SourceID before these producers create outputs, prepares each selected producer
+once, overrides ambient capture roots, and inventories every generated file by
+hash. Producer failure leaves consumers explicitly not run. Original capture
+scripts remain the native semantic authority; enrollment is not a claim that
+all newly reached SQL/resource assertions pass.
 
 ### JSON5 value-name and label admission
 

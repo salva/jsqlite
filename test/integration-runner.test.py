@@ -2,6 +2,90 @@ import importlib.util, os, pathlib, sys, unittest, signal
 spec=importlib.util.spec_from_file_location('runner','tools/test/integration.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 class Runner(unittest.TestCase):
+ def test_enrolled_fixture_union(self):
+  root=pathlib.Path('/purpose/enrolled');library=root/'oracle.so'
+  files=runner.discover_files(pathlib.Path.cwd())
+  import hashlib
+  # Frozen newline-delimited ordered inventories: 9c84706 baseline and
+  # 574085e current integration input. Preserve old coverage and exact additions.
+  additions={f'test/conformance/{name}.test.mjs' for name in (
+   'window-concat-straccum','window-extrema-application','window-extrema-cleanup',
+   'window-extrema-lifecycle','window-extrema-native')}
+  digest=lambda paths:hashlib.sha256(('\n'.join(paths)+'\n').encode()).hexdigest()
+  self.assertEqual(len(files),527)
+  self.assertEqual(len(files),len(set(files)))
+  self.assertEqual(files,sorted(files))
+  self.assertEqual(set(files)&additions,additions)
+  baseline=[file for file in files if file not in additions]
+  self.assertEqual(len(baseline),522)
+  self.assertEqual(digest(baseline),'de85e908c9cfc6946db7ba2e764aa7199e55746112a6984ee4b425b7c522aa8a')
+  self.assertEqual(digest(files),'67590671a15752ca9a41091bb09a4c19936b93219ce7806d8b3c3163ab9200e2')
+  selected=runner.selected_fixture_keys(files)
+  self.assertEqual(set(selected),set(runner.SELECT_FIXTURES))
+  plan=runner.prerequisite_commands(files,library,root)
+  for key in selected:
+   self.assertEqual(plan.count(runner.select_fixture_command(key,library,root)),1,key)
+  expected=sorted({str(p) for pattern in ('test/conformance/*.test.mjs','test/conformance/run-*-ts.mjs','test/storage/*.test.mjs','test/parser/*.test.mjs') for p in pathlib.Path('.').glob(pattern)})
+  self.assertEqual(files,expected)
+
+ def test_enrollment_wrong_identity_stops_before_outputs(self):
+  import subprocess,tempfile,json
+  files=['test/conformance/correlated-in-corruption.test.mjs','test/conformance/selected-select-in-persistent-errors.test.mjs']
+  with tempfile.TemporaryDirectory(prefix='enrollment-negative-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory);library=root/'wrong.so';library.write_bytes(b'control')
+   (root/'ctypes.py').write_text("c_char_p=object()\nclass Source:\n def __call__(self):return b'wrong-source'\nclass CDLL:\n def __init__(self,path):self.sqlite3_sourceid=Source();self.sqlite3_libversion=Source()\n")
+   env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',PYTHONPATH=str(root),SAIVAGE_CARD_WORK_ROOT=str(root/'run'),CORRELATED_IN_CORRUPTION_DIR='ambient',SELECT_IN_REUSE_MATRIX_DIR='ambient',SELECT_IN_NATIVE_DIR='unselected-ambient')
+   proc=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',str(library),*files],env=env,capture_output=True,text=True,timeout=15)
+   self.assertEqual(proc.returncode,1,proc.stdout+proc.stderr)
+   report=json.loads((root/'run/integration-run/manifest.json').read_text())
+   self.assertEqual(report['not_run'],files);self.assertEqual(report['results'],[])
+   self.assertEqual(len(report['prerequisites']),1)
+   self.assertIn('wrong-source',pathlib.Path(report['prerequisites'][0]['log']).read_text())
+   for key in runner.selected_fixture_keys(files):
+    self.assertEqual(report['fixture_environment'][key],str(root/'run'/runner.SELECT_FIXTURES[key][0]))
+    self.assertFalse((root/'run'/runner.SELECT_FIXTURES[key][0]).exists())
+   self.assertNotIn('SELECT_IN_NATIVE_DIR',report['fixture_environment'])
+
+ def test_enrolled_original_capture_argv(self):
+  root=pathlib.Path('/purpose/capture');lib=root/'oracle.so'
+  for key,script,flags in [
+   ('DERIVED_SELECTED_IN_DIR','capture-derived-selected-in.py',['--nested']),
+   ('GROUPED_SELECTED_IN_DIR','capture-derived-selected-in.py',['--grouped']),
+   ('RETAINED_LIMIT_SELECTED_IN_DIR','capture-derived-selected-in.py',['--retained-limit']),
+   ('SELECT_IN_R1_MATRIX_DIR','capture-selected-in-r1-matrix.py',[]),
+   ('SELECT_IN_REUSE_DIR','capture-select-in-reuse.py',[]),
+   ('SELECT_IN_VECTOR_DIR','capture-selected-vector-in.py',[]),
+   ('SELECT_IN_CORRELATED_DIR','capture-selected-correlated-in.py',[])]:
+   command=runner.select_fixture_command(key,lib,root)
+   self.assertEqual(command[:5],['python3','test/conformance/'+script,'--library',str(lib),'--output'])
+   self.assertEqual(command[6:],flags)
+  for key,source,script in [
+   ('SELECT_IN_CORRUPTION_DIR','SELECT_IN_NATIVE_DIR','capture-select-in-corruption.py'),
+   ('SELECT_IN_PERSISTENT_CORRUPTION_DIR','SELECT_IN_REUSE_MATRIX_DIR','capture-select-in-persistent-corruption.py')]:
+   self.assertEqual(runner.select_fixture_command(key,lib,root),['python3','test/conformance/'+script,str(lib),str(root/runner.SELECT_FIXTURES[source][0]),str(root/runner.SELECT_FIXTURES[key][0])])
+  self.assertEqual(runner.selected_fixture_keys(['test/conformance/not-selected-in.test.mjs']),[])
+
+ def test_real_capture_to_consumer_and_hash_inventory(self):
+  import subprocess,tempfile,json,hashlib
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('set INTEGRATION_TEST_ORACLE to the pinned dev library')
+  file='test/conformance/correlated-in-corruption.test.mjs'
+  with tempfile.TemporaryDirectory(prefix='enrollment-positive-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory)
+   env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1',SAIVAGE_CARD_WORK_ROOT=str(root),CORRELATED_IN_CORRUPTION_DIR='ambient-invalid',SELECT_IN_NATIVE_DIR='unselected-invalid')
+   proc=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,file,file],env=env,capture_output=True,text=True,timeout=120)
+   self.assertEqual(proc.returncode,0,proc.stdout+proc.stderr)
+   report=json.loads((root/'integration-run/manifest.json').read_text())
+   self.assertEqual(report['files'],[file,file]);self.assertEqual(report['not_run'],[])
+   self.assertEqual(len(report['prerequisites']),2) # one pin guard, one real capture
+   self.assertEqual([r['classification'] for r in report['results']],['completed','completed'])
+   self.assertEqual(report['fixture_environment']['CORRELATED_IN_CORRUPTION_DIR'],str(root/'correlated-corruption'))
+   self.assertNotIn('SELECT_IN_NATIVE_DIR',report['fixture_environment'])
+   expected={str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (root/'correlated-corruption').rglob('*') if p.is_file()}
+   self.assertEqual(report['generated_inputs'],expected)
+   self.assertEqual(len(expected),8) # three originals, three damaged images, two receipts
+   self.assertEqual(report['input_drift'],[])
+
  def test_rejects_invalid_jobs(self):
   import subprocess
   result=subprocess.run([sys.executable,'tools/test/integration.py','--jobs','0'],capture_output=True,text=True)
