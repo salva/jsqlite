@@ -2,6 +2,25 @@
 
 This document records bounded evidence; it is not a claim of whole-SQLite compatibility. The product scope is [`SPEC.md`](SPEC.md), sequencing is [`PLAN.md`](PLAN.md), the pinned source identity is [`reference/sqlite/manifest.json`](../reference/sqlite/manifest.json), and protocol/fixture rules are in [`oracle.md`](oracle.md). Counts below always state their denominator. Excluded and local/no-credit companions do not become upstream passes.
 
+## Bounded LIKE/GLOB prefix evidence
+
+`like-prefix-native-red.test.mjs` compares manifest-pinned native typed rows and
+five metadata fields for 14 queries per encoding, twice/reset, plus bound-pattern
+runs on one TS handle with rebind/clear. Independent native bound runs were
+separately prepared, not a native same-handle lifecycle capture. Unforced and
+forced LIKE/GLOB prefixes require positive selected seeks and <50 index advances;
+NOT INDEXED requires >=500 table advances. Escape, incomplete wildcard,
+no-prefix, collation mismatch, numeric safety, Unicode and LEFT ON controls are
+included. Selected/offpath corrupt-root and post-row cancel/timeout/work-limit
+controls check cleanup/reset and independent live-statement survival across all
+three encodings. The latter post-row controls do not establish interruption
+inside a range seek or the second pass. Primitive tests cover byte bounds and
+both String8 counter directions; SQL reverse/DESC coverage remains outstanding.
+No new upstream-suite credit or broad optimizer parity is claimed.
+Receipt: `test/conformance/cases/like-prefix-native.json`; current boundary:
+[guide](TRANSLATION.md#bounded-likeglob-prefix-ranges); revision-bound commands
+and remaining acceptance: [[card:card-s-c-d-n]].
+
 ## Joined ORDER caller boundary
 
 `joined-order-boundary.test.mjs` compares two finite SQL controls against

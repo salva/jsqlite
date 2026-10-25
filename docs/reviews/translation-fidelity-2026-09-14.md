@@ -1,3 +1,17 @@
+## LIKE/GLOB prefix producer increment (author evidence)
+
+The historical LIKE producer absence below is superseded only for the bounded
+[first-field standalone selected range](../TRANSLATION.md#bounded-likeglob-prefix-ranges).
+Paired virtual terms now reach shared native-derived candidate selection and
+TEXT/BLOB continuation; scalar operand correctness alone remains no range credit.
+Complete residuals are conservatively retained, prefix STAT4 extraction and
+joined/nested consumers remain gaps. Native-FIRST receipt and finite public
+selected-work/encoding/lifecycle evidence are mapped in
+[conformance](../CONFORMANCE.md#bounded-likeglob-prefix-evidence).
+Independent nonauthor acceptance, SQL reverse/DESC and within-pass interruption
+coverage remain outstanding; see [[card:card-s-c-d-n]]. Historical failed runs
+and broader optimizer limitations below are not rewritten as passes.
+
 ## W198 descriptor/joined quota observers (author evidence)
 
 On4b314d36, six reproduced two-file failures include omitted live input Mem

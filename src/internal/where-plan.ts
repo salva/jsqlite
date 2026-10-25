@@ -18,6 +18,7 @@ import {whereKeyStats} from "./stat4-estimate.ts";
 import {stat4SkipScanRange} from "./stat4-skipscan.ts";
 import {KeyInfo,type BuiltinCollation,type KeyTerm} from "./comparison.ts";
 import type {DatabaseEncoding} from "./record.ts";
+import {likePrefixRange,type LikePrefixRange} from './like-prefix.ts';
 import {builtinFunction} from "./functions.ts";
 
 export type SourceMask=bigint;
@@ -40,7 +41,7 @@ export interface SelectInLoopRhs {
  readonly unique:true;
  readonly skipNull:true;
 }
-export interface WhereTerm {readonly variableSelect?:boolean;readonly inField?:number|undefined;readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly indexedIdentity?:string|undefined;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
+export interface WhereTerm {readonly likePrefix?:{readonly range:LikePrefixRange;readonly edge:'lower'|'upper'};readonly variableSelect?:boolean;readonly inField?:number|undefined;readonly inSelectRhs?:SelectInLoopRhs|undefined;readonly id:number;readonly expression:ExprNode;readonly origin:TermOrigin;readonly operator:WhereOperator|null;readonly equivalence?:boolean;readonly virtualNull?:boolean;readonly outerOn?:boolean;readonly joinOwner?:number|null;readonly info?:WhereTermInfo;readonly left:ColumnBinding|null;readonly rightAffinity:ColumnNode["affinity"]|null;readonly effectiveCollation:BuiltinCollation|null;readonly indexedIdentity?:string|undefined;readonly originalIndexedOperand:"left"|"right";readonly prereqRight:SourceMask;readonly prereqAll:SourceMask;readonly parentId:number|null;readonly childIds:readonly number[];readonly virtual:boolean;readonly outerJoinSafe:{readonly mayDrive:boolean;readonly mayOmitResidual:boolean}}
 export type WhereTermInfo={readonly kind:"or";readonly parentTerm:WhereTerm;readonly clause:WhereClause;readonly indexable:SourceMask}|{readonly kind:"and";readonly clause:WhereClause};
 export interface WhereClause {readonly split:"and"|"or";readonly terms:readonly WhereTerm[];readonly outer:WhereClause|null}
 export type SeekComparisonMode={readonly kind:"comparison";readonly affinity:ColumnNode["affinity"];readonly collation:BuiltinCollation}|{readonly kind:"is-null"};
@@ -340,6 +341,10 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    // indexColumnNotNull: declared columns own nullability; expression fields
    // remain nullable. WO_IS is not WO_ISNULL and must remain eligible.
    if((term.operator==="is-null"||term.virtualNull)&&scanField.column?.notNull)return null;
+   // This caller tranche repeats only a standalone first-field range.
+   // Prefix/equality/IN nesting and borrowed equivalences need their own
+   // repetition address ownership; do not publish them prematurely.
+   if(term.likePrefix&&(field!==0||equality.length!==0||index.table.withoutRowid||target&&term.left?.source!==target.source))return null;
    // whereLoopAddBtreeIndex removes all range bits from bUnordered opMask.
    if(index.unordered&&(term.operator==="gt"||term.operator==="ge"||term.operator==="lt"||term.operator==="le"))return null;
    if(!target||term.left?.source===target.source&&term.left.columnIndex===target.columnIndex)return (()=>{const admission=admitIndexConstraint(term,physical!,field);return admission&&useSeekScan?freeze({...admission,inSeekScan:true}):admission;})();
@@ -376,16 +381,23 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
      }finally{restore?.();}
     }
     else if(admission.bound.startsWith("lower")){
+     if(admission.term.likePrefix){
+      // where.c paired TERM_LIKEOPT enrollment: never expose a half range.
+      const upperTerm=[...matches].find(t=>t.likePrefix?.range===admission.term.likePrefix!.range&&t.likePrefix.edge==='upper');
+      const upper=upperTerm?admit(upperTerm):null;
+      if(upper){yield makeCapability(index,physical!,equality,admission,upper,ordinal,needed,order);if(!proposalScan.result.ok)break;}
+      continue;
+     }
      yield makeCapability(index,physical!,equality,admission,null,ordinal,needed,order);
      const rc=proposalScan.result.ok;
      // WHERE_BTM_LIMIT recursion permits upper bounds only, restarting
      // the field scan after the lower-only proposal is inserted.
      for(const upperTerm of target?scanWhereTerms(proposalScan.clause,target,proposalScan.resolved,t=>(t.operator==="lt"||t.operator==="le")&&(t.prereqRight&sourceBit(ordinal))===0n):terms.filter(t=>t.operator==="lt"||t.operator==="le")){
-      const upper=admit(upperTerm);if(upper){yield makeCapability(index,physical!,equality,admission,upper,ordinal,needed,order);if(!proposalScan.result.ok)break;}
+      const upper=upperTerm.likePrefix?null:admit(upperTerm);if(upper){yield makeCapability(index,physical!,equality,admission,upper,ordinal,needed,order);if(!proposalScan.result.ok)break;}
      }
      proposalScan.result.ok=rc;
      if(!rc)break;
-    }else {yield makeCapability(index,physical!,equality,null,admission,ordinal,needed,order);if(!proposalScan.result.ok)break;}
+    }else {if(admission.term.likePrefix)continue;yield makeCapability(index,physical!,equality,null,admission,ordinal,needed,order);if(!proposalScan.result.ok)break;}
    }
    // Skip recursion runs after ordinary scan termination even on DONE.
    // Its resize assigns enclosing rc=OK; the child return is ignored.
@@ -409,7 +421,10 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
   const lowers=admissions.filter(item=>item.bound.startsWith("lower")),uppers=admissions.filter(item=>item.bound.startsWith("upper"));
   if(!lowers.length&&!uppers.length){if(equality.some(a=>a!==null)||equality.length===0)yield makeCapability(index,physical!,equality,null,null,ordinal,needed,order);}
   else
-  for(const lower of lowers.length?lowers:[null])for(const upper of uppers.length?uppers:[null])yield makeCapability(index,physical!,equality,lower,upper,ordinal,needed,order);
+  for(const lower of lowers.length?lowers:[null])for(const upper of uppers.length?uppers:[null]){
+   if((lower?.term.likePrefix||upper?.term.likePrefix)&&(!lower?.term.likePrefix||lower.term.likePrefix.range!==upper?.term.likePrefix?.range))continue;
+   yield makeCapability(index,physical!,equality,lower,upper,ordinal,needed,order);
+  }
   yield* skip();
  }
  yield* visit(0,[]);
@@ -766,6 +781,9 @@ function sampleOperand(a:IndexConstraintAdmission):LemonValue<SqlToken>|undefine
  return root?.kind==="reduction"?exprChildren(root)[a.originalIndexedOperand==="left"?1:0]:undefined;
 }
 function sampleSet(probe:Stat4Probe,a:IndexConstraintAdmission,slot:number,expr=sampleOperand(a)):boolean {
+ // The grammar RHS is only a carrier; never estimate from its empty token.
+ // Byte-owned prefix bounds currently retain generic range selectivity.
+ if(a.term.likePrefix)return false;
  if(a.operator==="is-null"||a.term.virtualNull){probe.setLiteral(slot,null);return true;}
  return probe.setExpression(slot,expr,a.field.column?.affinity??"blob");
 }
@@ -846,7 +864,7 @@ function indexLoopEstimate(index:IndexNode,cap:BtreeCapability,source:ResolvedSo
  // where.c:whereRangeScanEst/whereRangeAdjust: each bound reduces by 20,
  // paired default bounds subtract another 20, clamp to 10 and at most
  // saved_nOut minus the number of bounds. Not a 10/20 total reduction.
- if(probe&&index.stat4?.nSample&&cap.nEq<index.stat4.nSampleCol&&(cap.lower||cap.upper)){
+ if(probe&&index.stat4?.nSample&&cap.nEq<index.stat4.nSampleCol&&(cap.lower||cap.upper)&&!cap.lower?.term.likePrefix){
   if(probe.nRecValid===cap.nEq)rows=sampleRange(index,probe,cap,rows);
   else{
    // whereRangeScanEst: invalid prefix uses scalar sample counts, not
@@ -1487,13 +1505,13 @@ function effectiveCollation(left:ExprReduction,right:ExprReduction,resolved:Reso
 export interface WhereAnalysis {readonly clause:WhereClause;readonly plannerEligible:boolean;readonly fallback:"right-full"|null}
 /** whereexpr.c sqlite3WhereSplit/exprAnalyze subset. It consumes resolved
  * expression identity and is the only production constructor for WhereTerm. */
-export function analyzeWhere(resolved:ResolvedSelect,includeRightTerms=false):WhereAnalysis {return analyzeClause(resolved,includeRightTerms);}
-function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:readonly {node:ExprReduction;origin:TermOrigin}[],outer:WhereClause|null=null,split:"and"|"or"="and",orOwner:WhereClause|null=null):WhereAnalysis {
+export function analyzeWhere(resolved:ResolvedSelect,includeRightTerms=false,likePrefixes=true,reprepare?:ReprepareContext):WhereAnalysis {return analyzeClause(resolved,includeRightTerms,undefined,null,'and',null,likePrefixes,reprepare);}
+function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:readonly {node:ExprReduction;origin:TermOrigin}[],outer:WhereClause|null=null,split:"and"|"or"="and",orOwner:WhereClause|null=null,likePrefixes=false,reprepare?:ReprepareContext):WhereAnalysis {
  if(!includeRightTerms&&resolved.sources.some(source=>source.joinFromLeft.right||source.joinFromLeft.outer||source.leftOfRightJoin))return freeze({clause:whereClause([]),plannerEligible:false,fallback:"right-full"});
  const specs:{node:ExprReduction;origin:TermOrigin}[]=[];if(resolved.source.where?.reduction?.kind==="reduction"){const parts:ExprReduction[]=[];splitAnd(resolved.source.where.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"where"}});}
  resolved.sources.forEach((source,index)=>{if(source.on?.reduction?.kind!=="reduction")return;const parts:ExprReduction[]=[];splitAnd(source.on.reduction as ExprReduction,parts,resolved);for(const node of parts)specs.push({node,origin:{kind:"join-on",rightSource:index,join:source.joinFromLeft.left||source.joinFromLeft.right?"left":"inner"}});});
  if(input){specs.length=0;specs.push(...input);}
- type Draft={inField?:number;inRhs?:SelectInLoopRhs;virtualNull?:boolean;node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
+ type Draft={likePrefix?:WhereTerm['likePrefix'];inField?:number;inRhs?:SelectInLoopRhs;virtualNull?:boolean;node:ExprReduction;origin:TermOrigin;operator:WhereOperator|null;left:ColumnBinding|null;rightNode:ExprReduction;orientation:"left"|"right";prereqAll:SourceMask;prereqRight:SourceMask;collation:BuiltinCollation|null;parentId:number|null;childIds:number[];virtual:boolean;outerJoinSafe:{mayDrive:boolean;mayOmitResidual:boolean}};
  const drafts:Draft[]=[];
  for(const spec of specs){const node=skipCollateAndLikely(spec.node,resolved),origin=spec.origin;let op=comparisonOperator(node,resolved);const children=exprChildren(node),originalLeftNode=children[0]??node,originalRightNode=children[1]??node,originalLeft=indexedBinding(resolved,originalLeftNode),originalRight=indexedBinding(resolved,originalRightNode),all=prereq(resolved,node);let leftNode=originalLeftNode,rightNode=originalRightNode,left=originalLeft,orientation:"left"|"right"="left";
   if(!left&&originalRight&&op&&op!=="in"){orientation="right";op=reverseOperator(op);leftNode=originalRightNode;rightNode=originalLeftNode;left=originalRight;}
@@ -1512,6 +1530,41 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
     if(!binding||right?.kind!=='reduction')continue;
     parent.childIds.push(childId);
     drafts.push({node,inField,inRhs:vectorRhs,origin,parentId,childIds:[],virtual:true,operator:'in',left:binding,rightNode:right as ExprReduction,orientation:'left',prereqAll:all,prereqRight:vectorRhs.prereq,collation:explicitExprCollation(field,resolved)??explicitExprCollation(right as ExprReduction,vectorRhs.resolved)??(sqliteAsciiFold(resolvedExpressionCollation(field,resolved)??resolvedExpressionCollation(right as ExprReduction,vectorRhs.resolved)??'binary') as BuiltinCollation),outerJoinSafe:{mayDrive:!(isLeft&&binding.sourceOrdinal<origin.rightSource)&&!(vectorRhs.prereq&sourceBit(binding.sourceOrdinal)),mayOmitResidual:false}});
+   }
+  }
+  // whereexpr.c TERM_LIKEOPT. These virtual bounds share one range owner;
+  // no caller may select only one edge. Keep the original residual even when
+  // complete: this bounded tranche does not yet lower conditional disableTerm.
+  if(likePrefixes&&split==='and'&&node.signature.startsWith('expr ::= expr likeop expr')){
+   const likeop=node.children.find(c=>c.kind==='reduction'&&c.signature.startsWith('likeop ::='));
+   const name=likeop?.kind==='reduction'&&!likeop.signature.includes('NOT')?likeop.children.find(c=>c.kind==='terminal'):undefined;
+   const mode=name?.kind==='terminal'?sqliteAsciiFold(name.value.text):'';
+   const textLiteral=(n:ExprReduction|undefined):Uint8Array|null=>{
+    if(!n)return null;const tokens=asExpr(n).tokens;
+    return tokens.length===1&&tokens[0]!.kind==='string'?new TextEncoder().encode(tokens[0]!.text.slice(1,-1).replaceAll("''","'")):null;
+   };
+   const patternBytes=(n:ExprReduction|undefined):Uint8Array|null=>{
+    const tokens=n?asExpr(n).tokens:[];
+    if(n?.signature!=='expr ::= VARIABLE')return textLiteral(n);
+    const value=reprepare?.value(tokens[0]!,'blob','utf-8');
+    if(!value)return null;
+    try{if(value.initialStorageClass!=='text')return null;value.changeEncoding('utf-8');return value.textBytes().slice();}finally{value.release();}
+   };
+   const pattern=patternBytes(children[1]),escape=children[2]?textLiteral(children[2]):undefined;
+   // Physical schemas carry the database encoding in KeyInfo. With no index
+   // there is no selectable prefix candidate and hence no encoding assumption.
+   const encoding=originalLeft?.source.table.kind==='table'?originalLeft.source.table.indexes.find(i=>i.physical)?.physical?.keyInfo.encoding:undefined;
+   const range=pattern&&encoding&&(mode==='like'||mode==='glob')&&escape!==null?likePrefixRange(pattern,mode,encoding,originalLeft?.column?.affinity==='text',escape):null;
+   if(range&&originalLeft&&originalLeft.columnIndex>=0){
+    const seed=asExpr(node).tokens[0]!;
+    for(const [edge,operator] of [['lower','ge'],['upper','lt']] as const){
+     // The bytes are carried separately to String8. The grammar carrier
+     // retains a well-formed binary production for ordinary term traversal.
+     const rhs:ExprReduction={kind:'reduction',rule:0,signature:'expr ::= term',children:[{kind:'reduction',rule:0,signature:'term ::= STRING',children:[{kind:'terminal',tokenId:0,value:{...seed,kind:'string',text:"''"}}]}]};
+     const bound:ExprReduction={kind:'reduction',rule:0,signature:'expr ::= expr LT|GT|GE|LE expr',children:[originalLeftNode,{kind:'terminal',tokenId:0,value:{...seed,kind:'punct',text:operator==='ge'?'>=':'<'}},rhs]};
+     if(range.complete)parent.childIds.push(drafts.length);
+     drafts.push({node:bound,likePrefix:{range,edge},origin:{kind:'derived',parentTerm:parentId,reason:'range'},operator,left:originalLeft,rightNode:rhs,orientation:'left',prereqAll:all,prereqRight:0n,collation:range.noCase?'nocase':'binary',parentId,childIds:[],virtual:true,outerJoinSafe:{mayDrive:!(isLeft&&originalLeft.sourceOrdinal<origin.rightSource),mayOmitResidual:false}});
+    }
    }
   }
   // whereexpr.c1290: AND-owned BETWEEN creates ordered GE/LE children.
@@ -1549,7 +1602,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
  const ids=new Map(ordered.map((draft,id)=>[drafts.indexOf(draft),id]));
  const outerOn=(draft:Draft):boolean=>draft.parentId!==null?outerOn(drafts[draft.parentId]!):draft.origin.kind==="join-on"&&draft.origin.join==="left";
  const joinOwner=(draft:Draft):number|null=>draft.parentId!==null?joinOwner(drafts[draft.parentId]!):draft.origin.kind==="join-on"?draft.origin.rightSource:null;
- const terms:WhereTerm[]=ordered.map((draft,id)=>({variableSelect:termHasCorrelatedSelect(resolved,draft.node),id,inField:draft.inField,inSelectRhs:draft.inRhs??(draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined),expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,draft.inRhs?.resolved??resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,indexedIdentity:draft.left?.columnIndex===-2?indexedExpressionIdentity(resolved,exprChildren(draft.node)[draft.orientation==='left'?0:1]!,draft.left.source):undefined,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
+ const terms:WhereTerm[]=ordered.map((draft,id)=>({...(draft.likePrefix?{likePrefix:draft.likePrefix}:{}),variableSelect:termHasCorrelatedSelect(resolved,draft.node),id,inField:draft.inField,inSelectRhs:draft.inRhs??(draft.node.signature==='expr ::= expr in_op LP select RP'?selectInLoopRhs(resolved,draft.node,rhsPrereq(resolved,draft.node,'left','in')):undefined),expression:asExpr(draft.node),origin:draft.origin.kind==='derived'?{...draft.origin,parentTerm:ids.get(draft.origin.parentTerm)!}:draft.origin,operator:draft.operator,virtualNull:!!draft.virtualNull,outerOn:outerOn(draft),joinOwner:joinOwner(draft),equivalence:termEquivalence(resolved,draft.parentId!==null?{...draft,origin:drafts[draft.parentId]!.origin}:draft),left:draft.left,rightAffinity:resolvedExpressionAffinity(draft.rightNode,draft.inRhs?.resolved??resolved)??null,effectiveCollation:draft.collation,originalIndexedOperand:draft.orientation,indexedIdentity:draft.left?.columnIndex===-2?indexedExpressionIdentity(resolved,exprChildren(draft.node)[draft.orientation==='left'?0:1]!,draft.left.source):undefined,prereqRight:draft.prereqRight,prereqAll:draft.prereqAll,parentId:draft.parentId===null?null:ids.get(draft.parentId)!,childIds:Object.freeze(draft.childIds.map(child=>ids.get(child)!)),virtual:draft.virtual,outerJoinSafe:freeze(draft.outerJoinSafe)}));
  const clause:WhereClause={split,terms,outer};
  const combined:WhereTerm[]=[];
  let orIndexable=(1n<<BigInt(resolved.sources.length))-1n;
@@ -1868,7 +1921,7 @@ function analyzeClause(resolved:ResolvedSelect,includeRightTerms:boolean,input?:
 export function rightJoinResidual(resolved:ResolvedSelect,ordinal:number):readonly WhereTerm[] {
  if(resolved.sources[ordinal]!.leftOfRightJoin)return Object.freeze([]);
  const ready=(1n<<BigInt(ordinal+1))-1n,out:WhereTerm[]=[];
- for(const term of analyzeWhere(resolved,true).clause.terms){
+ for(const term of analyzeWhere(resolved,true,false).clause.terms){
   if(term.virtual)break;
   if((term.prereqAll&~ready)!==0n)continue;
   if(term.origin.kind!=="where")continue;
@@ -1877,7 +1930,7 @@ export function rightJoinResidual(resolved:ResolvedSelect,ordinal:number):readon
  return Object.freeze(out);
 }
 
-export interface WherePlanRequest {readonly automaticIndex?:AutomaticIndexContext;readonly automaticIndexEphemeralSources?:ReadonlySet<ResolvedSource>;readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>;readonly planBudget?:WherePlanBudget;readonly externalAvailable?:ReadonlySet<ResolvedSource>}
+export interface WherePlanRequest {/** Caller can lower paired TEXT/BLOB prefix ranges. */readonly likePrefixes?:boolean;readonly automaticIndex?:AutomaticIndexContext;readonly automaticIndexEphemeralSources?:ReadonlySet<ResolvedSource>;readonly neededColumns:readonly ReadonlySet<NeededColumn>[];readonly orderBy:readonly OrderRequirement[];readonly excludedIndexSources?:ReadonlySet<number>;readonly planBudget?:WherePlanBudget;readonly externalAvailable?:ReadonlySet<ResolvedSource>}
 /** Internal lowering publication: source term flags are mutable while AddAll
  * explores/rebuilds, then copied without retaining the reusable builder sets. */
 export interface WhereTruthPublication {readonly high:readonly WhereTerm[];readonly heuristic:readonly WhereTerm[];readonly secondPass:boolean}
@@ -1914,7 +1967,7 @@ function planWhereInvocation(resolved:ResolvedSelect,request:WherePlanRequest):W
  if(hasRightFull&&!rowidRight){const analysis=analyzeWhere(resolved);return freeze({analysis,truth:publishTruth(planBudget.truth),path:null,plannerCandidates:0,plannerPaths:0});}
  // Represented WITHOUT ROWID layouts participate through their synthetic
  // primary-index owner and physical secondary descriptors.
- const rawAnalysis=analyzeWhere(resolved,rowidRight);
+ const rawAnalysis=analyzeWhere(resolved,rowidRight,request.likePrefixes===true,planBudget.reprepare);
  // whereScanNext/termCanDriveIndex: outer ON drives only its RHS. The
  // bounded path keeps WHERE post-extension (no non-null WHERE proofs).
  const analysis=rowidRight?freeze({...rawAnalysis,clause:whereClause(rawAnalysis.clause.terms.map(term=>freeze({...term,outerJoinSafe:freeze({mayDrive:term.outerJoinSafe.mayDrive&&term.joinOwner!==null&&term.joinOwner!==undefined&&term.left?.sourceOrdinal===term.joinOwner,mayOmitResidual:false})})))}):rawAnalysis;

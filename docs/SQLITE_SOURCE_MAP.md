@@ -1562,6 +1562,26 @@ by sourceRow registers, not physical Rowid. Tests: `joined-metadata-window.test.
 and `joined-metadata-window-controls.test.mjs`; [source comparison/native evidence](research/joined-metadata-window/README.md).
 No additional upstream assertion credit or general module planner closure.
 
+## Bounded LIKE/GLOB prefix selected ranges
+
+Pinned `whereexpr.c:isLikeOrGlob/exprAnalyze TERM_LIKEOPT` maps to
+`like-prefix.ts:likePrefixRange` and `where-plan.ts:analyzeClause` byte-owned
+paired GE/LT terms, provenance and complete child relationships. `where.c`
+paired candidate enrollment maps to `capabilities`; generic range estimates are
+used (no prefix STAT4 extraction). `wherecode.c` counter setup/fixup and
+`where.c:sqlite3WhereEnd` map to standalone `compileBound`, String8 and shared
+WhereEnd DecrJumpZero. `vdbe.c:OP_String8/OP_String` maps to encoded Mem loads
+then counter-controlled BLOB conversion. Existing reprepare owns bound TEXT
+inspection/expiry. Complete residuals remain intentionally enabled on both
+passes: extra scalar work, not conditional-disable or native work parity.
+
+Current first-field standalone rowid-index boundary and fallback gaps:
+[guide](TRANSLATION.md#bounded-likeglob-prefix-ranges). Native identity, SQL,
+fixtures, EQP/programs, typed results and metadata are retained in
+`test/conformance/cases/like-prefix-native.json`; producer
+`capture-like-prefix.py`. Tests: `like-prefix-{red,primitive,string8,native-red}.test.mjs`.
+Revision-bound verification and acceptance obligations: [[card:card-s-c-d-n]].
+
 ## Bounded recursive JOIN-arm compounds
 
 Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms and physical arms through the existing full-row compound merge. One lazy Once-guarded retained recursive producer supplies independent OpenDup readers; Queue/Current retains body controls while the compound owner retains outer ORDER/LIMIT, arity and full-row duplicate semantics. Leftmost setup-expression collation is independent of rightmost metadata provenance. Materialization charges the full requested producer before its first row; this is not streaming or native work/allocation parity. Mixed operators, grouped/window/derived arms and additional recursive declarations remain temporary gaps in this route; RIGHT/FULL and physical producer-term joins remain outside this slice.

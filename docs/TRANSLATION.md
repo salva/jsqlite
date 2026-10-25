@@ -512,6 +512,32 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 
 ## WHERE, joins and physical indexes
 
+### Bounded LIKE/GLOB prefix ranges
+
+Standalone rowid-table selected persistent indexes admit first-field infix
+LIKE/GLOB prefix pairs from literal or bound TEXT patterns. `isLikeOrGlob`
+byte scanning, escape/UTF-8 successor, numeric safety and NOCASE/BINARY gates
+feed the existing candidate/cost/path owner, not a separate scorer. Bounds
+remain paired and use database-encoded String8 TEXT/BLOB passes; execution/reset
+owns the repeat register. Parameter inspection uses the existing expiration mask
+and atomic reprepare. Joined and nested/equality/IN/skip-scan prefix consumers,
+WITHOUT ROWID and non-infix forms remain optimization gaps (ordinary residual
+execution remains). STAT4 prefix byte extraction is not yet translated: these
+pairs retain the ordinary generic range estimate rather than reading synthetic
+RHS tokens as sample values.
+
+Conservative residual adaptation: unlike native conditional `disableTerm`, this
+slice keeps LIKE/GLOB on both passes, even for complete prefixes. This trades
+extra scalar work for a single residual schedule in the current standalone
+consumer; it is not a browser necessity or native work-count parity. Complete
+parent/child relationships remain represented, but cannot disable the parent.
+String8 converts each dispatch rather than native self-modifying cache reuse;
+this keeps immutable program bytes separate from execution-owned Mem state.
+Native-FIRST receipt, typed results/five metadata fields, selected bounded work,
+reset/rebind/clear controls and source-derived primitives:
+`test/conformance/{cases/like-prefix-native.json,like-prefix-*.test.mjs}`.
+Delivery and remaining safety/acceptance obligations: [[card:card-s-c-d-n]].
+
 The [runtime automatic-index/Bloom decision](research/where-autoindex-admission.md)
 is the current bounded beta.5 proposal: native costed transient covering indexes,
 shared packed private-Btree build/probe, source Bloom hash/filter and execution-owned
