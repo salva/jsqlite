@@ -6,7 +6,9 @@ assert pkg.get('private') is True
 assert pkg['type'] == 'module'
 assert pkg['exports'] == {'.': {'types': './dist/index.d.ts', 'import': './dist/index.js'}}
 assert pkg['types'] == './dist/index.d.ts'
-assert pkg['files'] == ['dist/**/*.js', 'dist/**/*.d.ts']
+assert pkg['files'] == ['LICENSE', 'NOTICE.md', 'dist/**/*.js', 'dist/**/*.d.ts']
+assert pkg['license'] == 'GPL-3.0-or-later'
+assert (root/'LICENSE').is_file() and (root/'NOTICE.md').is_file()
 assert not pkg.get('dependencies'), 'runtime must remain dependency-free'
 assert 'bin' not in pkg
 for p in (root/'src').rglob('*.ts'):
