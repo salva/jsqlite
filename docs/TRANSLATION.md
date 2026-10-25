@@ -514,13 +514,16 @@ execution-wide, not per child. Bounded tests/evidence and exclusions:
 
 ### Bounded LIKE/GLOB prefix ranges
 
-Standalone rowid-table selected persistent indexes admit first-field infix
-LIKE/GLOB prefix pairs from literal or bound TEXT patterns. `isLikeOrGlob`
+Standalone rowid-table selected persistent indexes admit infix LIKE/GLOB prefix
+pairs on the first field or after a contiguous scalar equality prefix, from
+literal or bound TEXT patterns. `isLikeOrGlob`
 byte scanning, escape/UTF-8 successor, numeric safety and NOCASE/BINARY gates
 feed the existing candidate/cost/path owner, not a separate scorer. Bounds
 remain paired and use database-encoded String8 TEXT/BLOB passes; execution/reset
 owns the repeat register. Parameter inspection uses the existing expiration mask
-and atomic reprepare. Joined and nested/equality/IN/skip-scan prefix consumers,
+and atomic reprepare. Each pass rebuilds the scalar equality keys before the
+full prefix seek; equality NULL exits the level, prefix/end exhaustion repeats
+then exits through shared WhereEnd. Joined and nested/IN/skip-scan prefix consumers,
 WITHOUT ROWID and non-infix forms remain optimization gaps (ordinary residual
 execution remains). STAT4 prefix byte extraction is not yet translated: these
 pairs retain the ordinary generic range estimate rather than reading synthetic

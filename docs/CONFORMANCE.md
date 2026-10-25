@@ -4,6 +4,17 @@ This document records bounded evidence; it is not a claim of whole-SQLite compat
 
 ## Bounded LIKE/GLOB prefix evidence
 
+`like-prefix-composite{,-red}.test.mjs` and the independent
+`cases/like-prefix-composite-native.json` extend this to scalar equality prefixes:
+32 physical/SQL direction and empty-pass cases plus nine scalar/control cases and
+six independent native binding runs per encoding. Public execution compares
+ordered typed rows and five metadata fields twice/reset, same-handle rebind/clear,
+unforced bounded work versus NOT INDEXED, and first/second seek cancellation and
+fault cleanup with an independent survivor. The generator's `--composite` mode
+materializes the added column before capture; omitted trailing ALTER-default
+column decoding is a separately observed prerequisite, not covered by these
+fixtures. Revision-bound evidence and remaining acceptance: [[card:card-s-c-d-n]].
+
 `like-prefix-native-red.test.mjs` compares manifest-pinned native typed rows and
 five metadata fields for 14 queries per encoding, twice/reset, plus bound-pattern
 runs on one TS handle with rebind/clear. Independent native bound runs were

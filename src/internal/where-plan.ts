@@ -341,10 +341,10 @@ function* capabilities(index:IndexNode,terms:readonly WhereTerm[],ordinal:number
    // indexColumnNotNull: declared columns own nullability; expression fields
    // remain nullable. WO_IS is not WO_ISNULL and must remain eligible.
    if((term.operator==="is-null"||term.virtualNull)&&scanField.column?.notNull)return null;
-   // This caller tranche repeats only a standalone first-field range.
-   // Prefix/equality/IN nesting and borrowed equivalences need their own
-   // repetition address ownership; do not publish them prematurely.
-   if(term.likePrefix&&(field!==0||equality.length!==0||index.table.withoutRowid||target&&term.left?.source!==target.source))return null;
+   // where.c enrolls the paired range at saved_nEq after scalar equality
+   // recursion. Reentry precedes equality compilation, so each TEXT/BLOB
+   // pass rebuilds the full key. IN/skip frames do not share this ownership.
+   if(term.likePrefix&&(equality.some(a=>a===null||a.operator==='in')||index.table.withoutRowid||target&&term.left?.source!==target.source))return null;
    // whereLoopAddBtreeIndex removes all range bits from bUnordered opMask.
    if(index.unordered&&(term.operator==="gt"||term.operator==="ge"||term.operator==="lt"||term.operator==="le"))return null;
    if(!target||term.left?.source===target.source&&term.left.columnIndex===target.columnIndex)return (()=>{const admission=admitIndexConstraint(term,physical!,field);return admission&&useSeekScan?freeze({...admission,inSeekScan:true}):admission;})();

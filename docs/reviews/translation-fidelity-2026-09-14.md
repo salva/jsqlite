@@ -1,7 +1,7 @@
 ## LIKE/GLOB prefix producer increment (author evidence)
 
 The historical LIKE producer absence below is superseded only for the bounded
-[first-field standalone selected range](../TRANSLATION.md#bounded-likeglob-prefix-ranges).
+[standalone selected range, including scalar equality prefixes](../TRANSLATION.md#bounded-likeglob-prefix-ranges).
 Paired virtual terms now reach shared native-derived candidate selection and
 TEXT/BLOB continuation; scalar operand correctness alone remains no range credit.
 Complete residuals are conservatively retained, prefix STAT4 extraction and

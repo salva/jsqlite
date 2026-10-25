@@ -1575,7 +1575,7 @@ then counter-controlled BLOB conversion. Existing reprepare owns bound TEXT
 inspection/expiry. Complete residuals remain intentionally enabled on both
 passes: extra scalar work, not conditional-disable or native work parity.
 
-Current first-field standalone rowid-index boundary and fallback gaps:
+Current standalone rowid-index boundary (including scalar equality prefixes) and fallback gaps:
 [guide](TRANSLATION.md#bounded-likeglob-prefix-ranges). Native identity, SQL,
 fixtures, EQP/programs, typed results and metadata are retained in
 `test/conformance/cases/like-prefix-native.json`; producer
@@ -1583,6 +1583,9 @@ fixtures, EQP/programs, typed results and metadata are retained in
 `cases/like-prefix-branches-native.json` maps wherecode direction XOR/counter
 setup and WhereEnd empty/repeat branches to actual ordered SQL across encodings;
 first/second persistent seek fault/cancel controls cover VDBE saved-error cleanup.
+`cases/like-prefix-composite-native.json` and `like-prefix-composite{,-red}.test.mjs`
+map saved_nEq scalar recursion to the same full-key seek, equality NULL exit,
+field[nEq] direction XOR and shared WhereEnd repeat; no new lowering owner.
 Revision-bound verification and acceptance obligations: [[card:card-s-c-d-n]].
 
 ## Bounded recursive JOIN-arm compounds

@@ -14,6 +14,8 @@ spec.loader.exec_module(m)
 d = m.load(sys.argv[1])
 manifest = json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
 branches = '--branches' in sys.argv[2:]
+composite = '--composite' in sys.argv[2:]
+branches = branches or composite
 assert d.sqlite3_sourceid().decode() == manifest['sqliteSourceId']
 for name in ['name', 'decltype', 'database_name', 'table_name', 'origin_name']:
     fn = getattr(d, 'sqlite3_column_'+name)
@@ -59,7 +61,7 @@ def capture(db, sql, bindings):
 
 variants = []
 for encoding in ['UTF-8','UTF-16le','UTF-16be']:
-    suffix = '-branches' if branches else ''
+    suffix = '-composite' if composite else '-branches' if branches else ''
     fixture = ROOT/f'test/conformance/fixtures/like-prefix{suffix}-{encoding.lower()}.db'
     assert not fixture.exists(), 'refuse to replace an existing capture fixture'
     fixture.parent.mkdir(parents=True, exist_ok=True)
@@ -75,6 +77,13 @@ for encoding in ['UTF-8','UTF-16le','UTF-16be']:
         setup[-1:-1] = ['CREATE INDEX i_nc_desc ON t(a COLLATE NOCASE DESC)',
                        'CREATE INDEX i_bin_desc ON t(a COLLATE BINARY DESC)',
                        "INSERT INTO t VALUES(520,'qrs',1,1.5),(521,x'78797a',2,NULL)"]
+    if composite:
+        setup[-1:-1] = ["ALTER TABLE t ADD COLUMN k TEXT COLLATE NOCASE DEFAULT 'tenant'",
+                       "UPDATE t SET k='tenant'",
+                       *[f'DROP INDEX {name}' for name in ['i_nc','i_bin','i_nc_desc','i_bin_desc']],
+                       *[f'CREATE INDEX {name} ON t(k COLLATE NOCASE,a COLLATE {coll} {direction})'
+                         for name,coll,direction in [('i_nc','NOCASE','ASC'),('i_bin','BINARY','ASC'),('i_nc_desc','NOCASE','DESC'),('i_bin_desc','BINARY','DESC')]],
+                       "INSERT INTO t VALUES(522,'abc',1,1.5,'before'),(523,'abc',2,NULL,'zzafter'),(524,'abc',3,NULL,NULL),(525,'abc',4,NULL,'')"]
     try:
         for sql in setup:
             m.execsql(d, db, sql)
@@ -101,6 +110,15 @@ for encoding in ['UTF-8','UTF-16le','UTF-16be']:
                             selected = index + ('_desc' if desc else '')
                             sql = f"SELECT id,a,n,v FROM t INDEXED BY {selected} WHERE a {mode} '{prefix}{wildcard}' ORDER BY a COLLATE {collation} {'DESC' if reverse else 'ASC'}"
                             cases.append(dict(dimension='branches',mode=mode,descending=desc,reverse=reverse,prefix=prefix,sql=sql,native=capture(db,sql,[])))
+        if composite:
+            for case in cases:
+                case['sql'] = case['sql'].replace('WHERE ', "WHERE k='TENANT' AND ")
+                case['native'] = capture(db,case['sql'],[])
+            for label, predicate in [('unforced',"k='TENANT' AND a LIKE 'abc%'"),('scan',"k='TENANT' AND a LIKE 'abc%'"),('null',"k=NULL AND a LIKE 'abc%'"),('isnull',"k IS NULL AND a LIKE 'abc%'"),('empty',"k='' AND a LIKE 'abc%'"),('escape',"k='tenant' AND a LIKE 'ab!_%' ESCAPE '!'"),('incomplete',"k='tenant' AND a LIKE 'ab_c%'"),('affinity',"k=123 AND a LIKE 'abc%'"),('noprefix',"k='tenant' AND a LIKE '%abc'")]:
+                sql=f"SELECT id,a,n,v FROM t{' NOT INDEXED' if label=='scan' else ''} WHERE {predicate} ORDER BY id"
+                cases.append(dict(dimension=label,sql=sql,native=capture(db,sql,[])))
+            sql='SELECT id,a,n,v FROM t WHERE k=? AND a LIKE ? ORDER BY id'
+            cases.append(dict(dimension='bound-patterns',sql=sql,runs=[capture(db,sql,b) for b in [['TENANT','abc%'],['tenant','qrs%'],['tenant','%abc'],['', 'abc%'],[None,'abc%'],['tenant',None]]]))
     finally:
         assert d.sqlite3_close(db) == m.OK
     variants.append(dict(encoding=encoding,fixture=str(fixture.relative_to(ROOT)),sha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),setup=setup,cases=cases))
@@ -108,7 +126,7 @@ result = dict(source=manifest,producer='test/conformance/capture-like-prefix.py'
               tsCredit=False,limitations=['bound-pattern runs are independent prepares, not a same-statement rebind/clear receipt','TS public execution and cleanup not yet tested'],variants=variants)
 out = ROOT/f'test/conformance/cases/like-prefix{suffix}-native.json'
 assert not out.exists(), 'refuse to replace an existing capture receipt'
-out.write_text(json.dumps(result,indent=2)+'\n')
+out.write_text(json.dumps(result,indent=None if composite else 2)+'\n')
 for v in variants:
     print(v['encoding'],v['sha256'],len(v['cases']))
     for c in v['cases'][:6]:
