@@ -616,10 +616,14 @@ through packed admission; it does not replace register backing. Descriptor VM
 admission controls likewise retain live String/Blob inputs alongside filter and
 packed output: `where-plan-analysis.test.mjs` preserves original caps as negative
 controls and tests exact/below output and replacement boundaries. Joined WR
-quota controls distinguish original-zero input rejection from whole-operation
-peak rejection after selected access; a released owner does not make another
-TEXT projection free. See [[card:card-s-c-d-e]] current status for revision-bound
-W198 evidence and remaining acceptance. For UTF16
+quota controls distinguish original-zero input rejection from H−1 first-step
+rejection after selected access (no row publication), and exact-H native typed
+rows/all five metadata on reset/replay. H remains a TS ownership measurement,
+not native allocation parity. Independent TEXT recovery compares exact typed
+bags (no ORDER BY), positive Mem highwater and refunds; same-cap numeric recovery
+remains separate. The manifest-checked `capture-without-rowid-joined.py` captures
+the exact unchanged SQL in all three encodings. See [[card:card-s-c-d-e]] current
+status for revision-bound W198 evidence and remaining independent acceptance. For UTF16
 String('abc') packing, scratch76 + live Mem6 + record72 requires154 admitted
 units (conversion separately overlaps source3/new6). The earlier148 success
 observer predates register admission and is obsolete;147/148 remain rejection

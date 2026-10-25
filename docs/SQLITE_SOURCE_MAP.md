@@ -29,7 +29,13 @@ original-cap negatives and below/exact replacement controls. Native
 `where.c:wherePathSatisfiesOrderBy` partial matched-prefix return → joined-order
 outer-prefix positive, inner-only and collation-mismatch negatives in that file.
 `without-rowid-joined.test.mjs` separates zero-quota input rejection from measured
-whole-operation H−1/H and reset/release controls. Revision-bound W198 evidence
+whole-operation H−1 first-step rejection and H native typed rows/five metadata
+on reset/replay; the exact-query manifest-checked producer is
+`capture-without-rowid-joined.py` (`boundary` controls). OP_Column persistent
+TEXT / sqlite3VdbeMemCopy nonstatic ownership → independent TEXT recovery
+positive Mem highwater, exact native typed bags and refunds; same-cap numeric
+survival remains distinct. Caller `vdbe.ts` multiOrderConsumed requires full
+ORDER equality, not the partial prefix1. Revision-bound W198 evidence
 and outstanding independent acceptance: [[card:card-s-c-d-e]] current status.
 
 `vdbe.c:OP_Insert` retains packed input across `sqlite3BtreeInsert`; the bounded

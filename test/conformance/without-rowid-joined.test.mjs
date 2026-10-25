@@ -116,17 +116,21 @@ for(const fixture of original.variants){
  test(`joined WR private-byte admission error before publication and cleanup ${fixture.encoding}`,async()=>{
   const bytes=fs.readFileSync(fixture.fixture);
   const sql="SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a";
-  let peak,expected;
+  const control=native.variants.find(v=>v.encoding===fixture.encoding).boundary.find(c=>c.sql===sql);
+  const checkMetadata=st=>{assert.equal(st.columnCount,control.metadata.length);control.metadata.forEach((m,i)=>assert.deepEqual(st.columnMetadata(i),{name:m.name,declaredType:m.decltype,database:m.database_name,table:m.table_name,origin:m.origin_name}))};
+  let peak;
   await withBytes(bytes,async db=>{
    const st=db.prepare(sql).statement;
-   expected=await rows(st);peak=privateAccounting(st).highwaterBytes;
+   checkMetadata(st);assert.deepEqual(await rows(st),control.runs[0].rows);peak=privateAccounting(st).highwaterBytes;
    assert.ok(peak>0);assert.ok(privateAccounting(st).indexSeeks>0);
    st.finalize();
   });
   for(const cap of [0,peak-1,peak])await withBytes(bytes,async db=>{
   const st=db.prepare(sql).statement;
-  if(cap===peak){assert.deepEqual(await rows(st),expected);st.reset();assert.deepEqual(await rows(st),expected);st.finalize();return;}
-  let error;await assert.rejects(rows(st),e=>{error=e;return e.kind==='limit'&&/byte limit/.test(e.message)});
+  if(cap===peak){for(let run=0;run<2;run++){if(run)st.reset();checkMetadata(st);assert.deepEqual(await rows(st),control.runs[run].rows)}st.finalize();return;}
+  // First public step must reject: draining rows would permit publication
+  // before the later limit and would not prove this boundary.
+  let error;await assert.rejects(st.step(),e=>{error=e;return e.kind==='limit'&&/byte limit/.test(e.message)});
   if(cap===0)assert.equal(privateAccounting(st).indexSeeks,0,'input backing rejects before selected access');
   else assert.ok(privateAccounting(st).indexSeeks>0,'whole-operation peak follows selected joined access');
   await assert.rejects(st.step(),e=>e===error);assert.throws(()=>st.reset(),e=>e===error);
@@ -141,8 +145,21 @@ for(const fixture of original.variants){
   // The independent text-projection recovery has its own register demand;
   // original zero quota cannot admit it merely because the failed owner closed.
   await withBytes(bytes,async recovery=>{
-   const fresh=recovery.prepare('SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a').statement;
-   assert.equal((await rows(fresh)).length,2);assert.ok(privateAccounting(fresh).indexNext>0);fresh.finalize();
+   const recoverySql='SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a';
+   const expected=native.variants.find(v=>v.encoding===fixture.encoding).boundary.find(c=>c.sql===recoverySql);
+   const fresh=recovery.prepare(recoverySql).statement;
+   for(let run=0;run<2;run++){
+    if(run)fresh.reset();
+    expected.metadata.forEach((m,i)=>assert.deepEqual(fresh.columnMetadata(i),{name:m.name,declaredType:m.decltype,database:m.database_name,table:m.table_name,origin:m.origin_name}));
+    // Recovery has no ORDER BY: compare exact typed bags, not incidental
+    // native/TS traversal order. Multiplicity and storage classes remain exact.
+    const bag=rs=>rs.map(r=>JSON.stringify(r)).sort();
+    assert.deepEqual(bag(await rows(fresh)),bag(expected.runs[run].rows));
+    const account=privateAccounting(fresh);
+    assert.ok(account.indexNext>0);assert.ok(account.chargedBytes>0);assert.ok(account.memHighwaterBytes>0);
+    assert.equal(account.ownedBytes,0);assert.equal(account.chargedBytes,account.refundedBytes);
+   }
+   fresh.finalize();
   });
  },{limits:{maxPrivateBytes:cap}});
  });

@@ -6,8 +6,13 @@ that precedes selected access, and an obsolete blanket-zero joined-order
 expectation. Current controls retain original negatives, separately admit input
 backing, and retain matched outer prefix1 without claiming full two-term order;
 wrong-collation/inner-only controls still require0. WR tests measure whole-operation
-H, reject0/H−1, succeed at H twice, and distinguish independent TEXT recovery
-from same-connection numeric survival. This is observer reconciliation, not a
+H, reject0/H−1 at the first public step, and compare H success twice against
+new pinned-native exact two-column SQL rows/five metadata. G89 correctly found
+the previous drain-rejection/self-measurement assertions insufficient. Independent
+TEXT recovery now checks native typed bags (unordered SQL), positive Mem
+highwater/charges and refunds; same-connection numeric survival remains at the
+original cap. H is TS allocation evidence, not native allocator equivalence.
+This is observer reconciliation, not a
 public quota change or independent fidelity approval. Exact evidence and remaining
 obligations: [[card:card-s-c-d-e]] current status.
 

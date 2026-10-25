@@ -21,13 +21,26 @@ for v in original['variants']:
     else:break
    assert rc==101;runs.append({'bindings':values,'rows':rows})
   assert d.sqlite3_finalize(st)==0;cases.append({'sql':sql,'metadata':metadata,'runs':runs,'eqp':m.explain(d,db,'EXPLAIN QUERY PLAN ',sql,bindings[0]),'program':m.explain(d,db,'EXPLAIN ',sql,bindings[0])})
+ # Exact W198 admission and independent recovery SQL, native reset/replay.
+ boundary=[]
+ for sql in ["SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a",'SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a']:
+  st=C.c_void_p();assert d.sqlite3_prepare_v2(db,sql.encode(),-1,C.byref(st),None)==0
+  metadata=[{n:(getattr(d,'sqlite3_column_'+n)(st,i) or b'').decode() or None for n in ['name','decltype','database_name','table_name','origin_name']} for i in range(2)];runs=[]
+  for _ in range(2):
+   assert d.sqlite3_reset(st)==0;rows=[]
+   while True:
+    rc=d.sqlite3_step(st)
+    if rc==100:rows.append([m.cell(d,st,i) for i in range(2)])
+    else:break
+   assert rc==101;runs.append({'bindings':[],'rows':rows})
+  assert d.sqlite3_finalize(st)==0;boundary.append({'sql':sql,'metadata':metadata,'runs':runs,'eqp':m.explain(d,db,'EXPLAIN QUERY PLAN ',sql,[]),'program':m.explain(d,db,'EXPLAIN ',sql,[])})
  assert d.sqlite3_close(db)==0
  suffix={'UTF-8':'utf8','UTF-16le':'utf16le','UTF-16be':'utf16be'}[v['encoding']];file=f'test/conformance/fixtures/advanced-index-{suffix}.db';assert d.sqlite3_open_v2(str(ROOT/file).encode(),C.byref(db),1,None)==0;lookup=[]
  for projection in ['y.a,y.b','y.a,y.payload']:
   sql=f'SELECT {projection} FROM wr x CROSS JOIN wr y INDEXED BY wr_c WHERE y.c=?1 AND x.a=y.a ORDER BY y.a,y.b';runs=[]
   for values in [[2.5],[1.0],[None],[2.5]]:rows,counters=m.query(d,db,sql,values);runs.append({'bindings':values,'rows':rows,'eqp':m.explain(d,db,'EXPLAIN QUERY PLAN ',sql,values),'program':m.explain(d,db,'EXPLAIN ',sql,values)})
   lookup.append({'sql':sql,'runs':runs,'eqpBindings':runs[0]['bindings'],'eqp':runs[0]['eqp'],'program':runs[0]['program']})
- assert d.sqlite3_close(db)==0;out['variants'].append({'encoding':v['encoding'],'cases':cases,'lookupFixture':file,'lookup':lookup})
+ assert d.sqlite3_close(db)==0;out['variants'].append({'encoding':v['encoding'],'cases':cases,'boundary':boundary,'lookupFixture':file,'lookup':lookup})
  # Post-runtime native controls, not retroactive native-FIRST or TS budget equivalence.
  assert d.sqlite3_open_v2(str(ROOT/v['fixture']).encode(),C.byref(db),1,None)==0
  progress=C.CFUNCTYPE(C.c_int,C.c_void_p)(lambda _:1)

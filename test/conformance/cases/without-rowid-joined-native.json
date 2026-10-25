@@ -1781,6 +1781,299 @@
           "finalizeCode": 0,
           "tsBudgetEquivalent": false
         }
+      ],
+      "boundary": [
+        {
+          "sql": "SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SEARCH y USING COVERING INDEX wc (c=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 19,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 18,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 18,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 7,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 26,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            }
+          ]
+        },
+        {
+          "sql": "SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SCAN y USING COVERING INDEX wc"
+          ],
+          "program": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            }
+          ]
+        }
       ]
     },
     {
@@ -3562,6 +3855,299 @@
           "finalizeCode": 0,
           "tsBudgetEquivalent": false
         }
+      ],
+      "boundary": [
+        {
+          "sql": "SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SEARCH y USING COVERING INDEX wc (c=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 19,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 18,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 18,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 7,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 26,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            }
+          ]
+        },
+        {
+          "sql": "SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SCAN y USING COVERING INDEX wc"
+          ],
+          "program": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            }
+          ]
+        }
       ]
     },
     {
@@ -5342,6 +5928,299 @@
           "recoveryCode": 101,
           "finalizeCode": 0,
           "tsBudgetEquivalent": false
+        }
+      ],
+      "boundary": [
+        {
+          "sql": "SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.c=x'ff' AND y.a=x.a ORDER BY y.b+0,x.a",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SEARCH y USING COVERING INDEX wc (c=?)",
+            "USE TEMP B-TREE FOR ORDER BY"
+          ],
+          "program": [
+            {
+              "opcode": "SorterOpen",
+              "p1": 2,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 4,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 19,
+              "p3": 1
+            },
+            {
+              "opcode": "SeekGE",
+              "p1": 4,
+              "p2": 18,
+              "p3": 1
+            },
+            {
+              "opcode": "IdxGT",
+              "p1": 4,
+              "p2": 18,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 6
+            },
+            {
+              "opcode": "Column",
+              "p1": 4,
+              "p2": 2,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 5
+            },
+            {
+              "opcode": "Next",
+              "p1": 4,
+              "p2": 7,
+              "p3": 1
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "SorterSort",
+              "p1": 2,
+              "p2": 26,
+              "p3": 0
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 2,
+              "p3": 7
+            },
+            {
+              "opcode": "Column",
+              "p1": 5,
+              "p2": 1,
+              "p3": 6
+            }
+          ]
+        },
+        {
+          "sql": "SELECT x.a,y.b FROM w x CROSS JOIN w y INDEXED BY wc WHERE y.a=x.a",
+          "metadata": [
+            {
+              "name": "a",
+              "decltype": "CHAR(100)",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "a"
+            },
+            {
+              "name": "b",
+              "decltype": "INTEGER",
+              "database_name": "main",
+              "table_name": "w",
+              "origin_name": "b"
+            }
+          ],
+          "runs": [
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            },
+            {
+              "bindings": [],
+              "rows": [
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "41"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "2"
+                  }
+                ],
+                [
+                  {
+                    "type": "text",
+                    "utf8Hex": "c3a9"
+                  },
+                  {
+                    "type": "integer",
+                    "value": "1"
+                  }
+                ]
+              ]
+            }
+          ],
+          "eqp": [
+            "SCAN x USING COVERING INDEX wc",
+            "SCAN y USING COVERING INDEX wc"
+          ],
+          "program": [
+            {
+              "opcode": "OpenRead",
+              "p1": 2,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "OpenRead",
+              "p1": 3,
+              "p2": 3,
+              "p3": 0
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 2,
+              "p2": 13,
+              "p3": 1
+            },
+            {
+              "opcode": "Rewind",
+              "p1": 3,
+              "p2": 12,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 1,
+              "p3": 1
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 2
+            },
+            {
+              "opcode": "Column",
+              "p1": 2,
+              "p2": 1,
+              "p3": 3
+            },
+            {
+              "opcode": "Column",
+              "p1": 3,
+              "p2": 2,
+              "p3": 4
+            },
+            {
+              "opcode": "Next",
+              "p1": 3,
+              "p2": 5,
+              "p3": 0
+            },
+            {
+              "opcode": "Next",
+              "p1": 2,
+              "p2": 4,
+              "p3": 0
+            }
+          ]
         }
       ]
     }
