@@ -5,7 +5,10 @@ import crypto from 'node:crypto';
 import http from 'node:http';
 import {open} from '../../src/index.ts';
 import {privateAccounting} from './public-api-adapter.mjs';
-const oracle=JSON.parse(fs.readFileSync('test/conformance/cases/window-extrema-native.json'));
+const oracleSets=[
+ ['packed extrema',JSON.parse(fs.readFileSync('test/conformance/cases/window-extrema-native.json')),60],
+ ['late sliding/following/EXCLUDE drains',JSON.parse(fs.readFileSync('test/conformance/cases/window-late-drains-native.json')),3]
+];
 function cell(stmt,i){
  const type=stmt.columnType(i),value=stmt.column(i);
  if(type==='null')return {type};
@@ -13,10 +16,10 @@ function cell(stmt,i){
  if(type==='real'){const bytes=Buffer.alloc(8);bytes.writeDoubleBE(value);return {type,ieee754be:bytes.toString('hex')}}
  return type==='blob'?{type,hex:Buffer.from(value).toString('hex')}:{type,value};
 }
-for(const fixture of ['typed','typed-utf-16le','typed-utf-16be'])test(`packed extrema full typed metadata/native results ${fixture}`,async()=>{
+for(const [label,oracle,count] of oracleSets)for(const fixture of ['typed','typed-utf-16le','typed-utf-16be'])test(`${label} full typed metadata/native results ${fixture}`,async()=>{
  const bytes=fs.readFileSync(`test/fixtures/aggregate-window/${fixture}.db`);
  const cases=oracle.variants.filter(v=>v.fixture===fixture);
- assert.equal(cases.length,60);
+ assert.equal(cases.length,count);
  const server=http.createServer((req,res)=>{res.writeHead(200,{'Content-Length':bytes.length});res.end(bytes)});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let db;
  try{

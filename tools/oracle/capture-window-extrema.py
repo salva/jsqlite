@@ -1,5 +1,6 @@
 """Development-only packed extrema oracle; no product code imports.
 Run: python3 tools/oracle/capture-window-extrema.py /path/to/pinned/libsqlite3.so
+Optional --late-drains captures the finite sliding/following/EXCLUDE witnesses.
 """
 import ctypes as C, hashlib, json, pathlib, struct, sys
 root=pathlib.Path(__file__).resolve().parents[2]
@@ -22,6 +23,15 @@ for fn in ['min','max']:
  for expr in ['CASE i WHEN 1 THEN 1 WHEN 2 THEN 1.0 ELSE NULL END','CASE i WHEN 1 THEN 1.0 WHEN 2 THEN 1 ELSE NULL END','t COLLATE NOCASE',"'é'","x'00ff'",'NULL']:
   for suffix in ['', ' EXCLUDE NO OTHERS',' EXCLUDE CURRENT ROW',' EXCLUDE GROUP',' EXCLUDE TIES']:
    queries.append(f'SELECT i,{fn}({expr}) OVER (ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW{suffix}) AS w FROM t ORDER BY i')
+# Finite shared-label observer witnesses: ordinary sliding/following and the
+# explicit fullscan owner that must not be overwritten by the sliding drain.
+if len(sys.argv)>2:
+ assert sys.argv[2]=='--late-drains'
+ queries=[
+  'SELECT i,r,t,b,n,sum(r) FILTER (WHERE i>1) OVER w AS s,count(i) OVER w AS c FROM t WINDOW w AS (ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) ORDER BY i',
+  'SELECT i,r,t,b,n,sum(r) FILTER (WHERE i>1) OVER w AS s,count(i) OVER w AS c FROM t WINDOW w AS (ORDER BY i ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING) ORDER BY i',
+  'SELECT i,min(CASE i WHEN 1 THEN 1 WHEN 2 THEN 1.0 ELSE NULL END) OVER (ORDER BY i ROWS BETWEEN 1 PRECEDING AND CURRENT ROW EXCLUDE NO OTHERS) AS w FROM t ORDER BY i'
+ ]
 result={'sourceId':source,'librarySha256':hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest(),'variants':[]}
 for fixture in ['typed','typed-utf-16le','typed-utf-16be']:
  path=root/'test/fixtures/aggregate-window'/f'{fixture}.db'

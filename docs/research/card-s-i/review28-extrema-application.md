@@ -85,6 +85,38 @@ not a claim every primitive branch is forced by the application matrix. Browser
 lane `packed-extrema` consumes the capture on rebuilt dist, adapting text only to
 its existing UTF8-hex witness format. Exact attempts/results remain in card status.
 
+## Late-drain observer correction on combined83812a19 (author evidence)
+
+The rootW198 `select-entry-context` failure was a stale guard-string locator,
+not a demonstrated runtime divergence. Current sliding lowering excludes
+`sharedBoundedPeerExclusion`; removing that protection would overwrite the
+source-selected fullscan result. The observer now parses executable If blocks
+with the existing TypeScript development dependency, requires exact conjuncts
+and a same-block producer declaration, and checks sliding/following bodies
+independently. Four in-memory negative mutations replace each branch's
+`afterStep` or `done` label mark with Noop; each must fail the affected observer
+while the other branch still passes. No product source or public contract changed.
+
+Pinned comparison: window.c1656/1700 windowAggStep and1775/1782 windowAggFinal
+select application state only with regStartRowid==0; fullscan owns its temporary
+aggregate. windowCodeOp uses start/end cursors for inverse/step, deletes with
+SAVEPOSITION when selected, then Next and peer-boundary handling. Current late
+lowering retains those helper calls, builder-owned afterStep/done/snapshot
+labels, producer-payload restoration before AggValue and existing Gosub/Return
+and SelectDest callers unchanged. This is not a new schedule-parity claim.
+
+`capture-window-extrema.py --late-drains` independently captures nine cases
+(three queries times three fixture encodings), two typed runs and five metadata
+fields each, with source-ID/library/fixture authentication. Shared sum/count
+sliding and CURRENT ROW..1 FOLLOWING include FILTER and ordinary typed output
+columns; explicit EXCLUDE NO OTHERS numeric-tie min is the fullscan witness.
+Public `window-extrema-native.test.mjs` checks both captures without flattening
+INTEGER/REAL bits, NULL, BLOB or text. Finite capture SHA256:
+`056b4d70b73b60cae569786a4f35692422ae3dff466b0870751f80117955b107`.
+Exact commands/results, delivered identities and remaining independent acceptance
+are in [[card:card-o-c-b]] status; old root38826/27 is retained red evidence,
+not silently reclassified as a pass.
+
 Accounting controls remain query-specific, not extrema page minima. Ordinary sum
 ROWS in `window-bounded-lookahead` observes359 after removal of unused b/c handoff
 copies (previous366);358 rejects,359/360 pass. Synthetic MakeRecord/Insert in

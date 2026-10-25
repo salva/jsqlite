@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
+import ts from 'typescript';
 import {open,JSQLiteError} from '../../src/index.ts';
 
 // Native 3.53.4 source-ID checked before migration: entry-r1/native.py.
@@ -273,21 +274,60 @@ test('late bounded peer exclusion scan consumes shared registers and labels',()=
  assert.doesNotMatch(body,/\(ops\[(?:seek|beforeStart|beyond|peer!|identitySkip)[^\n]*as/);
 });
 
+function lateDrainBodies(text){
+ // Parse executable branches, not a spelling of their guards. In particular,
+ // EXCLUDE fullscan must remain disjoint from the ordinary sliding drain.
+ const source=ts.createSourceFile('vdbe.ts',text,ts.ScriptTarget.Latest,true);
+ const bodies=new Map();
+ function visit(node){
+  if(ts.isIfStatement(node)&&ts.isBlock(node.thenStatement)){
+   const terms=[];
+   function term(expr){
+    if(ts.isBinaryExpression(expr)&&expr.operatorToken.kind===ts.SyntaxKind.AmpersandAmpersandToken){term(expr.left);term(expr.right)}
+    else terms.push(expr.getText(source));
+   }
+   term(node.expression);
+   for(const [owner,expected] of [
+    ['sharedSliding',['sharedSliding','!sharedBoundedPeerExclusion','!pendingEndRows']],
+    ['sharedFollowing',['sharedFollowing','!pendingEndRows']]
+   ])if(terms.includes(owner)){
+    assert.deepEqual([...terms].sort(),[...expected].sort(),`${owner} admission`);
+    assert.ok(!bodies.has(owner),`${owner} has one executable drain`);
+    // The declaration and branch must belong to the same lowering block.
+    assert.ok(ts.isBlock(node.parent)&&node.parent.statements.some(statement=>
+     ts.isVariableStatement(statement)&&statement.declarationList.declarations.some(d=>d.name.getText(source)===owner)),`${owner} caller ownership`);
+    bodies.set(owner,node.thenStatement.getText(source));
+   }
+  }
+  ts.forEachChild(node,visit);
+ }
+ visit(source);
+ assert.equal(bodies.size,2,'independent sliding and following drains');
+ return bodies;
+}
+function assertLateDrainLabels(body){
+ assert.doesNotMatch(body,/\(ops\[(?:filterJump|skip|done|ready)/);
+ assert.match(body,/builder\.jump\(afterStep,/);
+ assert.match(body,/builder\.mark\(afterStep\)/);
+ assert.match(body,/builder\.jump\(done,/);
+ assert.match(body,/builder\.mark\(done\)/);
+}
 test('late sliding and following drains consume shared control labels',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- const start=text.indexOf('    if(sharedSliding&&!pendingEndRows){');
- const following=text.indexOf('    if(sharedFollowing&&!pendingEndRows){',start);
- const end=text.indexOf('    const cachedDirectOffset=',following);
- assert.ok(start>=0&&following>start&&end>following);
- // Pending-end frames own their own drain. Check each non-pending drain,
- // so one branch's shared labels cannot mask raw patching in the other.
- for(const body of [text.slice(start,following),text.slice(following,end)]){
-  assert.doesNotMatch(body,/\(ops\[(?:filterJump|skip|done|ready)/);
-  assert.match(body,/builder\.jump/);
-  assert.match(body,/builder\.jump\(afterStep,/);
-  assert.match(body,/builder\.mark\(afterStep\)/);
-  assert.match(body,/builder\.jump\(done,/);
-  assert.match(body,/builder\.mark\(done\)/);
+ for(const body of lateDrainBodies(text).values())assertLateDrainLabels(body);
+});
+test('late drain observer rejects missing shared ownership independently',()=>{
+ const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
+ for(const [owner,body] of lateDrainBodies(text)){
+  for(const label of ['afterStep','done']){
+   const marker=`builder.mark(${label})`;
+   assert.equal(body.split(marker).length,2,`${owner} unique ${label} boundary`);
+   const mutated=text.replace(body,body.replace(marker,`ops.push({code:"Noop"})`));
+   const drains=lateDrainBodies(mutated);
+   assert.throws(()=>assertLateDrainLabels(drains.get(owner)),assert.AssertionError);
+   const other=owner==='sharedSliding'?'sharedFollowing':'sharedSliding';
+   assertLateDrainLabels(drains.get(other));
+  }
  }
 });
 
