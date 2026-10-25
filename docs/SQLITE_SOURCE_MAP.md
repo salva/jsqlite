@@ -35,7 +35,12 @@ on reset/replay; the exact-query manifest-checked producer is
 TEXT / sqlite3VdbeMemCopy nonstatic ownership → independent TEXT recovery
 positive Mem highwater, exact native typed bags and refunds; same-cap numeric
 survival remains distinct. Caller `vdbe.ts` multiOrderConsumed requires full
-ORDER equality, not the partial prefix1. Revision-bound W198 evidence
+ORDER equality, not the partial prefix1. `joined-order-boundary.test.mjs` maps
+the actual caller boundary to pinned native ordered typed rows/five metadata,
+selected index work and sorter/no-sort witnesses across encodings/reset:
+nonunique nullable outer `m.a` proves only1 of2, whereas outer rowid followed
+by the represented inner key proves2. `capture-joined-order-boundary.py` reuses
+the existing read-only advanced-index fixtures. Revision-bound W198 evidence
 and outstanding independent acceptance: [[card:card-s-c-d-e]] current status.
 
 `vdbe.c:OP_Insert` retains packed input across `sqlite3BtreeInsert`; the bounded

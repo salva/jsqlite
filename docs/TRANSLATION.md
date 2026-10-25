@@ -623,7 +623,14 @@ not native allocation parity. Independent TEXT recovery compares exact typed
 bags (no ORDER BY), positive Mem highwater and refunds; same-cap numeric recovery
 remains separate. The manifest-checked `capture-without-rowid-joined.py` captures
 the exact unchanged SQL in all three encodings. See [[card:card-s-c-d-e]] current
-status for revision-bound W198 evidence and remaining independent acceptance. For UTF16
+status for revision-bound W198 evidence and remaining independent acceptance.
+Joined ORDER consumption requires the complete represented proof: a nullable,
+nonunique outer key may retain prefix1 without satisfying a two-term order.
+`joined-order-boundary.test.mjs` exercises this public selected-index caller
+against native typed ordered rows/metadata and sorter work, with a represented
+outer-rowid/inner-key full2 no-sort control. It does not extend the planner's
+supported proof shapes. See the same card evidence for exact caller mutation
+sensitivity and the finite native capture using unchanged advanced-index fixtures. For UTF16
 String('abc') packing, scratch76 + live Mem6 + record72 requires154 admitted
 units (conversion separately overlaps source3/new6). The earlier148 success
 observer predates register admission and is obsolete;147/148 remain rejection

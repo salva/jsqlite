@@ -5,7 +5,12 @@ charges in descriptor exact/replacement formulas, a zero-quota WR phase assertio
 that precedes selected access, and an obsolete blanket-zero joined-order
 expectation. Current controls retain original negatives, separately admit input
 backing, and retain matched outer prefix1 without claiming full two-term order;
-wrong-collation/inner-only controls still require0. WR tests measure whole-operation
+wrong-collation/inner-only controls still require0. G91's missing public caller
+boundary is covered by `joined-order-boundary.test.mjs`: nonunique nullable
+outer prefix1 retains sorting of two terms; represented outer rowid plus inner
+key full2 omits it. Native typed ordered rows/five metadata, selected-index and
+sorter witnesses run across encodings/reset. This is bounded regression evidence,
+not an expanded order-proof guarantee. WR tests measure whole-operation
 H, reject0/H−1 at the first public step, and compare H success twice against
 new pinned-native exact two-column SQL rows/five metadata. G89 correctly found
 the previous drain-rejection/self-measurement assertions insufficient. Independent

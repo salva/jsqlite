@@ -2,6 +2,19 @@
 
 This document records bounded evidence; it is not a claim of whole-SQLite compatibility. The product scope is [`SPEC.md`](SPEC.md), sequencing is [`PLAN.md`](PLAN.md), the pinned source identity is [`reference/sqlite/manifest.json`](../reference/sqlite/manifest.json), and protocol/fixture rules are in [`oracle.md`](oracle.md). Counts below always state their denominator. Excluded and local/no-credit companions do not become upstream passes.
 
+## Joined ORDER caller boundary
+
+`joined-order-boundary.test.mjs` compares two finite SQL controls against
+manifest-checked native typed ordered rows and five metadata fields, all three
+encodings and two executions/reset. The unchanged advanced-index `m` fixtures
+supply a nonunique nullable outer prefix (partial1 of2, sorter required) and a
+represented outer-rowid/inner-key full2 no-sort positive. Selected index work and
+actual sorter counters supplement planner proof assertions. The exact positive
+partial-as-full caller mutation must fail public ordered rows; this is not new
+upstream-suite credit or proof of broader ORDER shapes. Producer:
+`capture-joined-order-boundary.py`; corpus: `cases/joined-order-boundary-native.json`.
+Revision-bound commands, identities and sensitivity: [[card:card-s-c-d-e]] status.
+
 ## MakeRecord internal accounting observer
 
 `record-insert-overlap-review.test.mjs` preserves original81/82 workload/cap
