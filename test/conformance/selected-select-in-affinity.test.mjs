@@ -14,11 +14,17 @@ assert.equal(capture.sourceId,manifest.sqliteSourceId);
 // Source-derived locations tolerate unrelated line movement; fail closed if the
 // owning calls change. This seam neither replaces execution nor changes values.
 const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8').split('\n');
-const sites=['value.applyAffinity(op.affinities[index]!', 'case "IndexPrefixEnd": {'];
+const sites=['IndexSeekPrefix','IndexPrefixEnd'];
 const frames=sites.map(site=>{
- const lines=source.flatMap((line,i)=>line.includes(site)&&(site.startsWith('case')||!line.includes('case'))?[i+1]:[]);
- assert.equal(lines.length,1,site);return `vdbe.ts:${lines[0]}:`;
+ const start=source.findIndex(line=>line.includes(`case "${site}": {`));
+ assert.ok(start>=0,`${site}: dispatch exists`);
+ const next=source.findIndex((line,i)=>i>start&&/^\s*case ["']/.test(line));
+ assert.ok(next>start,`${site}: dispatch boundary exists`);
+ const lines=source.flatMap((line,i)=>i>=start&&i<next&&line.includes('value.applyAffinity(op.affinities[index]!')?[i+1]:[]);
+ assert.equal(lines.length,1,`${site}: physical prefix affinity site`);
+ return `vdbe.ts:${lines[0]}:`;
 });
+assert.notEqual(frames[0],frames[1],'seek and prefix-end are distinct observed phases');
 const decode=cell=>cell.type==='null'?null:cell.type==='integer'?BigInt(cell.value):cell.type==='real'?Buffer.from(cell.ieee754be,'hex').readDoubleBE():cell.type==='text'?Buffer.from(cell.utf8Hex,'hex').toString('utf8'):cell.type==='blob'?new Uint8Array(Buffer.from(cell.hex,'hex')):assert.fail(cell.type);
 for(const variant of capture.variants)test(`${variant.encoding}: SELECT-IN producer owns affinity before seek and prefix end`,async()=>{
  const bytes=fs.readFileSync(path.join(directory,variant.fixture));

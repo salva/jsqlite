@@ -63,7 +63,14 @@ for(const v of capture.variants)test(`${v.id}: unready AND arm truth survives se
    assert.notEqual(st.columnMetadata(0),metadataBeforeReset[0],'metadata records remain fresh across reset');
    assert.ok(Object.isFrozen(st.columnMetadata(0)),'retained metadata stays immutable');
    assert.throws(()=>st.column(0),error=>error.kind==='misuse','partial reset invalidates previously exposed selected row');
-   assert.deepEqual(privateAccounting(st),{plannerCandidates:0,plannerPaths:0,indexSeeks:0,indexNext:0,tableSeeks:0,tableNext:0,residualTests:0,sorterRows:0,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0},'reset clears complete per-execution access state before replay');
+   const zeroAccess={plannerCandidates:0,plannerPaths:0,indexSeeks:0,indexNext:0,tableSeeks:0,tableNext:0,residualTests:0,sorterRows:0,inProbes:0,orBranchStarts:0,orBranchRoots:[],orDuplicateSkips:0};
+   const resetState=privateAccounting(st);
+   assert.deepEqual(Object.fromEntries(Object.keys(zeroAccess).map(k=>[k,resetState[k]])),zeroAccess,'reset clears complete per-execution access state before replay');
+   assert.equal(resetState.executionId,null);assert.equal(resetState.planId,null);
+   assert.deepEqual(resetState.executedOps,[]);assert.ok(resetState.emittedOps.length>0,'reset retains compiled operations');
+   for(const key of ['openCursors','ownedBytes','memBytes','scratchBytes','recordBytes','payloadScratchBytes','packedPages','filterBytes'])assert.equal(resetState[key],0,`reset releases ${key}`);
+   assert.equal(resetState.chargedBytes,resetState.refundedBytes,'reset refunds all admitted backing');
+   assert.ok(resetState.highwaterBytes>0,'released-owner highwater survives reset until next execution');
    const resetAccounting=privateAccounting(st);
    assert.doesNotThrow(()=>st.reset(),'second reset with no intervening step remains valid');
    assert.deepEqual(privateAccounting(st),resetAccounting,'second reset retains zero per-execution state');

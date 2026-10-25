@@ -25,7 +25,23 @@ for(const v of capture.variants)test(`${v.encoding}: physical RHS movement contr
  BtreeDatabase.prototype.indexCursor=function(root){const cursor=originalOpen.call(this,root);if(root===b.rhsRoot)rhs.add(cursor);return cursor};
  PrivateBlobkeyPages.open=async function(...args){opens++;return open.apply(this,args)};
  try{
-  db=await openFixture(request(),{limits:{maxPrivateBytes:0}});
+  // Admit only independently measured register backing, never a private set.
+  db=await openFixture(request());st=db.prepare(c.sql).statement;
+  assert.deepEqual(await drain(st),c.rows.map(r=>r.map(decode)));
+  const measured=privateAccounting(st),peak=measured.highwaterBytes;
+  assert.ok(peak>0);assert.equal(peak,measured.memHighwaterBytes);
+  assert.equal(measured.recordHighwaterBytes,0);assert.equal(measured.scratchHighwaterBytes,0);assert.equal(measured.packedPagesHighwater,0);
+  st.finalize();st=undefined;db.closeDeferred();db=undefined;
+  // Preserve the original zero quota as a real rejection, not a discounted Mem.
+  for(const cap of [...new Set([0,peak-1])]){
+   db=await openFixture(request(),{limits:{maxPrivateBytes:cap}});st=db.prepare(c.sql).statement;
+   const error=await failure(st);assert.equal(error.kind,'limit');
+   assert.equal(await failure(st),error);assert.throws(()=>st.reset(),e=>e===error);
+   const a=privateAccounting(st);assert.equal(a.ownedBytes,0);assert.equal(a.chargedBytes,a.refundedBytes);
+   const retry=await failure(st);assert.equal(retry.kind,'limit');assert.throws(()=>st.finalize(),e=>e===retry);st=undefined;
+   db.closeDeferred();db=undefined;
+  }
+  db=await openFixture(request(),{limits:{maxPrivateBytes:peak}});
   for(const mode of ['cancel','deadline']){
    st=db.prepare(c.sql).statement;const controller=new AbortController(),reason=new Error('physical RHS movement');let entered=0,expired=false;
    // Physical Btree movement is synchronous. Delegate it unchanged before
@@ -39,11 +55,16 @@ for(const v of capture.variants)test(`${v.encoding}: physical RHS movement contr
    await assert.rejects(st.step(),e=>e===error);assert.throws(()=>st.reset(),e=>e===error);
    IndexCursor.prototype.previous=previous;Date.now=now;
    assert.deepEqual(await drain(st),c.rows.map(r=>r.map(decode)),'reset restarts physical endpoints');
-   st.finalize();st=undefined;assert.equal(opens,0,'direct reuse works at zero private-byte quota');
+   st.finalize();st=undefined;assert.equal(opens,0,'direct reuse allocates no ephemeral arena at measured register boundary');
   }
   db.closeDeferred();db=undefined;
   bytes=fs.readFileSync(path.join(brokenDirectory,b.fixture));assert.equal(createHash('sha256').update(bytes).digest('hex'),b.sha256);assert.deepEqual(b.codes,[11,11,11,11]);
-  db=await openFixture(request(),{limits:{maxPrivateBytes:0}});
+  db=await openFixture(request());st=db.prepare(b.offSql).statement;
+  assert.deepEqual(await drain(st),b.offRows.map(r=>r.map(decode)));
+  const off=privateAccounting(st);assert.equal(off.highwaterBytes,off.memHighwaterBytes);
+  assert.equal(off.recordHighwaterBytes,0);assert.equal(off.scratchHighwaterBytes,0);assert.equal(off.packedPagesHighwater,0);
+  const offPeak=off.highwaterBytes;st.finalize();st=undefined;db.closeDeferred();db=undefined;
+  db=await openFixture(request(),{limits:{maxPrivateBytes:offPeak}});
   st=db.prepare(b.offSql).statement;assert.deepEqual(await drain(st),b.offRows.map(r=>r.map(decode)));st.finalize();
   st=db.prepare(b.selectedSql).statement;const error=await failure(st);assert.equal(error.kind,'sqlite');assert.equal(error.code,11);
   assert.equal(await failure(st),error);assert.throws(()=>st.reset(),e=>e===error);

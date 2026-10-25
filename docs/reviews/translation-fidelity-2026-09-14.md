@@ -1,3 +1,16 @@
+## Selected-IN register-boundary observer correction (author evidence)
+
+On base4ca2e8b, no-ephemeral reuse does not imply zero total private bytes:
+OP_Column's projected TEXT owns charged register backing. The focused NULL and
+physical-error tests preserve original zero rejection, independently measure
+register-only H, check H−1 rejection and H native success/reset, and require no
+arena/set/probe where bypassed. This repairs stale observers, not a translated
+engine defect or budget waiver. Routed reset observers now distinguish changed
+execution/owner identities from stable work; full-operation peak rejection drains
+the operation rather than checking only its first row. Author147/147 plus Chinook
+checks pass; independent acceptance and broader integration remain outstanding.
+[Source rationale and evidence](../research/selected-select-in-delivery.md#register-backing-boundary).
+
 ## Beta5 window producer retention correction (author evidence)
 
 Review28 independently exposed bounded extrema's oldest numeric tie. The current

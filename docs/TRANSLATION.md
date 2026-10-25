@@ -777,8 +777,13 @@ Unrelated predicates remain residual. The [joined reuse evidence](research/selec
 covers native typed/metadata and actual no-materialization controls. The
 [physical RHS controls](research/selected-select-in-delivery.md#physical-rhs-coverage-promotion)
 add native selected/offpath corruption and public synchronous DESC movement
-cancel/deadline/reset/retry at zero private quota, plus selected two-branch OR;
-they do not exhaust ROWID/ASC fault timing or arbitrary OR schedules. Private endpoint,
+cancel/deadline/reset/retry without an ephemeral arena, plus selected two-branch OR.
+Projected TEXT still owns charged OP_Column register backing. The NULL-prefix and
+physical-error tests retain zero-quota rejection for that backing and measure a
+register-only highwater boundary independently before checking successful native
+rows, reset recovery, and later error phases; this is not a private-set allowance.
+Zero quota succeeds only when the skipped path also needs no owned projection.
+They do not exhaust ROWID/ASC fault timing or arbitrary OR schedules. Private endpoint,
 movement and Column dispatch precedes persistent dispatch, publishing jumps only
 after success. Equality slots are produced and NULL-guarded in index order,
 before later IN construction/positioning, following codeAllEqualityTerms; LEFT

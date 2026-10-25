@@ -147,7 +147,7 @@ for(const enc of Object.keys(corpus.fixtures))test(`multi-barrier nonzero simult
   const c=corpus.cases.find(c=>c.encoding===enc&&c.id==='aggregate');
   const s=db.prepare(c.sql).statement;
   if(maxPrivateBytes===peak){try{assert.deepEqual(await rows(s),c.native.first.rows);s.reset();assert.deepEqual(await rows(s),c.native.first.rows)}finally{s.finalize()}}
-  else{let first;await assert.rejects(s.step(),e=>{first=e;return e.kind==='limit'});await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.finalize(),e=>e===first)}
+  else{let first;await assert.rejects(rows(s),e=>{first=e;return e.kind==='limit'});await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.finalize(),e=>e===first)}
   const reuse=db.prepare('SELECT 1').statement;try{assert.equal(await reuse.step(),'row');assert.equal(reuse.column(0),1n)}finally{reuse.finalize()}
  },{limits:{maxPrivateBytes}});
  console.log(`shared aggregate/match ${enc} logical byte high-water=${peak}; boundary ${peak-1} rejects, ${peak} succeeds`);

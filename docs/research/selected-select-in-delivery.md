@@ -1,5 +1,33 @@
 # Selected scalar SELECT-IN scoped delivery evidence
 
+## Register backing boundary
+
+On integration-beta5 base 4ca2e8b116433d189f11ede71ea4957e9012cee8,
+ordinary register backing is now included in the execution byte budget. The prior
+physical coverage's zero-total-quota success claim is no longer applicable to
+projected TEXT. Pinned vdbe.c OP_Column3190–3220 copies active TEXT/BLOB into the
+destination; TS Column/Mem.copyFrom owns those bytes. NULL guarding a later IN
+set does not suppress an outer LEFT projection. No runtime borrowing, discount,
+SQL change or new algorithm is justified by this observer mismatch.
+
+The NULL-prefix test now retains zero quota explicitly: empty result succeeds;
+LEFT projection rejects with a sticky limit error, resets/retries, and admits
+native rows twice only at its independently measured register-only highwater
+(UTF8 2, UTF16le/be 4). H−1 rejects too. Every path asserts no IN probes or executed
+OpenEphemeral, released resources and balanced refunds. Physical error coverage
+independently measures successful mixed-desc and offpath projection demands,
+requires total highwater equal Mem highwater and zero record/scratch/page peaks,
+retains zero/H−1 failure, then tests native rows, actual identified DESC movement
+cancel/deadline, sticky errors, reset recovery, native SQLite11/retry/finalize and
+fresh offpath usability at those measured boundaries. PrivateBlobkeyPages.open
+must never occur. Thresholds are not a guessed allowance for missing machinery.
+
+Author evidence: proc-b0d19a8e74a3 (3/6 pass) establishes NULL boundaries but
+exposed the separately masked offpath TEXT ownership; proc-55953e190174 (3/3)
+then reaches all physical phases after independently measuring offpath backing.
+Existing native captures from E211 are reused, not a fresh native build/capture.
+Current status on [[card:card-s-c-d-e]] records combined checks and remaining gates.
+
 ## R15 ORDER comparison ownership
 
 Review15 identified retained ORDER result references using descriptor collation
