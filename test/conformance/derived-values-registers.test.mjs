@@ -4,6 +4,7 @@ import http from 'node:http';
 import path from 'node:path';
 import test from 'node:test';
 import {openFixture} from './public-api-adapter.mjs';
+import {PrivateStateByteBudget,SorterCursor} from '../../src/internal/private-state.ts';
 
 const here=path.dirname(new URL(import.meta.url).pathname);
 const current=JSON.parse(fs.readFileSync(path.join(here,'../fixtures/CURRENT.json'),'utf8'));
@@ -94,12 +95,37 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} deri
   }
 }));
 
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} derived VALUES exact sorter boundary retains live register ownership`,async()=>{
+ const sql="SELECT * FROM (VALUES(1,'aaaaaaaa'),(2,'bbbbbbbb')) ORDER BY 1";
+ const reserve=PrivateStateByteBudget.prototype.reserve,insert=SorterCursor.prototype.insert;
+ let active=false,peak=0;const budgets=new Set();
+ PrivateStateByteBudget.prototype.reserve=function(bytes,...rest){const value=reserve.call(this,bytes,...rest);budgets.add(this);if(active)peak=Math.max(peak,this.usedBytes);return value;};
+ SorterCursor.prototype.insert=async function(...args){active=true;try{return await insert.apply(this,args);}finally{active=false;}};
+ try {
+  await withPublicDb(encoding,{},async db=>assert.deepEqual(await rows(db,sql),[[1n,'aaaaaaaa'],[2n,'bbbbbbbb']]));
+  const boundary=peak;assert.ok(boundary>1,'actual sorter admission overlaps live producer bytes');
+  for(const delta of [-1,0])await withPublicDb(encoding,{limits:{maxPrivateBytes:boundary+delta}},async db=>{
+   const s=db.prepare(sql).statement;
+   try {
+    if(delta===0){assert.deepEqual(await rowsStatement(s),[[1n,'aaaaaaaa'],[2n,'bbbbbbbb']]);s.reset();assert.deepEqual(await rowsStatement(s),[[1n,'aaaaaaaa'],[2n,'bbbbbbbb']]);}
+    else {let first;await assert.rejects(s.step(),e=>(first=e,e.kind==='limit'&&e.message==='sorter exceeds total byte limit'));await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.reset(),e=>e===first);}
+   } finally {s.finalize();}
+   assert.deepEqual(await rows(db,'SELECT 1'),[[1n]]);
+  });
+  for(const b of budgets){assert.equal(b.usedBytes,0);assert.equal(b.snapshot().chargedBytes,b.snapshot().refundedBytes);}
+ } finally {PrivateStateByteBudget.prototype.reserve=reserve;SorterCursor.prototype.insert=insert;}
+});
+async function rowsStatement(s){const result=[];while(await s.step()==='row')result.push(Array.from({length:s.columnCount},(_,i)=>s.column(i)));return result;}
+
 for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} derived VALUES cancellation and budget cleanup restore admission`,()=>withPublicDb(encoding,{limits:{maxPrivateBytes:1}},async db=>{
   let statement=db.prepare("SELECT * FROM (VALUES(1,'aaaaaaaa'),(2,'bbbbbbbb')) ORDER BY 1").statement;
-  await assert.rejects(async()=>{while(await statement.step()==='row'){}},error=>error.kind==='limit'&&error.message==='sorter exceeds total byte limit');
+  await assert.rejects(async()=>{while(await statement.step()==='row'){}},error=>error.kind==='limit'&&error.message==='private state exceeds total byte limit');
   assert.throws(()=>statement.finalize(),error=>error.kind==='limit','first resource error survives finalize');
   statement=db.prepare('SELECT * FROM (VALUES(1),(2))').statement;
   await assert.rejects(statement.step({signal:AbortSignal.abort('derived-values cancellation')}),error=>error.kind==='cancelled');
   assert.throws(()=>statement.finalize(),error=>error.kind==='cancelled','cancellation survives finalize');
+  statement=db.prepare('SELECT * FROM (VALUES(1),(2))').statement;
+  await assert.rejects(statement.step({timeoutMs:0}),error=>error.kind==='timeout');
+  assert.throws(()=>statement.finalize(),error=>error.kind==='timeout','deadline survives finalize');
   assert.deepEqual(await rows(db,'SELECT 1'),[[1n]],'cleanup restores connection admission');
 }));

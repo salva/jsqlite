@@ -68,30 +68,47 @@ test('correlated EXISTS stops UNION ALL after the first hit, but reaches require
   try{let error;await assert.rejects(required.step(),e=>(error=e,/integer overflow/.test(e.message)));assert.throws(()=>required.reset(),e=>e===error);}finally{required.finalize();}
  }finally{TableScanCursor.prototype.first=first;}
 }));
-test('actual joined sorter reservation rollback and cleanup refund owned bytes',async()=>fixture({},async db=>{
+for(let encoding=0;encoding<native.encodings.length;encoding++)test(`encoding ${encoding}: actual joined sorter reservation rollback and cleanup refund owned bytes`,async()=>{fixtureEncoding=encoding;try{await fixture({},async db=>{
  const reserve=PrivateStateByteBudget.prototype.reserve,release=PrivateStateByteBudget.prototype.release,insert=SorterCursor.prototype.insert;
- const budgets=new Set();let peak=0,injected=false;
- PrivateStateByteBudget.prototype.reserve=function(...args){const value=reserve.apply(this,args);budgets.add(this);peak=Math.max(peak,this.usedBytes);return value;};
+ const budgets=new Set();let peak=0,sorterBytes=0,injected=false;
+ PrivateStateByteBudget.prototype.reserve=function(...args){const value=reserve.apply(this,args);budgets.add(this);peak=Math.max(peak,this.usedBytes);if(args[1]==='sorter exceeds total byte limit')sorterBytes+=args[0];return value;};
  PrivateStateByteBudget.prototype.release=function(...args){return release.apply(this,args);};
  const stop=new Error('post-growth probe');
  SorterCursor.prototype.insert=async function(key,payload,control){let zero=0;return insert.call(this,key,payload,{checkpoint:async units=>{await control.checkpoint(units);if(units===0&&++zero===2&&!injected){injected=true;throw stop;}}});};
  let s;
  try{
-  s=db.prepare(joined).statement;await assert.rejects(s.step());assert.equal(injected,true);assert.equal(peak,32);assert.ok(budgets.size>0);for(const b of budgets)assert.equal(b.usedBytes,0);
+  s=db.prepare(joined).statement;await assert.rejects(s.step());assert.equal(injected,true);assert.equal(sorterBytes,32);assert.ok(peak>=sorterBytes);assert.ok(budgets.size>0);for(const b of budgets){assert.equal(b.usedBytes,0);assert.equal(b.snapshot().chargedBytes,b.snapshot().refundedBytes);}
   assert.throws(()=>s.reset());s.finalize();s=undefined;
-  SorterCursor.prototype.insert=insert;peak=0;
-  s=db.prepare(joined).statement;assert.deepEqual(await rows(s),[[2n,2n],[3n,3n]]);assert.equal(peak,128);s.reset();for(const b of budgets)assert.equal(b.usedBytes,0);
+  SorterCursor.prototype.insert=insert;peak=0;sorterBytes=0;
+  s=db.prepare(joined).statement;assert.deepEqual(await rows(s),[[2n,2n],[3n,3n]]);assert.equal(sorterBytes,128);assert.ok(peak>=sorterBytes);s.reset();for(const b of budgets)assert.equal(b.usedBytes,0);
  }finally{try{s?.finalize()}catch{}SorterCursor.prototype.insert=insert;PrivateStateByteBudget.prototype.reserve=reserve;PrivateStateByteBudget.prototype.release=release;}
-}));
-async function fixture(limits,body){const prior=globalThis.fetch;globalThis.fetch=async()=>new Response(Buffer.from(native.encodings[0].base64,'base64'));let db;try{db=await open('https://fixture.invalid/joined-contracts',{limits});await body(db);}finally{try{db?.closeDeferred();}catch(e){assert.equal(e.kind,'misuse');assert.equal(e.message,'connection is closed');}globalThis.fetch=prior;}}
+ });}finally{fixtureEncoding=0;}});
+let fixtureEncoding=0;
+async function fixture(limits,body){const prior=globalThis.fetch;globalThis.fetch=async()=>new Response(Buffer.from(native.encodings[fixtureEncoding].base64,'base64'));let db;try{db=await open('https://fixture.invalid/joined-contracts',{limits});await body(db);}finally{try{db?.closeDeferred();}catch(e){assert.equal(e.kind,'misuse');assert.equal(e.message,'connection is closed');}globalThis.fetch=prior;}}
 async function rows(s){const result=[];while(await s.step()==='row')result.push(Array.from({length:s.columnCount},(_,i)=>s.column(i)));return result;}
 test('joined full-key merge exact entry/key/shared-byte thresholds and reset refund',async()=>{
+ const reserve=PrivateStateByteBudget.prototype.reserve;
+ for(let encoding=0;encoding<native.encodings.length;encoding++){
+ fixtureEncoding=encoding;let boundary=0,entries=0,keyBytes=0;const budgets=new Set();
+ const observe=PrivateStateByteBudget.prototype.observeDemand;
+ PrivateStateByteBudget.prototype.observeDemand=function(e,k=0){entries=Math.max(entries,e);keyBytes=Math.max(keyBytes,k);return observe.call(this,e,k);};
+ PrivateStateByteBudget.prototype.reserve=function(...args){const value=reserve.apply(this,args);budgets.add(this);boundary=Math.max(boundary,this.usedBytes);return value;};
+ try{await fixture({},async db=>{const s=db.prepare(joined).statement;try{assert.deepEqual(await rows(s),[[2n,2n],[3n,3n]]);}finally{s.finalize();}});}finally{PrivateStateByteBudget.prototype.reserve=reserve;PrivateStateByteBudget.prototype.observeDemand=observe;}
+ assert.equal(entries,3,'retained input index owns all three source keys, not just two merge outputs');assert.ok(keyBytes>=16);
+ for(const b of budgets){assert.equal(b.usedBytes,0);assert.equal(b.snapshot().chargedBytes,b.snapshot().refundedBytes);}
+ assert.ok(boundary>128);
  for(const [limits,pass] of [
-  [{maxPrivateEntries:2,maxPrivateKeyBytes:16,maxPrivateBytes:128},true],
-  [{maxPrivateEntries:1,maxPrivateKeyBytes:16,maxPrivateBytes:128},false],
-  [{maxPrivateEntries:2,maxPrivateKeyBytes:15,maxPrivateBytes:128},false],
-  [{maxPrivateEntries:2,maxPrivateKeyBytes:16,maxPrivateBytes:127},false],
+  [{maxPrivateEntries:entries,maxPrivateKeyBytes:keyBytes,maxPrivateBytes:boundary},true],
+  [{maxPrivateEntries:entries-1,maxPrivateKeyBytes:keyBytes,maxPrivateBytes:boundary},false],
+  [{maxPrivateEntries:entries,maxPrivateKeyBytes:keyBytes-1,maxPrivateBytes:boundary},false],
+  [{maxPrivateEntries:entries,maxPrivateKeyBytes:keyBytes,maxPrivateBytes:boundary-1},false],
+  [{maxPrivateEntries:1,maxPrivateKeyBytes:keyBytes,maxPrivateBytes:boundary},false],
+  [{maxPrivateEntries:entries,maxPrivateKeyBytes:15,maxPrivateBytes:boundary},false],
+  [{maxPrivateEntries:entries,maxPrivateKeyBytes:keyBytes,maxPrivateBytes:127},false],
+  [{maxPrivateEntries:entries,maxPrivateKeyBytes:keyBytes,maxPrivateBytes:128},false],
  ])await fixture(limits,async db=>{const s=db.prepare(joined).statement;try{for(let i=0;i<2;i++){if(pass){assert.deepEqual(await rows(s),[[2n,2n],[3n,3n]]);s.reset();}else{let first;await assert.rejects(s.step(),e=>(first=e,e.kind==='limit'));await assert.rejects(s.step(),e=>e===first);assert.throws(()=>s.reset(),e=>e===first);}}}finally{s.finalize();}const recovery=db.prepare('SELECT 1').statement;assert.deepEqual(await rows(recovery),[[1n]]);recovery.finalize();});
+ }
+ fixtureEncoding=0;
 });
 test('linked joined arity validates atomically; vector IN and Exists retain destination semantics',async()=>fixture({},async db=>{
  for(const sql of [`SELECT (${arm} UNION ALL ${arm})`,`SELECT 2 IN (${arm} UNION ALL ${arm})`])assert.throws(()=>db.prepare(sql),e=>e.kind==='sqlite'&&e.message==='sub-select returns 2 columns - expected 1');

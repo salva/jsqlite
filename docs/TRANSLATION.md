@@ -1,5 +1,12 @@
 # SQLite-to-TypeScript translation guide
 
+Resource fixtures distinguish aggregate live ownership (Mem, packed record,
+page and scratch) from logical sorter reservations. A retained automatic index
+may own more input entries than the final merge emits; register admission may
+fail before sorter growth. Exact boundary tests observe actual admission owners,
+retain below-boundary negatives and require cleanup rather than freezing an
+obsolete sorter-only aggregate peak. [Source comparison/tests](research/join-retained-compound-contracts-evidence.md#current-finite-resource-observer-contract-beta5).
+
 Development integration orchestration (`tools/test/integration.py`) uses one
 frozen ordered inventory; prerequisites are prepared once per invocation with
 a 180-second ceiling per prerequisite. Test files execute serially in

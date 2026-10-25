@@ -24,6 +24,38 @@ is `join-retained-compound-contracts-native.json`. Exact final combined results
 and remaining validation/delivery obligations: [[card:card-s-c-d-e]] status.
 These finite controls do not claim full scheduler/access/resource equivalence.
 
+## Current finite resource observer contract (beta5)
+
+The old128-byte assertion below is revision-bound sorter-only evidence, not the
+current aggregate execution budget. On05f3, automatic-index construction owns
+packed pages and keys before the joined merge; the Once/Rewind/MakeRecord/
+IdxInsert/Next producer (`vdbe.ts` automaticLevels) follows pinned
+`where.c:constructAutomaticIndex`1180–1222. It retains all three source keys,
+not only the two eventual joined output keys. `PrivateBlobkeyPages.#newEntry`
+therefore correctly rejects entries2. OpenAutoindex shares the OpenEphemeral
+arena admission/cleanup owner. No accounting policy or runtime fix is warranted.
+
+The current tests observe demand at actual reserve/observeDemand boundaries:
+all encodings require entries3 and independently test entry demand minus1,
+key-byte demand minus1 and aggregate-byte demand minus1 versus exact success,
+with two executions/reset and saved first error. Original1/15/127/128 negatives
+remain; two sorter records still reserve128 logical bytes in total, and the
+injected first sorter growth reserves32 then rolls back. Those are not aggregate
+highwaters. Actual page/record/scratch/Mem ownership remains charged until its
+owner releases it, with cumulative charged/refunded equality at cleanup.
+
+Derived VALUES with maxPrivateBytes1 fails live text-register admission before
+sorter admission: pinned `vdbemem.c:sqlite3VdbeMemSetStr` validates length and
+allocates transient backing before copy/publication. TS Mem.#ownBytes admits
+before build and refunds a failed unpublished producer. The all-encoding tests
+keep that negative and separately measure actual sorter-insert overlap, requiring
+sorter-specific rejection one byte below and exact-boundary success/reset.
+Cancellation/deadline/finalize and connection reuse remain explicit checks.
+This is observer correction, not native heap-size equivalence or quota inflation.
+Detailed commands/results and attempted hypotheses: [[card:card-m-f-k]] status;
+original reproduction record:///status.md?card=card-m-f-k&v=245 and narrowed
+entry-limit diagnosis record:///status.md?card=card-m-f-k&v=246.
+
 ## Historical implementation evidence (revision-bound)
 
 Input runtime: `ef3dc8e7aa297463b0588968c751ff6f7d964427`, in the existing exact archive extraction, plus the single owned pre-emission dispatcher hunk copied from the workspace and new tests/receipt. No other workspace runtime substitution. Successor commit is not delivered yet.

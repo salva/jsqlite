@@ -1,5 +1,15 @@
 # SQLite source map
 
+### Derived VALUES / joined merge resource observers
+
+`vdbemem.c:sqlite3VdbeMemSetStr` → Mem.#ownBytes admission before publication;
+`where.c:constructAutomaticIndex`1180–1222 → vdbe.ts automaticLevels Once/build
+and shared OpenAutoindex arena; `select.c` compound sorters → SorterCursor.
+`derived-values-registers.test.mjs` and `join-retained-compound-contracts.test.mjs`
+separate live producer/arena ownership from sorter logical bytes and check actual
+below/at admission boundaries, saved errors and cleanup across encodings.
+[Ownership rationale/evidence](research/join-retained-compound-contracts-evidence.md).
+
 ### Ordinary aggregate and selected-INNER resource fixtures
 
 `func.c:minmaxStep/minMaxValueFinalize` independent argument/best/publication →
