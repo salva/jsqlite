@@ -1579,7 +1579,10 @@ Current first-field standalone rowid-index boundary and fallback gaps:
 [guide](TRANSLATION.md#bounded-likeglob-prefix-ranges). Native identity, SQL,
 fixtures, EQP/programs, typed results and metadata are retained in
 `test/conformance/cases/like-prefix-native.json`; producer
-`capture-like-prefix.py`. Tests: `like-prefix-{red,primitive,string8,native-red}.test.mjs`.
+`capture-like-prefix.py`. Tests: `like-prefix-{red,primitive,string8,native-red,branches}.test.mjs`.
+`cases/like-prefix-branches-native.json` maps wherecode direction XOR/counter
+setup and WhereEnd empty/repeat branches to actual ordered SQL across encodings;
+first/second persistent seek fault/cancel controls cover VDBE saved-error cleanup.
 Revision-bound verification and acceptance obligations: [[card:card-s-c-d-n]].
 
 ## Bounded recursive JOIN-arm compounds

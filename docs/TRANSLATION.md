@@ -536,6 +536,9 @@ this keeps immutable program bytes separate from execution-owned Mem state.
 Native-FIRST receipt, typed results/five metadata fields, selected bounded work,
 reset/rebind/clear controls and source-derived primitives:
 `test/conformance/{cases/like-prefix-native.json,like-prefix-*.test.mjs}`.
+The separate `cases/like-prefix-branches-native.json` receipt covers physical
+ASC/DESC versus SQL direction and empty TEXT/BLOB-pass continuation; the branch
+test also checks first/second seek cancellation/fault cleanup and retry.
 Delivery and remaining safety/acceptance obligations: [[card:card-s-c-d-n]].
 
 The [runtime automatic-index/Bloom decision](research/where-autoindex-admission.md)

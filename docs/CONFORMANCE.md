@@ -14,8 +14,15 @@ no-prefix, collation mismatch, numeric safety, Unicode and LEFT ON controls are
 included. Selected/offpath corrupt-root and post-row cancel/timeout/work-limit
 controls check cleanup/reset and independent live-statement survival across all
 three encodings. The latter post-row controls do not establish interruption
-inside a range seek or the second pass. Primitive tests cover byte bounds and
-both String8 counter directions; SQL reverse/DESC coverage remains outstanding.
+inside a range seek or the second pass. `like-prefix-branches.test.mjs` adds
+32 native-FIRST SQL controls per encoding: LIKE/GLOB, physical ASC/DESC,
+forward/reverse SQL order, and mixed, TEXT-only, BLOB-only and empty ranges.
+It compares ordered typed rows/five metadata fields twice/reset, requires both
+selected seeks even on empty passes, and injects cancellation/fault after actual
+first/second seek positioning with sticky error, cleanup, retry and independent
+survivor checks. Receipt: `cases/like-prefix-branches-native.json`, produced by
+`capture-like-prefix.py` with the oracle library argument followed by `--branches`.
+Primitive tests also cover byte bounds and both String8 counter directions.
 No new upstream-suite credit or broad optimizer parity is claimed.
 Receipt: `test/conformance/cases/like-prefix-native.json`; current boundary:
 [guide](TRANSLATION.md#bounded-likeglob-prefix-ranges); revision-bound commands

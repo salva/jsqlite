@@ -8,8 +8,9 @@ Complete residuals are conservatively retained, prefix STAT4 extraction and
 joined/nested consumers remain gaps. Native-FIRST receipt and finite public
 selected-work/encoding/lifecycle evidence are mapped in
 [conformance](../CONFORMANCE.md#bounded-likeglob-prefix-evidence).
-Independent nonauthor acceptance, SQL reverse/DESC and within-pass interruption
-coverage remain outstanding; see [[card:card-s-c-d-n]]. Historical failed runs
+Branch follow-up adds native-FIRST SQL reverse/DESC, empty-pass/end-state and
+first/second seek interruption/fault controls across encodings. Independent
+nonauthor acceptance remains outstanding; see [[card:card-s-c-d-n]]. Historical failed runs
 and broader optimizer limitations below are not rewritten as passes.
 
 ## W198 descriptor/joined quota observers (author evidence)

@@ -13,6 +13,7 @@ m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
 d = m.load(sys.argv[1])
 manifest = json.loads((ROOT/'reference/sqlite/manifest.json').read_text())
+branches = '--branches' in sys.argv[2:]
 assert d.sqlite3_sourceid().decode() == manifest['sqliteSourceId']
 for name in ['name', 'decltype', 'database_name', 'table_name', 'origin_name']:
     fn = getattr(d, 'sqlite3_column_'+name)
@@ -58,7 +59,8 @@ def capture(db, sql, bindings):
 
 variants = []
 for encoding in ['UTF-8','UTF-16le','UTF-16be']:
-    fixture = ROOT/f'test/conformance/fixtures/like-prefix-{encoding.lower()}.db'
+    suffix = '-branches' if branches else ''
+    fixture = ROOT/f'test/conformance/fixtures/like-prefix{suffix}-{encoding.lower()}.db'
     assert not fixture.exists(), 'refuse to replace an existing capture fixture'
     fixture.parent.mkdir(parents=True, exist_ok=True)
     db = C.c_void_p()
@@ -69,6 +71,10 @@ for encoding in ['UTF-8','UTF-16le','UTF-16be']:
              "INSERT INTO t VALUES(1,'abc',12,1),(2,'Abcd',13,1.5),(3,'abcz',14,NULL),(4,'ab_c',15,x'00ff'),(5,'ab%c',16,'text'),(6,'abd',17,NULL),(7,NULL,18,NULL),(8,x'616263',19,2),(9,x'41626364',20,3),(10,'éclair',21,4),(11,'12abc','12abc',5),(12,'-abc','-abc',6)",
              "WITH RECURSIVE x(i) AS (VALUES(20) UNION ALL SELECT i+1 FROM x WHERE i<519) INSERT INTO t SELECT i,printf('zz%04d',i),i,NULL FROM x",
              'ANALYZE']
+    if branches:
+        setup[-1:-1] = ['CREATE INDEX i_nc_desc ON t(a COLLATE NOCASE DESC)',
+                       'CREATE INDEX i_bin_desc ON t(a COLLATE BINARY DESC)',
+                       "INSERT INTO t VALUES(520,'qrs',1,1.5),(521,x'78797a',2,NULL)"]
     try:
         for sql in setup:
             m.execsql(d, db, sql)
@@ -86,12 +92,21 @@ for encoding in ['UTF-8','UTF-16le','UTF-16be']:
             cases.append(dict(dimension=label, sql=sql, native=capture(db,sql,[])))
         sql = 'SELECT id,a,n,v FROM t WHERE a LIKE ? ORDER BY id'
         cases.append(dict(dimension='bound-patterns',sql=sql,runs=[capture(db,sql,[p]) for p in ['abc%','ab!_%','%abc','é%',None]]))
+        if branches:
+            cases = []
+            for mode, index, collation, wildcard in [('LIKE','i_nc','NOCASE','%'),('GLOB','i_bin','BINARY','*')]:
+                for desc in [False, True]:
+                    for reverse in [False, True]:
+                        for prefix in ['abc','qrs','xyz','qqq']:
+                            selected = index + ('_desc' if desc else '')
+                            sql = f"SELECT id,a,n,v FROM t INDEXED BY {selected} WHERE a {mode} '{prefix}{wildcard}' ORDER BY a COLLATE {collation} {'DESC' if reverse else 'ASC'}"
+                            cases.append(dict(dimension='branches',mode=mode,descending=desc,reverse=reverse,prefix=prefix,sql=sql,native=capture(db,sql,[])))
     finally:
         assert d.sqlite3_close(db) == m.OK
     variants.append(dict(encoding=encoding,fixture=str(fixture.relative_to(ROOT)),sha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),setup=setup,cases=cases))
 result = dict(source=manifest,producer='test/conformance/capture-like-prefix.py',readOnlyCapture=True,
               tsCredit=False,limitations=['bound-pattern runs are independent prepares, not a same-statement rebind/clear receipt','TS public execution and cleanup not yet tested'],variants=variants)
-out = ROOT/'test/conformance/cases/like-prefix-native.json'
+out = ROOT/f'test/conformance/cases/like-prefix{suffix}-native.json'
 assert not out.exists(), 'refuse to replace an existing capture receipt'
 out.write_text(json.dumps(result,indent=2)+'\n')
 for v in variants:
