@@ -1,8 +1,8 @@
 # JSQLite2
 
-**Public beta: [0.0.0-beta.5](https://github.com/salva/jsqlite/releases/tag/v0.0.0-beta.5).**
+**Public beta: [0.0.0-beta.6](https://github.com/salva/jsqlite/releases/tag/v0.0.0-beta.6).**
 Browser-safe read-only SQLite, released under [GNU GPL v3 or later](LICENSE).
-[Release scope, validation and remaining limitations](docs/releases/beta.5.md).
+[Release scope, validation and remaining limitations](docs/releases/beta.6.md).
 Try the [live playground](https://salva.github.io/jsqlite/).
 No npm registry publication; install the GitHub release tarball.
 
@@ -38,10 +38,10 @@ The archive itself is ignored by Git and can be downloaded again from that URL
 and verified against the manifest.
 The reference is pinned; later stable releases are adopted deliberately at
 meaningful milestones with source, tests, and oracle updated together.
-## Public beta.5
+## Public beta.6
 
 This release packages the independently accepted local-beta engine from
-`942e6135ab5c212cf02d46d51171cfb94ce807ab`. Release changes add version/license,
+`c59d3bb6205ade1a98d09c1c6665174118833934`. Release changes add version/license,
 packaging checks and documentation, not engine changes. It is not full SQLite
 compatibility or arbitrary SQL-composition support. All database text encodings
 (UTF-8, UTF-16le, UTF-16be) are covered by the represented tests. SPEC breadth is
@@ -52,10 +52,10 @@ Historical private/deferred-alpha instructions in research documents describe
 their original handoffs, not this owner-authorized public beta.
 
 ```sh
-curl -fLO https://github.com/salva/jsqlite/releases/download/v0.0.0-beta.5/jsqlite2-0.0.0-beta.5.tgz
-curl -fLO https://github.com/salva/jsqlite/releases/download/v0.0.0-beta.5/SHA256SUMS
+curl -fLO https://github.com/salva/jsqlite/releases/download/v0.0.0-beta.6/jsqlite2-0.0.0-beta.6.tgz
+curl -fLO https://github.com/salva/jsqlite/releases/download/v0.0.0-beta.6/SHA256SUMS
 # Check the tarball entry against SHA256SUMS before installation.
-npm install --ignore-scripts --no-audit --no-fund ./jsqlite2-0.0.0-beta.5.tgz
+npm install --ignore-scripts --no-audit --no-fund ./jsqlite2-0.0.0-beta.6.tgz
 ```
 
 ```ts
@@ -123,7 +123,7 @@ and Web Crypto for SQL randomness. No runtime dependencies, Node APIs, native
 SQLite, WASM, dynamic code generation or telemetry are shipped.
 
 The package retains **private: true** to prevent accidental npm registry
-publication; beta.5 is distributed as a versioned GitHub tarball. This is not
+publication; beta.6 is distributed as a versioned GitHub tarball. This is not
 a claim of full SQLite compatibility. SQL admission remains bounded above.
 Packaging explicitly includes only emitted JS/declarations, plus npm's mandatory
 package metadata and this README; reference sources, fixtures, tools and research
