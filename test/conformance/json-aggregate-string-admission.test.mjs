@@ -204,23 +204,70 @@ test('scan-remove preserves nested strings and NULL placeholder positions',()=>w
  assert.deepEqual(snapshots,[...expected,...expected]);
 },{limits:{maxResultBytes:10000}}));
 
-// Native Step owns JsonString growth only after OP_Variable admits typed Mem.
-// Observe the real shared budget, without bypassing admission or raising caps.
-// Prototype observation is scoped to this serial test and restored in finally.
-for(const name of ['json_group_array','jsonb_group_array','json_group_object','jsonb_group_object'])
-test(`${name}: growth reservation failure refunds on reset/rebind`,()=>withDb(async db=>{
- const object=name.endsWith('object'),events=[],owners=new Set();
+// Own the global observation through prepare and finalize, including saved-error
+// finalize. Cleanup must not replace a primary prepare/assertion failure.
+async function withReserveObservedStatement(db,sql,events,owners,run){
  const reserve=PrivateStateByteBudget.prototype.reserve;
+ let statement,primaryFailed=false;
  PrivateStateByteBudget.prototype.reserve=function(bytes,message){
   owners.add(this);
   const before=this.snapshot();
   try{const result=reserve.call(this,bytes,message);events.push({bytes,message,before,accepted:true});return result}
   catch(error){events.push({bytes,message,before,accepted:false});throw error}
  };
- const s=db.prepare(`SELECT ${name}(${object?"'k',":''}?1) FROM t1 WHERE x<?2`).statement;
+ try{
+  statement=db.prepare(sql).statement;
+  return await run(statement);
+ }catch(error){primaryFailed=true;throw error}
+ finally{
+  try{statement?.finalize()}
+  catch(error){if(!primaryFailed)throw error}
+  finally{PrivateStateByteBudget.prototype.reserve=reserve}
+ }
+}
+
+test('reserve observation restores after prepare/assertion/saved-finalize failures',()=>withDb(async db=>{
+ const original=PrivateStateByteBudget.prototype.reserve;
+ for(const phase of ['prepare','assertion','assertion-with-saved-error','saved-finalize']){
+  const events=[],owners=new Set();let primary,saved,finalizedStatement;
+  const preparingDb={prepare(sql){
+   try{return db.prepare(sql)}catch(error){primary=error;throw error}
+  }};
+  await assert.rejects(withReserveObservedStatement(preparingDb,
+   phase==='prepare'?'SELECT (':'SELECT json_group_array(?1)',events,owners,async s=>{
+    finalizedStatement=s;
+    if(phase!=='assertion'){
+     s.bind(1,'x'.repeat(5000));
+     await assert.rejects(s.step(),error=>{saved=error;return error.kind==='limit'});
+    }
+    if(phase!=='saved-finalize'){
+     try{assert.fail(`primary ${phase}`)}catch(error){primary=error;throw error}
+    }
+   }),error=>error===(phase==='saved-finalize'?saved:primary));
+  assert.equal(PrivateStateByteBudget.prototype.reserve,original,phase);
+  // Saved-error finalize still transitioned to finalized before throwing.
+  if(finalizedStatement)assert.throws(()=>finalizedStatement.reset(),error=>error.kind==='misuse'&&error.message==='statement is finalized');
+  for(const owner of owners){const b=owner.snapshot();assert.equal(b.ownedBytes,0);assert.equal(b.chargedBytes,b.refundedBytes)}
+  const priorCount=events.length,laterEvents=[];
+  await withReserveObservedStatement(db,'SELECT json_group_array(?1)',laterEvents,new Set(),async s=>{
+   s.bind(1,'ok');assert.equal(await s.step(),'row');assert.equal(s.column(0),'["ok"]');
+   assert.equal(await s.step(),'done');s.reset();
+  });
+  assert.ok(laterEvents.length>0,'later observer receives real reservations');
+  assert.equal(events.length,priorCount,'failed observer cannot receive later reservations');
+  assert.equal(PrivateStateByteBudget.prototype.reserve,original);
+ }
+},{limits:{maxResultBytes:20000,maxPrivateBytes:1024}}));
+
+// Native Step owns JsonString growth only after OP_Variable admits typed Mem.
+// Observe the real shared budget, without bypassing admission or raising caps.
+// Prototype observation is scoped to this serial test and restored in finally.
+for(const name of ['json_group_array','jsonb_group_array','json_group_object','jsonb_group_object'])
+test(`${name}: growth reservation failure refunds on reset/rebind`,()=>withDb(async db=>{
+ const object=name.endsWith('object'),events=[],owners=new Set();
  const aggregateEvents=()=>events.filter(e=>e.message==='aggregate state exceeds total byte limit');
  const refunded=()=>{for(const owner of owners){const b=owner.snapshot();assert.equal(b.ownedBytes,0);assert.equal(b.chargedBytes,b.refundedBytes);assert.equal(b.memBytes,0)}};
- try{
+ await withReserveObservedStatement(db,`SELECT ${name}(${object?"'k',":''}?1) FROM t1 WHERE x<?2`,events,owners,async s=>{
   // Retain the original witness: it fails before Step, not at JsonString.
   s.bind(1,'x'.repeat(5000));s.bind(2,4);let saved;
   await assert.rejects(s.step(),e=>{saved=e;return e.kind==='limit'&&e.message==='private state exceeds total byte limit'});
@@ -252,7 +299,7 @@ test(`${name}: growth reservation failure refunds on reset/rebind`,()=>withDb(as
   if(name.startsWith('jsonb'))assert.ok(got instanceof Uint8Array);
   else assert.equal(got,object?'{"k":"ok"}':'["ok"]');
   assert.equal(await s.step(),'done');s.reset();refunded();
- }finally{s.finalize();PrivateStateByteBudget.prototype.reserve=reserve}
+ });
 },{limits:{maxResultBytes:20000,maxPrivateBytes:1024}}));
 
 // Compute closes before object placeholder compaction; xValue must copy the
