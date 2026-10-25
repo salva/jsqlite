@@ -2,7 +2,7 @@
 """Pinned native nonempty TVF origin/binding controls; disposable files in --work."""
 import argparse,base64,ctypes as C,hashlib,importlib.util,json,pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[3]
-a=argparse.ArgumentParser();a.add_argument('--library',required=True);a.add_argument('--work',required=True);args=a.parse_args()
+a=argparse.ArgumentParser();a.add_argument('--library',required=True);a.add_argument('--work',required=True);a.add_argument('--output',type=pathlib.Path,default=pathlib.Path(__file__).with_name('tvf-five-native.json'));args=a.parse_args()
 s=importlib.util.spec_from_file_location('native',ROOT/'test/conformance/capture-index-planner.py');n=importlib.util.module_from_spec(s);s.loader.exec_module(n);d=n.load(args.library)
 pin=json.loads((ROOT/'reference/sqlite/manifest.json').read_text())['sqliteSourceId'];assert d.sqlite3_sourceid().decode()==pin
 for name in ['name','decltype','database_name','table_name','origin_name']:
@@ -42,5 +42,5 @@ for enc in ['UTF-8','UTF-16le','UTF-16be']:
    results.append({'bindings':bindings,'rows':rows})
   d.sqlite3_finalize(st);cases.append({'sql':sql,'metadata':meta,'runs':results})
  d.sqlite3_close(db);out['encodings'].append({'encoding':enc,'base64':base64.b64encode(b).decode(),'sha256':hashlib.sha256(b).hexdigest(),'cases':cases})
-pathlib.Path(__file__).with_name('tvf-five-native.json').write_text(json.dumps(out,indent=2)+'\n')
+args.output.write_text(json.dumps(out,indent=2)+'\n')
 print('pinned five-TVF capture complete')

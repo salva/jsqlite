@@ -33,7 +33,13 @@ Final integrity checks revalidate source inputs and every inventoried generated
 file; changed or missing files fail the invocation without rewriting consumer
 exits or classifications.
 The inventory control preserves the original 522 and 527 ordered inventories
-and explicitly enrolls the subsequent joined-ORDER addition.
+and explicitly enrolls the subsequent joined-ORDER and three beta6 additions.
+The beta6 aggregate destination and INDEX_INFO consumers require fresh pinned
+captures before execution. Destination comparison excludes only the native-library
+binary hash (retained as provenance); INDEX comparison retains fixture bytes and
+all consumed index_info/index_xinfo cases, not unrelated database_list paths.
+Both generated captures are rehashed at final integrity. RIGHT target visitation
+is structural coverage and requires no native fixture.
 
 ### JSON5 value-name and label admission
 

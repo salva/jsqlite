@@ -66,6 +66,33 @@ def select_fixture_command(key, library, work_root):
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    if 'test/conformance/beta6-aggregate-subquery-destination.test.mjs' in files:
+        target = str(work_root/'beta6-destination-native.json')
+        commands.extend([
+            ['python3', '-c',
+             "import pathlib,subprocess,sys; "
+             "r=subprocess.run([sys.executable,'tools/oracle/capture-beta6-destination.py',sys.argv[1],sys.argv[2]],capture_output=True); "
+             "sys.stderr.buffer.write(r.stderr); r.check_returncode(); pathlib.Path(sys.argv[3]).write_bytes(r.stdout)",
+             str(library), str(work_root/'beta6-destination-work'), target],
+            ['python3', '-c',
+             "import json,pathlib,sys; a=json.loads(pathlib.Path(sys.argv[1]).read_text()); "
+             "b=json.loads(pathlib.Path(sys.argv[2]).read_text()); "
+             "a.pop('librarySha256'); b.pop('librarySha256'); "
+             "assert a==b,'beta6 destination native corpus mismatch'",
+             target, 'docs/research/beta6-destination-native.json'],
+        ])
+    if 'test/conformance/metadata-index-production.test.mjs' in files:
+        target = str(work_root/'metadata-index-native.json')
+        commands.extend([
+            ['python3', 'docs/research/card-e-n-pragma-red/capture-tvf-five.py',
+             '--library', str(library), '--work', str(work_root/'metadata-index-work'), '--output', target],
+            ['python3', '-c',
+             "import json,pathlib,sys; "
+             "a=json.loads(pathlib.Path(sys.argv[1]).read_text()); b=json.loads(pathlib.Path(sys.argv[2]).read_text()); "
+             "[v.update(cases=[c for c in v['cases'] if c['sql'] in ('SELECT * FROM pragma_index_info(?1,?2)','SELECT * FROM pragma_index_xinfo(?1,?2)')]) for corpus in (a,b) for v in corpus['encodings']]; "
+             "assert a==b,'metadata INDEX native corpus mismatch'",
+             target, 'docs/research/card-e-n-pragma-red/tvf-five-native.json'],
+        ])
     if 'test/conformance/joined-order-boundary.test.mjs' in files:
         # Recapture without overwriting the committed consumer corpus.
         target = str(work_root/'joined-order-boundary-native.json')
@@ -308,6 +335,13 @@ def main():
         if 'test/conformance/joined-order-boundary.test.mjs' in files:
             capture = work_root/'joined-order-boundary-native.json'
             report['generated_inputs'][capture.name] = hashlib.sha256(capture.read_bytes()).hexdigest()
+        for consumer, capture_name in (
+            ('beta6-aggregate-subquery-destination', 'beta6-destination-native.json'),
+            ('metadata-index-production', 'metadata-index-native.json'),
+        ):
+            if f'test/conformance/{consumer}.test.mjs' in files:
+                capture = work_root/capture_name
+                report['generated_inputs'][capture.name] = hashlib.sha256(capture.read_bytes()).hexdigest()
         save()
     # Emit once sequentially before concurrent demo units launch a browser.
     # Direct units use the same owner; installed-demo roots are never rebuilt.

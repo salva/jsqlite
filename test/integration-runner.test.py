@@ -46,6 +46,56 @@ class Runner(unittest.TestCase):
  def test_generated_capture_deletion_fails_actual_cli(self):
   self.generated_capture_drift('delete')
 
+ def test_beta6_generated_capture_mutation_fails_actual_cli(self):
+  import subprocess,tempfile,json,shutil
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required')
+  node=shutil.which('node');self.assertIsNotNone(node)
+  with tempfile.TemporaryDirectory(dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp);binary=root/'bin';binary.mkdir()
+   shim=binary/'node'
+   shim.write_text('#!'+sys.executable+'\nimport os,pathlib,sys\n'
+    +'if sys.argv[1:]==["--version"]: os.execv('+repr(node)+',["node","--version"])\n'
+    +'for name in ("beta6-destination-native.json","metadata-index-native.json"):\n'
+    +' p=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/name; p.write_text("{}")\n')
+   shim.chmod(0o755)
+   env=dict(os.environ,PATH=str(binary)+os.pathsep+os.environ['PATH'],SAIVAGE_CARD_WORK_ROOT=str(root/'run'))
+   result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,
+    'test/conformance/beta6-aggregate-subquery-destination.test.mjs',
+    'test/conformance/metadata-index-production.test.mjs'],env=env,capture_output=True,timeout=300)
+   report=json.loads((root/'run/integration-run/manifest.json').read_text())
+   self.assertEqual([r['exit'] for r in report['prerequisites']],[0]*4)
+   self.assertEqual([r['exit'] for r in report['results']],[0,0])
+   self.assertEqual(set(report['generated_inputs']),{'beta6-destination-native.json','metadata-index-native.json'})
+   self.assertEqual(set(report['input_drift']),{str(root/'run'/name) for name in report['generated_inputs']})
+   self.assertEqual(result.returncode,1)
+
+ def test_beta6_native_prerequisites(self):
+  import subprocess,tempfile,json
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:
+   self.skipTest('INTEGRATION_TEST_ORACLE required for native controls')
+  files=['test/conformance/beta6-aggregate-subquery-destination.test.mjs',
+         'test/conformance/metadata-index-production.test.mjs']
+  with tempfile.TemporaryDirectory(dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp)
+   commands=runner.prerequisite_commands(files,pathlib.Path(library),root)
+   self.assertEqual(len(commands),4)
+   for command in commands:
+    subprocess.run(command,check=True,timeout=180)
+   # Equality must reject real semantic drift, not merely accept any JSON.
+   for capture,command in zip(('beta6-destination-native.json','metadata-index-native.json'),commands[1::2]):
+    path=root/capture; value=json.loads(path.read_text());value['sourceId']='wrong-pin'
+    path.write_text(json.dumps(value))
+    result=subprocess.run(command,capture_output=True,timeout=180)
+    self.assertNotEqual(result.returncode,0)
+   # A wrong library cannot create producer output or reach a consumer.
+   bad=root/'missing.so'; work=root/'wrong-pin-work'
+   plan=runner.prerequisite_commands(files,bad,work)
+   for command in plan[::2]:
+    self.assertNotEqual(subprocess.run(command,capture_output=True,timeout=180).returncode,0)
+   self.assertFalse(work.exists())
+
  def test_enrolled_fixture_union(self):
   root=pathlib.Path('/purpose/enrolled');library=root/'oracle.so'
   files=runner.discover_files(pathlib.Path.cwd())
@@ -58,8 +108,13 @@ class Runner(unittest.TestCase):
   digest=lambda paths:hashlib.sha256(('\n'.join(paths)+'\n').encode()).hexdigest()
   joined='test/conformance/joined-order-boundary.test.mjs'
   self.assertIn(joined,files)
-  original=[file for file in files if file!=joined]
-  self.assertEqual(len(files),528)
+  beta6={f'test/conformance/{name}.test.mjs' for name in (
+   'beta6-aggregate-subquery-destination','metadata-index-production','right-control-target-visitor')}
+  self.assertEqual(set(files)&beta6,beta6)
+  previous=[file for file in files if file not in beta6]
+  self.assertEqual(len(previous),528)
+  original=[file for file in previous if file!=joined]
+  self.assertEqual(len(files),531)
   self.assertEqual(len(files),len(set(files)))
   self.assertEqual(files,sorted(files))
   self.assertEqual(set(files)&additions,additions)
