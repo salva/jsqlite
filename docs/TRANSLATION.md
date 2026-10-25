@@ -618,6 +618,15 @@ units (conversion separately overlaps source3/new6). The earlier148 success
 observer predates register admission and is obsolete;147/148 remain rejection
 controls, with153/154/155 and UTF8 controls in `test/value/record-pack.test.mjs`.
 This corrects an internal observer, not a configured quota or public guarantee.
+Insert's bounded logical carrier separately admits copied cells before MemCopy;
+partial-copy and checkpoint failures refund before publishing sequence/positions.
+Caller register and packed input remain live through insertion. The original UTF8
+INTEGER7/TEXTabc witness is register3 + packed71 + logical11 =85, not82;
+original81/82 caps remain rejection controls alongside84/85/86 in
+`record-insert-overlap-review.test.mjs`. Detached copied backing is covered by
+logical admission, not charged again as ordinary register Mem. Native Insert
+uses packed input through BtreeInsert; this carrier is not native page allocation
+parity. Source/control and failure evidence: [[card:card-f-a-b]] status.
 Source/lifetime comparison and delivery evidence: [[card:card-f-a-b]] status.
 Direct admitted cancel/deadline/reset cleanup is exercised across encodings by
 `makerecord-controls.test.mjs`, using existing budget-boundary observation and a

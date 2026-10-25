@@ -23,6 +23,17 @@ without closing the diagnostic schema. [Ownership/source and pinned-path evidenc
 
 ### MakeRecord conversion and register ownership
 
+`vdbe.c:OP_Insert` retains packed input across `sqlite3BtreeInsert`; the bounded
+logical ephemeral carrier retains separate copied cells. `EphemeralIndexCursor.insert`
+admits logical bytes before MemCopy, unwinds partial copies/checkpoint failure,
+and commits sequence/positions only after successful insertion. Original UTF8
+INTEGER7/TEXTabc witness now observes register3 + packed71 + logical11 =85;
+original81/82 remain rejection controls,84/85/86 prove the current boundary.
+`record-insert-overlap-review.test.mjs` and `ephemeral-insert-admission.test.mjs`
+cover atomic admission, copy/checkpoint rollback, copied lifetime, sticky/reset,
+retry and close refunds. This is a logical representation adaptation, not native
+Btree allocation equivalence; source comparison and results: [[card:card-f-a-b]] status.
+
 `vdbe.c:OP_MakeRecord` live input affinity then separate packed output,
 `utf.c:sqlite3VdbeMemTranslate` allocate-before-free and endian writable swap,
 `vdbemem.c:sqlite3VdbeMemCopy` nonstatic writable copy → `Mem` backing admission,

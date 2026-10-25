@@ -207,12 +207,18 @@ export class EphemeralIndexCursor {
   }
   async insert(key:readonly Mem[],control:PrivateStateControl,ordered=false):Promise<void>{
    this.#live();const at=ordered?await this.#keyPosition(key,control):this.#shared.entries.length;
-   const owned=copyCells(key),bytes=logicalBytes(owned);
-   if(bytes>this.limits.maxKeyBytes){owned.forEach(value=>value.release());throw new PrivateStateLimitError("ephemeral key exceeds byte limit")}
-   if(this.#shared.entries.length>=this.limits.maxEntries){owned.forEach(value=>value.release());throw new PrivateStateLimitError("ephemeral index exceeds entry limit")}
+   const bytes=logicalBytes(key);
+   if(bytes>this.limits.maxKeyBytes)throw new PrivateStateLimitError("ephemeral key exceeds byte limit");
+   if(this.#shared.entries.length>=this.limits.maxEntries)throw new PrivateStateLimitError("ephemeral index exceeds entry limit");
    this.#budget.observeDemand(this.#shared.entries.length+1,bytes);
-   try{this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit")}catch(error){owned.forEach(value=>value.release());throw error}
-   try{await control.checkpoint(1+bytes);await control.checkpoint(0)}catch(error){owned.forEach(value=>value.release());this.#budget.release(bytes);throw error}
+   // Admit the logical owner before MemCopy allocates its backing. Input
+   // registers and any packed record remain separately owned by the caller.
+   this.#budget.reserve(bytes,"ephemeral index exceeds total byte limit");
+   let owned:Mem[]=[];
+   try{
+    for(const value of key){const copy=new Mem();owned.push(copy);copy.copyFrom(value)}
+    await control.checkpoint(1+bytes);await control.checkpoint(0);
+   }catch(error){owned.forEach(value=>value.release());this.#budget.release(bytes);throw error}
    const entry:Entry={key:owned,payload:[],sequence:this.#shared.sequence,bytes};
    this.#shared.entries.splice(at,0,entry);const wasSorted=this.#shared.sorted;this.#shared.sorted=ordered;
    try { await control.checkpoint(0); }

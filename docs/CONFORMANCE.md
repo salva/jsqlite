@@ -4,6 +4,15 @@ This document records bounded evidence; it is not a claim of whole-SQLite compat
 
 ## MakeRecord internal accounting observer
 
+`record-insert-overlap-review.test.mjs` preserves original81/82 workload/cap
+controls (now rejection with register backing), adding84 rejection and85/86
+success. It independently observes register3/packed71/logical11, sticky error,
+reset/retry and full refunds. `ephemeral-insert-admission.test.mjs` checks
+reserve-before-MemCopy, partial-copy/checkpoint rollback, all text encodings and
+copied lifetime/close cleanup. These are local safety/accounting companions,
+not native allocator equivalence or new upstream credit. Exact revision-bound
+commands and qualifications: [[card:card-f-a-b]] status.
+
 `test/value/record-pack.test.mjs` retains the original147/148 inputs but corrects
 the pre-register-ownership148 success expectation: UTF16 packing requires154
 logical admitted units (scratch76 + register6 + record72). All encodings,
