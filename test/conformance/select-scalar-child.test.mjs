@@ -519,7 +519,12 @@ test('nonaggregate joined child consumes enclosing builder at scan and sorter dr
  // Joined producers reserve at least one register even for a zero-width carrier;
  // ownership stays with the enclosing builder, not a relocated child program.
  assert.match(producer,/owner\?owner\.builder\.range\(Math\.max\(1,expanded\.result\.length\)\)/);
- assert.match(producer,/emitSelectDestination\(ops,owner\.destination,resultStart,expanded\.result\.length\)/);
+ assert.match(producer,/createSelectDelivery\(builder,\{[^]*?first:resultStart,count:expanded.result.length,destination:owner\?\.destination\?\?\{kind:'output'\}/);
+ assert.match(producer,/delivery.innerLoop\(\)/);
+ assert.match(producer,/delivery.sortTail\(\)/);
+ const delivery=text.slice(text.indexOf('function createSelectDelivery('),text.indexOf('function compileInnerTableSelect('));
+ assert.match(delivery,/const ops=builder.ops/);
+ assert.match(delivery,/emitSelectDestination\(ops,row.destination,row.first,row.count\)/);
  assert.match(caller,/compileWideSubquery\(expression,expanded,selectProgramBuilder,resultOps,parameters/);
  const wide=text.slice(text.indexOf('function compileWideSubquery('),text.indexOf('function compileWideSubquery(')+18000);
  assert.match(wide,/const preparedOwner=\{\.\.\.owner/);

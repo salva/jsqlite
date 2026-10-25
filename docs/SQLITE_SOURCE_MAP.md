@@ -759,6 +759,15 @@ module projection, retaining positioned sourceRow payload and independent rowid.
 Finite typed/full-metadata and lifecycle author evidence, source comparison and
 remaining acceptance gates: [mixed Window correction](research/mixed-json-window/README.md).
 
+## SELECT delivery phases
+
+`select.c:selectInnerLoop` DISTINCT/sorter insertion/direct delivery and
+`generateSortTail` → `vdbe.ts:createSelectDelivery`, consumed directly by
+`compileInnerTableSelect`. Builder and enclosing compound retain label/stop
+identity; WHERE retains final continuation, RIGHT Return/drain and cleanup.
+Tests: `select-delivery-phase.test.mjs`, scalar-child, RIGHT continuation and
+aggregate destination controls. [Boundary/evidence](research/select-delivery-phase.md).
+
 ## Shared scalar metadata admission
 
 `expr.c:sqlite3CodeSubselect` destination/Once initialization independent of

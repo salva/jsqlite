@@ -95,6 +95,13 @@ module projection, retaining positioned sourceRow payload and independent rowid.
 Finite typed/full-metadata and lifecycle author evidence, source comparison and
 remaining acceptance gates: [mixed Window correction](research/mixed-json-window/README.md).
 
+`compileInnerTableSelect` delegates ordinary DISTINCT/destination/LIMIT and
+sort-tail publication to local `createSelectDelivery`; WHERE retains positioning,
+continuations, RIGHT Return/drain and cleanup. Only inline producer stops license
+RIGHT verifier exits; compound stops retain enclosing ownership. Resolver-bound
+projection and source snapshots remain caller-owned. This changes compiler
+responsibilities, not public behavior. [Boundary and bounded evidence](research/select-delivery-phase.md).
+
 Shared FROM-backed aggregate subqueries use one inline destination/Once owner
 in `compileScalarSelect`, independently of grouped/ungrouped AggInfo production;
 GROUP BY without aggregate calls remains admitted. The preceding materialized

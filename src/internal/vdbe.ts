@@ -4294,6 +4294,68 @@ function jsonColumnDemand(plan:ReturnType<typeof expandAndResolveSelect>,source:
  visit(plan);return columns;
 }
 
+// select.c selectInnerLoop / generateSortTail: SELECT owns delivery, WHERE
+// owns positioning/continuation. No runtime VDBE policy or source identity here.
+function createSelectDelivery(builder:SelectProgramBuilder<Op>,row:{
+  first:number;count:number;destination:SelectDest;
+  limit?:Pick<LimitRegisters,'count'|'offset'|'capacity'>|undefined;
+  compoundStops?:number[]|undefined;distinctCursor?:number|undefined;
+  sort?:{cursor:number;keyCount:number;emitKeys:()=>number}|undefined;
+  emitPositionedRow?:(()=>void)|undefined;
+}) {
+  const ops=builder.ops,exit=builder.label(),producerStops=new Set<number>();
+  let distinctAt:number|undefined;
+  const offset=(next:number):void=>{
+    if(row.limit?.offset!==undefined)builder.jump(next,{code:'IfPos',p1:row.limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));
+  };
+  const stopAfterRow=(inline:boolean):void=>{
+    if(row.limit){
+      if(row.compoundStops){row.compoundStops.push(ops.length);ops.push({code:'DecrJumpZero',p1:row.limit.count,p2:0});}
+      else {
+        if(inline)producerStops.add(ops.length);
+        builder.jump(exit,{code:'DecrJumpZero',p1:row.limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+      }
+    }
+    if(row.destination.kind==='mem'||row.destination.kind==='exists'){
+      if(inline)producerStops.add(ops.length);
+      builder.jump(exit,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc} as Op));
+    }
+  };
+  return {
+    producerStops,
+    innerLoop():void {
+      if(row.distinctCursor!==undefined){
+        distinctAt=ops.length;
+        ops.push({code:'Found',p1:row.distinctCursor,keyStart:row.first,keyCount:row.count,jump:0},{code:'IdxInsert',p1:row.distinctCursor,keyStart:row.first,keyCount:row.count});
+      }
+      if(row.sort){
+        const keyStart=row.sort.emitKeys();
+        ops.push({code:'SorterInsert',p1:row.sort.cursor,keyStart,keyCount:row.sort.keyCount,payload:row.first,payloadCount:row.count,...(row.limit?{topN:row.limit.capacity}:{})});
+      }else {
+        const next=builder.label();offset(next);
+        if(row.emitPositionedRow)row.emitPositionedRow();
+        else emitSelectDestination(ops,row.destination,row.first,row.count);
+        stopAfterRow(true);builder.mark(next);builder.resolveLabel(next);
+      }
+    },
+    continueAt(pc:number):void {
+      if(distinctAt!==undefined)(ops[distinctAt] as {jump:number}).jump=pc;
+    },
+    sortTail():void {
+      if(!row.sort)return;
+      const drain=builder.label(),next=builder.label();
+      builder.jump(exit,{code:'SorterSort',p1:row.sort.cursor,emptyJump:0},(op,pc)=>({...op,emptyJump:pc} as Op));
+      builder.mark(drain);ops.push({code:'SorterData',p1:row.sort.cursor,p2:row.first,count:row.count});
+      offset(next);emitSelectDestination(ops,row.destination,row.first,row.count);stopAfterRow(false);
+      builder.mark(next);builder.jump(drain,{code:'SorterNext',p1:row.sort.cursor,p2:0},(op,pc)=>({...op,p2:pc} as Op));
+      builder.resolveLabel(drain);builder.resolveLabel(next);
+    },
+    finish():number {
+      const end=ops.length;builder.mark(exit);builder.resolveLabel(exit);return end;
+    },
+  };
+}
+
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits):Program;
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRowPolicy?:'all'|'modules';sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:(columnAccess:(source:ResolvedSource,column:number)=>{cursor:number;physicalColumnIndex?:number})=>void;rightJoinDrain?:boolean;projectedRow?:(first:number,count:number)=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):NonNullable<Program["whereAccounting"]>;
 function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof expandAndResolveSelect>,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;ops:Op[];parameters:ParameterBuilder;destination:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;expressionBinding?:ResolvedExpressionBinding;cursorFor?:(source:ResolvedSource)=>number;retainedCursors?:ReadonlySet<number>;sourceProducers?:ReadonlyMap<ResolvedSource,{coroutine?:{register:number;first:number;entry:number};materialize?:{register:number;entry:number}}>;sourceRowPolicy?:'all'|'modules';sourceRow?:(source:ResolvedSource,first:number,rowIdentity:number)=>void;consumeRow?:(columnAccess:(source:ResolvedSource,column:number)=>{cursor:number;physicalColumnIndex?:number})=>void;rightJoinDrain?:boolean;projectedRow?:(first:number,count:number)=>void;compoundLimit?:{registers:LimitRegisters|undefined;stops:number[]}}):Program|NonNullable<Program["whereAccounting"]> {
@@ -5097,18 +5159,23 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // selectInnerLoop's LIMIT break belongs to this producer, including the
   // unmatched RIGHT invocation below. Resolve producer exits together; a zero
   // address must never escape into the enclosing scalar/compound program.
-  const destinationExit=builder.label();
-  const producerStops=new Set<number>();
-  let distinctAt:number|undefined;if(select.hasDistinct){distinctAt=ops.length;ops.push({code:'Found',p1:distinctCursor,keyStart:resultStart,keyCount:expanded.result.length,jump:0},{code:'IdxInsert',p1:distinctCursor,keyStart:resultStart,keyCount:expanded.result.length});}
-  if(orderTerms.length){const keyStart=range(orderTerms.length);orderTerms.forEach((term,index)=>{if(term.resultIndex>=0)ops.push({code:'Copy',p1:resultStart+term.resultIndex,p2:keyStart+index});else{const value=compileExpressionTree(term.tree,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:keyStart+index});}});ops.push({code:'SorterInsert',p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:resultStart,payloadCount:expanded.result.length,...(limit?{topN:limit.capacity}:{})});}
-  else {const afterOutput=builder.label();if(limit?.offset!==undefined)builder.jump(afterOutput,{code:'IfPos',p1:limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));if(owner?.consumeRow){
-    // sourceRow defaults to complete payload/identity snapshots for AggInfo
-    // consumers. Window input explicitly requests modules only: physical
-    // cursors stay positioned across Yield and its rewritten terminals read
-    // them directly (window.c:selectWindowRewriteExprCb).
-    if(owner.sourceRow)for(const source of expanded.sources.filter(source=>owner.sourceRowPolicy!=='modules'||moduleRows.has(source))){const first=range(source.table.columns.length),identity=allocate();for(let i=0;i<source.table.columns.length;i++){if(source.table.kind==='json-module'&&!moduleRows.get(source)!.columns.has(i))ops.push({code:'Null',p2:first+i});else emitResultColumn(source,i,first+i);}emitResultColumn(source,-1,identity);owner.sourceRow(source,first,identity);}
-    owner.consumeRow(columnAccess);
-  }else if(owner?.projectedRow)owner.projectedRow(resultStart,expanded.result.length);else if(owner)emitSelectDestination(ops,owner.destination,resultStart,expanded.result.length);else ops.push({code:'ResultRow',p1:resultStart,p2:expanded.result.length});if(limit){if(owner?.compoundLimit){owner.compoundLimit.stops.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}else {producerStops.add(ops.length);builder.jump(destinationExit,{code:'DecrJumpZero',p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));}}if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists')){producerStops.add(ops.length);builder.jump(destinationExit,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc} as Op));}builder.mark(afterOutput);builder.resolveLabel(afterOutput);}
+  const delivery=createSelectDelivery(builder,{
+    first:resultStart,count:expanded.result.length,destination:owner?.destination??{kind:'output'},limit,
+    compoundStops:owner?.compoundLimit?.stops,distinctCursor:select.hasDistinct?distinctCursor:undefined,
+    sort:orderTerms.length?{cursor:sorterCursor,keyCount:orderTerms.length,emitKeys:()=>{
+      const keyStart=range(orderTerms.length);
+      orderTerms.forEach((term,index)=>{if(term.resultIndex>=0)ops.push({code:'Copy',p1:resultStart+term.resultIndex,p2:keyStart+index});else{const value=compileExpressionTree(term.tree,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:keyStart+index});}});
+      return keyStart;
+    }}:undefined,
+    emitPositionedRow:owner?.consumeRow?()=>{
+      // AggInfo snapshots all sources by default. Window explicitly snapshots
+      // modules only; physical cursors stay positioned across Yield.
+      if(owner.sourceRow)for(const source of expanded.sources.filter(source=>owner.sourceRowPolicy!=='modules'||moduleRows.has(source))){const first=range(source.table.columns.length),identity=allocate();for(let i=0;i<source.table.columns.length;i++){if(source.table.kind==='json-module'&&!moduleRows.get(source)!.columns.has(i))ops.push({code:'Null',p2:first+i});else emitResultColumn(source,i,first+i);}emitResultColumn(source,-1,identity);owner.sourceRow(source,first,identity);}
+      owner.consumeRow!(columnAccess);
+    }:owner?.projectedRow?()=>owner.projectedRow!(resultStart,expanded.result.length):undefined,
+  });
+  const producerStops=delivery.producerStops;
+  delivery.innerLoop();
   const joinedBodyEnd=ops.length;
   const nextAt:number[]=[],advanceAt:number[]=[],rewindEmpty:number[]=[];for(let level=expanded.sources.length-1;level>=0;level--){// where.c:sqlite3WhereEnd resolves RIGHT continue to the inline Return.
   // where.c sqlite3WhereEnd guards unopened inner IN cursors with
@@ -5244,7 +5311,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   }
   const scanEnd=ops.length;
   for(const {at,level} of rightPrimaryMisses)(ops[at] as {jump:number}).jump=nextAt[level]!;
-  if(distinctAt!==undefined)(ops[distinctAt] as {jump:number}).jump=nextAt.at(-1)!;for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:nextAt[jump.level]!;
+  delivery.continueAt(nextAt.at(-1)!);for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:nextAt[jump.level]!;
   for(const {at,level} of loopEnds)(ops[at] as {p2:number}).p2=inRestarts.get(level)?.advance??prefixLoops.get(level)?.restart??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
   for(const [level,restart] of inRestarts){
     const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
@@ -5254,19 +5321,8 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
     for(const at of [prefix.restart,prefix.empty])if(at!==null)(ops[at] as {p2:number}).p2=exit;
   }
-  let halt:number;
-  if(orderTerms.length){
-    const drain=builder.label(),next=builder.label();
-    builder.jump(destinationExit,{code:'SorterSort',p1:sorterCursor,emptyJump:0},(op,pc)=>({...op,emptyJump:pc} as Op));
-    builder.mark(drain);ops.push({code:'SorterData',p1:sorterCursor,p2:resultStart,count:expanded.result.length});
-    if(limit?.offset!==undefined)builder.jump(next,{code:'IfPos',p1:limit.offset,p2:0,p3:1},(op,pc)=>({...op,p2:pc} as Op));
-    emitSelectDestination(ops,owner?.destination??{kind:'output'},resultStart,expanded.result.length);
-    if(limit){if(owner?.compoundLimit){owner.compoundLimit.stops.push(ops.length);ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}else builder.jump(destinationExit,{code:'DecrJumpZero',p1:limit.count,p2:0},(op,pc)=>({...op,p2:pc} as Op));}
-    if(owner&&(owner.destination.kind==='mem'||owner.destination.kind==='exists'))builder.jump(destinationExit,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc} as Op));
-    builder.mark(next);builder.jump(drain,{code:'SorterNext',p1:sorterCursor,p2:0},(op,pc)=>({...op,p2:pc} as Op));
-    builder.resolveLabel(drain);builder.resolveLabel(next);
-  }
-  halt=ops.length;builder.mark(destinationExit);builder.resolveLabel(destinationExit);
+  delivery.sortTail();
+  const halt=delivery.finish();
   for(const [source,row] of moduleRows)ops.push({code:source.table.kind==='metadata-module'?'MetadataClose':'JsonTableClose',p1:row.cursor});
   if(!owner)ops.push({code:'Halt'});
   for(let level=0;level<rewinds.length;level++){if(!(prefixLoops.get(level)?.seek===rewinds[level]&&ops[rewinds[level]!]!.code==="Goto"))(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??prefixLoops.get(level)?.restart??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[advanceAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of equalityNullGuards)(ops[guard.at] as {p2:number}).p2=rewindEmpty[guard.level]??(guard.level===0?normalScanEnd:nextAt[guard.level-1]!);for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
