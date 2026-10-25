@@ -2,6 +2,41 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import ts from 'typescript';
+import {stripTypeScriptTypes} from 'node:module';
+import {SelectProgramBuilder,emitSelectDestination} from '../../src/internal/select-program.ts';
+
+// Bound observations to the actual operation owners, not another producer's text.
+function commonBreakOwners(source){
+ const parsed=ts.createSourceFile('vdbe.ts',source,ts.ScriptTarget.Latest,true);
+ const body=name=>{
+  const node=parsed.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text===name&&node.body);
+  assert.ok(node,`missing implementation ${name}`);return node.getText(parsed);
+ };
+ const scan=body('compileInnerTableSelect'),derived=body('compileDerivedProducer');
+ const start=derived.indexOf('}else if(unionProducer||groupedAllProducer){');
+ assert.ok(start>=0);
+ const compound=derived.slice(start,derived.indexOf('}else if(scalarProducer)',start));
+ assert.match(compound,/compileInnerTableSelect\(armSelect,plan[^\n]*\{builder,ops,parameters,destination:dest,compoundLimit:\{registers:limit,stops\}/);
+ assert.ok(compound.indexOf('const limit=computeLimitRegisters(')>=0);
+ assert.ok(compound.indexOf('const limit=computeLimitRegisters(')<compound.indexOf('for(const arm of child.arms)'));
+ assert.match(compound,/const end=ops.length;endJumps.push\(end\);ops.push\(\{code:'EndCoroutine'/);
+ assert.match(compound,/for\(const stop of stops\)\(ops\[stop\] as \{p2:number\}\).p2=end/);
+ assert.match(scan,/createSelectDelivery\(builder,\{\s*first:resultStart,count:expanded.result.length,destination:owner\?\.destination\?\?\{kind:'output'\},limit,\s*compoundStops:owner\?\.compoundLimit\?\.stops/);
+ assert.match(scan,/delivery.innerLoop\(\)/);
+ assert.match(scan,/if\(limit&&!owner\?\.compoundLimit\)\(ops\[limit.ifZero\]/);
+ const create=Function('emitSelectDestination',`${stripTypeScriptTypes(body('createSelectDelivery'))};return createSelectDelivery`)(emitSelectDestination);
+ // Execute the real helper/builder for both shared and local stop ownership.
+ for(const shared of [true,false]){
+  const builder=new SelectProgramBuilder(),stops=[];
+  const delivery=create(builder,{first:1,count:1,destination:{kind:'output'},limit:{count:2,capacity:3},...(shared?{compoundStops:stops}:{})});
+  delivery.innerLoop();const end=delivery.finish();const ops=builder.finish();
+  assert.deepEqual(ops.map(op=>op.code),['ResultRow','DecrJumpZero']);
+  assert.equal(ops[1].p1,2);assert.equal(ops[1].p2,shared?0:end);
+  assert.deepEqual(stops,shared?[1]:[]);
+  assert.deepEqual([...delivery.producerStops],shared?[]:[1]);
+ }
+}
+
 
 // Syntax-owned merge: adjacent retained FULL replay (select.c 0488) is
 // independent. Audit direct edges, including nested closures and callbacks,
@@ -198,10 +233,15 @@ test('grouped ALL owns per-arm GROUP carrier and common exhaustion',()=>{
 
 test('mixed grouped ALL ordinary arm uses parent producer and common break',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
- assert.match(source,/compileInnerTableSelect\(armSelect,plan.*destination:dest,compoundLimit:\{registers:limit,stops\}/);
- assert.match(source,/if\(owner\?\.compoundLimit\)\{owner.compoundLimit.stops.push\(ops.length\);ops.push\(\{code:'DecrJumpZero'/);
- assert.match(source,/builder.jump\(destinationExit,\{code:'DecrJumpZero'/);
- assert.match(source,/if\(limit&&!owner\?\.compoundLimit\)\(ops\[limit.ifZero\]/);
+ commonBreakOwners(source);
+ // In-memory negatives retain production bytes and prove responsibility checks.
+ for(const [before,after] of [
+  ['compoundStops:owner?.compoundLimit?.stops','compoundStops:undefined'],
+  ['if(row.compoundStops){','if(false){'],
+ ]){
+  assert.ok(source.includes(before),`mutation target ${before}`);
+  assert.throws(()=>commonBreakOwners(source.replace(before,after)),assert.AssertionError);
+ }
 });
 
 test('grouped compound descriptor production resolves rightmost arm carriers',()=>{
