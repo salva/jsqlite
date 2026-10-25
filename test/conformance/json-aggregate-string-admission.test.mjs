@@ -6,6 +6,7 @@ import test from 'node:test';
 import {jsonAggregateBlob as aggregateResultBlob,appendJsonStringBytes,quoteJsonBytes} from '../../src/internal/json.ts';
 import {aggregateTextToBlob as jsonAggregateBlob} from '../../src/internal/json-aggregate-blob.ts';
 import oracle from './json-aggregate-conversion-oracle.json' with {type:'json'};
+import {PrivateStateByteBudget} from '../../src/internal/private-state.ts';
 import {open} from '../../src/index.ts';
 import {startFixtureServer} from './fixture-server.mjs';
 
@@ -203,22 +204,55 @@ test('scan-remove preserves nested strings and NULL placeholder positions',()=>w
  assert.deepEqual(snapshots,[...expected,...expected]);
 },{limits:{maxResultBytes:10000}}));
 
-// Growth reservation must unwind before reset; failed replacement must not
-// install a partially copied allocation or leave its overlap charge live.
+// Native Step owns JsonString growth only after OP_Variable admits typed Mem.
+// Observe the real shared budget, without bypassing admission or raising caps.
+// Prototype observation is scoped to this serial test and restored in finally.
 for(const name of ['json_group_array','jsonb_group_array','json_group_object','jsonb_group_object'])
 test(`${name}: growth reservation failure refunds on reset/rebind`,()=>withDb(async db=>{
- const object=name.endsWith('object');
- const s=db.prepare(`SELECT ${name}(${object?"'k',":''}?1)`).statement;
+ const object=name.endsWith('object'),events=[],owners=new Set();
+ const reserve=PrivateStateByteBudget.prototype.reserve;
+ PrivateStateByteBudget.prototype.reserve=function(bytes,message){
+  owners.add(this);
+  const before=this.snapshot();
+  try{const result=reserve.call(this,bytes,message);events.push({bytes,message,before,accepted:true});return result}
+  catch(error){events.push({bytes,message,before,accepted:false});throw error}
+ };
+ const s=db.prepare(`SELECT ${name}(${object?"'k',":''}?1) FROM t1 WHERE x<?2`).statement;
+ const aggregateEvents=()=>events.filter(e=>e.message==='aggregate state exceeds total byte limit');
+ const refunded=()=>{for(const owner of owners){const b=owner.snapshot();assert.equal(b.ownedBytes,0);assert.equal(b.chargedBytes,b.refundedBytes);assert.equal(b.memBytes,0)}};
  try{
-  s.bind(1,'x'.repeat(5000));let saved;
+  // Retain the original witness: it fails before Step, not at JsonString.
+  s.bind(1,'x'.repeat(5000));s.bind(2,4);let saved;
+  await assert.rejects(s.step(),e=>{saved=e;return e.kind==='limit'&&e.message==='private state exceeds total byte limit'});
+  assert.equal(aggregateEvents().length,0,'oversized variable must not reach aggregate growth');
+  assert.throws(()=>s.reset(),e=>e===saved);refunded();events.length=0;
+
+  // A small admitted argument, repeated by Step, separates typed Mem from
+  // retained capacity plus replacement overlap. One row fits; four do not.
+  s.bind(1,'x'.repeat(160));s.bind(2,1);
+  assert.equal(await s.step(),'row');
+  if(!name.startsWith('jsonb'))assert.equal(s.column(0),object?'{"k":"'+ 'x'.repeat(160)+'"}':'["'+'x'.repeat(160)+'"]');
+  else assert.ok(s.column(0) instanceof Uint8Array);
+  assert.equal(await s.step(),'done');s.reset();refunded();events.length=0;
+  s.bind(2,4);
   await assert.rejects(s.step(),e=>{saved=e;return e.kind==='limit'&&e.message.includes('aggregate state')});
-  assert.throws(()=>s.reset(),e=>e===saved);
-  s.bind(1,'ok');assert.equal(await s.step(),'row');
+  const growth=aggregateEvents(),failed=growth.find(e=>!e.accepted);
+  assert.ok(growth.some(e=>e.accepted),'Step admitted retained allocation before failure');
+  assert.ok(failed,'failure belongs to aggregate growth, not argument/quote/result');
+  assert.ok(failed.before.memBytes>0,'typed Mem remains charged during growth');
+  assert.ok(failed.before.ownedBytes+failed.bytes>1024,'replacement overlaps live owners');
+  for(const e of events){
+   assert.equal(e.before.chargedBytes-e.before.refundedBytes,e.before.ownedBytes,'exact cumulative owned-byte ledger');
+   if(e.accepted)assert.ok(e.before.ownedBytes+e.bytes<=1024,'accepted allocation is below/at cap');
+  }
+  assert.ok(growth.filter(e=>e.accepted).every(e=>e.bytes>0),'real retained growth was charged');
+  assert.throws(()=>s.reset(),e=>e===saved);refunded();
+  s.bind(1,'ok');s.bind(2,1);assert.equal(await s.step(),'row');
   const got=s.column(0);
   if(name.startsWith('jsonb'))assert.ok(got instanceof Uint8Array);
   else assert.equal(got,object?'{"k":"ok"}':'["ok"]');
-  assert.equal(await s.step(),'done');
- }finally{s.finalize()}
+  assert.equal(await s.step(),'done');s.reset();refunded();
+ }finally{s.finalize();PrivateStateByteBudget.prototype.reserve=reserve}
 },{limits:{maxResultBytes:20000,maxPrivateBytes:1024}}));
 
 // Compute closes before object placeholder compaction; xValue must copy the
