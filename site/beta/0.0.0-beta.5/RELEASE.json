@@ -1,0 +1,8 @@
+{
+  "version": "0.0.0-beta.5",
+  "sourceCommit": "d06c8e621814463d232052b14255ae7192f215d9",
+  "acceptedSource": "942e6135ab5c212cf02d46d51171cfb94ce807ab",
+  "packageSha256": "f51e3cfb7548d77cde0de20d9321ae76114c3a91a97565b741329866594a9665",
+  "identicalAcceptedDistFiles": 114,
+  "demoWrapper": "Website-owned gzip-to-Blob adapter; unchanged release query helper"
+}

@@ -7,9 +7,9 @@ import tarfile
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-RELEASE = '3b56fc3c42a79533fd3945b5108da59344bb7b1e'
-PACKAGE = ROOT / 'tools/package/releases/jsqlite2-0.0.0-beta.4.tgz'
-PACKAGE_SHA256 = 'f1b4bc31900fd89f540701da7c9a00f5dd8ce2555bd512add1b103342a585bb9'
+RELEASE = 'd06c8e621814463d232052b14255ae7192f215d9'
+PACKAGE = ROOT / 'tools/package/releases/jsqlite2-0.0.0-beta.5.tgz'
+PACKAGE_SHA256 = 'f51e3cfb7548d77cde0de20d9321ae76114c3a91a97565b741329866594a9665'
 OUT = ROOT / '_site'
 
 def run(*args, cwd=ROOT):
