@@ -111,10 +111,12 @@ class Runner(unittest.TestCase):
   beta6={f'test/conformance/{name}.test.mjs' for name in (
    'beta6-aggregate-subquery-destination','metadata-index-production','right-control-target-visitor')}
   self.assertEqual(set(files)&beta6,beta6)
-  previous=[file for file in files if file not in beta6]
+  delivery='test/conformance/select-delivery-phase.test.mjs'
+  self.assertIn(delivery,files)
+  previous=[file for file in files if file not in beta6 and file!=delivery]
   self.assertEqual(len(previous),528)
   original=[file for file in previous if file!=joined]
-  self.assertEqual(len(files),531)
+  self.assertEqual(len(files),532)
   self.assertEqual(len(files),len(set(files)))
   self.assertEqual(files,sorted(files))
   self.assertEqual(set(files)&additions,additions)
