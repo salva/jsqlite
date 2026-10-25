@@ -63,9 +63,20 @@ def select_fixture_command(key, library, work_root):
     return ['python3', script, str(library), str(work_root/SELECT_FIXTURES[style][0]), target]
 
 
+PREFIX_FIXTURES = {
+    'prefix-native': ('like-prefix-native-red.test.mjs', ()),
+    'prefix-branches-native': ('like-prefix-branches.test.mjs', ('--branches',)),
+}
+
+
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    names = {pathlib.Path(f).name for f in files}
+    for directory, (consumer, flags) in PREFIX_FIXTURES.items():
+        if consumer in names:
+            commands.append(['python3', 'tools/test/capture-prefix.py', '--library',
+                             str(library), '--output', str(work_root/directory), *flags])
     if 'test/conformance/beta6-aggregate-subquery-destination.test.mjs' in files:
         target = str(work_root/'beta6-destination-native.json')
         commands.extend([
@@ -286,7 +297,7 @@ def main():
         return subprocess.check_output(['git', *args])
     tracked = git('ls-files', '-z').decode().split('\0')
     hashes = {f: hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()
-              for f in set(tracked + files + ['tools/test/integration.py', 'test/conformance/close-test-server.mjs'])
+              for f in set(tracked + files + ['tools/test/integration.py', 'tools/test/capture-prefix.py', 'test/conformance/close-test-server.mjs'])
               if f and pathlib.Path(f).is_file()}
     report = dict(head=git('rev-parse', 'HEAD').decode().strip(),
                   status=git('status', '--porcelain').decode(),
@@ -332,6 +343,12 @@ def main():
             for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native', 'covered-deferred-native', *(SELECT_FIXTURES[key][0] for key in selected_fixture_keys(files)))
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
+        for directory, (consumer, _) in PREFIX_FIXTURES.items():
+            if any(pathlib.Path(f).name == consumer for f in files):
+                report['generated_inputs'].update({
+                    str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+                    for path in sorted((work_root/directory).rglob('*')) if path.is_file()
+                })
         if 'test/conformance/joined-order-boundary.test.mjs' in files:
             capture = work_root/'joined-order-boundary-native.json'
             report['generated_inputs'][capture.name] = hashlib.sha256(capture.read_bytes()).hexdigest()

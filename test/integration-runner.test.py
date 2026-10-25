@@ -96,6 +96,60 @@ class Runner(unittest.TestCase):
     self.assertNotEqual(subprocess.run(command,capture_output=True,timeout=180).returncode,0)
    self.assertFalse(work.exists())
 
+ def test_prefix_native_enrollment(self):
+  import subprocess,tempfile,json,hashlib
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required')
+  files=['test/conformance/like-prefix-native-red.test.mjs',
+         'test/conformance/like-prefix-branches.test.mjs']
+  originals={str(p):hashlib.sha256(p.read_bytes()).hexdigest()
+   for pattern in ('test/conformance/fixtures/like-prefix*.db','test/conformance/cases/like-prefix*-native.json')
+   for p in pathlib.Path('.').glob(pattern)}
+  with tempfile.TemporaryDirectory(dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp)
+   plan=runner.prerequisite_commands(files+files,pathlib.Path(library),root)
+   self.assertEqual(len(plan),2)
+   self.assertNotIn('--branches',plan[0]);self.assertIn('--branches',plan[1])
+   for command in plan:
+    subprocess.run(command,check=True,timeout=180)
+    # Reuse must fail rather than accepting stale output.
+    self.assertNotEqual(subprocess.run(command,capture_output=True,timeout=180).returncode,0)
+   wrong=runner.prerequisite_commands(files,root/'missing.so',root/'bad')
+   for command in wrong:
+    self.assertNotEqual(subprocess.run(command,capture_output=True,timeout=180).returncode,0)
+   self.assertFalse((root/'bad').exists())
+   # Actual CLI must retain generated ownership and fail on post-prerequisite drift.
+   import shutil
+   binary=root/'bin';binary.mkdir();node=shutil.which('node');self.assertIsNotNone(node)
+   shim=binary/'node'
+   shim.write_text('#!'+sys.executable+'\nimport os,pathlib,sys\n'
+    +'if sys.argv[1:]==["--version"]: os.execv('+repr(node)+',["node","--version"])\n'
+    +'p=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/"prefix-native/test/conformance/cases/like-prefix-native.json"\n'
+    +'p.write_text("{}")\n')
+   shim.chmod(0o755)
+   env=dict(os.environ,PATH=str(binary)+os.pathsep+os.environ['PATH'],SAIVAGE_CARD_WORK_ROOT=str(root/'drift'))
+   drift=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,files[0]],
+    env=env,capture_output=True,timeout=180)
+   report=json.loads((root/'drift/integration-run/manifest.json').read_text())
+   self.assertEqual(drift.returncode,1)
+   self.assertEqual([r['exit'] for r in report['prerequisites']],[0])
+   self.assertEqual([r['exit'] for r in report['results']],[0])
+   self.assertEqual(len(report['input_drift']),1)
+   self.assertTrue(report['input_drift'][0].endswith('/cases/like-prefix-native.json'))
+   self.assertEqual(len([p for p in report['generated_inputs'] if p.endswith('.db')]),3)
+   # Alter only the comparison input in a minimal disposable checkout.
+   checkout=root/'checkout';checkout.mkdir()
+   for name in ('reference/sqlite/manifest.json','tools/test/capture-prefix.py',
+                'test/conformance/capture-like-prefix.py','test/conformance/capture-index-planner.py',*originals):
+    target=checkout/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(name,target)
+   receipt=checkout/'test/conformance/cases/like-prefix-native.json'
+   value=json.loads(receipt.read_text());value['tsCredit']=True;receipt.write_text(json.dumps(value))
+   rejected=subprocess.run([sys.executable,str(checkout/'tools/test/capture-prefix.py'),
+    '--library',library,'--output',str(root/'mismatch')],cwd=checkout,capture_output=True,timeout=180)
+   self.assertNotEqual(rejected.returncode,0)
+   self.assertIn(b'prefix native corpus mismatch',rejected.stderr)
+  self.assertEqual(originals,{name:hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() for name in originals})
+
  def test_enrolled_fixture_union(self):
   root=pathlib.Path('/purpose/enrolled');library=root/'oracle.so'
   files=runner.discover_files(pathlib.Path.cwd())
@@ -113,10 +167,15 @@ class Runner(unittest.TestCase):
   self.assertEqual(set(files)&beta6,beta6)
   delivery='test/conformance/select-delivery-phase.test.mjs'
   self.assertIn(delivery,files)
-  previous=[file for file in files if file not in beta6 and file!=delivery]
+  prefix={f'test/conformance/like-prefix-{name}.test.mjs' for name in (
+   'branches','native-red','primitive','red','string8')}
+  self.assertEqual(set(files)&prefix,prefix)
+  pre_prefix=[file for file in files if file not in prefix]
+  self.assertEqual(len(files),537)
+  previous=[file for file in pre_prefix if file not in beta6 and file!=delivery]
   self.assertEqual(len(previous),528)
   original=[file for file in previous if file!=joined]
-  self.assertEqual(len(files),532)
+  self.assertEqual(len(pre_prefix),532)
   self.assertEqual(len(files),len(set(files)))
   self.assertEqual(files,sorted(files))
   self.assertEqual(set(files)&additions,additions)
