@@ -554,7 +554,18 @@ test('ungrouped ordered aggregate child retains the enclosing destination',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const caller=text.slice(text.indexOf('export function compileScalarSelect('),text.indexOf('function compileInnerTableSelect('));
  assert.match(text,/function simpleUngroupedAggregateOrder\(/);
- assert.match(caller,/selectHasAggregate\(nested\)&&aggregateShapeSupported\(nested\)/);
+ // expr.c owns the destination independently of select.c's grouped/ungrouped
+ // choice. Check the actual consolidated guard's union, not helper adjacency.
+ const guard=/if\(([^\n]+)\)\{\n\s+const destination=allocate\(\),isIn=expression\.kind==="in-subquery";/.exec(caller);
+ assert.ok(guard,'aggregate destination guard remains in the enclosing caller');
+ const admits=Function('nested','aggregateShapeSupported','selectHasAggregate',`return (${guard[1]});`);
+ for(const supported of [false,true])for(const sources of [0,1,2])
+ for(const grouped of [false,true])for(const aggregate of [false,true]){
+  const nested={from:{items:Array(sources)},hasGroupBy:grouped};
+  assert.equal(admits(nested,()=>supported,()=>aggregate),
+   supported&&sources>=1&&(grouped||aggregate),
+   JSON.stringify({supported,sources,grouped,aggregate}));
+ }
  assert.match(caller,/compileAggregateSelect\(nested,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,\{builder:selectProgramBuilder/);
 });
 test('zero-source derived count child emits producer cardinality into parent aggregate destination',()=>{
