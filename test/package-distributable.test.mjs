@@ -48,9 +48,11 @@ run('tar', ['-xzf', tarball, '-C', extracted]);
 const pkgRoot = path.join(extracted, 'package');
 const files = inventory(pkgRoot);
 assert.deepEqual(files.map(f => f.path), packed.files.map(f => f.path).sort());
-for (const f of files) assert(/^(package\.json|README\.md|dist\/.+\.(js|d\.ts))$/.test(f.path), `unexpected tar entry ${f.path}`);
+for (const f of files) assert(/^(package\.json|README\.md|LICENSE|NOTICE\.md|dist\/.+\.(js|d\.ts))$/.test(f.path), `unexpected tar entry ${f.path}`);
+for (const name of ['LICENSE', 'NOTICE.md']) assert.equal(hash(fs.readFileSync(path.join(pkgRoot, name))), hash(fs.readFileSync(path.join(root, name))), `published ${name} must retain exact notice bytes`);
 const meta = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json')));
 assert.equal(meta.private, true);
+assert.equal(meta.license, 'GPL-3.0-or-later');
 assert(!meta.dependencies);
 
 // Inspect actual artifacts with an AST, not grep over comments/SQL strings.
