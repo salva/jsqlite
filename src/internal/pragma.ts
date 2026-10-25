@@ -2,7 +2,7 @@ import {resolvedViewTable,NameResolutionError} from './resolve.ts';
 import {pragmaNames} from './pragma-names.ts';
 import {JSQLiteError} from '../index.ts';
 import type {PragmaNode} from './parse.ts';
-import {findSchemaTable,type SchemaGraph} from './schema.ts';
+import {findSchemaTable,type IndexNode,type SchemaGraph} from './schema.ts';
 import {sqliteAsciiFold} from './sqlite-case.ts';
 import type {Program} from './vdbe.ts';
 import type {PrivateStateLimits} from './private-state.ts';
@@ -18,6 +18,19 @@ export function pragmaNeedsSchema(node:PragmaNode):boolean {
 export const TABLE_INFO_COLUMNS=Object.freeze(['cid','name','type','notnull','dflt_value','pk']);
 export const TABLE_XINFO_COLUMNS=Object.freeze([...TABLE_INFO_COLUMNS,'hidden']);
 export type MetadataValue=string|number|null;
+/** pragma.c INDEX_INFO: one field mapping for direct lowering and module rows.
+ * Lookup and prepare/cursor lifetimes belong to the callers. Module checks run
+ * after field reads but before row construction; direct emit checks after it. */
+function* indexMetadataRows(index:IndexNode,extended:boolean,check?:()=>void):Generator<readonly MetadataValue[]>{
+ const layout=index.layout;
+ for(let i=0;i<(extended?layout.fields.length:layout.declaredFieldCount);i++){
+  const field=layout.fields[i]!,cid=field.column?index.table.columns.indexOf(field.column):field.expression?-2:-1;
+  // Index.azColl spelling is distinct from folded KeyInfo lookup identity.
+  const coll=field.collationName??(field.collation==='binary'?'BINARY':field.collation);
+  check?.();
+  yield [i,cid,field.column?.name??null,...(extended?[field.descending?1:0,coll,i<layout.declaredFieldCount?1:0]:[])];
+ }
+}
 /** pragma.c TABLE_INFO owns these rows. Both direct lowering and private
  * eponymous cursors consume this traversal, never infer metadata from data rows. */
 function* tableMetadataRows(table:ReturnType<typeof findSchemaTable>|undefined,extended:boolean,check:()=>void):Generator<readonly MetadataValue[]>{
@@ -75,16 +88,7 @@ function* metadataRows(schema:SchemaGraph,argument:string|null,database:string|n
   }else if(name==='index_info'||name==='index_xinfo'){
    // pragma.c permits the WITHOUT ROWID table name as its PK index alias.
    const index=schema.indexes.get(key)??(table?.withoutRowid?table.indexes.find(index=>index.origin==='primary-key'):undefined);
-   if(index){
-    const xinfo=name==='index_xinfo',layout=index.layout;
-    for(let i=0;i<(xinfo?layout.fields.length:layout.declaredFieldCount);i++){
-     const field=layout.fields[i]!,cid=field.column?index.table.columns.indexOf(field.column):field.expression?-2:-1;
-     // pragma.c reads Index.azColl: preserve build.c declaration/inherited
-     // spelling separately from the case-folded KeyInfo lookup identity.
-     const coll=field.collationName??(field.collation==='binary'?'BINARY':field.collation);
-     check();yield [i,cid,field.column?.name??null,...(xinfo?[field.descending?1:0,coll,i<layout.declaredFieldCount?1:0]:[])];
-    }
-   }
+   if(index)yield* indexMetadataRows(index,name==='index_xinfo',check);
   }else if(name==='foreign_key_list'){
    // build.c sqlite3CreateForeignKey prepends pNextFrom. Schema retains DDL
    // declaration order; walk backwards to consume that linked-list order.
@@ -130,16 +134,7 @@ export function compilePragma(node:PragmaNode,schema:SchemaGraph,maxRows:number,
   }else if(name==='index_info'||name==='index_xinfo'){
    // pragma.c permits the WITHOUT ROWID table name as its PK index alias.
    const index=schema.indexes.get(key)??(table?.withoutRowid?table.indexes.find(index=>index.origin==='primary-key'):undefined);
-   if(index){
-    const xinfo=name==='index_xinfo',layout=index.layout;
-    for(let i=0;i<(xinfo?layout.fields.length:layout.declaredFieldCount);i++){
-     const field=layout.fields[i]!,cid=field.column?index.table.columns.indexOf(field.column):field.expression?-2:-1;
-     // pragma.c reads Index.azColl: preserve build.c declaration/inherited
-     // spelling separately from the case-folded KeyInfo lookup identity.
-     const coll=field.collationName??(field.collation==='binary'?'BINARY':field.collation);
-     emit([i,cid,field.column?.name??null,...(xinfo?[field.descending?1:0,coll,i<layout.declaredFieldCount?1:0]:[])]);
-    }
-   }
+   if(index)for(const values of indexMetadataRows(index,name==='index_xinfo'))emit(values);
   }else if(name==='foreign_key_list'){
    // build.c sqlite3CreateForeignKey prepends pNextFrom. Schema retains DDL
    // declaration order; walk backwards to consume that linked-list order.
