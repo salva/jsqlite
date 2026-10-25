@@ -51,7 +51,9 @@ export class PrivateStateByteBudget {
   get usedBytes():number{return this.#used}
 }
 type Entry={key:Mem[];payload:Mem[];sequence:number;bytes:number};
-function cellBytes(value:Mem):number { const kind=value.initialStorageClass;return kind==="text"?value.textBytes().byteLength:kind==="blob"?value.blobValue().byteLength:kind==="integer"||kind==="real"?8:0; }
+// Mem.diagnostic validates borrow lifetime and reads prefix length+nZero without
+// expansion (vdbemem.c:sqlite3ValueBytes); blobValue is an allocating consumer.
+function cellBytes(value:Mem):number { const kind=value.initialStorageClass;return kind==="text"||kind==="blob"?value.diagnostic().byteLength:kind==="integer"||kind==="real"?8:0; }
 function logicalBytes(values:readonly Mem[]):number{return values.reduce((n,value)=>n+cellBytes(value),0)}
 function copyCells(values:readonly Mem[]):Mem[]{return values.map(value=>{const copy=new Mem();copy.copyFrom(value);return copy})}
 function releaseEntry(entry:Entry):void{entry.key.forEach(x=>x.release());entry.payload.forEach(x=>x.release())}

@@ -618,7 +618,10 @@ units (conversion separately overlaps source3/new6). The earlier148 success
 observer predates register admission and is obsolete;147/148 remain rejection
 controls, with153/154/155 and UTF8 controls in `test/value/record-pack.test.mjs`.
 This corrects an internal observer, not a configured quota or public guarantee.
-Insert's bounded logical carrier separately admits copied cells before MemCopy;
+Insert's bounded logical carrier sizes TEXT/BLOB via the existing lifetime-checked,
+nonmaterializing `Mem.diagnostic().byteLength` (prefix + zero tail), then separately
+admits copied cells before MemCopy. It never invokes the expansion owner merely
+to reject demand; `sqlite3ValueBytes` likewise adds nZero without expansion.
 partial-copy and checkpoint failures refund before publishing sequence/positions.
 Caller register and packed input remain live through insertion. The original UTF8
 INTEGER7/TEXTabc witness is register3 + packed71 + logical11 =85, not82;

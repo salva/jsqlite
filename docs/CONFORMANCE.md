@@ -9,7 +9,11 @@ controls (now rejection with register backing), adding84 rejection and85/86
 success. It independently observes register3/packed71/logical11, sticky error,
 reset/retry and full refunds. `ephemeral-insert-admission.test.mjs` checks
 reserve-before-MemCopy, partial-copy/checkpoint rollback, all text encodings and
-copied lifetime/close cleanup. These are local safety/accounting companions,
+copied lifetime/close cleanup. Zero-tail controls delegate to real blob production:
+key/entry/total rejection never expands or copies,33-byte success is exact,
+owned/borrowed inputs detach, huge validated lengths reject without allocation,
+and partial-copy/checkpoint rollback preserves a live duplicate position/sequence.
+These are local safety/accounting companions,
 not native allocator equivalence or new upstream credit. Exact revision-bound
 commands and qualifications: [[card:card-f-a-b]] status.
 

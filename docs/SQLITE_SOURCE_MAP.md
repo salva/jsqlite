@@ -25,7 +25,9 @@ without closing the diagnostic schema. [Ownership/source and pinned-path evidenc
 
 `vdbe.c:OP_Insert` retains packed input across `sqlite3BtreeInsert`; the bounded
 logical ephemeral carrier retains separate copied cells. `EphemeralIndexCursor.insert`
-admits logical bytes before MemCopy, unwinds partial copies/checkpoint failure,
+sizes through existing `Mem.diagnostic().byteLength` (borrow-checked prefix+nZero,
+`vdbemem.c:sqlite3ValueBytes`), without calling `sqlite3VdbeMemExpandBlob`'s TS
+counterpart `blobValue`, then admits logical bytes before MemCopy, unwinds partial copies/checkpoint failure,
 and commits sequence/positions only after successful insertion. Original UTF8
 INTEGER7/TEXTabc witness now observes register3 + packed71 + logical11 =85;
 original81/82 remain rejection controls,84/85/86 prove the current boundary.
