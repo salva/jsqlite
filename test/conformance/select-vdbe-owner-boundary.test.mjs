@@ -123,11 +123,19 @@ test('window lowering preserves compound owner before rewriting its first arm',(
  assert.ok(lower.indexOf('if(resolved.source.hasCompound)throw')<lower.indexOf('const rewrite=sqlite3WindowRewrite(resolved,owner?.builder)'));
 });
 
-test('window compound arms share allocation, parameters, destination and explicit exit',()=>{
+test('window owners share allocation, parameters, destination and explicit exit',()=>{
  assert.match(source,/const parameters:ParameterBuilder=owner\?\.parameters\?\?/);
  assert.match(source,/compileWindowSelectLowering\(expanded,[^\n]*builder,parameters,destination/);
  assert.match(source,/if\(owner\)\{[\s\S]*?owner\.builder\.registers=Math\.max\(owner\.builder\.registers,registers\);[\s\S]*?\(ops\[ownerExit\] as \{p2:number\}\)\.p2=ops\.length/);
- assert.match(source,/ends:number\[\]=compilation.ownerExit/);
+ // select.c tag-select-0488: the enclosing caller supplies the continuation
+ // before child emission, rather than discovering numeric exits afterwards.
+ const retained=derived.slice(derived.indexOf('// select.c tag-select-0488 materializes'),derived.indexOf('const payloadBinding:'));
+ assert.match(retained,/compileWindowSelectLowering\([^\n]*builder,exitLabel:drainLabel/);
+ assert.match(retained,/parameters:owner.parameters/);
+ assert.match(retained,/destination:\{kind:'sorter',cursor:spool,keyCount:0\}/);
+ assert.match(retained,/builder\.mark\(setupLabel\)/);
+ assert.match(retained,/builder\.jump\(entryLabel/);
+ assert.match(retained,/builder\.mark\(drainLabel\)/);
 });
 
 test('ordinary derived flatten production is shared by descriptor and compound arm callers',()=>{

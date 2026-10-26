@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--library', required=True, type=pathlib.Path)
     parser.add_argument('--output', required=True, type=pathlib.Path)
     parser.add_argument('--branches', action='store_true')
+    parser.add_argument('--composite', action='store_true')
     args = parser.parse_args()
     root = pathlib.Path.cwd()
     pin = json.loads((root/'reference/sqlite/manifest.json').read_text())
@@ -35,10 +36,12 @@ def main():
         shutil.copyfile(root/name, target)
     (output/'test/conformance/cases').mkdir(parents=True)
     command = [sys.executable, str(output/'test/conformance/capture-like-prefix.py'), str(library)]
-    if args.branches:
+    if args.composite:
+        command.append('--composite')
+    elif args.branches:
         command.append('--branches')
     subprocess.run(command, check=True)
-    suffix = '-branches' if args.branches else ''
+    suffix = '-composite' if args.composite else '-branches' if args.branches else ''
     receipt = f'test/conformance/cases/like-prefix{suffix}-native.json'
     actual = json.loads((output/receipt).read_text())
     expected = json.loads((root/receipt).read_text())

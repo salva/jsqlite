@@ -66,7 +66,17 @@ def select_fixture_command(key, library, work_root):
 PREFIX_FIXTURES = {
     'prefix-native': ('like-prefix-native-red.test.mjs', ()),
     'prefix-branches-native': ('like-prefix-branches.test.mjs', ('--branches',)),
+    'prefix-composite-native': ('like-prefix-composite.test.mjs', ('--composite',)),
 }
+
+
+DEFAULT_MODES = ('', '-affinity', '-branches', '-cast', '-empty', '-float', '-quoted', '-raw-token')
+
+
+def prefix_selected(directory, consumer, files):
+    names = {pathlib.Path(f).name for f in files}
+    return consumer in names or (directory == 'prefix-composite-native' and
+                                'like-prefix-composite-red.test.mjs' in names)
 
 
 def prerequisite_commands(files, library, work_root):
@@ -74,9 +84,14 @@ def prerequisite_commands(files, library, work_root):
     commands = []
     names = {pathlib.Path(f).name for f in files}
     for directory, (consumer, flags) in PREFIX_FIXTURES.items():
-        if consumer in names:
+        if prefix_selected(directory, consumer, files):
             commands.append(['python3', 'tools/test/capture-prefix.py', '--library',
                              str(library), '--output', str(work_root/directory), *flags])
+    for mode in DEFAULT_MODES:
+        if f'column-default{mode}.test.mjs' in names:
+            commands.append(['python3', 'tools/test/capture-default.py', '--library',
+                             str(library), '--output', str(work_root/f'default{mode}-native'),
+                             '--mode', 'baseline' if not mode else mode[1:]])
     if 'test/conformance/beta6-aggregate-subquery-destination.test.mjs' in files:
         target = str(work_root/'beta6-destination-native.json')
         commands.extend([
@@ -297,7 +312,7 @@ def main():
         return subprocess.check_output(['git', *args])
     tracked = git('ls-files', '-z').decode().split('\0')
     hashes = {f: hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()
-              for f in set(tracked + files + ['tools/test/integration.py', 'tools/test/capture-prefix.py', 'test/conformance/close-test-server.mjs'])
+              for f in set(tracked + files + ['tools/test/integration.py', 'tools/test/capture-prefix.py', 'tools/test/capture-default.py', 'test/conformance/close-test-server.mjs'])
               if f and pathlib.Path(f).is_file()}
     report = dict(head=git('rev-parse', 'HEAD').decode().strip(),
                   status=git('status', '--porcelain').decode(),
@@ -325,7 +340,7 @@ def main():
         env[key] = str(work_root/SELECT_FIXTURES[key][0])
     if commands:
         if args.oracle_library:
-            report['oracle_library'] = dict(path=str(library), sha256=hashlib.sha256(library.read_bytes()).hexdigest())
+            report['oracle_library'] = dict(path=str(library), sha256=hashlib.sha256(library.read_bytes()).hexdigest() if library.is_file() else None)
         else:
             commands.insert(0, ['sh', 'tools/oracle/build.sh'])
         # Producer outputs are evidence: use a fresh purpose work root on rerun.
@@ -344,10 +359,16 @@ def main():
             for path in sorted((work_root/directory).rglob('*')) if path.is_file()
         }
         for directory, (consumer, _) in PREFIX_FIXTURES.items():
-            if any(pathlib.Path(f).name == consumer for f in files):
+            if prefix_selected(directory, consumer, files):
                 report['generated_inputs'].update({
                     str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
                     for path in sorted((work_root/directory).rglob('*')) if path.is_file()
+                })
+        for mode in DEFAULT_MODES:
+            if f'column-default{mode}.test.mjs' in {pathlib.Path(f).name for f in files}:
+                report['generated_inputs'].update({
+                    str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+                    for path in sorted((work_root/f'default{mode}-native').rglob('*')) if path.is_file()
                 })
         if 'test/conformance/joined-order-boundary.test.mjs' in files:
             capture = work_root/'joined-order-boundary-native.json'

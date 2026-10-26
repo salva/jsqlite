@@ -170,8 +170,21 @@ class Runner(unittest.TestCase):
   prefix={f'test/conformance/like-prefix-{name}.test.mjs' for name in (
    'branches','native-red','primitive','red','string8')}
   self.assertEqual(set(files)&prefix,prefix)
-  pre_prefix=[file for file in files if file not in prefix]
-  self.assertEqual(len(files),537)
+  # Explicit beta7 membership preserves every frozen historical projection.
+  beta7={f'test/conformance/{name}.test.mjs' for name in (
+   'column-default','column-default-affinity','column-default-branches',
+   'column-default-cast','column-default-empty','column-default-float',
+   'column-default-quoted','column-default-raw-token',
+   'like-prefix-composite','like-prefix-composite-red','select-case-owner',
+   'select-cast-affinity','select-cast-empty','select-cast-raw-token',
+   'select-derived-physical-binding','select-mixed-json-binding',
+   'select-review32-boundaries','select-window-payload-binding',
+   'select-zero-source-binding')}
+  self.assertEqual(set(files)&beta7,beta7)
+  self.assertEqual(len(files),556)
+  prefix_era=[file for file in files if file not in beta7]
+  self.assertEqual(len(prefix_era),537)
+  pre_prefix=[file for file in prefix_era if file not in prefix]
   previous=[file for file in pre_prefix if file not in beta6 and file!=delivery]
   self.assertEqual(len(previous),528)
   original=[file for file in previous if file!=joined]
@@ -191,6 +204,19 @@ class Runner(unittest.TestCase):
    self.assertEqual(plan.count(runner.select_fixture_command(key,library,root)),1,key)
   expected=sorted({str(p) for pattern in ('test/conformance/*.test.mjs','test/conformance/run-*-ts.mjs','test/storage/*.test.mjs','test/parser/*.test.mjs') for p in pathlib.Path('.').glob(pattern)})
   self.assertEqual(files,expected)
+
+ def test_inventory_rejects_equal_cardinality_substitution(self):
+  from unittest.mock import patch
+  files=runner.discover_files(pathlib.Path.cwd())
+  for removed in ('column-default','like-prefix-composite','select-review32-boundaries',
+                  'aggregate-context-opcodes'):
+   original=f'test/conformance/{removed}.test.mjs'
+   self.assertIn(original,files)
+   substituted=sorted([file for file in files if file!=original]+
+                      ['test/conformance/unapproved-substitution.test.mjs'])
+   with self.subTest(removed=removed), patch.object(runner,'discover_files',return_value=substituted):
+    with self.assertRaises(AssertionError):
+     self.test_enrolled_fixture_union()
 
  def test_joined_order_recapture_and_compare(self):
   import subprocess,tempfile,json

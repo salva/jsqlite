@@ -38,7 +38,17 @@ The beta6 aggregate destination and INDEX_INFO consumers require fresh pinned
 captures before execution. Destination comparison excludes only the native-library
 binary hash (retained as provenance); INDEX comparison retains fixture bytes and
 all consumed index_info/index_xinfo cases, not unrelated database_list paths.
-Both generated captures are rehashed at final integrity. RIGHT target visitation
+Both generated captures are rehashed at final integrity. The eight DEFAULT
+consumers additionally require their original producers in fresh isolated roots;
+the baseline also reconstructs the retained ALTER/no-UPDATE recipe and checks
+selected/NOT INDEXED typed rows, metadata, reset, EQP, full program and direct
+absent-field `k` reads. This is distinct from the composite prefix producer's
+materialized `UPDATE` recipe. Both composite consumers share one original
+`--composite` recapture. Copied producers/helpers/pin, receipts and databases are
+hashed for final drift checks. DEFAULT comparisons omit only the library binary
+hash, retained as provenance; version and SourceID must match before output.
+Actual-CLI rejection/integrity controls: `test/integration-native-enrollment.test.py`;
+revision-bound commands and manifests: [[card:card-w]]. RIGHT target visitation
 is structural coverage and requires no native fixture.
 
 ### JSON5 value-name and label admission

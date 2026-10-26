@@ -49,7 +49,13 @@ test('retained window caller settles setup entry and drain at nonzero parent PC'
   assert.deepEqual(ops[start],{code:'Goto',p2:setup.pc});
   assert.equal(ops[setup.pc].code,'SorterOpen','setup opens materialization before child');
   assert.deepEqual(ops[enter.pc],{code:'Goto',p2:entry.pc});
-  assert.deepEqual(ops[exit.pc],{code:'Goto',p2:drain.pc});
+  const assertCompletion=(instructions)=>assert.deepEqual(instructions[exit.pc],{code:'Goto',p2:drain.pc},'completion bypasses late child routines and setup');
+  assertCompletion(ops);
+  // Probe this observer with real compiled edges, not a parallel compiler.
+  for(const wrongTarget of [setup.pc,exit.pc+1]){
+   const broken=ops.slice();broken[exit.pc]={...ops[exit.pc],p2:wrongTarget};
+   assert.throws(()=>assertCompletion(broken),assert.AssertionError);
+  }
   assert.equal(ops[drain.pc].code,'SorterSort','completion enters drain, not setup');
   assert.ok(ops.slice(exit.pc+1,setup.pc).some(op=>op.code==='Return'),'late child subroutine bypassed');
   assert.ok(!ops.slice(start,drain.pc).some(op=>op.code==='Halt'));
