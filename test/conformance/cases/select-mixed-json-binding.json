@@ -1,0 +1,6 @@
+[
+ {"sql":"SELECT t.a,j.value FROM t1 t JOIN json_each(json_array(t.a,NULL)) j WHERE j.value IS NOT NULL ORDER BY t.a","rows":[[1,1],[3,3],[5,5],[7,7]]},
+ {"sql":"SELECT t.a,j.value FROM t1 t LEFT JOIN json_each(json_array(t.a,NULL)) j ON j.value=t.a WHERE t.a<4 ORDER BY t.a","rows":[[1,1],[3,3]]},
+ {"sql":"SELECT t.a,j.value FROM t1 t JOIN json_each('bad') j WHERE t.a<0","rows":[]},
+ {"sql":"SELECT t.a,j.value FROM t1 t JOIN json_each(json_array(t.a)) j WHERE EXISTS(SELECT 1 WHERE j.value=t.a) ORDER BY t.a DESC LIMIT 2","rows":[[7,7],[5,5]]}
+]

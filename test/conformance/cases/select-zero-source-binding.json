@@ -1,0 +1,8 @@
+[
+ {"sql":"SELECT (SELECT count(d.x) FROM (SELECT 7 AS x) AS d WHERE d.x BETWEEN 1 AND 9) AS n","rows":[[1]]},
+ {"sql":"SELECT (SELECT sum(x) FILTER (WHERE x IN (7,8)) FROM (SELECT 7 AS x)) AS n","rows":[[7]]},
+ {"sql":"SELECT (SELECT count(x ORDER BY x) FROM (SELECT NULL AS x)) AS n","rows":[[0]]},
+ {"sql":"SELECT (SELECT count(*) FROM (SELECT 7 AS x GROUP BY x HAVING count(x)=1)) AS n","rows":[[1]]},
+ {"sql":"SELECT (SELECT count(x) FROM (SELECT 7 AS x LIMIT 0)) AS n","rows":[[0]]},
+ {"sql":"SELECT (SELECT sum(x) FROM (SELECT 7 AS x) HAVING count(x)=1) AS n","rows":[[7]]}
+]

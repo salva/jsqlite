@@ -1,3 +1,23 @@
+## Retained-window semantic adapter disposition (author evidence)
+
+Review32's remaining projection/ORDER spelling owner is replaced in the bounded
+`compileDerivedProducer` path: the linked parent plan supplies expanded results,
+source ordinals, ORDER alias/ordinal substitution and name errors. The spool
+adapter only admits direct payload reads; this is not computed-expression or
+whole-window compatibility. Explicit setup/entry/drain remains separate, preserved
+machinery. Native/public alias, ordinal and qualified-star controls extend the
+existing predicate/reset matrix. Window result CASE child binding also now follows
+`window.c:selectWindowRewriteExprCb` terminal rewriting: the shared linked binder
+visits base/WHEN/THEN/ELSE for `window-source`, rather than leaving stale column
+leaves in an otherwise compiled CASE. Paired review32 boundary controls reproduce
+then repair mixed NULL/REAL/TEXT/BLOB values and ordering across three encodings;
+searched CASE covers WHEN/THEN/ELSE column reads. Repeated/empty scalar/EXISTS/IN
+controls pass at their finite boundaries. Current grouped JSON `sum(atom)` agrees
+with pinned `text` / REAL0.0; the earlier string/INTEGER0 relay is not a current
+reproduction. This is author evidence, not whole-family acceptance. Source mapping and revision-bound commands,
+failures and identities: [source map](../SQLITE_SOURCE_MAP.md),
+[[card:card-t-c]] current status. Broader review32 caller/combined gates remain open.
+
 ## LIKE/GLOB prefix producer increment (author evidence)
 
 The historical LIKE producer absence below is superseded only for the bounded
@@ -9,9 +29,47 @@ joined/nested consumers remain gaps. Native-FIRST receipt and finite public
 selected-work/encoding/lifecycle evidence are mapped in
 [conformance](../CONFORMANCE.md#bounded-likeglob-prefix-evidence).
 Branch follow-up adds native-FIRST SQL reverse/DESC, empty-pass/end-state and
-first/second seek interruption/fault controls across encodings. Independent
-nonauthor acceptance remains outstanding; see [[card:card-s-c-d-n]]. Historical failed runs
-and broader optimizer limitations below are not rewritten as passes.
+first/second seek interruption/fault controls across encodings. S59/c37/G98
+independently accept the bounded physically populated prefix composition, not
+whole-candidate fidelity. Their original ALTER ADD COLUMN short-record DEFAULT
+wrong-answer is now repaired in an uncommitted author candidate: Column lowering
+attaches an encoding/affinity-owned default and dispatch uses it only for absent
+fields, preserving stored NULL/NullRow. The DEFAULT-id bridge retains raw
+quotation before boolean recognition, matching expr.c's EP_Quoted guard; quoted
+TRUE/FALSE remain strings. The constant extractor now retains numeric token
+spelling until affinity, rather than passing DEFAULT through eager numeric IR;
+review26's reproduced FLOAT/TEXT mismatch is corrected locally with original
+ALTER fixtures preserved and distinct numeric/unary/CAST/hex branch evidence.
+Review27's nested CAST type-ownership divergence is locally repaired by reading
+the current production's direct E/T children in both DEFAULT and expression IR,
+with distinct native-read synthetic-short and ordinary SELECT CAST controls.
+Review28's REAL-before-BLOB classifier divergence is locally repaired at the
+shared affinity seam using sqlite3AffinityType's scan branches; BLOB overrides
+REAL in either order below INT/TEXT. Distinct native-read mixed-marker short
+DEFAULT/SELECT controls cover all encodings, filled/NULL/NullRow and reset
+(`column-default-affinity.test.mjs`). Review29's empty CAST/absent declaration
+conflation is locally repaired by a shared native classifier for resolver/IR/DEFAULT;
+empty and dequoted-empty CAST are NUMERIC while column absence remains BLOB at
+column callers. Native-read empty/quoted-prefix multiword/unknown/mixed controls
+cover SELECT and synthetic-short DEFAULT in all encodings with exact types/bytes,
+metadata/reset and filled/storedNULL/NullRow (`column-default-empty.test.mjs`).
+Review30's lexical-leaf reconstruction gap is locally repaired: resolver and both
+CAST consumers now use the existing parser typetoken.semantic raw span, retaining
+interior comments/dimensions and empty input before native dequote/affinity scan.
+Native-read raw-span and boundary controls cover SELECT and actual synthetic-short
+DEFAULT in all encodings, types/bytes/metadata/reset/filled/storedNULL/NullRow
+(`column-default-raw-token.test.mjs`). Previous complete-token claims did not
+hold for lexical reconstruction. These remain author evidence, not independent whole-delta approval.
+The adjacent nested CASE producer now reads its own operand/list/optional ELSE
+carriers (`parse.y:1569–1596`), not flattened nested ELSE tokens; bounded
+native-derived simple/searched ownership/reset controls pass locally in
+`select-case-owner.test.mjs`. This is not whole-expression fidelity acceptance.
+Original and extended native controls pass locally across encodings; independent
+whole-delta repair adjudication and combined
+W/V acceptance remain outstanding. Exact input,
+commands, native receipts and limitations: [[card:card-t-c]] status.
+Historical failed runs and broader optimizer limitations below are not rewritten
+as passes.
 
 ## W198 descriptor/joined quota observers (author evidence)
 

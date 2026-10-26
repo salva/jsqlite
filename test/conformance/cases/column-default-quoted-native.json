@@ -1,0 +1,2110 @@
+{
+  "source": {
+    "schemaVersion": 1,
+    "product": "SQLite source archive",
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "fossilCheckin": "bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "fossilTimestampUtc": "2026-07-24T19:02:57.525Z",
+    "sqliteSourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "canonicalUrl": "https://www.sqlite.org/2026/sqlite-src-3530400.zip",
+    "downloadMetadataUrl": "https://www.sqlite.org/download.html",
+    "retrievedAtUtc": "2026-09-12T16:12:12.247Z",
+    "latestStableCheckedAtUtc": "2026-09-12T16:12:12.247Z",
+    "releaseNotesUrl": "https://www.sqlite.org/releaselog/3_53_4.html",
+    "archive": "sqlite-src-3530400.zip",
+    "bytes": 14557315,
+    "sha3_256": "b834d474b9b393d85a9e3ee4cc11f1329e007e9376a424ee740796f5c4bda3a8",
+    "sha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b",
+    "license": {
+      "classification": "public domain",
+      "archiveNotice": "LICENSE.md",
+      "upstreamUrl": "https://www.sqlite.org/copyright.html"
+    }
+  },
+  "librarySha256": "4d645b0bb4818c5db629cb2adfe7c4938443881d1fe7612a023d574c842e117a",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/column-default-quoted-utf-8.db",
+      "sha256": "ad13d609523d2e2206877ce0575d6b4b7ee7048fb77aa37198d7bcaf70e250eb",
+      "shortRecordSerials": [
+        0
+      ],
+      "setup": [
+        "PRAGMA encoding='UTF-8'",
+        "PRAGMA page_size=4096",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY)",
+        "INSERT INTO t VALUES(1)",
+        "ALTER TABLE t ADD COLUMN c0  DEFAULT \"TRUE\"",
+        "ALTER TABLE t ADD COLUMN c1  DEFAULT [TRUE]",
+        "ALTER TABLE t ADD COLUMN c2  DEFAULT `TRUE`",
+        "ALTER TABLE t ADD COLUMN c3  DEFAULT TRUE",
+        "ALTER TABLE t ADD COLUMN c4  DEFAULT \"FALSE\"",
+        "ALTER TABLE t ADD COLUMN c5  DEFAULT [FALSE]",
+        "ALTER TABLE t ADD COLUMN c6  DEFAULT `FALSE`",
+        "ALTER TABLE t ADD COLUMN c7  DEFAULT FALSE",
+        "ALTER TABLE t ADD COLUMN c8 TEXT DEFAULT \"TRUE\"",
+        "ALTER TABLE t ADD COLUMN c9 TEXT DEFAULT [TRUE]",
+        "ALTER TABLE t ADD COLUMN c10 TEXT DEFAULT `TRUE`",
+        "ALTER TABLE t ADD COLUMN c11 TEXT DEFAULT TRUE",
+        "ALTER TABLE t ADD COLUMN c12 TEXT DEFAULT \"FALSE\"",
+        "ALTER TABLE t ADD COLUMN c13 TEXT DEFAULT [FALSE]",
+        "ALTER TABLE t ADD COLUMN c14 TEXT DEFAULT `FALSE`",
+        "ALTER TABLE t ADD COLUMN c15 TEXT DEFAULT FALSE",
+        "INSERT INTO t VALUES(2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id) VALUES(3)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT id,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15 FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              },
+              {
+                "name": "c12",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c12"
+              },
+              {
+                "name": "c13",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c13"
+              },
+              {
+                "name": "c14",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c14"
+              },
+              {
+                "name": "c15",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c15"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(c0),typeof(c1),typeof(c2),typeof(c3),typeof(c4),typeof(c5),typeof(c6),typeof(c7),typeof(c8),typeof(c9),typeof(c10),typeof(c11),typeof(c12),typeof(c13),typeof(c14),typeof(c15) FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(c0)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c1)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c2)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c3)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c4)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c5)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c6)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c7)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c8)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c9)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c10)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c11)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c12)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c13)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c14)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c15)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/column-default-quoted-utf-16le.db",
+      "sha256": "08265c45026e3c99c6dfed435e3bf35d3c3ef14e7da08878778a1fbf5df63f7b",
+      "shortRecordSerials": [
+        0
+      ],
+      "setup": [
+        "PRAGMA encoding='UTF-16le'",
+        "PRAGMA page_size=4096",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY)",
+        "INSERT INTO t VALUES(1)",
+        "ALTER TABLE t ADD COLUMN c0  DEFAULT \"TRUE\"",
+        "ALTER TABLE t ADD COLUMN c1  DEFAULT [TRUE]",
+        "ALTER TABLE t ADD COLUMN c2  DEFAULT `TRUE`",
+        "ALTER TABLE t ADD COLUMN c3  DEFAULT TRUE",
+        "ALTER TABLE t ADD COLUMN c4  DEFAULT \"FALSE\"",
+        "ALTER TABLE t ADD COLUMN c5  DEFAULT [FALSE]",
+        "ALTER TABLE t ADD COLUMN c6  DEFAULT `FALSE`",
+        "ALTER TABLE t ADD COLUMN c7  DEFAULT FALSE",
+        "ALTER TABLE t ADD COLUMN c8 TEXT DEFAULT \"TRUE\"",
+        "ALTER TABLE t ADD COLUMN c9 TEXT DEFAULT [TRUE]",
+        "ALTER TABLE t ADD COLUMN c10 TEXT DEFAULT `TRUE`",
+        "ALTER TABLE t ADD COLUMN c11 TEXT DEFAULT TRUE",
+        "ALTER TABLE t ADD COLUMN c12 TEXT DEFAULT \"FALSE\"",
+        "ALTER TABLE t ADD COLUMN c13 TEXT DEFAULT [FALSE]",
+        "ALTER TABLE t ADD COLUMN c14 TEXT DEFAULT `FALSE`",
+        "ALTER TABLE t ADD COLUMN c15 TEXT DEFAULT FALSE",
+        "INSERT INTO t VALUES(2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id) VALUES(3)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT id,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15 FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              },
+              {
+                "name": "c12",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c12"
+              },
+              {
+                "name": "c13",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c13"
+              },
+              {
+                "name": "c14",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c14"
+              },
+              {
+                "name": "c15",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c15"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(c0),typeof(c1),typeof(c2),typeof(c3),typeof(c4),typeof(c5),typeof(c6),typeof(c7),typeof(c8),typeof(c9),typeof(c10),typeof(c11),typeof(c12),typeof(c13),typeof(c14),typeof(c15) FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(c0)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c1)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c2)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c3)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c4)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c5)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c6)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c7)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c8)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c9)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c10)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c11)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c12)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c13)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c14)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c15)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/column-default-quoted-utf-16be.db",
+      "sha256": "ac936576e5ab5fe0f265cd6fc6be4d389484e695a78a5056c2fd9d0556639482",
+      "shortRecordSerials": [
+        0
+      ],
+      "setup": [
+        "PRAGMA encoding='UTF-16be'",
+        "PRAGMA page_size=4096",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY)",
+        "INSERT INTO t VALUES(1)",
+        "ALTER TABLE t ADD COLUMN c0  DEFAULT \"TRUE\"",
+        "ALTER TABLE t ADD COLUMN c1  DEFAULT [TRUE]",
+        "ALTER TABLE t ADD COLUMN c2  DEFAULT `TRUE`",
+        "ALTER TABLE t ADD COLUMN c3  DEFAULT TRUE",
+        "ALTER TABLE t ADD COLUMN c4  DEFAULT \"FALSE\"",
+        "ALTER TABLE t ADD COLUMN c5  DEFAULT [FALSE]",
+        "ALTER TABLE t ADD COLUMN c6  DEFAULT `FALSE`",
+        "ALTER TABLE t ADD COLUMN c7  DEFAULT FALSE",
+        "ALTER TABLE t ADD COLUMN c8 TEXT DEFAULT \"TRUE\"",
+        "ALTER TABLE t ADD COLUMN c9 TEXT DEFAULT [TRUE]",
+        "ALTER TABLE t ADD COLUMN c10 TEXT DEFAULT `TRUE`",
+        "ALTER TABLE t ADD COLUMN c11 TEXT DEFAULT TRUE",
+        "ALTER TABLE t ADD COLUMN c12 TEXT DEFAULT \"FALSE\"",
+        "ALTER TABLE t ADD COLUMN c13 TEXT DEFAULT [FALSE]",
+        "ALTER TABLE t ADD COLUMN c14 TEXT DEFAULT `FALSE`",
+        "ALTER TABLE t ADD COLUMN c15 TEXT DEFAULT FALSE",
+        "INSERT INTO t VALUES(2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id) VALUES(3)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT id,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15 FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54525545"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46414c5345"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              },
+              {
+                "name": "c12",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c12"
+              },
+              {
+                "name": "c13",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c13"
+              },
+              {
+                "name": "c14",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c14"
+              },
+              {
+                "name": "c15",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c15"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(c0),typeof(c1),typeof(c2),typeof(c3),typeof(c4),typeof(c5),typeof(c6),typeof(c7),typeof(c8),typeof(c9),typeof(c10),typeof(c11),typeof(c12),typeof(c13),typeof(c14),typeof(c15) FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(c0)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c1)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c2)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c3)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c4)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c5)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c6)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c7)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c8)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c9)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c10)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c11)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c12)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c13)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c14)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c15)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

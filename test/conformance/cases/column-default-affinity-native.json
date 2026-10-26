@@ -1,0 +1,2761 @@
+{
+  "source": {
+    "schemaVersion": 1,
+    "product": "SQLite source archive",
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "fossilCheckin": "bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "fossilTimestampUtc": "2026-07-24T19:02:57.525Z",
+    "sqliteSourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "canonicalUrl": "https://www.sqlite.org/2026/sqlite-src-3530400.zip",
+    "downloadMetadataUrl": "https://www.sqlite.org/download.html",
+    "retrievedAtUtc": "2026-09-12T16:12:12.247Z",
+    "latestStableCheckedAtUtc": "2026-09-12T16:12:12.247Z",
+    "releaseNotesUrl": "https://www.sqlite.org/releaselog/3_53_4.html",
+    "archive": "sqlite-src-3530400.zip",
+    "bytes": 14557315,
+    "sha3_256": "b834d474b9b393d85a9e3ee4cc11f1329e007e9376a424ee740796f5c4bda3a8",
+    "sha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b",
+    "license": {
+      "classification": "public domain",
+      "archiveNotice": "LICENSE.md",
+      "upstreamUrl": "https://www.sqlite.org/copyright.html"
+    }
+  },
+  "librarySha256": "4d645b0bb4818c5db629cb2adfe7c4938443881d1fe7612a023d574c842e117a",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/column-default-affinity-utf-8.db",
+      "sha256": "fda682b0cb42e9ca1be9c0081931d99a88533ae373910fbce13ede9e45feacdf",
+      "shortRecordSerials": [
+        0
+      ],
+      "setup": [
+        "PRAGMA encoding='UTF-8'",
+        "PRAGMA page_size=4096",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,c0 DEFAULT (CAST('12' AS BLOB REAL)),c1 DEFAULT (CAST('12' AS REAL BLOB)),c2 DEFAULT (CAST('12' AS REAL BLOB INT)),c3 DEFAULT (CAST('12' AS INT BLOB REAL)),c4 DEFAULT (CAST('12' AS BLOB REAL TEXT)),c5 DEFAULT (CAST('12' AS TEXT REAL BLOB)),c6 DEFAULT (CAST('12' AS CLOB REAL)),c7 DEFAULT (CAST('12' AS CHAR BLOB)),c8 DEFAULT (CAST('12' AS FLOA)),c9 DEFAULT (CAST('12' AS DOUB)),c10 DEFAULT (CAST('12' AS MYSTERY)),c11 DEFAULT ('0012'))",
+        "INSERT INTO t(id) VALUES(1)",
+        "INSERT INTO t VALUES(2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id) VALUES(3)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT CAST('12' AS BLOB REAL),CAST('12' AS REAL BLOB),CAST('12' AS REAL BLOB INT),CAST('12' AS INT BLOB REAL),CAST('12' AS BLOB REAL TEXT),CAST('12' AS TEXT REAL BLOB),CAST('12' AS CLOB REAL),CAST('12' AS CHAR BLOB),CAST('12' AS FLOA),CAST('12' AS DOUB),CAST('12' AS MYSTERY),'0012'",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "CAST('12' AS BLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS REAL BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS REAL BLOB INT)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS INT BLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS BLOB REAL TEXT)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS TEXT REAL BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS CLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS CHAR BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS FLOA)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS DOUB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS MYSTERY)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "'0012'",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11 FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(c0),typeof(c1),typeof(c2),typeof(c3),typeof(c4),typeof(c5),typeof(c6),typeof(c7),typeof(c8),typeof(c9),typeof(c10),typeof(c11) FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(c0)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c1)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c2)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c3)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c4)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c5)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c6)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c7)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c8)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c9)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c10)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c11)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.c0,y.c1,y.c2,y.c3,y.c4,y.c5,y.c6,y.c7,y.c8,y.c9,y.c10,y.c11 FROM t x LEFT JOIN t y ON y.id=x.id+1 ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "blob",
+                  "hex": "3132"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/column-default-affinity-utf-16le.db",
+      "sha256": "be95deaa13097ff7867a4e74922a58c0c300d74d7b4be17e9497c2ca762a7a65",
+      "shortRecordSerials": [
+        0
+      ],
+      "setup": [
+        "PRAGMA encoding='UTF-16le'",
+        "PRAGMA page_size=4096",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,c0 DEFAULT (CAST('12' AS BLOB REAL)),c1 DEFAULT (CAST('12' AS REAL BLOB)),c2 DEFAULT (CAST('12' AS REAL BLOB INT)),c3 DEFAULT (CAST('12' AS INT BLOB REAL)),c4 DEFAULT (CAST('12' AS BLOB REAL TEXT)),c5 DEFAULT (CAST('12' AS TEXT REAL BLOB)),c6 DEFAULT (CAST('12' AS CLOB REAL)),c7 DEFAULT (CAST('12' AS CHAR BLOB)),c8 DEFAULT (CAST('12' AS FLOA)),c9 DEFAULT (CAST('12' AS DOUB)),c10 DEFAULT (CAST('12' AS MYSTERY)),c11 DEFAULT ('0012'))",
+        "INSERT INTO t(id) VALUES(1)",
+        "INSERT INTO t VALUES(2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id) VALUES(3)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT CAST('12' AS BLOB REAL),CAST('12' AS REAL BLOB),CAST('12' AS REAL BLOB INT),CAST('12' AS INT BLOB REAL),CAST('12' AS BLOB REAL TEXT),CAST('12' AS TEXT REAL BLOB),CAST('12' AS CLOB REAL),CAST('12' AS CHAR BLOB),CAST('12' AS FLOA),CAST('12' AS DOUB),CAST('12' AS MYSTERY),'0012'",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "CAST('12' AS BLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS REAL BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS REAL BLOB INT)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS INT BLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS BLOB REAL TEXT)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS TEXT REAL BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS CLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS CHAR BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS FLOA)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS DOUB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS MYSTERY)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "'0012'",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11 FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(c0),typeof(c1),typeof(c2),typeof(c3),typeof(c4),typeof(c5),typeof(c6),typeof(c7),typeof(c8),typeof(c9),typeof(c10),typeof(c11) FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(c0)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c1)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c2)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c3)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c4)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c5)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c6)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c7)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c8)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c9)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c10)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c11)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.c0,y.c1,y.c2,y.c3,y.c4,y.c5,y.c6,y.c7,y.c8,y.c9,y.c10,y.c11 FROM t x LEFT JOIN t y ON y.id=x.id+1 ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "blob",
+                  "hex": "31003200"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/column-default-affinity-utf-16be.db",
+      "sha256": "d79e417ea2eb424990d00381e1240789dae7792c309dae9717424fdd8b1d5fc2",
+      "shortRecordSerials": [
+        0
+      ],
+      "setup": [
+        "PRAGMA encoding='UTF-16be'",
+        "PRAGMA page_size=4096",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,c0 DEFAULT (CAST('12' AS BLOB REAL)),c1 DEFAULT (CAST('12' AS REAL BLOB)),c2 DEFAULT (CAST('12' AS REAL BLOB INT)),c3 DEFAULT (CAST('12' AS INT BLOB REAL)),c4 DEFAULT (CAST('12' AS BLOB REAL TEXT)),c5 DEFAULT (CAST('12' AS TEXT REAL BLOB)),c6 DEFAULT (CAST('12' AS CLOB REAL)),c7 DEFAULT (CAST('12' AS CHAR BLOB)),c8 DEFAULT (CAST('12' AS FLOA)),c9 DEFAULT (CAST('12' AS DOUB)),c10 DEFAULT (CAST('12' AS MYSTERY)),c11 DEFAULT ('0012'))",
+        "INSERT INTO t(id) VALUES(1)",
+        "INSERT INTO t VALUES(2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id) VALUES(3)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT CAST('12' AS BLOB REAL),CAST('12' AS REAL BLOB),CAST('12' AS REAL BLOB INT),CAST('12' AS INT BLOB REAL),CAST('12' AS BLOB REAL TEXT),CAST('12' AS TEXT REAL BLOB),CAST('12' AS CLOB REAL),CAST('12' AS CHAR BLOB),CAST('12' AS FLOA),CAST('12' AS DOUB),CAST('12' AS MYSTERY),'0012'",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "CAST('12' AS BLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS REAL BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS REAL BLOB INT)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS INT BLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS BLOB REAL TEXT)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS TEXT REAL BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS CLOB REAL)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS CHAR BLOB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS FLOA)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS DOUB)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "CAST('12' AS MYSTERY)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "'0012'",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11 FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(c0),typeof(c1),typeof(c2),typeof(c3),typeof(c4),typeof(c5),typeof(c6),typeof(c7),typeof(c8),typeof(c9),typeof(c10),typeof(c11) FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(c0)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c1)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c2)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c3)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c4)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c5)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c6)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c7)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c8)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c9)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c10)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(c11)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.c0,y.c1,y.c2,y.c3,y.c4,y.c5,y.c6,y.c7,y.c8,y.c9,y.c10,y.c11 FROM t x LEFT JOIN t y ON y.id=x.id+1 ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00310032"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "3132"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "4028000000000000"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30303132"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "c0",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c0"
+              },
+              {
+                "name": "c1",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c1"
+              },
+              {
+                "name": "c2",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c2"
+              },
+              {
+                "name": "c3",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c3"
+              },
+              {
+                "name": "c4",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c4"
+              },
+              {
+                "name": "c5",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c5"
+              },
+              {
+                "name": "c6",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c6"
+              },
+              {
+                "name": "c7",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c7"
+              },
+              {
+                "name": "c8",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c8"
+              },
+              {
+                "name": "c9",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c9"
+              },
+              {
+                "name": "c10",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c10"
+              },
+              {
+                "name": "c11",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "c11"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import {castTypeAffinity} from './type-affinity.ts';
 import {builtinFunction,builtinFunctionIsPure} from './functions.ts';
 import {JSQLiteError} from '../index.ts';
 import {METADATA_MODULE_COLUMNS,metadataHiddenColumns,metadataColumnDeclaredType} from './pragma.ts';
@@ -809,11 +810,9 @@ export function resolvedExpressionAffinity(expression:LemonValue<SqlToken>,plan:
    return resolvedExpressionAffinity(nested.result[0].expression.reduction,nested);
   }
   if(node.signature.startsWith('expr ::= CAST')){
-   const tokens:SqlToken[]=[];const collect=(value:LemonValue<SqlToken>):void=>{if(value.kind==='terminal'){if(value.value)tokens.push(value.value);}else value.children.forEach(collect);};
-   // The type-name nonterminal is owned by CAST, not nested operand tokens.
+   // The parser's typetoken semantic owns raw source, including comments.
    const type=node.children.find(child=>child.kind==='reduction'&&child.signature.startsWith('typetoken ::='));
-   if(!type)return undefined;collect(type);const name=tokens.map(token=>token.text).join(' ').toUpperCase();
-   if(name.includes('INT'))return 'integer';if(/CHAR|CLOB|TEXT/.test(name))return 'text';if(!name||name.includes('BLOB'))return 'blob';if(/REAL|FLOA|DOUB/.test(name))return 'real';return 'numeric';
+   if(type?.kind!=='reduction')return undefined;return castTypeAffinity(type.semantic);
   }
   const use=plan.columnUses.find(use=>use.expression===node);
   if(!use){

@@ -21,6 +21,7 @@ import {resolvedColumnCarrier,resolvedGeneratedExpressionCarrier,resolvedExpress
 import type { ColumnMetadata, OperationOptions, SqliteStorageClass, SqliteValue, Statement, StepResult } from "../index.ts";
 import { JSQLiteError } from "../index.ts";
 import { SelectProgramBuilder, reachesOwningReturn, emitSelectDestination, type SelectDest } from "./select-program.ts";
+import {castTypeAffinity, columnDeclaredAffinity} from './type-affinity.ts';
 import { BorrowLifetime, Mem, type MemAffinity, memFromPublic, memFromRawRecord, memToPublicInitial } from "./mem.ts";
 import type { ExprNode, SelectNode } from "./parse.ts";
 import {parseSql} from "./parse.ts";
@@ -67,7 +68,7 @@ type Expression =
  | {kind:"variable";spelling:string;startByte?:number}
  | {kind:"mem";value:Mem;collation?:BuiltinCollation}
  | {kind:"literal";value:null|bigint|number|string|Uint8Array}
- | {kind:"column";resolvedSource?:ResolvedSource;identifierTokens?:readonly {text:string}[];generated?:Expression;strictGenerated?:{table:string;column:string;type:string};index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
+ | {kind:"column";defaultColumn?:TableNode['columns'][number]|null|undefined;resolvedSource?:ResolvedSource;identifierTokens?:readonly {text:string}[];generated?:Expression;strictGenerated?:{table:string;column:string;type:string};index:number;name:string;cursor?:number;payloadIndex?:number;physicalColumnIndex?:number|undefined;aggregateColumn?:{owner:import("./resolve.ts").AggregateColumnOwner;iAgg:number};collation?:BuiltinCollation;affinity?:MemAffinity}
  | {kind:"unary";op:string;value:Expression}
  | {kind:"binary";op:string;left:Expression;right:Expression}
  | {kind:"vector";fields:Expression[]}
@@ -242,7 +243,7 @@ type Op =
   | { readonly code: "DeferredSeek"; readonly p1: number; readonly p2: number }
   | { readonly code: "DeferredIndexSeek"; readonly p1:number; readonly p2:number; readonly primaryKeyFields:readonly number[]; readonly physical:PhysicalIndex }
   | { readonly code: "NullRow"; readonly p1: number }
-  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity; readonly inProbe?:boolean }
+  | { readonly code: "Column"; readonly p1: number; readonly p2: number; readonly p3?: number; readonly affinity?: MemAffinity; readonly inProbe?:boolean; readonly columnDefault?:{readonly expression:ExprNode;readonly affinity:MemAffinity}; readonly defaultMem?:Mem }
   | { readonly code: "RealAffinity"; readonly p1: number }
   | { readonly code: "Rowid"; readonly p1?: number; readonly p2: number; readonly inProbe?:boolean }
   | { readonly code: "Eq"; readonly p1: number; readonly p2: number; readonly p3: number; readonly affinity: MemAffinity; readonly collation: BuiltinCollation }
@@ -523,7 +524,7 @@ export function compileWindowSelectLowering(
   privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,
   schema?:SchemaGraph,
   recursiveProducer?:{select:SelectNode;maxRows:number},
-  owner?:{builder:SelectProgramBuilder<Op>;destination:SelectDest;parameters?:ParameterBuilder;retainedSource?:SelectNode},
+  owner?:{builder:SelectProgramBuilder<Op>;destination:SelectDest;parameters?:ParameterBuilder;retainedSource?:SelectNode;exitLabel?:number},
 ):WindowLoweringCompilation {
   // window.c:sqlite3WindowRewrite only rewrites pPrior==0. Compound arms
   // must be lowered by multiSelect individually; lowering its first-arm
@@ -881,7 +882,7 @@ export function compileWindowSelectLowering(
       const module=moduleRows.get(binding.source);
       if(index===0&&module){ops.push({code:'Copy',p1:binding.columnIndex<0?module.rowid:module.first+binding.columnIndex,p2:target});return;}
       const column=binding.columnIndex<0||isIntegerPrimaryKeyAlias(binding.source.table,binding.columnIndex)?-1:binding.columnIndex;
-      if(column<0)ops.push({code:"Rowid",p1:binding.source.cursorId,p2:target});else ops.push({code:"Column",p1:column,p2:target,p3:binding.source.cursorId,affinity:binding.source.table.columns[column]!.affinity});
+      if(column<0)ops.push({code:"Rowid",p1:binding.source.cursorId,p2:target});else ops.push({code:"Column",...columnDefault(binding.source.table.columns[column]),p1:column,p2:target,p3:binding.source.cursorId,affinity:binding.source.table.columns[column]!.affinity});
     };
     const key=registers+1;registers+=terms.length;for(let term=0;term<terms.length;term++)emitProducerBinding(terms[term]!.binding,key+term,terms[term]!.expression,undefined,terms[term]!.sourceExpression);
     const payload=registers+1;registers+=layer.bufferExpressions.length;
@@ -1811,7 +1812,7 @@ export function compileWindowSelectLowering(
   const emitOuterResult=():Readonly<{offsetSkip:number|null;limitDone:number|null}>=>{let offsetSkip:number|null=null;if(outerLimit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:"IfPos",p1:outerLimit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:'output'},outputStart,outputEntries.length);let limitDone:number|null=null;if(outerLimit){limitDone=ops.length;ops.push({code:"DecrJumpZero",p1:outerLimit.count,p2:0});}return{offsetSkip,limitDone};};
   const rootInit=ops.length;ops.push({code:"InitCoroutine",p1:childCoroutine,p2:0,p3:childStart});const rootLoop=ops.length;ops.push({code:"Yield",p1:childCoroutine,p2:0});
   if(emitsRows){const rootState=setup.at(-1),needsReady=scannedRowsLayer(compileLayers.at(-1)!)||outputWindows.some(win=>win!==null&&(directOffsetOutput(win)||currentFollowing(win)||followingFollowing(win)||precedingPreceding(win)||precedingFollowingOutput(win)||followingUnboundedOutput(win)||currentUnboundedOutput(win)||precedingUnboundedOutput(win)||wholePartitionOutput(win)||wholePartitionExcludeGroupOutput(win)||singlePeerGroupsOutput(win)||orderedCurrentGroupsOutput(win)||rangeCurrentPeerExclusionOutput(win)||rangeOffsetExcludeCurrentOutput(win)||groupsCumulativeExcludeCurrentOutput(win)||groupsOnePrecedingExcludeGroupOutput(win)||orderedCumulativePeerGroupsOutput(win)||(orderedCumulativePriorGroupsOutput(win)||orderedUnboundedEndPeerOutput(win))||cumulativePeerExclusion(win)||orderedSuffixGroupsOutput(win)||orderedFollowingGroupsOutput(win)||noOrderFollowingGroupsOutput(win)||orderedRangePrecedingCurrentOutput(win)||orderedAdjacentGroupsOutput(win)));let skip:number|undefined;if(needsReady&&rootState){skip=ops.length;ops.push({code:"IfNot",p1:rootState.regOutputReady,p2:0});}for(let index=0;index<outputEntries.length;index++){const entry=outputEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:outputStart+index});}if(outerSorter!==null){builder.registers=Math.max(builder.registers,registers);const keyStart=builder.range(outerOrderEntries.length);registers=builder.registers;for(let index=0;index<outerOrderEntries.length;index++){const entry=outerOrderEntries[index]!;ops.push({code:"Copy",p1:entry.kind==="window"?entry.win.regResult:entry.kind==="column"?setup.at(-1)!.regNew+entry.bufferColumn:compileOutputExpression(entry.expression),p2:keyStart+index});}ops.push({code:"SorterInsert",p1:outerSorter,keyStart,keyCount:outerOrderEntries.length,payload:outputStart,payloadCount:outputEntries.length});}else{const {offsetSkip}=emitOuterResult();if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=ops.length;}if(skip!==undefined)(ops[skip] as {p2:number}).p2=ops.length;}
-  ops.push({code:"Goto",p2:rootLoop});const outerDrain=ops.length;(ops[rootLoop] as {p2:number}).p2=outerDrain;if(outerSorter===null&&outerLimit){(ops[outerLimit.ifZero] as {p2:number}).p2=outerDrain;for(const op of ops)if(op.code==="DecrJumpZero"&&op.p1===outerLimit.count&&op.p2===0)(op as {p2:number}).p2=outerDrain;}if(outerSorter!==null){const sort=ops.length;ops.push({code:"SorterSort",p1:outerSorter,emptyJump:0},{code:"SorterData",p1:outerSorter,p2:outputStart,count:outputEntries.length});const {offsetSkip,limitDone}=emitOuterResult();const next=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"SorterNext",p1:outerSorter,p2:sort+1});const done=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=done;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=done;if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=done;}const ownerExit=ops.length;ops.push(owner?{code:"Goto",p2:0}:{code:"Halt"});
+  ops.push({code:"Goto",p2:rootLoop});const outerDrain=ops.length;(ops[rootLoop] as {p2:number}).p2=outerDrain;if(outerSorter===null&&outerLimit){(ops[outerLimit.ifZero] as {p2:number}).p2=outerDrain;for(const op of ops)if(op.code==="DecrJumpZero"&&op.p1===outerLimit.count&&op.p2===0)(op as {p2:number}).p2=outerDrain;}if(outerSorter!==null){const sort=ops.length;ops.push({code:"SorterSort",p1:outerSorter,emptyJump:0},{code:"SorterData",p1:outerSorter,p2:outputStart,count:outputEntries.length});const {offsetSkip,limitDone}=emitOuterResult();const next=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=next;ops.push({code:"SorterNext",p1:outerSorter,p2:sort+1});const done=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=done;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=done;if(outerLimit)(ops[outerLimit.ifZero] as {p2:number}).p2=done;}const ownerExit=ops.length;if(owner?.exitLabel!==undefined)builder.jump(owner.exitLabel,{code:"Goto",p2:0},(op,pc)=>({...op,p2:pc}));else ops.push(owner?{code:"Goto",p2:0}:{code:"Halt"});
   if(owner){owner.builder.registers=Math.max(owner.builder.registers,registers);owner.builder.reserveCursorsThrough(Math.max(outerSorter??0,...sorterCursors,nextApplicationCursor));}
   const loopBindings:WindowLoopBinding[]=[];
   for(const pending of bindingsPending){
@@ -1960,7 +1961,7 @@ export function compileWindowSelectLowering(
     // Late frame/return subroutines allocate after the root drain. Publish the
     // complete Parse high-water before the enclosing caller allocates again.
     owner.builder.registers=Math.max(owner.builder.registers,registers);
-    (ops[ownerExit] as {p2:number}).p2=ops.length;
+    if(owner.exitLabel===undefined)(ops[ownerExit] as {p2:number}).p2=ops.length;
   }
   const program=Object.freeze({ops:owner?ops:builder.finish(),registers,columns:Object.freeze(emitsRows&&allProducerExpressionsRepresented?resolved.result.map(result=>Object.freeze({name:result.name,declaredType:result.descriptor.declaredType,database:result.descriptor.database,table:result.descriptor.table,origin:result.descriptor.origin})):[]),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),...(database?{database}:{}),maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
   return Object.freeze({rewrite,setup:Object.freeze(setup),loopBindings:Object.freeze(loopBindings),program,...(owner?{ownerExit}:{})});
@@ -2087,7 +2088,7 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
             try{const dependency=resolvedGeneratedExpressionCarrier(ref.source,ref.columnIndex);generated=bindResolvedExpression(expressionFromReduction(dependency.reduction as Reduction),dependency,cursorFor,true,binding,generatedBusy);}
             finally{busy.delete(ref.columnIndex);}
           }
-          return {...value,resolvedSource:ref.source,...(generated?{generated,...(ref.source.table.kind==='table'&&ref.source.table.strict?{strictGenerated:{table:ref.source.table.name,column:column!.name,type:column!.declaredType!.toUpperCase()}}:{})}:{}),...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),physicalColumnIndex:location?.kind==='cursor'&&location.physicalColumnIndex!==undefined?location.physicalColumnIndex:index>=0&&ref.source.table.kind==='table'&&!ref.source.table.withoutRowid&&column?.generatedStorage!=='virtual'?tableColumnToStorage(ref.source.table,index):undefined,cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
+          return {...value,defaultColumn:column,resolvedSource:ref.source,...(generated?{generated,...(ref.source.table.kind==='table'&&ref.source.table.strict?{strictGenerated:{table:ref.source.table.name,column:column!.name,type:column!.declaredType!.toUpperCase()}}:{})}:{}),...(location?.kind==='cursor'&&location.aggregateColumn?{aggregateColumn:location.aggregateColumn}:{}),...(location?.kind==='cursor'&&location.payloadIndex!==undefined?{payloadIndex:location.payloadIndex}:{}),physicalColumnIndex:location?.kind==='cursor'&&location.physicalColumnIndex!==undefined?location.physicalColumnIndex:index>=0&&ref.source.table.kind==='table'&&!ref.source.table.withoutRowid&&column?.generatedStorage!=='virtual'?tableColumnToStorage(ref.source.table,index):undefined,cursor:location?.kind==='cursor'?location.cursor:cursorFor(ref.source),index,affinity:index<0?'integer':column!.affinity,collation:named};
     }
 
         // resolve.c lookupName TK_FUNCTION/AFF_DEFER argument list, not the
@@ -2127,7 +2128,9 @@ function bindResolvedExpression(value:Expression,carrier:ResolvedExpressionCarri
         if(value.kind==='in-list'&&(binding?.policy==='scalar'||binding?.policy==='window-filter'||binding?.policy==='window-source'||binding?.policy==='ordinary-aggregate'))return {...value,left:bindChild(value.left,0),values:value.values.map((term,index)=>bindChild(term,index+1))};
         if(value.kind==='between'&&binding?.policy!=='aggregate-source')return {...value,value:bindChild(value.value,0),lower:bindChild(value.lower,1),upper:bindChild(value.upper,2)};
         if(value.kind==='in-subquery'&&binding?.policy!=='window-source'&&binding?.policy!=='aggregate-source')return {...value,left:bindChild(value.left,0)};
-        if(value.kind==='case'&&binding?.policy!=='window-source'){
+        if(value.kind==='case'){
+          // window.c rewrites CASE terminals into the producer payload too;
+          // preserve the CASE control tree while rebinding every linked child.
           let index=0;
           return {...value,operand:value.operand?bindChild(value.operand,index++):null,pairs:value.pairs.map(([when,then])=>[bindChild(when,index++),bindChild(then,index++)]),otherwise:value.otherwise?bindChild(value.otherwise,index++):null};
         }
@@ -2148,6 +2151,12 @@ function expressionIdentityReduction(node:Reduction):Reduction{
 function descendantExprs(n:LemonValue<SqlToken>):LemonValue<SqlToken>[] {if(n.kind!=="reduction")return[];const out:LemonValue<SqlToken>[]=[];for(const c of n.children){if(c.kind==="reduction"&&(c.signature.startsWith("expr ::=")||c.signature.startsWith("term ::=")))out.push(c);else out.push(...descendantExprs(c))}return out}
 type Reduction=Extract<LemonValue<SqlToken>,{kind:'reduction'}>;
 function directReduction(n:LemonValue<SqlToken>,prefix:string):Reduction|undefined{return n.kind==='reduction'?n.children.find((child):child is Reduction=>child.kind==='reduction'&&child.signature.startsWith(prefix)):undefined}
+// parse.y1228 owns T and E separately: never search operand leaves for AS.
+function castParts(n:Reduction):{operand:Reduction;affinity:MemAffinity}{
+ const operand=directReduction(n,'expr ::='),type=directReduction(n,'typetoken ::=');
+ if(!operand||!type)throw new JSQLiteError('internal','CAST production lost operand or type');
+ return{operand,affinity:castTypeAffinity(type.semantic)};
+}
 function findReduction(n:LemonValue<SqlToken>,prefix:string):Reduction|undefined{if(n.kind!=='reduction')return undefined;if(n.signature.startsWith(prefix))return n;for(const child of n.children){const found=findReduction(child,prefix);if(found)return found}return undefined}
 function listExpressions(n:LemonValue<SqlToken>,prefix:string):Reduction[] {if(n.kind!=='reduction')return[];const prior=directReduction(n,prefix),own=n.children.find((child):child is Reduction=>child.kind==='reduction'&&(child.signature.startsWith('expr ::=')||child.signature.startsWith('term ::=')));return[...(prior?listExpressions(prior,prefix):[]),...(own?[own]:[])]}
 function sortListItems(n:LemonValue<SqlToken>):Reduction[]{if(n.kind!=='reduction'||!n.signature.startsWith('sortlist ::='))return[];const prior=directReduction(n,'sortlist ::=');return[...(prior?sortListItems(prior):[]),n]}
@@ -2159,7 +2168,6 @@ function aggregateParts(n:LemonValue<SqlToken>):{args:Expression[];distinct:bool
  return{args,distinct,filter:filterExpr?expressionFromReduction(filterExpr):null,orderBy};
 }
 function decodeString(s:string){return s.slice(1,-1).replaceAll("''", "'")}
-function affinityOf(s:string):MemAffinity{const x=s.toUpperCase();if(x.includes("INT"))return"integer";if(x.includes("CHAR")||x.includes("CLOB")||x.includes("TEXT"))return"text";if(x.includes("REAL")||x.includes("FLOA")||x.includes("DOUB"))return"real";if(!x||x.includes("BLOB"))return"blob";return"numeric"}
 /** btree table INTEGER PRIMARY KEY columns are aliases for the rowid and have no record payload field. */
 // JSON module rowid is independent of declared columns; only ordinary Tables have iPKey.
 function isIntegerPrimaryKeyAlias(table:ResolvedSource['table'],columnIndex:number):boolean{return table.kind==='table'&&integerPrimaryKeyColumn(table)===table.columns[columnIndex]}
@@ -2221,13 +2229,25 @@ function expressionFromReduction(n:LemonValue<SqlToken>):Expression{
   const op=sig.includes(" IS NOT ")?"IS NOT":directWords[0]??t.find(token=>["+","-","*","/","%","||","=","==","!=","<>","<",">","<=",">=","IS","AND","OR"].includes(token.text.toUpperCase()))?.text.toUpperCase();
   if(op&&["+","-","*","/","%","&","|","<<",">>","||","->","->>","=","==","!=","<>","<",">","<=",">=","IS","IS NOT","AND","OR"].includes(op))return (op==="->"||op==="->>")?{kind:"call",name:op==="->"?"json_arrow":"json_arrow_sql",args:[expressionFromReduction(all[0]!),expressionFromReduction(all[1]!)]}:{kind:"binary",op,left:expressionFromReduction(all[0]!),right:expressionFromReduction(all[1]!)}
  }
- if(sig.startsWith("expr ::= CAST")){const at=t.findIndex(x=>x.text.toUpperCase()==="AS");return{kind:"cast",value:expressionFromReduction(all[0]!),affinity:affinityOf(t.slice(at+1,-1).map(x=>x.text).join(" "))}}
+ if(sig.startsWith("expr ::= CAST")){const cast=castParts(n);return{kind:"cast",value:expressionFromReduction(cast.operand),affinity:cast.affinity}}
  if(sig==="expr ::= expr COLLATE ID|STRING"){const name=sqliteAsciiFold(t.at(-1)!.text);if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${t.at(-1)!.text}`,{code:1});return{kind:"collate",value:expressionFromReduction(all[0]!),collation:name};}
  if((sig.startsWith("expr ::= ID")||sig.startsWith("expr ::= nm"))&&!sig.includes(" LP"))return{kind:"column",index:-1,name:t.map(x=>x.text).join(""),identifierTokens:t};
  // resolve.c function lookup selects unary min/max aggregate definitions by arity;
  // two-or-more arguments must continue through the scalar function registry.
  if(sig.startsWith("expr ::= ID|INDEXED|JOIN_KW LP")){const name=sqliteAsciiFold(t[0]!.text),parts=aggregateParts(n),args=sig.includes(" LP STAR RP")?[]:parts.args;const aggregate=aggregateDefinition(name);if(aggregate&&((name!=="min"&&name!=="max")||args.length===1)){const arities=aggregate.arities;if(!arities.includes(args.length))throw new JSQLiteError("sqlite",`wrong number of arguments to function ${name}()`,{code:1});if(parts.distinct&&args.length!==1)throw new JSQLiteError("sqlite","DISTINCT aggregates must have exactly one argument",{code:1});return{kind:"aggregate",name,args,collation:args[0]?collation(args[0]):"binary",distinct:parts.distinct,filter:parts.filter,orderBy:parts.orderBy};}const definition=resolveBuiltinFunction(name,args.length);if(parts.filter)throw new JSQLiteError("sqlite","FILTER may not be used with non-aggregate function",{code:1});return{kind:"call",name:definition.name,args}}
- if(sig.startsWith("expr ::= CASE")){const vals=all.map(expressionFromReduction),hasOperand=t[1]?.text.toUpperCase()!=="WHEN",hasElse=t.some(x=>x.text.toUpperCase()==="ELSE"),operand=hasOperand?vals.shift()!:null,otherwise=hasElse?vals.pop()!:null,pairs:[Expression,Expression][]=[];while(vals.length)pairs.push([vals.shift()!,vals.shift()!]);return{kind:"case",operand,pairs,otherwise}}
+ if(sig.startsWith("expr ::= CASE")){
+  // parse.y1569-1596 owns X, Y and Z separately; nested ELSE is not Z.
+  const operandNode=directReduction(n,'case_operand ::='),elseNode=directReduction(n,'case_else ::='),list=directReduction(n,'case_exprlist ::=');
+  const operand=operandNode&&directReduction(operandNode,'expr ::='),otherwise=elseNode&&directReduction(elseNode,'expr ::=');
+  const pairs:[Expression,Expression][]=[];
+  const append=(item:Reduction):void=>{
+   const prior=directReduction(item,'case_exprlist ::=');if(prior)append(prior);
+   const terms=item.children.filter((child):child is Reduction=>child.kind==='reduction'&&child.signature.startsWith('expr ::='));
+   pairs.push([expressionFromReduction(terms[0]!),expressionFromReduction(terms[1]!)]);
+  };
+  if(list)append(list);
+  return{kind:'case',operand:operand?expressionFromReduction(operand):null,pairs,otherwise:otherwise?expressionFromReduction(otherwise):null};
+ }
  throw new JSQLiteError("unsupported","SELECT expression is not implemented",{unsupportedClassification:"temporary"})
 }
 
@@ -2457,7 +2477,7 @@ function compileExpressionTree(expression:Expression,ops:Op[],allocate:()=>numbe
       else if(expression.affinity&&expression.affinity!=="blob")ops.push({code:"Affinity",p1:target,affinity:expression.affinity});
       (ops[jump] as {p2:number}).p2=ops.length;return target;
     }
-    const r=allocate();if(expression.index<0&&expression.physicalColumnIndex===undefined)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",p1:expression.physicalColumnIndex??expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
+    const r=allocate();if(expression.index<0&&expression.physicalColumnIndex===undefined)ops.push({code:"Rowid",p1:expression.cursor??0,p2:r});else {ops.push({code:"Column",...columnDefault(expression.defaultColumn),p1:expression.physicalColumnIndex??expression.index,p2:r,...(expression.cursor===undefined?{}:{p3:expression.cursor})});if(expression.affinity==="real")ops.push({code:"RealAffinity",p1:r});}return r; }
   if(expression.kind==="collate") { ops.push({code:"CollSeq",collation:expression.collation});return emit(expression.value); }
   if(expression.kind==="cast") { const a=emit(expression.value),r=allocate();ops.push({code:"Cast",p1:a,p2:r,affinity:expression.affinity});return r; }
   if(expression.kind==="unary") { if(expression.op==="-"&&expression.value.kind==="literal"&&typeof expression.value.value==="number"){const r=allocate();ops.push({code:"Real",p1:-expression.value.value,p2:r});return r}const a=emit(expression.value);if(expression.op==="+")return a;const r=allocate();if(expression.op==="-"){const z=allocate();ops.push({code:"Integer",p1:0n,p2:z},{code:"Subtract",p1:z,p2:a,p3:r})}else ops.push({code:expression.op==="~"?"BitNot":"Not",p1:a,p2:r});return r; }
@@ -3719,7 +3739,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
           const projected=distinctValue>=0?distinctValue:compileExpressionTree(resultTree,resultOps,allocate,parameters,rowSubquery);
           if(orderResult)resultOps.push({code:"Copy",p1:projected,p2:key});
           else if(orderExpression){const orderValue=compileExpressionTree(orderExpression,resultOps,allocate,parameters,rowSubquery);resultOps.push({code:"Copy",p1:orderValue,p2:key});}
-          else if(orderColumn!<0)resultOps.push({code:"Rowid",p1:cursor,p2:key});else resultOps.push({code:"Column",p1:orderColumn!,p2:key,p3:cursor});
+          else if(orderColumn!<0)resultOps.push({code:"Rowid",p1:cursor,p2:key});else resultOps.push({code:"Column",...columnDefault(source.table.columns[orderColumn!]),p1:tableColumnToStorage(source.table,orderColumn!),p2:key,p3:cursor});
           resultOps.push({code:"Copy",p1:projected,p2:payload});
           postColumns.forEach((column,index)=>{const register=compileExpressionTree(column,resultOps,allocate,parameters,rowSubquery);resultOps.push({code:"Copy",p1:register,p2:payload+index+1});});
           // select.c:pushOntoSorter keeps at most LIMIT(+OFFSET) entries
@@ -4897,7 +4917,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // skipped prefix. The local probe supplies that positioned prefix.
       const column=selected.capability!.physicalIndex!.fields[i]!.column!,index=source.table.columns.indexOf(column);
       if(isIntegerPrimaryKeyAlias(source.table,index))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
-      else ops.push({code:'Column',p1:index,p2:first+i,p3:cursorFor(source)});
+      else ops.push({code:'Column',...columnDefault(column),p1:tableColumnToStorage(source.table,index),p2:first+i,p3:cursorFor(source)});
     });
     ops.push({code:'FilterAdd',p1:bloom.register,p3:first,p4:count});
     for(const at of failures)(ops[at] as {p2:number}).p2=ops.length;
@@ -4975,7 +4995,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     descriptor.fields.forEach((column,i)=>{
       const at=column===null?-1:source.table.columns.indexOf(column);
       if(at<0||isIntegerPrimaryKeyAlias(source.table,at))ops.push({code:'Rowid',p1:cursorFor(source),p2:first+i});
-      else ops.push({code:'Column',p1:at,p2:first+i,p3:cursorFor(source)});
+      else ops.push({code:'Column',...columnDefault(column),p1:tableColumnToStorage(source.table,at),p2:first+i,p3:cursorFor(source)});
     });
     ops.push({code:'MakeRecord',p1:first,p2:descriptor.fields.length,p3:record,p4Affinity:descriptor.fields.map(column=>column?.affinity??'integer')});
     if(automatic.filter!==undefined)ops.push({code:'FilterAdd',p1:automatic.filter,p3:first,p4:descriptor.keys.length});
@@ -5154,7 +5174,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // Generated/aggregate/register carriers retain their shared emitter.
     if(expression.kind==='column'&&!expression.generated&&!expression.aggregateColumn){
       if(expression.index<0&&expression.physicalColumnIndex===undefined)ops.push({code:'Rowid',p1:expression.cursor??0,p2:target});
-      else {ops.push({code:'Column',p1:expression.physicalColumnIndex??expression.index,p2:target,p3:expression.cursor??0});if(expression.affinity==='real')ops.push({code:'RealAffinity',p1:target});}
+      else {ops.push({code:'Column',...columnDefault(expression.defaultColumn),p1:expression.physicalColumnIndex??expression.index,p2:target,p3:expression.cursor??0});if(expression.affinity==='real')ops.push({code:'RealAffinity',p1:target});}
     }else {const value=compileExpressionTree(expression,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:target});}
   };
   for(const term of whereTerms)if(!termIsCoded(term)){const where=compilePredicate(term.expression);if(where!==undefined){jumps.push({at:where,level:expanded.sources.length-1});codedWhere.add(term.id);}}if(!owner?.consumeRow&&owner?.destination?.kind!=='exists')expanded.result.forEach((result,index)=>{if(owner?.expressionBinding&&result.expression.reduction){if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}else if(result.resolution==='coalesce'&&result.mergedSources!.every(ref=>ref.columnIndex>=0)){const refs=result.mergedSources!;const ends:number[]=[];for(const ref of refs){const value=allocate();emitResultColumn(ref.source,ref.columnIndex,value);const at=ops.length;ops.push({code:'NotNull',p1:value,p2:resultStart+index,jump:0});ends.push(at);}ops.push({code:'Null',p2:resultStart+index});for(const at of ends)(ops[at] as {jump:number}).jump=ops.length;}else if(result.source&&result.columnIndex!==null){emitResultColumn(result.source,result.columnIndex,resultStart+index);}else{if(!result.expression.reduction)throw new JSQLiteError('internal','resolved expression has no tree');const value=compileExpressionTree(resolveTree(expressionFromReduction(result.expression.reduction),result.expression.reduction as Reduction),ops,allocate,parameters,compileJoinSubquery);ops.push({code:'Copy',p1:value,p2:resultStart+index});}});
@@ -6468,32 +6488,75 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
     if(!child||select.from.items.length!==1||select.where||select.hasDistinct||select.hasGroupBy||select.hasHaving||select.hasOrderBy||!owner.scalarRetained&&(!!select.limit||!!select.offset)||child.from.items.length>1||child.from.derived||child.hasCompound&&!owner.scalarRetained||selectHasWindow(child))throw new JSQLiteError('unsupported','retained derived destination shape is not implemented',{unsupportedClassification:'temporary'});
   }
  const derived=select.from.derived;
+ // selectExpander/flattenSubquery expand a stored view before choosing the
+ // retained child's physical producer. A resolved view table is metadata, not
+ // a Btree root. Reuse the ordinary view substitution for this child as well.
+ if(derived&&derived.select.from.items.length===1&&!derived.select.from.derived){
+  const child=derived.select,source=child.from.items[0]!;
+  const view=schema.views.get(sqliteAsciiFold(sqlName(source.tableName)));
+  if(view){
+   // Resolve the stored definition first, including circularity/arity errors,
+   // before recursively substituting nested immutable views.
+   resolveTransientArm(child,schema);
+   const expanded=Object.freeze({...derived,select:flattenImmutableView(child,view)});
+   const from=Object.freeze({...select.from,derived:expanded,...(select.from.derivedSources?{derivedSources:Object.freeze(select.from.derivedSources.map(item=>item===derived?expanded:item))}:{})});
+   return compileDerivedProducer(Object.freeze({...select,from,arms:Object.freeze(select.arms.map(arm=>arm.from===select.from?Object.freeze({...arm,from}):arm))}),schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,owner);
+  }
+ }
  if(derived&&derived.index===0&&select.from.items.length===1&&selectHasWindow(derived.select)&&!derived.select.hasCompound&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&select.orderBy.length<=1){
   // select.c tag-select-0488 materializes the rewritten window producer into
   // the enclosing destination before evaluating the parent's WHERE/ORDER/LIMIT.
-  // Keep its nested coroutine addresses in the one parent builder; Halt exits
-  // from the child fall through to the parent's materialized cursor scan.
+  // Allocate explicit setup, producer-entry and drain targets before emitting
+  // the child (select.c tag-select-0488). Never move a window instruction or
+  // discover its exits by scanning the completed segment.
   const builder=owner?.builder??new SelectProgramBuilder<Op>();builder.reserveCursorsThrough(41);const spool=builder.cursor(),outputSorter=builder.cursor(),ops=builder.ops,base=ops.length;
+  const setupLabel=builder.label(),entryLabel=builder.label(),drainLabel=builder.label();
+  builder.jump(setupLabel,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));
+  builder.mark(entryLabel);
   let resolved:ReturnType<typeof expandAndResolveSelect>;
   try{resolved=expandAndResolveSelect(derived.select,schema)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
-  const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,...(owner?{parameters:owner.parameters}:{}),destination:{kind:'sorter',cursor:spool,keyCount:0}});
+  const compilation=compileWindowSelectLowering(resolved,database.encoding,database,maxWorkUnits,maxResultBytes,privateStateLimits,schema,undefined,{builder,exitLabel:drainLabel,...(owner?{parameters:owner.parameters}:{}),destination:{kind:'sorter',cursor:spool,keyCount:0}});
   if(compilation.program.columns.length!==resolved.result.length)throw new JSQLiteError('unsupported','window functions are not implemented',{unsupportedClassification:'temporary'});
   const inner=compilation.program;
   if(inner.parameters.length&&!owner)return undefined;
-  const names=uniqueTransientColumnNames(derived.select.result.map((expression,index)=>expression.alias??inner.columns[index]?.name??`column${index+1}`)),alias=select.from.items[0]!.alias;
-  const bareStar=select.result.length===1&&select.result[0]!.tokens.length===1&&select.result[0]!.tokens[0]!.text==='*';
-  const sourceIndex=(expression:typeof select.result[number]):number=>{if(!expression.reduction)return -1;let tree=expressionFromReduction(expression.reduction);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=='column')return -1;const parts=tree.name.split('.').map(sqlName);if(parts.length>2||(parts.length===2&&(!alias||!sqliteIdentifierEqual(parts[0]!,alias))))return -1;return names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));};
-  const indices=bareStar?inner.columns.map((_,index)=>index):select.result.map(sourceIndex);if(indices.some(index=>index<0)){const missing=select.result[indices.indexOf(-1)]!;if(missing.reduction){let tree=expressionFromReduction(missing.reduction);while(tree.kind==='collate')tree=tree.value;if(tree.kind==='column')throw new JSQLiteError('sqlite',`no such column: ${tree.name}`,{code:1});}return undefined;}
-  let orderIndex=-1,orderTree:Expression|undefined;if(select.hasOrderBy){const term=select.orderBy[0]!;orderTree=expressionFromReduction(term.expr.reduction!);let tree=orderTree;while(tree.kind==='collate')tree=tree.value;if(tree.kind==='literal'&&tree.value===1n)orderIndex=indices[0]??-1;else if(tree.kind==='column'){const parts=tree.name.split('.').map(sqlName);if(parts.length<=2&&(parts.length===1||!!alias&&sqliteIdentifierEqual(parts[0]!,alias)))orderIndex=names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));}if(orderIndex<0)return undefined;}
-  const first=ops[base]!,ends:number[]=compilation.ownerExit===undefined?[]:[compilation.ownerExit];ops[base]={code:'Goto',p2:0};for(let pc=base+1;pc<ops.length;pc++){const op=ops[pc]!;if(op.code==='Halt'){ends.push(pc);ops[pc]={code:'Goto',p2:0};}}
-  const setup=ops.length;ops.push({code:'SorterOpen',p1:spool,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:0,keyFieldCount:0,terms:[]})});if(orderTree){const term=select.orderBy[0]!;ops.push({code:'SorterOpen',p1:outputSorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1+indices.length,keyFieldCount:1,terms:[{collation:collation(orderTree),desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}]})});}
-  let registers=inner.registers,output=++registers;registers+=indices.length-1;const payload=++registers;registers+=inner.columns.length-1;const parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};const limit=computeLimitRegisters(select,ops,()=>++registers,parameters);ops.push(first,{code:'Goto',p2:base+1});(ops[base] as {p2:number}).p2=setup;const key=orderTree?++registers:0;const sort=ops.length;for(const end of ends)(ops[end] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:spool,emptyJump:0},{code:'SorterData',p1:spool,p2:payload,count:inner.columns.length});
-  const bind=(tree:Expression):Expression=>{if(tree.kind==='column'){const parts=tree.name.split('.').map(sqlName);if(parts.length>2||(parts.length===2&&(!alias||!sqliteIdentifierEqual(parts[0]!,alias))))throw new JSQLiteError('sqlite',`no such column: ${tree.name}`,{code:1});const index=names.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));if(index<0)throw new JSQLiteError('sqlite',`no such column: ${tree.name}`,{code:1});return{kind:'register',index:payload+index}}if(tree.kind==='unary'||tree.kind==='cast'||tree.kind==='collate')return{...tree,value:bind(tree.value)};if(tree.kind==='binary')return{...tree,left:bind(tree.left),right:bind(tree.right)};if(tree.kind==='call')return{...tree,args:tree.args.map(bind)};if(tree.kind==='case')return{...tree,operand:tree.operand?bind(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bind(a),bind(b)]),otherwise:tree.otherwise?bind(tree.otherwise):null};return tree};
+  const parentPlan=resolveTransientArm(select,schema);
+  // resolve.c owns EList expansion, qualifier errors and ORDER alias/ordinal
+  // substitution. This bounded destination only admits direct payload reads.
+  const indices=parentPlan.result.map(result=>result.source===parentPlan.sources[0]&&result.columnIndex!==null?result.columnIndex:-1);
+  if(indices.some(index=>index<0||index>=inner.columns.length))return undefined;
+  let orderIndex=-1,orderTree:Expression|undefined;
+  if(select.hasOrderBy){
+    const term=select.orderBy[0]!,resultIndex=parentPlan.orderResultColumns[0];
+    if(resultIndex!==null&&resultIndex!==undefined){
+      const result=parentPlan.result[resultIndex]!;
+      orderIndex=indices[resultIndex]!;
+      // The resolved EList descriptor owns inherited and explicit collation.
+      orderTree={kind:'register',index:orderIndex,collation:sqliteAsciiFold(explicitCollation(expressionFromReduction(term.expr.reduction!))??result.descriptor.collation??'binary') as BuiltinCollation};
+    }else{
+      if(!term.expr.reduction)return undefined;
+      orderTree=bindResolvedExpression(expressionFromReduction(term.expr.reduction),resolvedExpressionCarrier(parentPlan,term.expr.reduction as Reduction),source=>source.cursorId,true,{policy:'scalar',location:reference=>{
+        if(reference.source!==parentPlan.sources[0]||reference.columnIndex<0)throw new JSQLiteError('internal','window ORDER lost resolved source identity');
+        return {kind:'register',register:reference.columnIndex,phase:'producer-row'};
+      }});
+      let direct=orderTree;while(direct.kind==='collate')direct=direct.value;
+      if(direct.kind==='register')orderIndex=direct.index;
+    }
+    if(orderIndex<0||orderIndex>=inner.columns.length)return undefined;
+  }
+  builder.mark(setupLabel);
+  ops.push({code:'SorterOpen',p1:spool,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:0,keyFieldCount:0,terms:[]})});if(orderTree){const term=select.orderBy[0]!;ops.push({code:'SorterOpen',p1:outputSorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1+indices.length,keyFieldCount:1,terms:[{collation:collation(orderTree),desc:term.descending,nullsLarge:term.nulls==='last'?!term.descending:term.nulls==='first'?term.descending:false}]})});}
+  let registers=inner.registers,output=++registers;registers+=indices.length-1;const payload=++registers;registers+=inner.columns.length-1;const parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};const limit=computeLimitRegisters(select,ops,()=>++registers,parameters);builder.jump(entryLabel,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(drainLabel);const key=orderTree?++registers:0;const sort=ops.length;ops.push({code:'SorterSort',p1:spool,emptyJump:0},{code:'SorterData',p1:spool,p2:payload,count:inner.columns.length});
+  // resolve.c owns source identity; this adapter only locates the materialized row.
+  const payloadBinding:ResolvedExpressionBinding={policy:'scalar',location:reference=>{
+    if(reference.source!==parentPlan.sources[0]||reference.columnIndex<0)throw new JSQLiteError('internal','window payload lost resolved source identity');
+    return {kind:'register',register:payload+reference.columnIndex,phase:'producer-row'};
+  }};
+  const bind=(tree:Expression):Expression=>bindResolvedExpression(tree,resolvedExpressionCarrier(parentPlan,select.where!.reduction as Reduction),source=>source.cursorId,true,payloadBinding);
   let skip=-1;if(select.where?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(select.where.reduction)),ops,()=>++registers,parameters);skip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});}indices.forEach((index,result)=>ops.push({code:'Copy',p1:payload+index,p2:output+result}));if(orderTree){ops.push({code:'Copy',p1:payload+orderIndex,p2:key},{code:'SorterInsert',p1:outputSorter,keyStart:key,keyCount:1,payload:output,payloadCount:indices.length});}else{let offsetSkip:number|undefined;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);if(limit)ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=ops.length;}
   const next=ops.length;if(skip>=0)(ops[skip] as {p2:number}).p2=next;ops.push({code:'SorterNext',p1:spool,p2:sort+1});const outputDrain=ops.length;(ops[sort] as {emptyJump:number}).emptyJump=outputDrain;
   if(orderTree){const sorted=ops.length;ops.push({code:'SorterSort',p1:outputSorter,emptyJump:0},{code:'SorterData',p1:outputSorter,p2:output,count:indices.length});let offsetSkip:number|undefined;if(limit?.offset!==undefined){offsetSkip=ops.length;ops.push({code:'IfPos',p1:limit.offset,p2:0,p3:1});}emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);if(limit)ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});const advance=ops.length;if(offsetSkip!==undefined)(ops[offsetSkip] as {p2:number}).p2=advance;ops.push({code:'SorterNext',p1:outputSorter,p2:sorted+1});const halt=ops.length;(ops[sorted] as {emptyJump:number}).emptyJump=halt;if(!owner)ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const op of ops.slice(base))if(op.code==='DecrJumpZero'&&op.p1===limit.count&&op.p2===0)(op as {p2:number}).p2=halt;}}
   else{const halt=ops.length;if(!owner)ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;for(const op of ops.slice(base))if(op.code==='DecrJumpZero'&&op.p1===limit.count&&op.p2===0)(op as {p2:number}).p2=halt;}}
-  builder.registers=Math.max(builder.registers,registers);const columns=indices.map((index,result)=>Object.freeze({...inner.columns[index]!,name:(bareStar?names[index]:select.result[result]!.alias)??names[index]!}));return Object.freeze({ops:owner?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+  builder.registers=Math.max(builder.registers,registers);const columns=indices.map((index,result)=>Object.freeze({...inner.columns[index]!,name:parentPlan.result[result]!.name}));return Object.freeze({ops:owner?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
  }
  if(derived&&derived.index===0&&select.from.items.length===1&&!select.where&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&select.orderBy.length<=1){
   // The embedded table compiler currently admits scan directions and residual
@@ -6764,7 +6827,8 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   // Vdbe destination before the following join source is opened.
   const outerItem=select.from.items[1]!,outer=schema.findTable(sqlName(outerItem.tableName));if(!outer)return undefined;
   const inner={columns:compoundArmColumns(derived.select,schema)};
-  const derivedItem=select.from.items[0]!,derivedAlias=derivedItem.alias??derivedItem.tableName,outerAlias=outerItem.alias??outer.name,names=uniqueTransientColumnNames(derived.select.result.map((expression,index)=>expression.alias??inner.columns[index]?.name??`column${index+1}`));
+  // Parent resolution supplies names, affinities and collations once; the
+  // materialized register range below only adapts the derived row location.
   const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()};
   // Preserve physical scan cursor identities until their WHERE callers own
   // nTab allocation. Materialization and parent cursors are builder-owned.
@@ -6778,8 +6842,14 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   else if(child.from.items.length)compileInnerTableSelect(child,resolveTransientArm(child,schema),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination});
   else compileScalarSelect(child,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,schema,database,maxRows,{builder,parameters,emitRow:(first,count)=>emitSelectDestination(ops,destination,first,count)});
   const payload=builder.range(inner.columns.length),allocate=()=>builder.register();
-  const bind=(tree:Expression):Expression=>{if(tree.kind==='column'){const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!,qualifier=parts.length>1?parts.at(-2):undefined;const derivedColumn=(!qualifier||sqliteIdentifierEqual(qualifier,derivedAlias))?names.findIndex(candidate=>sqliteIdentifierEqual(candidate,name)):-1;const outerColumn=(!qualifier||sqliteIdentifierEqual(qualifier,outerAlias))?outer.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)):-1;if(derivedColumn>=0&&outerColumn>=0&&!qualifier)throw new JSQLiteError('sqlite',`ambiguous column name: ${tree.name}`,{code:1});if(derivedColumn>=0)return{kind:'register',index:payload+derivedColumn};if(outerColumn>=0){const column=outer.columns[outerColumn]!,index=isIntegerPrimaryKeyAlias(outer,outerColumn)?-1:outerColumn,named=index<0?'binary':sqliteAsciiFold(column.collation??'binary');if(named!=='binary'&&named!=='nocase'&&named!=='rtrim')throw new JSQLiteError('sqlite',`no such collation sequence: ${named}`,{code:1});return{...tree,cursor:outerCursor,index,affinity:index<0?'integer':affinityOf(column.declaredType??''),collation:named};}throw new JSQLiteError('sqlite',`no such column: ${tree.name}`,{code:1});}if(tree.kind==='unary'||tree.kind==='cast'||tree.kind==='collate')return{...tree,value:bind(tree.value)};if(tree.kind==='binary')return{...tree,left:bind(tree.left),right:bind(tree.right)};if(tree.kind==='call')return{...tree,args:tree.args.map(bind)};if(tree.kind==='case')return{...tree,operand:tree.operand?bind(tree.operand):null,pairs:tree.pairs.map(([a,b])=>[bind(a),bind(b)]),otherwise:tree.otherwise?bind(tree.otherwise):null};return tree};
-  const results=select.result.map(expression=>expression.reduction?bind(expressionFromReduction(expression.reduction)):null);if(results.some(expression=>!expression))return undefined;const order=select.orderBy[0],orderTree=order?.expr.reduction?bind(expressionFromReduction(order.expr.reduction)):undefined;if(orderTree)ops.push({code:'SorterOpen',p1:outputSorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(orderTree),desc:order!.descending,nullsLarge:order!.nulls==='last'?!order!.descending:order!.nulls==='first'?order!.descending:false}]})});
+  const parentPlan=resolveTransientArm(select,schema);
+  const rowBinding:ResolvedExpressionBinding={policy:'scalar',location:reference=>{
+    if(reference.source===parentPlan.sources[0])return {kind:'register',register:payload+reference.columnIndex,phase:'producer-row'};
+    if(reference.source===parentPlan.sources[1])return {kind:'cursor',cursor:outerCursor};
+    throw new JSQLiteError('internal','derived join lost resolved source identity');
+  }};
+  const bind=(reduction:Reduction):Expression=>bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(parentPlan,reduction),source=>source===parentPlan.sources[1]?outerCursor:source.cursorId,true,rowBinding);
+  const results=select.result.map(expression=>expression.reduction?bind(expression.reduction as Reduction):null);if(results.some(expression=>!expression))return undefined;const order=select.orderBy[0],orderTree=order?.expr.reduction?bind(order.expr.reduction as Reduction):undefined;if(orderTree)ops.push({code:'SorterOpen',p1:outputSorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(orderTree),desc:order!.descending,nullsLarge:order!.nulls==='last'?!order!.descending:order!.nulls==='first'?order!.descending:false}]})});
   // select.c computeLimitRegisters precedes row production; OFFSET and
   // count apply at final output, after sorter extraction when ordered.
   const parentLimit=computeLimitRegisters(select,ops,allocate,parameters),limitStops:number[]=[];
@@ -6789,7 +6859,7 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
    if(parentLimit){limitStops.push(ops.length);ops.push({code:'DecrJumpZero',p1:parentLimit.count,p2:0});}
    if(offsetAt!==undefined&&continueAt===undefined)(ops[offsetAt] as {p2:number}).p2=ops.length;
   };
-  const sort=ops.length;ops.push({code:'SorterSort',p1:spool,emptyJump:0},{code:'SorterData',p1:spool,p2:payload,count:inner.columns.length},{code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const rewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const loop=ops.length;let predicateSkip:number|undefined;if(outerItem.on?.reduction){const predicate=compileExpressionTree(bind(expressionFromReduction(outerItem.on.reduction)),ops,allocate,parameters);predicateSkip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});}
+  const sort=ops.length;ops.push({code:'SorterSort',p1:spool,emptyJump:0},{code:'SorterData',p1:spool,p2:payload,count:inner.columns.length},{code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const rewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const loop=ops.length;let predicateSkip:number|undefined;if(outerItem.on?.reduction){const predicate=compileExpressionTree(bind(outerItem.on.reduction as Reduction),ops,allocate,parameters);predicateSkip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});}
   const output=builder.range(results.length);results.forEach((expression,index)=>{const value=compileExpressionTree(expression!,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:output+index});});if(orderTree){const key=allocate(),value=compileExpressionTree(orderTree,ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:key},{code:'SorterInsert',p1:outputSorter,keyStart:key,keyCount:1,payload:output,payloadCount:results.length});}else emitParentRow();const next=ops.length;ops.push({code:'Next',p1:outerCursor,p2:loop});(ops[rewind] as {p2:number}).p2=ops.length;if(predicateSkip!==undefined)(ops[predicateSkip] as {p2:number}).p2=next;ops.push({code:'SorterNext',p1:spool,p2:sort+1});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;if(orderTree){const outputSort=ops.length;ops.push({code:'SorterSort',p1:outputSorter,emptyJump:0},{code:'SorterData',p1:outputSorter,p2:output,count:results.length});emitParentRow();ops.push({code:'SorterNext',p1:outputSorter,p2:outputSort+1});(ops[outputSort] as {emptyJump:number}).emptyJump=ops.length;}const parentEnd=ops.length;if(parentLimit)(ops[parentLimit.ifZero] as {p2:number}).p2=parentEnd;for(const at of limitStops)(ops[at] as {p2:number}).p2=parentEnd;if(!owner)ops.push({code:'Halt'});
   const columns=select.result.map((expression,index)=>{const tree=results[index]!,source=tree.kind==='register'?inner.columns[tree.index-payload]:undefined;if(source)return Object.freeze({...source,name:expression.alias??source.name});if(tree.kind==='column'&&tree.cursor===outerCursor){const columnIndex=tree.index<0?outer.columns.findIndex((_column,i)=>isIntegerPrimaryKeyAlias(outer,i)):tree.index,column=outer.columns[columnIndex]!;return Object.freeze({name:expression.alias??column.name,declaredType:column.declaredType,database:'main',table:outer.name,origin:column.name});}return Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null});});return Object.freeze({ops:owner?ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
  }
@@ -6822,13 +6892,13 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
   emitProducer({kind:'coroutine',register:returnRegister,first:producerOutput});
   endJumps.push(ops.length);ops.push({code:'EndCoroutine',p1:returnRegister,p2:0});
   const consumerStart=ops.length;(ops[init] as {p2:number}).p2=consumerStart;(ops[init] as {p3:number}).p3=producerBase;
-  const output=builder.range(2),outerCursor=30;ops.push({code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const outerRewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const outerBody=ops.length;ops.push({code:'InitCoroutine',p1:returnRegister,p2:0,p3:producerBase});const resume=ops.length;ops.push({code:'Yield',p1:returnRegister,p2:0},outerRowid?{code:'Rowid',p1:outerCursor,p2:output}:{code:'Column',p1:outerColumn,p2:output,p3:outerCursor},{code:'Copy',p1:producerOutput+innerColumn,p2:output+1}, );emitSelectDestination(ops,owner?.destination??{kind:'output'},output,2);ops.push({code:'Goto',p2:resume});const innerDone=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=innerDone;ops.push({code:'Next',p1:outerCursor,p2:outerBody});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[outerRewind] as {p2:number}).p2=halt;
+  const output=builder.range(2),outerCursor=30;ops.push({code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const outerRewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const outerBody=ops.length;ops.push({code:'InitCoroutine',p1:returnRegister,p2:0,p3:producerBase});const resume=ops.length;ops.push({code:'Yield',p1:returnRegister,p2:0},outerRowid?{code:'Rowid',p1:outerCursor,p2:output}:{code:'Column',...columnDefault(outer.columns[outerColumn]),p1:tableColumnToStorage(outer,outerColumn),p2:output,p3:outerCursor},{code:'Copy',p1:producerOutput+innerColumn,p2:output+1}, );emitSelectDestination(ops,owner?.destination??{kind:'output'},output,2);ops.push({code:'Goto',p2:resume});const innerDone=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=innerDone;ops.push({code:'Next',p1:outerCursor,p2:outerBody});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[outerRewind] as {p2:number}).p2=halt;
   const columns=Object.freeze([Object.freeze({name:select.result[0]!.alias??outer.columns[outerColumn]!.name,declaredType:outer.columns[outerColumn]!.declaredType,database:'main',table:outer.name,origin:outer.columns[outerColumn]!.name}),inner.columns[innerColumn]!]);return Object.freeze({ops:owner?ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
  }
  const base=ops.length;ops.push({code:'OpenEphemeral',p1:ephemeral,keyInfo},{code:'Once',p1:onceRegister,p2:base+3},{code:'Gosub',p1:returnRegister,p2:base+4},{code:'Goto',p2:0});
  emitProducer({kind:'ephemeral',cursor:ephemeral});
  ops.push({code:'Return',p1:returnRegister});const consumerStart=ops.length;(ops[base+3] as {p2:number}).p2=consumerStart;
- const derivedBase=builder.range(inner.columns.length),output=builder.range(2),outerCursor=0;ops.push({code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const outerRewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const outerBody=ops.length,innerRewind=ops.length;ops.push({code:'EphemeralRewind',p1:ephemeral,p2:0},{code:'EphemeralData',p1:ephemeral,p2:derivedBase,count:inner.columns.length},outerRowid?{code:'Rowid',p1:outerCursor,p2:output}:{code:'Column',p1:outerColumn,p2:output,p3:outerCursor},{code:'Copy',p1:derivedBase+innerColumn,p2:output+1});emitSelectDestination(ops,owner?.destination??{kind:'output'},output,2);const innerNext=ops.length;ops.push({code:'EphemeralNext',p1:ephemeral,p2:innerRewind+1},{code:'Next',p1:outerCursor,p2:outerBody});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[outerRewind] as {p2:number}).p2=halt;(ops[innerRewind] as {p2:number}).p2=innerNext+1;
+ const derivedBase=builder.range(inner.columns.length),output=builder.range(2),outerCursor=0;ops.push({code:'OpenRead',p1:outer.rootPage,p2:outerCursor});const outerRewind=ops.length;ops.push({code:'Rewind',p1:outerCursor,p2:0});const outerBody=ops.length,innerRewind=ops.length;ops.push({code:'EphemeralRewind',p1:ephemeral,p2:0},{code:'EphemeralData',p1:ephemeral,p2:derivedBase,count:inner.columns.length},outerRowid?{code:'Rowid',p1:outerCursor,p2:output}:{code:'Column',...columnDefault(outer.columns[outerColumn]),p1:tableColumnToStorage(outer,outerColumn),p2:output,p3:outerCursor},{code:'Copy',p1:derivedBase+innerColumn,p2:output+1});emitSelectDestination(ops,owner?.destination??{kind:'output'},output,2);const innerNext=ops.length;ops.push({code:'EphemeralNext',p1:ephemeral,p2:innerRewind+1},{code:'Next',p1:outerCursor,p2:outerBody});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[outerRewind] as {p2:number}).p2=halt;(ops[innerRewind] as {p2:number}).p2=innerNext+1;
  const columns=Object.freeze([Object.freeze({name:select.result[0]!.alias??outer.columns[outerColumn]!.name,declaredType:outer.columns[outerColumn]!.declaredType,database:'main',table:outer.name,origin:outer.columns[outerColumn]!.name}),inner.columns[innerColumn]!]);return Object.freeze({ops:owner?ops:builder.finish(),registers:builder.registers,encoding:database.encoding,columns,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
 }
 
@@ -7108,9 +7178,18 @@ function compileCteDerivedSourcesFallback(select:SelectNode,schema:SchemaGraph,d
  if(sources.length===1){const source=sources[0]!,item=select.from.items[source.index]!;if(fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:false,leftOfRightJoin:select.from.items[0]!.leftOfRightJoin,updateFrom:false,coroutineOptimization:true,isCte:true,cteMaterialized:source.materialization==='materialized',cteUseCount:source.use.nUse,cteNotMaterialized:source.materialization==='not-materialized',earlierSubquery:precedingFromCoroutineBarrier(select,source.index,schema),selfJoinView:false}))return undefined;}
  const descriptors=new Map<object,Program['columns']>(),names:(readonly string[])[]=[];
  for(const source of sources){let columns=descriptors.get(source.use);if(!columns){columns=compoundArmColumns(source.select,schema);descriptors.set(source.use,columns);}names[source.index]=uniqueTransientColumnNames(source.select.result.map((e,i)=>e.alias??columns[i]?.name??`column${i+1}`));}
- const direct=(tree:Expression):{source:number;column:number}|null=>{if(tree.kind!=="column")return null;const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!;let candidates=sources;if(parts.length===2)candidates=sources.filter(source=>sqliteIdentifierEqual(source.alias,parts[0]!));else if(parts.length!==1)return null;const found=candidates.flatMap(source=>{const column=names[source.index]!.findIndex(n=>sqliteIdentifierEqual(n,name));return column<0?[]:[{source:source.index,column}]});return found.length===1?found[0]!:null;};
- const projected=select.result.map(e=>e.reduction?direct(expressionFromReduction(e.reduction)):null);if(projected.some(x=>x===null))return undefined;
- let predicate:{left:{source:number;column:number};right:{source:number;column:number}}|null=null;if(sources.length===2&&select.from.items[1]!.on?.reduction){const tree=expressionFromReduction(select.from.items[1]!.on!.reduction!);if(tree.kind!=="binary"||tree.op!=="=")return undefined;const left=direct(tree.left),right=direct(tree.right);if(!left||!right)return undefined;predicate={left,right};}else if(sources.length===2&&!select.from.items[1]!.joinFromLeft.cross)return undefined;
+ // resolve.c owns source/column selection. This owner only adapts linked
+ // logical columns to the materialized row registers allocated below.
+ const plan=resolveTransientArm(select,schema);
+ const direct=(reduction:NonNullable<SelectNode['result'][number]['reduction']>):{source:number;column:number}|null=>{
+  if(reduction.kind!=='reduction')return null;
+  const use=resolvedExpressionCarrier(plan,reduction).column;
+  if(!use||use.selectDepth!==0||use.columnIndex<0||use.mergedSources?.length)return null;
+  const source=plan.sources.indexOf(use.source);
+  return source<0?null:{source,column:use.columnIndex};
+ };
+ const projected=select.result.map(e=>e.reduction?direct(e.reduction):null);if(projected.some(x=>x===null))return undefined;
+ let predicate:{left:{source:number;column:number};right:{source:number;column:number}}|null=null;if(sources.length===2&&select.from.items[1]!.on?.reduction){const tree=expressionFromReduction(select.from.items[1]!.on!.reduction!);if(tree.kind!=="binary"||tree.op!=="=")return undefined;const onReduction=select.from.items[1]!.on!.reduction!;if(onReduction.kind!=='reduction')return undefined;const operands=resolvedExpressionCarrier(plan,onReduction).children;if(operands.length!==2)return undefined;const left=direct(operands[0]!.reduction),right=direct(operands[1]!.reduction);if(!left||!right)return undefined;predicate={left,right};}else if(sources.length===2&&!select.from.items[1]!.joinFromLeft.cross)return undefined;
  if(select.orderBy.length>1)return undefined;if(select.orderBy.length===1){let tree=expressionFromReduction(select.orderBy[0]!.expr.reduction!);while(tree.kind==='collate')tree=tree.value;if(tree.kind!=="literal"||tree.value!==1n||select.orderBy[0]!.descending||select.orderBy[0]!.nulls!==null)return undefined;}
  const builder=parent?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},owners=new Map<object,number>(),cursors:number[]=[];
  // Legacy physical WHERE cursor identities remain root-owned.
@@ -7214,10 +7293,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const physicalItem=select.from.items[0]!,jsonItem=select.from.items[1]!;
     // Use the ordinary SrcList resolver for NATURAL synthesis, USING validation,
     // merged-name preference and star expansion. The module remains a module.
-    let mergedPlan:ReturnType<typeof expandAndResolveSelect>|undefined;
-    if(jsonItem.using||jsonItem.joinFromLeft.natural){
-      try{mergedPlan=expandAndResolveSelect(select,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
-    }
+    const mergedPlan=shared?.linkedPlan??resolveTransientArm(select,schema);
     const mergedNames=mergedPlan?.sources[1]?.using??[];
     // select.c SrcItem keeps its subquery/Table identity through module binding.
     // A lowered CTE is not a catalog table, even when its name shadows one.
@@ -7229,14 +7305,12 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const retainedColumns=retained?compoundArmColumns(retained.select,schema):undefined;
     if(!table)throw new JSQLiteError("sqlite",`no such table: ${physicalItem.tableName}`,{code:1});if(table.withoutRowid||!metadata&&table.columns.some(column=>column.generatedExpr))throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});
   const parameters:ParameterBuilder=shared?.parameters??{maximum:0,names:[],named:new Map()},ops=builder.ops;let registers=builder.registers;const allocate=()=>{builder.registers=registers;return registers=builder.register()},rowStart=registers+1;registers+=sourceColumns.length;const jsonIdentity=allocate(),mixedColumns=new Set<number>();
-    const bind=(tree:Expression,jsonAvailable:boolean):Expression=>{if(tree.kind==='column'&&tree.cursor!==undefined)return tree;if(tree.kind==="column"){const parts=tree.name.split('.').map(sqlName),name=parts.at(-1)!,qualifier=parts.length>1?parts.at(-2)!:null,physicalQualifier=physicalItem.alias??physicalItem.tableName,jsonQualifier=jsonItem.alias??jsonItem.tableName;if(["rowid","_rowid_","oid"].includes(sqliteAsciiFold(name))){if(qualifier&&sqliteAsciiFold(qualifier)===sqliteAsciiFold(jsonQualifier)){if(!jsonAvailable)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{kind:"register",index:jsonIdentity};}if((!qualifier||sqliteAsciiFold(qualifier)===sqliteAsciiFold(physicalQualifier))&&!table.columns.some(column=>sqliteIdentifierEqual(column.name,name))){if(retained)throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});return{...tree,cursor:0,index:-1};}};const physicalIndex=(!qualifier||sqliteIdentifierEqual(qualifier,physicalQualifier))?table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)):-1,jsonIndex=jsonAvailable&&(!qualifier||sqliteIdentifierEqual(qualifier,jsonQualifier))?sourceColumns.findIndex(column=>sqliteIdentifierEqual(column,name)):-1;if(physicalIndex>=0&&jsonIndex>=0&&(qualifier!==null||!mergedNames.some(column=>sqliteIdentifierEqual(column,name))))throw new JSQLiteError("sqlite",`ambiguous column name: ${name}`,{code:1});if(jsonIndex>=0&&!(physicalIndex>=0&&qualifier===null&&mergedNames.some(column=>sqliteIdentifierEqual(column,name)))){mixedColumns.add(jsonIndex);return{kind:"register",index:rowStart+jsonIndex};}if(physicalIndex>=0){if(metadata&&table.columns[physicalIndex]!.generatedExpr)throw new JSQLiteError("unsupported","generated outer metadata-join column binding is not implemented",{unsupportedClassification:"temporary"});tree.cursor=0;tree.index=isIntegerPrimaryKeyAlias(table,physicalIndex)?-1:physicalIndex;tree.affinity=affinityOf(table.columns[physicalIndex]!.declaredType??"");tree.collation=sqliteAsciiFold(table.columns[physicalIndex]!.collation??"binary") as BuiltinCollation;return tree;}throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});}if(tree.kind==="unary")return{...tree,value:bind(tree.value,jsonAvailable)};if(tree.kind==="binary")return{...tree,left:bind(tree.left,jsonAvailable),right:bind(tree.right,jsonAvailable)};if(tree.kind==="collate"||tree.kind==="cast")return{...tree,value:bind(tree.value,jsonAvailable)};if(tree.kind==="call")return{...tree,args:tree.args.map(arg=>bind(arg,jsonAvailable))};
-      if(tree.kind==="vector")return{...tree,fields:tree.fields.map(field=>bind(field,jsonAvailable))};
-      if(tree.kind==="in-list")return{...tree,left:bind(tree.left,jsonAvailable),values:tree.values.map(value=>bind(value,jsonAvailable))};
-      if(tree.kind==="between")return{...tree,value:bind(tree.value,jsonAvailable),lower:bind(tree.lower,jsonAvailable),upper:bind(tree.upper,jsonAvailable)};
-      if(tree.kind==="case")return{...tree,operand:tree.operand?bind(tree.operand,jsonAvailable):null,pairs:tree.pairs.map(([when,then])=>[bind(when,jsonAvailable),bind(then,jsonAvailable)]),otherwise:tree.otherwise?bind(tree.otherwise,jsonAvailable):null};
-      // Nested SELECT ownership belongs to its own NameContext; never bind its
-      // columns as the enclosing row. Correlation requires the shared linker.
-      return tree;};
+    // Only table-function argv is bound before the module is positioned.
+    // Resolver owns source/name identity; this adapter owns row locations.
+    const bindArgument=(reduction:Reduction):Expression=>bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(mergedPlan,reduction),()=>0,true,{policy:'scalar',positionedSources:new Set([mergedPlan.sources[0]!]),location:ref=>{
+      if(ref.source===mergedPlan.sources[1])throw new JSQLiteError('sqlite',`no such column: ${ref.name}`,{code:1});
+      return {kind:'cursor',cursor:0};
+    }});
     const args=jsonItem.arguments;
     if((args?.length??0)>2)throw new JSQLiteError("sqlite",`too many arguments on ${jsonItem.tableName}() - max 2`,{code:1});
     if(!args||args.length<1||args.length>2||args.some(arg=>!arg.reduction))throw new JSQLiteError("unsupported","this JSON table argument is not implemented",{unsupportedClassification:"temporary"});
@@ -7260,51 +7334,24 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     const mergedColumn=(source:ResolvedSource,index:number):Expression=>{if(source===mergedPlan!.sources[1]&&index>=0)mixedColumns.add(index);return source===mergedPlan!.sources[1]
       ?{kind:'register',index:index<0?jsonIdentity:rowStart+index,affinity:index<0?'integer':source.table.columns[index]!.affinity}
       :{kind:'column',name:index<0?'rowid':source.table.columns[index]!.name,cursor:0,index:index<0||isIntegerPrimaryKeyAlias(table,index)?-1:index,affinity:index<0?'integer':source.table.columns[index]!.affinity,collation:sqliteAsciiFold(index<0?'binary':source.table.columns[index]!.collation??'binary') as BuiltinCollation};};
-    const projection=mergedPlan?mergedPlan.result.map(entry=>({
+    const projection=mergedPlan.result.map(entry=>({
       result:{...entry.expression,alias:entry.name},
       // Expanded stars have no expression reduction. Explicit expressions must
       // keep theirs (COLLATE/CAST/aliases are not bare source-column reads).
       tree:entry.source&&entry.expression.tokens.at(-1)?.text==='*'
         ?mergedColumn(entry.source,entry.columnIndex!)
         :entry.expression.reduction?bindResolvedExpression(expressionFromReduction(entry.expression.reduction),resolvedExpressionCarrier(mergedPlan!,entry.expression.reduction as Reduction),()=>0,true,mergedBinding):null,
-    })):select.result.flatMap(result=>{
-      const tokens=result.tokens,star=tokens.at(-1)?.text==='*';
-      if(!metadata||!star)return [{result,tree:result.reduction?expressionFromReduction(result.reduction):null}];
-      const qualifier=tokens.length===3&&tokens[1]?.text==='.'?sqlName(tokens[0]!.text):null;
-      if(tokens.length!==1&&qualifier===null)return [{result,tree:null}];
-      const entries:{result:ExprNode;tree:Expression|null}[]=[];
-      for(const [item,names] of [[select.from.items[0]!,table.columns.map(col=>col.name)],[jsonItem,METADATA_MODULE_COLUMNS[jsonItem.tableName.toLowerCase()]!]] as const){
-       const alias=item.alias??item.tableName;if(qualifier!==null&&!sqliteIdentifierEqual(qualifier,alias))continue;
-       for(const name of names)entries.push({result:{kind:'tokens',tokens:[],alias:name,sourceText:name},tree:{kind:'column',index:0,name:`${JSON.stringify(alias)}.${JSON.stringify(name)}`}});
-      }
-      if(entries.length===0)throw new JSQLiteError('sqlite',`no such table: ${qualifier}`,{code:1});
-      return entries;
-    });
+    }));
     const orderTrees=select.orderBy.map((term,orderIndex)=>{
       if(mergedPlan&&term.expr.reduction?.kind==='reduction'){
         const resultIndex=mergedPlan.orderResultColumns[orderIndex];
         if(resultIndex!==null&&resultIndex!==undefined){const tree=projection[resultIndex]?.tree;if(tree)return tree;}
         return bindResolvedExpression(expressionFromReduction(term.expr.reduction),resolvedExpressionCarrier(mergedPlan,term.expr.reduction),()=>0,true,mergedBinding);
       }
-      if(!term.expr.reduction)throw new JSQLiteError("unsupported","this JSON order expression is not implemented",{unsupportedClassification:"temporary"});
-      const resolveOrder=(tree:Expression):Expression=>{
-      if(tree.kind==="collate")return{...tree,value:resolveOrder(tree.value)};
-      if(tree.kind==="literal"&&typeof tree.value==="bigint"){
-        const index=Number(tree.value)-1;
-        if(index<0||index>=projection.length)throw new JSQLiteError("sqlite","ORDER BY term out of range",{code:1});
-        const resultTree=projection[index]!.tree;
-        if(!resultTree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});
-        return bind(resultTree,true);
-      }
-      if(tree.kind==="column"&&!tree.name.includes('.')){
-        const result=select.result.find(result=>result.alias&&sqliteIdentifierEqual(result.alias,sqlName(tree.name)));
-        if(result?.reduction)return bind(expressionFromReduction(result.reduction),true);
-      }
-      return bind(tree,true);
-      };return resolveOrder(expressionFromReduction(term.expr.reduction));
+      throw new JSQLiteError('internal','resolved mixed JSON ORDER carrier missing');
     });
     if(sorter!==null)ops.push({code:"SorterOpen",p1:sorter,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:orderTrees.length,keyFieldCount:orderTrees.length,terms:orderTrees.map((tree,i)=>({collation:collation(tree),desc:select.orderBy[i]!.descending,nullsLarge:select.orderBy[i]!.nulls==="last"?!select.orderBy[i]!.descending:select.orderBy[i]!.nulls==="first"?select.orderBy[i]!.descending:false}))})});
-    if(distinct!==null)ops.push({code:"OpenEphemeral",p1:distinct,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projection.length,keyFieldCount:projection.length,terms:projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return {collation:collation(bind(tree,true))};})})});
+    if(distinct!==null)ops.push({code:"OpenEphemeral",p1:distinct,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:projection.length,keyFieldCount:projection.length,terms:projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return {collation:collation(tree)};})})});
     if(retained){
       // Materialize into the existing private cursor consumed by Rewind/Column/
       // Next below. Producer input slots belong to the enclosing Parse frontier.
@@ -7334,7 +7381,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     // child Selects; local child cursors are not this loop's prerequisites.
     // wherecode.c delays TERM_VARSELECT to a second pass at the same ready
     // level, not until the next source is positioned.
-    let predicatePlan:ReturnType<typeof expandAndResolveSelect>|undefined=mergedPlan;
+    const predicatePlan=mergedPlan;
     const hasChild=(tree:Expression):boolean=>{
       switch(tree.kind){
         case 'scalar-subquery':case 'in-subquery':return true;
@@ -7348,12 +7395,9 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         default:return false;
       }
     };
-    if(!predicatePlan&&(residualWhere&&hasChild(residualWhere)||residualOn&&hasChild(residualOn))){
-      try{predicatePlan=expandAndResolveSelect(select,schema);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
-    }
     const moduleSource=predicatePlan?.sources[1];
     const predicateBinding=(inner:boolean):ResolvedExpressionBinding=>({policy:'scalar',positionedSources:new Set(predicatePlan?.sources.filter(source=>inner||source!==moduleSource)),location:ref=>{if(ref.source===moduleSource){if(ref.columnIndex>=0)mixedColumns.add(ref.columnIndex);return {kind:'register',register:ref.columnIndex<0?jsonIdentity:rowStart+ref.columnIndex,phase:'source-row'};}return {kind:'cursor',cursor:0};}});
-    const bindPredicate=(tree:Expression,reduction:LemonValue<SqlToken>):Expression=>predicatePlan&&reduction.kind==='reduction'?bindResolvedExpression(tree,resolvedExpressionCarrier(predicatePlan,reduction),()=>0,true,predicateBinding(true)):bind(tree,true);
+    const bindPredicate=(tree:Expression,reduction:LemonValue<SqlToken>):Expression=>bindResolvedExpression(tree,resolvedExpressionCarrier(mergedPlan,reduction as Reduction),()=>0,true,predicateBinding(true));
     // Resolve the complete SrcList before prereqAll/notReady partitioning.
     if(residualWhere)residualWhere=bindPredicate(residualWhere,select.where!.reduction!);
     if(residualOn)residualOn=bindPredicate(residualOn,jsonItem.on!.reduction!);
@@ -7401,7 +7445,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       residualOn=readyTerms(residualOn);
     }
     if(matched!==null)ops.push({code:"Integer",p1:0n,p2:matched});
-    const input=compileExpressionTree(bind(expressionFromReduction(args[0]!.reduction!),false),ops,allocate,parameters),root=args[1]?.reduction?compileExpressionTree(bind(expressionFromReduction(args[1].reduction),false),ops,allocate,parameters):undefined;
+    const input=compileExpressionTree(bindArgument(args[0]!.reduction! as Reduction),ops,allocate,parameters),root=args[1]?.reduction?compileExpressionTree(bindArgument(args[1].reduction as Reduction),ops,allocate,parameters):undefined;
     const innerRewind=ops.length;
     ops.push(metadata?{code:"MetadataFilter",p1:1,input,...(root===undefined?{}:{database:root}),schema,module:jsonItem.tableName.toLowerCase(),rowStart,rowIdentity:jsonIdentity,p2:0}:{code:"JsonTableRewind",p1:1,input,...(root===undefined?{}:{root}),recursive:jsonItem.tableName.toLowerCase().endsWith("tree"),binaryContainers:jsonItem.tableName.toLowerCase().startsWith("jsonb_"),rowStart,columns:mixedColumns,rowIdentity:jsonIdentity,p2:0});
     const innerLoop=ops.length;let onSkip:number|null=null;
@@ -7420,7 +7464,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     let whereSkip:number|null=null;
     if(select.where&&!select.where.reduction)throw new JSQLiteError("unsupported","this JSON filter is not implemented",{unsupportedClassification:"temporary"});
     if(residualWhere){const test=compilePredicate(residualWhere,true);whereSkip=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
-    const outputTrees=projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return mergedPlan?tree:bind(tree,true)}),outputs=outputTrees.map(tree=>compilePredicate(tree,true)),out=registers+1;
+    const outputTrees=projection.map(({tree})=>{if(!tree)throw new JSQLiteError("unsupported","this mixed JSON projection is not implemented",{unsupportedClassification:"temporary"});return tree;}),outputs=outputTrees.map(tree=>compilePredicate(tree,true)),out=registers+1;
     for(const output of outputs){registers++;ops.push({code:"Copy",p1:output,p2:registers});}
     const deliver=()=>{if(shared?.consume){builder.registers=registers;shared.consume(out,outputs.length);registers=builder.registers;}else emitSelectDestination(ops,shared?.destination??{kind:"output"},out,outputs.length);};
     let duplicate:number|null=null,offsetSkip:number|null=null,limitDone:number|null=null;
@@ -7444,7 +7488,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
       const advance=ops.length;if(offsetSkip!==null)(ops[offsetSkip] as {p2:number}).p2=advance;ops.push({code:"SorterNext",p1:sorter,p2:loop});
     }
     const halt=ops.length;if(empty!==null)(ops[empty] as {emptyJump:number}).emptyJump=halt;if(limitDone!==null)(ops[limitDone] as {p2:number}).p2=halt;if(limit)(ops[limit.ifZero] as {p2:number}).p2=halt;if(!shared)ops.push({code:"Halt"});
-    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(projection.map(({result},index)=>mergedPlan?(({affinity:_,collation:__,...column})=>column)(mergedPlan.result[index]!.descriptor):metadata?(()=>{const tree=outputTrees[index]!;if(tree.kind==='register'){const origin=tree.index===jsonIdentity?'rowid':sourceColumns[tree.index-rowStart]??null;return {name:result.alias??origin??expressionName(result),declaredType:origin==='rowid'?'INTEGER':metadataColumnDeclaredType(origin),database:origin?'main':null,table:origin?jsonItem.tableName:null,origin};}if(tree.kind==='column'){const col=tree.index===-1?table.columns.find(column=>column.primaryKeyPosition===1):table.columns[tree.index??-1];return {name:result.alias??col?.name??expressionName(result),declaredType:col?.declaredType??null,database:'main',table:table.name,origin:col?.name??null};}return{name:result.alias??expressionName(result),declaredType:null,database:null,table:null,origin:null};})():(()=>{const tree=outputTrees[index]!;if(retainedColumns&&tree.kind==='column'&&tree.index>=0){const origin=retainedColumns[tree.index]!;return {...origin,name:result.alias??table.columns[tree.index]!.name};}return jsonResultMetadata(result,tree,[rowStart],[jsonItem.tableName],table,[jsonIdentity]);})())),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
+    builder.registers=registers;return Object.freeze({ops:shared?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(mergedPlan.result.map(({descriptor:{affinity:_,collation:__,...column}})=>column)),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
   }
   if(select.from.items.length===2&&select.from.items.every(item=>jsonNames.has(item.tableName.toLowerCase()))){
     if(select.hasOrderBy||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.hasLimit)throw new JSQLiteError("unsupported","this correlated JSON table composition is not implemented",{unsupportedClassification:"temporary"});
@@ -7815,7 +7859,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
         catch(error){const identifierTokens=e.identifierTokens??[{text:e.name}],unqualified=identifierTokens.length===1,name=unqualified?sqlName(identifierTokens[0]!.text):e.name;const aliases=allowAlias&&unqualified?select.result.filter(item=>item.alias&&sqliteIdentifierEqual(item.alias,name)):[];if(aliases[0])return resolveExpression(aliases[0],false);/* resolve.c tries identifier resolution first, then rewrites unresolved TRUE/FALSE to TK_TRUEFALSE. */const truth=sqliteAsciiFold(name);if(unqualified&&(truth==="true"||truth==="false"))return{kind:"literal",value:truth==="true"?1n:0n};throw error;}
         if(e.index<0){e.affinity='integer';e.collation='binary';return e;}
         const name=sqliteAsciiFold(table.columns[e.index]!.collation??"binary");if(name!=="binary"&&name!=="nocase"&&name!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${table.columns[e.index]!.collation}`,{code:1});e.collation=name;e.affinity=table.columns[e.index]!.affinity;
-        const column=table.columns[e.index]!;
+        const column=table.columns[e.index]!;e.defaultColumn=column;
         if(column.generatedStorage==="virtual"){
           // where.c indexed VIRTUAL-column substitution: selected covering
           // payloads contain logical values, not table dependency ordinals.
@@ -7846,8 +7890,8 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   for (const item of expanded.result) {
     const expression=item.expression;
     if(item.resolution==='coalesce')throw new JSQLiteError("unsupported","FULL JOIN merged-column execution is not implemented",{unsupportedClassification:"temporary"});
-    if(item.columnIndex!==null){if(item.columnIndex<0)projected.push({rowid:true,name:item.name});else projected.push({column:item.columnIndex,name:item.name,realAffinity:affinityOf(table.columns[item.columnIndex]!.declaredType??"")==="real"});}
-    else { try { const column = resolve(expression.tokens); projected.push({ column, name: expression.alias ?? table.columns[column]!.name, realAffinity: column>=0&&affinityOf(table.columns[column]!.declaredType??"")==="real" }); }
+    if(item.columnIndex!==null){if(item.columnIndex<0)projected.push({rowid:true,name:item.name});else projected.push({column:item.columnIndex,name:item.name,realAffinity:columnDeclaredAffinity(table.columns[item.columnIndex]!.declaredType??"")==="real"});}
+    else { try { const column = resolve(expression.tokens); projected.push({ column, name: expression.alias ?? table.columns[column]!.name, realAffinity: column>=0&&columnDeclaredAffinity(table.columns[column]!.declaredType??"")==="real" }); }
     catch(error){if(!expression.reduction)throw error;projected.push({expression:resolveExpression(expression),name:expressionName(expression)});} }
   }
 
@@ -7895,7 +7939,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
           else {
             const column=table.columns[index]!,collationName=sqliteAsciiFold(column.collation??"binary");
             if(collationName!=="binary"&&collationName!=="nocase"&&collationName!=="rtrim")throw new JSQLiteError("sqlite",`no such collation sequence: ${column.collation}`,{code:1});
-            resultExpression={kind:"column",index,name:projection.name,affinity:affinityOf(column.declaredType??""),collation:collationName};
+            resultExpression={kind:"column",index,name:projection.name,affinity:columnDeclaredAffinity(column.declaredType??""),collation:collationName};
           }
         }
         const substitute=(node:Expression):Expression=>node.kind==="collate"?{...node,value:substitute(node.value)}:resultExpression;
@@ -8254,7 +8298,7 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
     }
   }
   const body=ops.length;
-  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:resultStart+i});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:resultStart+i})}else{const physicalField=selectedPhysical?.fields.findIndex(field=>field.column===table.columns[x.column!]);if(selectedPhysical&&physicalField!==undefined&&physicalField>=0)ops.push({code:"Column",p1:physicalField,p2:resultStart+i,p3:accessCursor});else ops.push({code:"Column",p1:tableStorageColumn(x.column),p2:resultStart+i});if(x.realAffinity)ops.push({code:"RealAffinity",p1:resultStart+i});}});
+  projected.forEach((x,i)=>{if(x.rowid)ops.push({code:"Rowid",p2:resultStart+i});else if(x.column===undefined){const expression=x.expression!,source=compileExpressionTree(expression,ops,()=>builder.register(),parameters,compileExpressionSubquery);ops.push({code:"Copy",p1:source,p2:resultStart+i})}else{const physicalField=selectedPhysical?.fields.findIndex(field=>field.column===table.columns[x.column!]);if(selectedPhysical&&physicalField!==undefined&&physicalField>=0)ops.push({code:"Column",...columnDefault(table.columns[x.column!]),p1:physicalField,p2:resultStart+i,p3:accessCursor});else ops.push({code:"Column",...columnDefault(table.columns[x.column!]),p1:tableStorageColumn(x.column),p2:resultStart+i});if(x.realAffinity)ops.push({code:"RealAffinity",p1:resultStart+i});}});
   if(select.hasDistinct){builder.jump(scanNext,{code:"Found",p1:distinctCursor,keyStart:resultStart,keyCount:projected.length,jump:0},(op,pc)=>({...op,jump:pc} as Op));ops.push({code:"IdxInsert",p1:distinctCursor,keyStart:resultStart,keyCount:projected.length});}
   if(keyInfo){const keyStart=builder.range(orderTerms.length);orderTerms.forEach((term,i)=>{if(term.resultIndex!==undefined)ops.push({code:"Copy",p1:resultStart+term.resultIndex,p2:keyStart+i});else{const source=compileExpressionTree(term.expression,ops,()=>builder.register());ops.push({code:"Copy",p1:source,p2:keyStart+i})}});if(limit)ops.push({code:"IfNotZero",p1:limit.combined,p2:ops.length+1});ops.push({code:"SorterInsert",p1:sorterCursor,keyStart,keyCount:orderTerms.length,payload:resultStart,payloadCount:projected.length,...(limit?{topN:limit.capacity}:{})});}
   if(!keyInfo){
@@ -8461,7 +8505,9 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
      (source.where&&!source.where.reduction))return undefined;
   // The inner GROUP BY owns its accumulators separately from the outer
   // aggregate. At most one accepted candidate reaches each count step.
-  const innerHaving=source.having?.reduction?expressionFromReduction(source.having.reduction):null;
+  const sourcePlan=resolveTransientArm(source,schema);
+  const bindSource=(reduction:Reduction)=>bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(sourcePlan,reduction),ref=>ref.cursorId,true,{policy:'ordinary-aggregate',location:()=>{throw new JSQLiteError('internal','zero-source producer acquired a source column');}});
+  const innerHaving=source.having?.reduction?.kind==='reduction'?bindSource(source.having.reduction):null;
   const innerAggregates: Extract<Expression,{kind:'aggregate'}>[]=[];
   const inspectInner=(tree:Expression):boolean=>{
     if(tree.kind==='aggregate'){
@@ -8489,15 +8535,8 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
   // selectExpander column names before select.c suppresses the sorter for
   // this single finalized accumulator. This transient schema entry is used
   // only for name resolution; the producer below emits its actual row event.
-  let derivedNames:readonly string[]=[];
+  let parentPlan:ReturnType<typeof expandAndResolveSelect>|undefined;
   if(select.hasOrderBy||select.where||result.args.length||result.filter||result.orderBy.length||select.hasHaving){
-    const names=uniqueTransientColumnNames(source.result.map(expression=>expression.alias??expressionName(expression)));
-    derivedNames=names;
-    const columns=names.map(name=>Object.freeze({szEst:0,name,declaredType:null,affinity:"blob" as const,defaultExpr:null,generatedExpr:null,defaultIndex:null,notNull:false,primaryKeyPosition:null,unique:false,collation:null,generatedStorage:null,checks:Object.freeze([])}));
-    const tableName=select.from.items[0]!.tableName;
-    const table:TableNode=freezeTransientTable({integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:"table",name:tableName,tableName,rootPage:0,sql:"",columns:Object.freeze(columns),indexes:[],withoutRowid:false,primaryKey:Object.freeze([]),primaryKeyTerms:Object.freeze([]),storageKey:Object.freeze([]),checks:Object.freeze([]),foreignKeys:Object.freeze([]),referencedBy:Object.freeze([])});
-    const {derived: _derived,...from}=select.from;
-    const resolved:SelectNode={...select,from,having:null};
     // resolve.c:resolveSelectStep reports aggregate misuse in WHERE before
     // ORDER binding. The current TS resolver checks this later in lowering.
     if(select.where?.reduction){
@@ -8513,9 +8552,20 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
       };
       rejectAggregate(expressionFromReduction(select.where.reduction));
     }
-    try{expandAndResolveSelect(resolved,schema.withTransientTable(table))}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError("sqlite",error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+    parentPlan=resolveTransientArm(select,schema);
   }
   const {builder,ops,parameters,destination}=parent,allocate=()=>builder.register();
+  const values=source.result.map(()=>allocate());
+  const rowBinding:ResolvedExpressionBinding={policy:'ordinary-aggregate',location:ref=>{
+    if(ref.source!==parentPlan?.sources[0]||ref.columnIndex<0||ref.columnIndex>=values.length)throw new JSQLiteError('internal','zero-source derived column lost producer identity');
+    return {kind:'register',register:values[ref.columnIndex]!,phase:'producer-row'};
+  }};
+  const bindParent=(reduction:Reduction)=>{
+    if(!parentPlan)throw new JSQLiteError('internal','zero-source derived expression lost parent resolution');
+    return bindResolvedExpression(expressionFromReduction(reduction),resolvedExpressionCarrier(parentPlan,reduction),ref=>ref.cursorId,true,rowBinding);
+  };
+  const boundResult=parentPlan?bindParent(select.result[0]!.reduction as Reduction):result;
+  if(boundResult.kind!=='aggregate')throw new JSQLiteError('internal','derived aggregate lost identity');
   const accumulator=allocate(),output=allocate();
   // expr.c:AggInfo collects each distinct aggregate expression used by the
   // result or HAVING before generating any row loop. Count arguments share
@@ -8537,7 +8587,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
   // select.c:codeDistinct compares this aggregate's argument to earlier
   // accepted arguments before AggStep. The zero-FROM source offers at most
   // one accepted candidate, hence no prior argument to collide with.
-  const counts: {tree:Expression;acc:number;value:number;args:Expression[]}[]=[{tree:result,acc:accumulator,value:output,args:result.args}];
+  const counts: {tree:Expression;acc:number;value:number;args:Expression[]}[]=[{tree:boundResult,acc:accumulator,value:output,args:boundResult.args}];
   const collectHaving=(tree:Expression):void=>{
     if(tree.kind==="aggregate"){
       if(!admittedAggregate(tree.name,tree.args.length)||(tree.distinct&&tree.args.length!==1)||(tree.orderBy.length>0&&tree.args.length===0))
@@ -8552,7 +8602,8 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
     else if(tree.kind==="call")tree.args.forEach(collectHaving);
     else if(tree.kind==="case"){if(tree.operand)collectHaving(tree.operand);for(const [when,then] of tree.pairs){collectHaving(when);collectHaving(then);}if(tree.otherwise)collectHaving(tree.otherwise);}
   };
-  if(select.having?.reduction)collectHaving(expressionFromReduction(select.having.reduction));
+  const havingTree=select.having?.reduction?.kind==='reduction'?bindParent(select.having.reduction):null;
+  if(havingTree)collectHaving(havingTree);
   for(const entry of counts){for(const arg of entry.args)rejectNested(arg);if(entry.tree.kind==="aggregate"){
     if(entry.tree.filter)rejectNested(entry.tree.filter);
     for(const term of entry.tree.orderBy)rejectNested(term.expression);
@@ -8565,38 +8616,23 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
   for(const entry of counts.slice(1))ops.push({code:"Null",p2:entry.acc});
   const limit=computeLimitRegisters(source,ops,allocate,parameters);
   const innerAccs=innerAggregates.map(tree=>({tree,register:allocate()}));
+  for(const {tree} of innerAccs){tree.args.forEach(rejectNested);if(tree.filter)rejectNested(tree.filter);tree.orderBy.forEach(term=>rejectNested(term.expression));}
   for(const entry of innerAccs)ops.push({code:'Null',p2:entry.register});
   let whereSkip=-1,offsetSkip=-1;
-  if(source.where){const predicate=compileExpressionTree(expressionFromReduction(source.where.reduction!),ops,allocate,parameters);whereSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
-  const values=source.result.map(item=>compileExpressionTree(expressionFromReduction(item.reduction!),ops,allocate,parameters));
+  if(source.where){const predicate=compileExpressionTree(bindSource(source.where.reduction as Reduction),ops,allocate,parameters);whereSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});}
+  source.result.forEach((item,index)=>{const value=compileExpressionTree(bindSource(item.reduction as Reduction),ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:values[index]!});});
   let innerHavingSkip=-1;
   if(source.having?.reduction){
     // updateAccumulator evaluates each FILTER before its argument and step.
     // DISTINCT has no earlier value to collide with in a single-row group.
-    const names=uniqueTransientColumnNames(source.result.map(item=>item.alias??expressionName(item)));
-    const bindInnerColumn=(tree:Expression):Expression=>{
-      if(tree.kind==='column'){
-        const index=names.findIndex(name=>sqliteIdentifierEqual(name,sqlName(tree.name)));
-        if(index<0)throw new JSQLiteError('sqlite',`no such column: ${tree.name}`,{code:1});
-        return {kind:'register',index:values[index]!};
-      }
-      if(tree.kind==='aggregate')throw new JSQLiteError('sqlite',`misuse of aggregate function ${tree.name}()`,{code:1});
-      if(tree.kind==='unary'||tree.kind==='cast'||tree.kind==='collate')return {...tree,value:bindInnerColumn(tree.value)};
-      if(tree.kind==='binary')return {...tree,left:bindInnerColumn(tree.left),right:bindInnerColumn(tree.right)};
-      if(tree.kind==='between')return {...tree,value:bindInnerColumn(tree.value),lower:bindInnerColumn(tree.lower),upper:bindInnerColumn(tree.upper)};
-      if(tree.kind==='in-list')return {...tree,left:bindInnerColumn(tree.left),values:tree.values.map(bindInnerColumn)};
-      if(tree.kind==='call')return {...tree,args:tree.args.map(bindInnerColumn)};
-      if(tree.kind==='case')return {...tree,operand:tree.operand?bindInnerColumn(tree.operand):null,pairs:tree.pairs.map(([when,then])=>[bindInnerColumn(when),bindInnerColumn(then)]),otherwise:tree.otherwise?bindInnerColumn(tree.otherwise):null};
-      return tree;
-    };
     for(const entry of innerAccs){
       let filterSkip=-1;
-      if(entry.tree.filter){const filter=compileExpressionTree(bindInnerColumn(entry.tree.filter),ops,allocate,parameters);filterSkip=ops.length;ops.push({code:'IfNot',p1:filter,p2:0});}
+      if(entry.tree.filter){const filter=compileExpressionTree(entry.tree.filter,ops,allocate,parameters);filterSkip=ops.length;ops.push({code:'IfNot',p1:filter,p2:0});}
       // updateAccumulator codes ORDER keys ahead of the argument vector.
       // There is at most one accepted group row: no runtime sorter can
       // reorder it, but key expressions must still be bound/evaluated.
-      for(const term of entry.tree.orderBy)compileExpressionTree(bindInnerColumn(term.expression),ops,allocate,parameters);
-      const args=entry.tree.args.map(arg=>compileExpressionTree(bindInnerColumn(arg),ops,allocate,parameters));
+      for(const term of entry.tree.orderBy)compileExpressionTree(term.expression,ops,allocate,parameters);
+      const args=entry.tree.args.map(arg=>compileExpressionTree(arg,ops,allocate,parameters));
       ops.push({code:'AggStep',name:entry.tree.name,args,p2:entry.register,collation:entry.tree.args[0]?collation(entry.tree.args[0]):'binary'});
       if(filterSkip>=0)(ops[filterSkip] as {p2:number}).p2=ops.length;
     }
@@ -8609,7 +8645,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
         if(!entry)throw new JSQLiteError('unsupported','this inner HAVING aggregate is not implemented',{unsupportedClassification:'temporary'});
         return {kind:'register',index:entry.register};
       }
-      if(tree.kind==='column')return bindInnerColumn(tree);
+      if(tree.kind==='column')throw new JSQLiteError('internal','zero-source HAVING lost alias substitution');
       if(tree.kind==='unary'||tree.kind==='cast'||tree.kind==='collate')return {...tree,value:bindInnerHaving(tree.value)};
       if(tree.kind==='binary')return {...tree,left:bindInnerHaving(tree.left),right:bindInnerHaving(tree.right)};
       if(tree.kind==='between')return {...tree,value:bindInnerHaving(tree.value),lower:bindInnerHaving(tree.lower),upper:bindInnerHaving(tree.upper)};
@@ -8618,7 +8654,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
       if(tree.kind==='case')return {...tree,operand:tree.operand?bindInnerHaving(tree.operand):null,pairs:tree.pairs.map(([when,then])=>[bindInnerHaving(when),bindInnerHaving(then)]),otherwise:tree.otherwise?bindInnerHaving(tree.otherwise):null};
       return tree;
     };
-    const predicate=compileExpressionTree(bindInnerHaving(expressionFromReduction(source.having.reduction)),ops,allocate,parameters);
+    const predicate=compileExpressionTree(bindInnerHaving(innerHaving!),ops,allocate,parameters);
     innerHavingSkip=ops.length;ops.push({code:'IfNot',p1:predicate,p2:0});
   }
   // selectInnerLoop applies OFFSET only to rows accepted by GROUP BY HAVING.
@@ -8636,14 +8672,6 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
   // not to a fabricated physical table cursor.
   let outerWhereSkip=-1;
   const bind=(tree:Expression):Expression=>{
-      if(tree.kind==="column"){
-        const parts=tree.name.split(".").map(sqlName);
-        const qualifier=select.from.items[0]!.alias??select.from.items[0]!.tableName;
-        const index=derivedNames.findIndex(name=>sqliteIdentifierEqual(name,parts.at(-1)!));
-        if(parts.length>2||(parts.length===2&&!sqliteIdentifierEqual(parts[0]!,qualifier))||index<0)
-          throw new JSQLiteError("sqlite",`no such column: ${tree.name}`,{code:1});
-        return {kind:"register",index:values[index]!};
-      }
       if(tree.kind==="aggregate")throw new JSQLiteError("sqlite",`misuse of aggregate: ${tree.name}()`,{code:1});
       if(tree.kind==="scalar-subquery"||tree.kind==="in-subquery")throw new JSQLiteError("unsupported","derived count WHERE subquery is not implemented",{unsupportedClassification:"temporary"});
       if(tree.kind==="unary"||tree.kind==="cast"||tree.kind==="collate")return {...tree,value:bind(tree.value)};
@@ -8655,7 +8683,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
       return tree;
   };
   if(select.where?.reduction){
-    const predicate=compileExpressionTree(bind(expressionFromReduction(select.where.reduction)),ops,allocate,parameters);
+    const predicate=compileExpressionTree(bind(bindParent(select.where.reduction as Reduction)),ops,allocate,parameters);
     outerWhereSkip=ops.length;ops.push({code:"IfNot",p1:predicate,p2:0});
   }
   // select.c:tag-select-0820 steps AggInfo with this row's argument, not
@@ -8700,7 +8728,7 @@ function compileZeroSourceDerivedCount(select:SelectNode,schema:SchemaGraph,data
     return tree;
   };
   let havingReject=-1;
-  if(select.having?.reduction){const test=compileExpressionTree(finalizedHaving(expressionFromReduction(select.having.reduction)),ops,allocate,parameters);havingReject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
+  if(select.having?.reduction){const test=compileExpressionTree(finalizedHaving(havingTree!),ops,allocate,parameters);havingReject=ops.length;ops.push({code:"IfNot",p1:test,p2:0});}
   let outerOffset=-1;
   if(outerLimit?.offset!==undefined){outerOffset=ops.length;ops.push({code:"IfPos",p1:outerLimit.offset,p2:0,p3:1});}
   emitSelectDestination(ops,destination,output,1);
@@ -9812,6 +9840,94 @@ async function aggregateResult(cell:Mem,name:string,encoding:DatabaseEncoding,ma
 function misuse(message: string): never { throw new JSQLiteError("misuse", message); }
 function range(): never { throw new JSQLiteError("sqlite", "column or parameter index out of range", { code: 25 }); }
 
+function columnDefault(column:TableNode['columns'][number]|null|undefined):Pick<Extract<Op,{code:'Column'}>,'columnDefault'> {
+ return column?.defaultExpr?{columnDefault:{expression:column.defaultExpr,affinity:column.affinity}}:{};
+}
+
+// update.c sqlite3ColumnDefault / vdbemem.c valueFromExpr. This is the
+// constant-value extractor, not expression execution: unsupported expressions
+// produce no P4_MEM, just as upstream does without STAT4 function extraction.
+function defaultValue(reduction:LemonValue<SqlToken>,affinity:MemAffinity,encoding:DatabaseEncoding):Mem|undefined {
+ // valueFromExpr consumes syntax, not eager expression IR: FLOAT spelling
+ // remains TEXT until affinity decides otherwise (vdbemem.c1857-1885).
+ if(reduction.kind!=='reduction')return undefined;
+ const sig=reduction.signature,t=exprLeaves(reduction),children=descendantExprs(reduction);
+ if(sig==='expr ::= LP expr RP'||sig==='expr ::= term')return defaultValue(children[0]!,affinity,encoding);
+ if(sig==='expr ::= PLUS|MINUS expr'&&t[0]!.text==='+')return defaultValue(children[0]!,affinity,encoding);
+ if(sig.startsWith('expr ::= CAST')){
+  const {operand,affinity:castAffinity}=castParts(reduction);
+  const value=defaultValue(operand,castAffinity,encoding);
+  if(value){try{value.cast(castAffinity,encoding);value.applyAffinity(affinity,encoding);}catch(error){value.release();throw error;}}return value;
+ }
+ let token=t.length===1?t[0]:undefined,negative=false;
+ if(sig==='expr ::= PLUS|MINUS expr'&&t[0]!.text==='-'){
+  // Fold only the direct decimal operand. Hex and nested signs recurse
+  // using caller affinity before numerification, as in valueFromExpr1894.
+  let operand=children[0]!;
+  // expr.c discards parentheses and unary plus when constructing constants.
+  while(operand.kind==='reduction'&&(operand.signature==='expr ::= LP expr RP'||operand.signature==='expr ::= term'||(operand.signature==='expr ::= PLUS|MINUS expr'&&exprLeaves(operand)[0]?.text==='+')))operand=descendantExprs(operand)[0]!;
+  const leaves=exprLeaves(operand),leaf=leaves.length===1?leaves[0]:undefined;
+  if(leaf&&(leaf.kind==='integer'||leaf.kind==='float')&&!/^0x/i.test(leaf.text)){token=leaf;negative=true;}
+  else{
+   const value=defaultValue(children[0]!,affinity,encoding);if(!value)return undefined;
+   try{
+    value.cast('numeric',encoding);
+    if(value.initialStorageClass==='null')return value;
+    if(value.initialStorageClass==='real')value.setDouble(-value.realValue());
+    else {const integer=value.integerValue();if(integer===-(1n<<63n))value.setDouble(-Number(integer));else value.setInt64(-integer);}
+    value.applyAffinity(affinity,encoding);return value;
+   }catch(error){value.release();throw error;}
+  }
+ }
+ if(!token)return undefined;
+ let value:Mem;
+ if(token.kind==='integer'||token.kind==='float'){
+  const spelling=(negative?'-':'')+token.text;
+  let integer:bigint|undefined;
+  if(token.kind==='integer'){
+   const parsed=BigInt(token.text);
+   if(/^0x/i.test(token.text))integer=BigInt.asIntN(64,parsed);
+   else if(parsed<(1n<<63n))integer=negative?-parsed:parsed;
+  }
+  value=memFromPublic(integer??(token.kind==='float'&&affinity==='blob'?Number(spelling):spelling),'utf-8');
+  try{value.applyAffinity(affinity==='blob'&&token.kind==='integer'?'numeric':affinity,'utf-8');value.changeEncoding(encoding);return value;}catch(error){value.release();throw error;}
+ }
+ if(token.kind==='string')value=memFromPublic(decodeString(token.text),encoding);
+ else if(token.kind==='blob')return memFromPublic(Uint8Array.from(token.text.slice(2,-1).match(/../g)?.map(byte=>parseInt(byte,16))??[]),encoding);
+ else if(token.text.toUpperCase()==='NULL')return memFromPublic(null,encoding);
+ else if(['TRUE','FALSE'].includes(token.text.toUpperCase()))value=memFromPublic(token.text.toUpperCase()==='TRUE'?1n:0n,encoding);
+ else return undefined;
+ try{value.applyAffinity(affinity,encoding);return value;}catch(error){value.release();throw error;}
+}
+
+function finalizeColumnDefaults(program:Program):Program {
+ const ops=program.ops.map((op):Op=>{
+  if(op.code!=='Column'||!op.columnDefault)return op;
+  let reduction=op.columnDefault.expression.reduction;
+  if(!reduction){
+   // parse.y DEFAULT term / +/- term / id do not carry an expr
+   // reduction. Reuse Lemon's expression production, retaining the DEFAULT
+   // id-as-string/TRUEFALSE rule rather than resolving an identifier.
+   const expression=op.columnDefault.expression,tokens=expression.tokens;
+   let sql=expression.sourceText??tokens.map(token=>token.text).join(' ');
+   if(tokens.length===1&&['id','keyword'].includes(tokens[0]!.kind)&&!['NULL'].includes(tokens[0]!.text.toUpperCase())){
+    // tokenExpr/sqlite3ExprIdToTrueFalse retain EP_Quoted after dequoting.
+    // Inspect the raw token first so quoted boolean names remain strings.
+    const raw=tokens[0]!.text,quoted=raw[0]==='"'||raw[0]==='['||raw[0]==='`';
+    const word=sqlName(raw),truth=quoted?'':sqliteAsciiFold(word);
+    sql=truth==='true'?'1':truth==='false'?'0':`'${word.replaceAll("'","''")}'`;
+   }
+   const parsed=parseSql(`SELECT ${sql}`).statement;
+   if(!parsed||parsed.kind!=='select')throw new JSQLiteError('internal','schema default did not produce SELECT');
+   reduction=parsed.result[0]?.reduction;
+  }
+  if(!reduction)throw new JSQLiteError('internal','schema default lost its expression reduction');
+  const value=defaultValue(reduction,op.columnDefault.affinity,program.encoding);
+  return value?Object.freeze({...op,defaultMem:value}):op;
+ });
+ return Object.freeze({...program,ops:Object.freeze(ops)});
+}
+
 function finalizeJsonColumnReads(program:Program):Program {
   const columns=new Map<number,{cursor:number;column:number}>();
   for(const op of program.ops)if(op.code==="JsonTableRewind")for(let i=0;i<JSON_TABLE_COLUMNS.length;i++){
@@ -9891,7 +10007,7 @@ export class VdbeStatement implements Statement {
   #expired=false;
   readonly recompile:((bindings:readonly Mem[],check:()=>void)=>Program)|undefined;
   constructor(program: Program, assertConnectionIdle: () => void, admit: () => () => void, onFinalize: () => void, recompile?: (bindings:readonly Mem[],check:()=>void)=>Program) {
-    this.recompile=recompile;this.#program = finalizeJsonColumnReads(program); this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
+    this.recompile=recompile;this.#program = finalizeColumnDefaults(finalizeJsonColumnReads(program)); this.#assertConnectionIdle = assertConnectionIdle; this.#admit = admit; this.#onFinalize = onFinalize;
     this.#registers = Array.from({ length: program.registers + 1 }, () => new Mem(()=>this.#privateBytes));
     this.#bindings = program.parameters.map(() => new Mem());
     this.#privateBytes = new PrivateStateByteBudget(program.privateStateLimits.maxBytes);
@@ -9933,7 +10049,7 @@ export class VdbeStatement implements Statement {
         if(replacement.parameters.length!==this.#bindings.length)throw new JSQLiteError("internal","reprepare parameter count changed");
         const registers=Array.from({length:replacement.registers+1},()=>new Mem(()=>this.#privateBytes));
         this.#halt();for(const value of this.#registers)value.release();
-        this.#program=finalizeJsonColumnReads(replacement);this.#registers=registers;this.#pc=0;this.#expired=false;
+        this.#program=finalizeColumnDefaults(finalizeJsonColumnReads(replacement));this.#registers=registers;this.#pc=0;this.#expired=false;
 
         // Reprepare replaces code, not the enclosing execution entry.
         const plan=replacement.whereAccounting;this.#privateAccounting={...zeroPrivateAccounting(),executionId:this.#privateAccounting.executionId,planId:planIdentity(this.#program),plannerCandidates:plan?.plannerCandidates??0,plannerPaths:plan?.plannerPaths??0};
@@ -10436,7 +10552,7 @@ export class VdbeStatement implements Statement {
             this.#indexCursors.get(op.p1)?.clearPosition();
             break;
           }
-          case "Column": {const cursorNumber=op.p3??0,packed=this.#privateKeys.get(cursorNumber);if(packed){await packed.column(op.p1,this.#registers[op.p2]!,this.#privateControl(options,limit,started));if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),raw=record?.field(op.p1) ?? {storageClass:"null" as const},borrowed=memFromRawRecord(raw, this.#borrow); this.#registers[op.p2]!.copyFrom(borrowed); borrowed.release(); if(op.inProbe&&this.#registers[op.p2]!.initialStorageClass!=='null')this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1}; if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
+          case "Column": {const cursorNumber=op.p3??0,packed=this.#privateKeys.get(cursorNumber);if(packed){await packed.column(op.p1,this.#registers[op.p2]!,this.#privateControl(options,limit,started));if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const privateCursor=this.#privateCursors.get(cursorNumber);if(privateCursor?.kind==='ephemeral-index'){if(privateCursor.nullRow)this.#registers[op.p2]!.setNull();else this.#registers[op.p2]!.copyFrom(privateCursor.data()[op.p1]!);if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==='real')this.#registers[op.p2]!.cast('real',this.#program.encoding);}break;}const pending=this.#deferredRowids.get(cursorNumber);if(pending!==undefined){let table=this.#tableSeekCursors.get(cursorNumber);if(!table){const root=this.#cursorRoots.get(cursorNumber);if(root===undefined)throw new JSQLiteError("internal","deferred seek on unopened table cursor");table=this.#program.database!.tableCursor(root);this.#tableSeekCursors.set(cursorNumber,table);}this.#privateAccounting={...this.#privateAccounting,tableSeeks:this.#privateAccounting.tableSeeks+1};if(!table.seek(pending,"ge"))throw new BtreeFormatError("secondary rowid does not reference a table row");this.#loadTableSeekRecord(cursorNumber,table);this.#deferredRowids.delete(cursorNumber);}const record=this.#records.get(cursorNumber),field=record?.field(op.p1);if(record&&field===undefined&&op.defaultMem){this.#registers[op.p2]!.copyFrom(op.defaultMem);}else{const raw=field??{storageClass:"null" as const},borrowed=memFromRawRecord(raw,this.#borrow);this.#registers[op.p2]!.copyFrom(borrowed);borrowed.release();} if(op.inProbe&&this.#registers[op.p2]!.initialStorageClass!=='null')this.#privateAccounting={...this.#privateAccounting,inProbes:this.#privateAccounting.inProbes+1}; if(op.affinity){this.#registers[op.p2]!.applyAffinity(op.affinity,this.#program.encoding);if(op.affinity==="real")this.#registers[op.p2]!.cast("real",this.#program.encoding);} break; }
           case "IfNullRow": {const privateCursor=this.#privateCursors.get(op.p1);if(privateCursor?.kind==='ephemeral-index'?privateCursor.nullRow:!this.#records.has(op.p1)&&!this.#deferredRowids.has(op.p1)){this.#registers[op.p3]!.setNull();this.#pc=op.p2;}break;}
           // vdbe.c OP_TypeCheck P3>=2: one STRICT virtual column on reads.
           case "TypeCheck": {

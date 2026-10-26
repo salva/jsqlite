@@ -1,5 +1,53 @@
 # SQLite source map
 
+### Window CASE terminal binding
+
+`window.c:selectWindowRewriteExprCb` (748–826) retains CASE structure while
+rewriting column/aggregate terminals; `expr.c:TK_CASE` (5683–5748) evaluates
+base/WHEN/THEN/ELSE through those terminals. `vdbe.ts:bindResolvedExpression`
+now traverses CASE children for `window-source` too, using the existing linked
+payload location callback rather than leaving physical column leaves unchanged.
+Paired `select-review32-boundaries-native.py` / `.test.mjs` cover simple CASE
+mixed NULL/REAL/TEXT/BLOB ordering, searched CASE column reads in WHEN/THEN/ELSE,
+three encodings, five metadata fields and reset; they also bound repeated/empty
+scalar/EXISTS/IN caller parity. `json-group-numeric-types.test.mjs` checks current
+JSON `text` / REAL0.0 aggregate relay storage against pinned controls.
+Revision-bound RED/GREEN evidence: [[card:card-t-c]] status470 and current status.
+
+### Retained window-derived predicate binding
+
+`select.c:tag-select-0488`, `window.c:sqlite3WindowCodeInit/CodeStep` and
+`vdbeaux.c:MakeLabel/ResolveLabel` -> retained `compileDerivedProducer` setup,
+entry and drain labels plus `compileWindowSelectLowering`'s explicit `exitLabel`.
+The caller allocates these targets before child emission; setup enters the
+unmoved child and completion bypasses late subroutines into the parent drain.
+No child Halt scan or first-instruction copying remains. Structural and typed
+public controls share `select-window-payload-binding.test.mjs`; d196 closes the
+nonzero-parent-PC construction witness at starts0/7. Independent caller review
+and whole-candidate enrollment remain open (not whole-window compatibility).
+See the [authenticated finite matrix](research/card-t-a-select-seams.md#finite-obligation--caller-matrix).
+
+`resolve.c:lookupName/resolveSelectStep` -> `vdbe.ts:resolveTransientArm` parent
+carrier; `expr.c:sqlite3ExprCodeTarget` TK_COLUMN/TK_REGISTER -> shared
+`bindResolvedExpression` with scalar producer-row `ResolvedExpressionBinding`.
+`compileDerivedProducer` maps the linked source/column ordinal to the window
+materialization payload without local spelling lookup. Projection consumes the
+parent plan's expanded result/source ordinals; ORDER consumes `orderResultColumns`
+(alias/ordinal substitution) or `resolvedExpressionCarrier` for a source read.
+The retained admission is direct payload projection/ORDER only, not computed
+expression execution. Explicit ORDER collation precedes inherited EList collation.
+Entry/exit remains the separate explicit-label contract; see d196's witnesses.
+Native/public regression: `select-window-payload-binding-native.py` and
+`select-window-payload-binding.test.mjs` (BETWEEN/IN/CASE, three encodings,
+INTEGER, five metadata fields, DONE/reset). The mixed physical/JSON branch likewise uses the complete parent plan for result/ORDER/predicates and physical-only positioned argv carriers; only module ordinal/rowid-to-register layout remains local. Native/public controls: `select-mixed-json-binding{,-native}` plus existing mixed binding/readiness/USING suites. The bounded zero-source derived aggregate also consumes retained parent/source plans: `resolve.c:lookupName/resolveAlias` → `resolvedExpressionCarrier`; `expr.c:TK_REGISTER` → source-ordinal producer registers; `select.c:updateAccumulator/selectInnerLoop` → FILTER/ORDER/argument/step then finalized HAVING/destination. No local spelling resolution remains in that branch. Single-candidate DISTINCT/sort storage elision retains expression evaluation, not general multirow planning. Tests: `select-zero-source-binding-native.py`, `select-zero-source-binding.test.mjs`. Revision-bound evidence and remaining whole-delta gates: [[card:card-t-c]] status.
+The derived-first/physical-second materialized join consumer likewise resolves
+its parent through `resolveTransientArm`, maps source[0] to producer-row registers
+and source[1] to the positioned physical cursor, and binds result/ORDER/ON via
+that same carrier. No local ambiguity/affinity/collation reconstruction remains.
+`select-derived-physical-binding-native.py` / `.test.mjs` cover nullable derived
+payloads, physical and derived ordering, LIMIT/OFFSET and reset across encodings;
+this is not outer-join/null-extension or selected-index ownership acceptance.
+
 ### Derived VALUES / joined merge resource observers
 
 `vdbemem.c:sqlite3VdbeMemSetStr` → Mem.#ownBytes admission before publication;
@@ -446,6 +494,52 @@ boundary-API adaptation does not claim full IndexMoveto parity.
 `vdbe.c:OP_Column/next_tail/OP_NullRow` → `record.ts:CursorRecord` and
 `vdbe.ts` demand/loading/movement owners: parse demanded serial prefix, check
 terminal header/data consumption, invalidate on physical movement/null/reset.
+`update.c:sqlite3ColumnDefault`, `vdbemem.c:valueFromExpr` and
+`expr.c:sqlite3ExprCodeGetColumnOfTable` → `vdbe.ts:columnDefault`,
+`defaultValue`, `finalizeColumnDefaults`: the finite extractor consumes retained
+Lemon reductions/tokens, not eager numeric expression IR. FLOAT/overflow INTEGER
+text precedes affinity; INTEGER conversion, direct decimal sign folding, recursive
+unary numerification, CAST, BLOB/NULL and unsupported branches remain distinct.
+`parse.y:1228` → `vdbe.ts:castParts`, shared by `defaultValue` and
+`expressionFromReduction`: direct E/T children preserve nested CAST type ownership.
+`build.c:sqlite3AffinityType` → `type-affinity.ts:typeAffinity`: ASCII-folded rolling
+substring scan, TEXT overrides, BLOB overrides NUMERIC/REAL, REAL only from
+NUMERIC, terminating INT, empty token NUMERIC. `castTypeAffinity` consumes `parse.ts:productionAction`'s existing typetoken.semantic
+raw span (including empty, interior comments and dimensions), then dequotes it
+(`expr.c:sqlite3ExprAlloc`, `util.c:sqlite3Dequote`) for resolver and vdbe IR/DEFAULT;
+no lexical-leaf reassembly. Raw-span/boundary tests: `select-cast-raw-token.test.mjs`
+and `column-default-raw-token.test.mjs` (native all encodings, actual short/filled/
+storedNULL/NullRow, metadata/bytes/reset). `columnDeclaredAffinity` keeps absent
+column BLOB policy at direct/JSON/outer column and REAL projection callers;
+schema's `columnTypeEstimate` separately owns pCol sizing.
+Empty/quoted-empty, quoted-prefix multiword and absent declaration controls:
+`column-default-empty.test.mjs` (native-read all encodings, short/filled/storedNULL/
+NullRow, metadata and reset), `select-cast-empty.test.mjs` (original R5 RED).
+Native-read all-encoding mixed CAST SELECT/short DEFAULT values/types/bytes,
+metadata/reset and stored NULL/filled/NullRow: `column-default-affinity.test.mjs`;
+unchanged initial RED: `select-cast-affinity.test.mjs`. Provenance: [[card:card-t-c]] status.
+`parse.y:1569–1596` → `vdbe.ts:expressionFromReduction` CASE: direct
+case_operand/case_else and recursive case_exprlist own operand, ordered WHEN/THEN
+pairs and optional fallback. `resolve.ts:resolvedExpressionCarrier` preserves
+that same child order for `bindResolvedExpression`; nested expressions stay
+single children. `expr.c:TK_CASE` consumes pairs and optional fallback, otherwise
+NULL. Public native-derived ownership/reset controls: `select-case-owner.test.mjs`;
+revision-bound native/RED/GREEN evidence: [[card:card-t-c]] status.
+Resolved logical column defaults follow
+physical field substitution into Column; statement-owned encoding/affinity Mem
+is copied only for a positioned record's absent field, never stored NULL or
+NullRow. Ordinary REAL coercion remains separate.
+`parse.y:DEFAULT id/tokenExpr` and `expr.c:sqlite3ExprIdToTrueFalse` →
+`finalizeColumnDefaults` raw-token quote guard before dequoting: quoted
+TRUE/FALSE remain strings; only unquoted names become booleans. Public
+all-encoding typed/reset/metadata controls: `column-default.test.mjs` and
+`column-default-quoted.test.mjs`, `column-default-float.test.mjs` (original ALTER
+short rows), `column-default-branches.test.mjs` and `column-default-cast.test.mjs`
+(explicit synthesized short rows read independently by native; latter also checks
+ordinary SELECT CAST ownership) under `test/conformance/`; corresponding
+`capture-column-default{,-quoted,-float,-branches,-cast}.py` and native receipts.
+Candidate evidence/remaining
+integration acceptance: [[card:card-t-c]] status.
 `vdbeaux.c:sqlite3VdbeRecordCompareWithSkip/vdbeRecordDecodeInt` →
 `RawRecordReader.advance/integer`, `comparison.ts:compareRecordKey`; generic
 unpacking retains trailing-byte behavior independently of OP_Column.
@@ -482,6 +576,25 @@ plus correlated-error/reversed-AND empty-success controls, metadata and reset/re
 `capture-correlated-in-work.py` retains pinned native ordering EXPLAIN and checks
 positive error/reset without leaking native statements.
 [Author evidence and remaining gates](record:///status.md?card=card-s-c-d-e).
+
+### CTE fallback linked identity
+
+The bounded forced/repeated CTE materializer consumes `resolveTransientArm` and
+`resolvedExpressionCarrier` source/column identities for direct projection and
+equality ON operands. Its local source-array index is only a row-register layout
+adapter, not a spelling resolver. Non-column/outer/merged references decline this
+specialization before emission. Once/Return/OpenDup and independent reader loops
+retain their existing scheduling; this does not broaden join/expression admission.
+Pinned `resolve.c:lookupName` produces identity before `select.c` tag0488 materializes.
+[Repair evidence](research/card-t-b-cte-linked-identity.md).
+
+`build.c:viewGetColumnNames` / `select.c:selectExpander,flattenSubquery` →
+`compileDerivedProducer` resolves and substitutes a single flattenable immutable
+view before retained child physical-plan selection, reusing `flattenImmutableView`.
+Expanded star width and explicit view names reach the existing coroutine producer;
+view metadata roots are not physical cursors. Tests: paired
+`select-repeated-view-parent` (three encodings, origin metadata, TEXT/NULL, reset,
+stored arity error/reuse). [Evidence](research/card-t-b-retained-view-callers.md).
 
 ### Selected SELECT-IN LOOP
 

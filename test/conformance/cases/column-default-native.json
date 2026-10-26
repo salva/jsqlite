@@ -1,0 +1,2173 @@
+{
+  "source": {
+    "schemaVersion": 1,
+    "product": "SQLite source archive",
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "fossilCheckin": "bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "fossilTimestampUtc": "2026-07-24T19:02:57.525Z",
+    "sqliteSourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "canonicalUrl": "https://www.sqlite.org/2026/sqlite-src-3530400.zip",
+    "downloadMetadataUrl": "https://www.sqlite.org/download.html",
+    "retrievedAtUtc": "2026-09-12T16:12:12.247Z",
+    "latestStableCheckedAtUtc": "2026-09-12T16:12:12.247Z",
+    "releaseNotesUrl": "https://www.sqlite.org/releaselog/3_53_4.html",
+    "archive": "sqlite-src-3530400.zip",
+    "bytes": 14557315,
+    "sha3_256": "b834d474b9b393d85a9e3ee4cc11f1329e007e9376a424ee740796f5c4bda3a8",
+    "sha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b",
+    "license": {
+      "classification": "public domain",
+      "archiveNotice": "LICENSE.md",
+      "upstreamUrl": "https://www.sqlite.org/copyright.html"
+    }
+  },
+  "librarySha256": "4d645b0bb4818c5db629cb2adfe7c4938443881d1fe7612a023d574c842e117a",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/column-default-utf-8.db",
+      "sha256": "b2b0aea185c0e216d081366875def1f60f18512d31f7f7a45870fc4f1cb1e888",
+      "setup": [
+        "PRAGMA encoding='UTF-8'",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,base TEXT)",
+        "INSERT INTO t VALUES(1,'old')",
+        "ALTER TABLE t ADD COLUMN tx TEXT DEFAULT 't\u00e9nant'",
+        "ALTER TABLE t ADD COLUMN nu NUMERIC DEFAULT '12.0'",
+        "ALTER TABLE t ADD COLUMN re REAL DEFAULT 7",
+        "ALTER TABLE t ADD COLUMN bl BLOB DEFAULT x'00ff'",
+        "ALTER TABLE t ADD COLUMN ni INTEGER DEFAULT -9223372036854775808",
+        "ALTER TABLE t ADD COLUMN zz DEFAULT NULL",
+        "ALTER TABLE t ADD COLUMN nt TEXT DEFAULT 1.25",
+        "ALTER TABLE t ADD COLUMN bo DEFAULT TRUE",
+        "INSERT INTO t(id,base,tx,nu,re,bl,ni,zz,nt,bo) VALUES(2,'null',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id,base) VALUES(3,'new')",
+        "CREATE INDEX ix ON t(tx,nu,re)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT id,tx,nu,re,bl,ni,zz,nt,bo FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "integer",
+                  "value": "-9223372036854775808"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312e3235"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "integer",
+                  "value": "-9223372036854775808"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312e3235"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "nu",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nu"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              },
+              {
+                "name": "bl",
+                "declaredType": "BLOB",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bl"
+              },
+              {
+                "name": "ni",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "ni"
+              },
+              {
+                "name": "zz",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "zz"
+              },
+              {
+                "name": "nt",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nt"
+              },
+              {
+                "name": "bo",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bo"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,tx,nu,re FROM t INDEXED BY ix ORDER BY tx,id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "nu",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nu"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.tx,y.re,y.bl FROM t x LEFT JOIN t y ON y.id=x.id+1 ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              },
+              {
+                "name": "bl",
+                "declaredType": "BLOB",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bl"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.tx,y.re FROM t x JOIN t y ON y.id=x.id ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(tx),typeof(nu),typeof(re),typeof(bl),typeof(ni),typeof(zz),typeof(nt),typeof(bo) FROM t ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(tx)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(nu)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(re)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(bl)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(ni)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(zz)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(nt)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(bo)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,tx FROM t WHERE tx='t\u00e9nant' ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT count(tx),sum(nu),sum(re) FROM t",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "402c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "count(tx)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "sum(nu)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "sum(re)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/column-default-utf-16le.db",
+      "sha256": "04b0c80803709d4e44f52734166c9aaaf8499c73e3c2e79f3b13880d03d08266",
+      "setup": [
+        "PRAGMA encoding='UTF-16le'",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,base TEXT)",
+        "INSERT INTO t VALUES(1,'old')",
+        "ALTER TABLE t ADD COLUMN tx TEXT DEFAULT 't\u00e9nant'",
+        "ALTER TABLE t ADD COLUMN nu NUMERIC DEFAULT '12.0'",
+        "ALTER TABLE t ADD COLUMN re REAL DEFAULT 7",
+        "ALTER TABLE t ADD COLUMN bl BLOB DEFAULT x'00ff'",
+        "ALTER TABLE t ADD COLUMN ni INTEGER DEFAULT -9223372036854775808",
+        "ALTER TABLE t ADD COLUMN zz DEFAULT NULL",
+        "ALTER TABLE t ADD COLUMN nt TEXT DEFAULT 1.25",
+        "ALTER TABLE t ADD COLUMN bo DEFAULT TRUE",
+        "INSERT INTO t(id,base,tx,nu,re,bl,ni,zz,nt,bo) VALUES(2,'null',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id,base) VALUES(3,'new')",
+        "CREATE INDEX ix ON t(tx,nu,re)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT id,tx,nu,re,bl,ni,zz,nt,bo FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "integer",
+                  "value": "-9223372036854775808"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312e3235"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "integer",
+                  "value": "-9223372036854775808"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312e3235"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "nu",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nu"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              },
+              {
+                "name": "bl",
+                "declaredType": "BLOB",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bl"
+              },
+              {
+                "name": "ni",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "ni"
+              },
+              {
+                "name": "zz",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "zz"
+              },
+              {
+                "name": "nt",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nt"
+              },
+              {
+                "name": "bo",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bo"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,tx,nu,re FROM t INDEXED BY ix ORDER BY tx,id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "nu",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nu"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.tx,y.re,y.bl FROM t x LEFT JOIN t y ON y.id=x.id+1 ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              },
+              {
+                "name": "bl",
+                "declaredType": "BLOB",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bl"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.tx,y.re FROM t x JOIN t y ON y.id=x.id ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(tx),typeof(nu),typeof(re),typeof(bl),typeof(ni),typeof(zz),typeof(nt),typeof(bo) FROM t ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(tx)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(nu)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(re)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(bl)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(ni)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(zz)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(nt)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(bo)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,tx FROM t WHERE tx='t\u00e9nant' ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT count(tx),sum(nu),sum(re) FROM t",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "402c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "count(tx)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "sum(nu)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "sum(re)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/column-default-utf-16be.db",
+      "sha256": "87aa5c88cafe2a56234127285131fe6ebda101ea77836c6c09552f7646ec421a",
+      "setup": [
+        "PRAGMA encoding='UTF-16be'",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,base TEXT)",
+        "INSERT INTO t VALUES(1,'old')",
+        "ALTER TABLE t ADD COLUMN tx TEXT DEFAULT 't\u00e9nant'",
+        "ALTER TABLE t ADD COLUMN nu NUMERIC DEFAULT '12.0'",
+        "ALTER TABLE t ADD COLUMN re REAL DEFAULT 7",
+        "ALTER TABLE t ADD COLUMN bl BLOB DEFAULT x'00ff'",
+        "ALTER TABLE t ADD COLUMN ni INTEGER DEFAULT -9223372036854775808",
+        "ALTER TABLE t ADD COLUMN zz DEFAULT NULL",
+        "ALTER TABLE t ADD COLUMN nt TEXT DEFAULT 1.25",
+        "ALTER TABLE t ADD COLUMN bo DEFAULT TRUE",
+        "INSERT INTO t(id,base,tx,nu,re,bl,ni,zz,nt,bo) VALUES(2,'null',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)",
+        "INSERT INTO t(id,base) VALUES(3,'new')",
+        "CREATE INDEX ix ON t(tx,nu,re)"
+      ],
+      "cases": [
+        {
+          "sql": "SELECT id,tx,nu,re,bl,ni,zz,nt,bo FROM t NOT INDEXED ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "integer",
+                  "value": "-9223372036854775808"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312e3235"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                },
+                {
+                  "type": "integer",
+                  "value": "-9223372036854775808"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "312e3235"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "nu",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nu"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              },
+              {
+                "name": "bl",
+                "declaredType": "BLOB",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bl"
+              },
+              {
+                "name": "ni",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "ni"
+              },
+              {
+                "name": "zz",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "zz"
+              },
+              {
+                "name": "nt",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nt"
+              },
+              {
+                "name": "bo",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bo"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,tx,nu,re FROM t INDEXED BY ix ORDER BY tx,id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "nu",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "nu"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.tx,y.re,y.bl FROM t x LEFT JOIN t y ON y.id=x.id+1 ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                },
+                {
+                  "type": "blob",
+                  "hex": "00ff"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              },
+              {
+                "name": "bl",
+                "declaredType": "BLOB",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "bl"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT x.id,y.tx,y.re FROM t x JOIN t y ON y.id=x.id ORDER BY x.id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "401c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              },
+              {
+                "name": "re",
+                "declaredType": "REAL",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "re"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,typeof(tx),typeof(nu),typeof(re),typeof(bl),typeof(ni),typeof(zz),typeof(nt),typeof(bo) FROM t ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "7265616c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "626c6f62"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6e756c6c"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74657874"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "696e7465676572"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "typeof(tx)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(nu)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(re)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(bl)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(ni)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(zz)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(nt)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "typeof(bo)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT id,tx FROM t WHERE tx='t\u00e9nant' ORDER BY id",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74c3a96e616e74"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "tx",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "tx"
+              }
+            ]
+          }
+        },
+        {
+          "sql": "SELECT count(tx),sum(nu),sum(re) FROM t",
+          "native": {
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "402c000000000000"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "count(tx)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "sum(nu)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              },
+              {
+                "name": "sum(re)",
+                "declaredType": null,
+                "databaseName": null,
+                "tableName": null,
+                "originName": null
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

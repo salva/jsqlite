@@ -1,0 +1,5 @@
+[
+ {"sql":"SELECT d.x,o.a FROM (SELECT 1 AS x UNION ALL SELECT NULL UNION ALL SELECT 3) d JOIN t1 o ON d.x=o.a ORDER BY d.x","rows":[[1,1],[3,3]]},
+ {"sql":"SELECT d.x,o.a FROM (SELECT NULL AS x UNION ALL SELECT 2) d JOIN t1 o ON d.x IS NULL ORDER BY o.a LIMIT 2 OFFSET 1","rows":[[null,3],[null,5]]},
+ {"sql":"SELECT d.x,o.a FROM (SELECT 1 AS x UNION ALL SELECT 3) d JOIN t1 o ON d.x=o.a ORDER BY o.a DESC LIMIT 1","rows":[[3,3]]}
+]

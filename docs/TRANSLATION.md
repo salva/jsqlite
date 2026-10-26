@@ -99,7 +99,49 @@ remaining acceptance gates: [mixed Window correction](research/mixed-json-window
 sort-tail publication to local `createSelectDelivery`; WHERE retains positioning,
 continuations, RIGHT Return/drain and cleanup. Only inline producer stops license
 RIGHT verifier exits; compound stops retain enclosing ownership. Resolver-bound
-projection and source snapshots remain caller-owned. This changes compiler
+projection and source snapshots remain caller-owned. The retained window-derived
+consumer resolves its parent through `resolveTransientArm`: expanded result/source
+ordinals and ORDER alias/ordinal ownership come from that same plan, and WHERE
+maps linked columns to materialized producer-row registers via `ResolvedExpressionBinding`.
+Projection and ORDER retain a direct-payload-read admission boundary; valid computed
+expressions are not falsely diagnosed as missing names. No second spelling resolver
+remains in these adapters. Entry/setup/exit use the separate explicit label contract.
+Native/public controls:
+`test/conformance/select-window-payload-binding.test.mjs` and
+`test/conformance/select-window-payload-binding-native.py`; bounded evidence and
+remaining bounded evidence: [[card:card-t-c]] status. Window result CASE trees
+also bind their base, WHEN, THEN and ELSE children through the linked carrier:
+`window.c:selectWindowRewriteExprCb` rewrites terminals while retaining CASE
+control flow (`expr.c:TK_CASE`). No stale physical cursor reads survive inside
+those trees. Paired `select-review32-boundaries{,-native}` controls cover mixed
+NULL/REAL/TEXT/BLOB payload ordering and repeated/empty scalar/EXISTS/IN readers.
+Grouped JSON `sum(atom)` returns type label `text` and REAL0.0 for nonnumeric text;
+`json-group-numeric-types.test.mjs` checks storage classes, not just JS values.
+These finite boundaries are not whole-window/correlation compatibility. The bounded zero-source
+derived aggregate now retains `resolveTransientArm` parent/source plans: outer
+WHERE and aggregate arguments/FILTER/ORDER bind source ordinals to producer-row
+registers; inner HAVING aliases consume resolver substitutions, not projected-name
+searches. Accumulator/finalized-HAVING and candidate delivery gates remain distinct.
+With at most one accepted candidate, DISTINCT/sorter storage is elided, but FILTER,
+ORDER keys and arguments still execute in upstream order. This is a bounded
+single-candidate adaptation, not multirow aggregate planner parity. Controls:
+`select-zero-source-binding{,-native}` (WHERE, FILTER, ORDER, grouped HAVING,
+empty input, outer HAVING; three encodings and reset). The mixed
+physical/JSON consumer also resolves its complete parent through `resolveTransientArm`
+(or its supplied linked plan): projection, ORDER and predicates consume carriers;
+table-function arguments use the same carrier with only the physical source positioned.
+Its adapter maps module ordinals/rowid to payload registers and physical columns to
+the positioned cursor, without a second name/alias/star or metadata owner. The retained
+Rewind/Filter/Next and LEFT completion schedule is unchanged. Controls:
+`select-mixed-json-binding{,-native}` and existing mixed JSON readiness/USING tests.
+The retained
+derived-first/physical-second join consumer uses the same parent resolution
+owner for result, ORDER and ON carriers, with a source-identity adapter selecting
+materialized producer-row registers versus the positioned physical cursor.
+The adapter does not own ambiguity, missing-name, affinity or collation decisions;
+selected-loop/null-extension and window entry/exit remain separate responsibilities.
+See `select-derived-physical-binding{,-native}` tests in the source map.
+This changes compiler
 responsibilities, not public behavior. [Boundary and bounded evidence](research/select-delivery-phase.md).
 
 Shared FROM-backed aggregate subqueries use one inline destination/Once owner
@@ -154,7 +196,20 @@ independent cursor/register ownership. Native controls cover two occurrences,
 hidden EQ, empty LEFT null-extension and Result0 joins. Linked column expressions
 retain their resolved source owner through singleton rebinding: parent columns
 keep their positioned location while local module columns become payload registers
-(`resolve.c:lookupName` NameContext walk). Correlated outer-rowid aggregate
+(`resolve.c:lookupName` NameContext walk). The bounded forced/repeated CTE
+fallback likewise consumes `resolveTransientArm`/`resolvedExpressionCarrier`
+identities for projection and equality ON operands, adapting logical source
+identity only to its materialized row registers; it does not resolve spelling.
+Once/Return/OpenDup scheduling is unchanged. This is not general expression/join
+admission. [Source comparison and controls](research/card-t-b-cte-linked-identity.md).
+Retained single-source derived producers expand a flattenable immutable view
+before choosing their physical table plan, using the same view substitution as
+the ordinary table entry. Definition resolution precedes substitution; expanded
+star width and explicit view names therefore reach the child coroutine together,
+without treating a view metadata root as a physical Btree. Child ORDER/LIMIT and
+the enclosing destination remain independent. This does not add nonflattenable
+view admission. [Retained-view matrix](research/card-t-b-retained-view-callers.md).
+Correlated outer-rowid aggregate
 predicates and the positive former-boundary controls now pass. Single and joined resident
 metadata window inputs use the existing WHERE coroutine/sourceRow handoff;
 window buffer bindings copy the module's real identity register, not a B-tree
@@ -473,7 +528,12 @@ operation addresses, register ranges, cursor allocation and labels, correspondin
 to `Parse.nMem/nTab` and one Vdbe. Parameters and `SelectDest` flow into selected
 producers. A specialized branch may decline **before emission**; after selection
 its error propagates, not a catch-and-try fallback. Enclosing entry publishes
-operations and Halt. RIGHT-interior boundary verification uses read-only explicit
+operations and Halt. Retained window-derived materialization allocates enclosing
+setup, producer-entry and drain labels before child emission (`select.c`
+tag-select-0488); window lowering accepts the drain label explicitly and skips
+its late subroutines on completion. Setup still executes before producer entry,
+without moving emitted instructions or discovering exits by scanning Halt.
+RIGHT-interior boundary verification uses read-only explicit
 address visitation, not completed-program relocation or cloned operations; caller
 exemptions, intentional stops, owning Return chains and deferred label validation
 remain with the producer ([source comparison and controls](research/right-control-visitor.md)).
@@ -481,6 +541,10 @@ Shared destination emission covers output, scalar Mem,
 EXISTS, set, sorter, ephemeral, coroutine and represented aggregate-expression
 consumers. Legitimate algorithm-specific schedules remain; accepted migration
 does not mean all semantic analysis or specialization has been translated.
+
+The [finite root-authenticated caller matrix](research/card-t-a-select-seams.md#finite-obligation--caller-matrix)
+records delivered linked binders, explicit window boundaries and retained CTE
+witnesses, separately from remaining independent review and W/V acceptance.
 
 Linked column/aggregate owners select physical source, transient coroutine row,
 group sorter or saved/finalized registers according to phase. Scalar, EXISTS and
@@ -790,6 +854,54 @@ width, as upstream does; it is not a rekey operation. Growth installs new KeyInf
 Packed insertion accepts nonempty records narrower than retained KeyInfo, using
 actual unpacked field count for positioning (native btreeMoveto); it does not
 pad missing fields or require totalFieldCount equality.
+
+Column defaults follow `update.c:sqlite3ColumnDefault` and
+`vdbemem.c:valueFromExpr`, not NULL coalescing: logical column metadata follows
+resolver/physical-field lowering into Column, with an owned statement-program
+Mem produced using column affinity and database encoding. OP_Column copies it
+only for a present row's missing trailing field. Stored NULL and NullRow stay
+NULL; REAL coercion remains an independent lowering operation. The constant
+extractor accepts upstream literal/unary/CAST forms, not arbitrary default
+expression execution. Schema DEFAULT term/id spans without expr reductions
+are fed through Lemon, then the finite constant extractor consumes retained
+reductions/tokens directly rather than eager numeric expression IR. FLOAT and
+overflow INTEGER spelling remains TEXT until affinity; direct INTEGER conversion,
+decimal sign folding, recursive unary numerification and CAST keep their separate
+`valueFromExpr` branches. CAST extraction in both expression IR and DEFAULT
+uses the current production's direct expression and typetoken children
+(`parse.y:1228`), never an AS inside the operand. Its affinity classifier follows
+`build.c:sqlite3AffinityType`: TEXT overrides REAL/BLOB, BLOB overrides REAL
+in either order, INT terminates, otherwise NUMERIC (including empty or quoted-empty
+CAST tokens). Resolver, expression IR and DEFAULT share `type-affinity.ts`;
+CAST consumes the parser's `typetoken.semantic` raw source (including empty,
+interior comments and dimension spans), then dequotes as `sqlite3ExprAlloc` does;
+it never reconstructs lexical leaves. Native-read span-boundary SELECT and actual
+short DEFAULT controls: `column-default-raw-token.test.mjs` (all encodings,
+metadata/reset/filled/storedNULL/NullRow).
+Absent column types retain the column caller's BLOB/no-affinity default, not a
+classifier exception. Native-read empty/quoted/mixed SELECT and actual short DEFAULT,
+metadata/reset/filled/NULL/NullRow in all encodings: `column-default-empty.test.mjs`.
+Native-read mixed-marker SELECT and
+short-record DEFAULT controls (all encodings, stored NULL/filled/NullRow/reset):
+`column-default-affinity.test.mjs`; unchanged RED: `select-cast-affinity.test.mjs`.
+CASE expression IR similarly
+consumes production-owned `case_operand`, recursive WHEN/THEN `case_exprlist`,
+and optional `case_else` (`parse.y:1569–1596`); nested ELSE cannot become an
+outer fallback. Resolver children retain operand/WHEN/THEN/ELSE order, matching
+the CASE binder. Native-derived public/reset coverage: `select-case-owner.test.mjs`;
+revision-bound evidence and remaining acceptance: [[card:card-t-c]] status.
+BLOB/NULL and unsupported expressions do not acquire
+numeric affinity accidentally. The DEFAULT id bridge
+preserves raw double/bracket/backtick quotation before dequoting: only unquoted
+TRUE/FALSE become booleans (`parse.y:tokenExpr`, `expr.c:sqlite3ExprIdToTrueFalse`
+EP_Quoted guard); quoted names remain strings. This is a representation bridge,
+not a second evaluator. Public rows/types/metadata/reset and original unmodified
+fixture coverage: `test/conformance/column-default.test.mjs` and
+`column-default-quoted.test.mjs` and `column-default-float.test.mjs`; the separate
+`column-default-branches.test.mjs` exercises native-read synthesized short records
+for CAST/nested unary/hex and unsupported constants; `column-default-cast.test.mjs`
+adds nested CAST owner/type controls and ordinary SELECT controls. Exact candidate/native
+provenance and outstanding integration acceptance: [[card:card-t-c]] status.
 Shared Mem filterHash and execution-owned charged FilterInit/FilterAdd/Filter
 primitives are available; FilterInit represents native zero-filled Blob storage
 with a separate private owner so ordinary Mem copies cannot alias mutable filter

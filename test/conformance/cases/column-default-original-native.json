@@ -1,0 +1,6578 @@
+{
+  "source": {
+    "schemaVersion": 1,
+    "product": "SQLite source archive",
+    "version": "3.53.4",
+    "versionNumber": 3530400,
+    "fossilCheckin": "bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "fossilTimestampUtc": "2026-07-24T19:02:57.525Z",
+    "sqliteSourceId": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+    "canonicalUrl": "https://www.sqlite.org/2026/sqlite-src-3530400.zip",
+    "downloadMetadataUrl": "https://www.sqlite.org/download.html",
+    "retrievedAtUtc": "2026-09-12T16:12:12.247Z",
+    "latestStableCheckedAtUtc": "2026-09-12T16:12:12.247Z",
+    "releaseNotesUrl": "https://www.sqlite.org/releaselog/3_53_4.html",
+    "archive": "sqlite-src-3530400.zip",
+    "bytes": 14557315,
+    "sha3_256": "b834d474b9b393d85a9e3ee4cc11f1329e007e9376a424ee740796f5c4bda3a8",
+    "sha256": "d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b",
+    "license": {
+      "classification": "public domain",
+      "archiveNotice": "LICENSE.md",
+      "upstreamUrl": "https://www.sqlite.org/copyright.html"
+    }
+  },
+  "provenance": "Original unmodified ALTER ADD DEFAULT fixtures from card-s-c-d-n composite-alter-default; scan cases retained verbatim. No UPDATE materialization.",
+  "variants": [
+    {
+      "encoding": "UTF-8",
+      "fixture": "test/conformance/fixtures/column-default-original-utf-8.db",
+      "sha256": "23fddacddde6d82d22f15bc9ddf366fb0a6b4d0b9ee790156331c1283d7b5dd4",
+      "setup": [
+        "PRAGMA encoding='UTF-8'",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,n NUMERIC,v)",
+        "CREATE INDEX i_nc ON t(a COLLATE NOCASE)",
+        "CREATE INDEX i_bin ON t(a COLLATE BINARY)",
+        "CREATE INDEX i_num ON t(n)",
+        "INSERT INTO t VALUES(1,'abc',12,1),(2,'Abcd',13,1.5),(3,'abcz',14,NULL),(4,'ab_c',15,x'00ff'),(5,'ab%c',16,'text'),(6,'abd',17,NULL),(7,NULL,18,NULL),(8,x'616263',19,2),(9,x'41626364',20,3),(10,'\u00e9clair',21,4),(11,'12abc','12abc',5),(12,'-abc','-abc',6)",
+        "WITH RECURSIVE x(i) AS (VALUES(20) UNION ALL SELECT i+1 FROM x WHERE i<519) INSERT INTO t SELECT i,printf('zz%04d',i),i,NULL FROM x",
+        "CREATE INDEX i_nc_desc ON t(a COLLATE NOCASE DESC)",
+        "CREATE INDEX i_bin_desc ON t(a COLLATE BINARY DESC)",
+        "INSERT INTO t VALUES(520,'qrs',1,1.5),(521,x'78797a',2,NULL)",
+        "ALTER TABLE t ADD COLUMN k TEXT COLLATE NOCASE DEFAULT 'tenant'",
+        "DROP INDEX i_nc",
+        "DROP INDEX i_bin",
+        "DROP INDEX i_nc_desc",
+        "DROP INDEX i_bin_desc",
+        "CREATE INDEX i_nc ON t(k COLLATE NOCASE,a COLLATE NOCASE ASC)",
+        "CREATE INDEX i_bin ON t(k COLLATE NOCASE,a COLLATE BINARY ASC)",
+        "CREATE INDEX i_nc_desc ON t(k COLLATE NOCASE,a COLLATE NOCASE DESC)",
+        "CREATE INDEX i_bin_desc ON t(k COLLATE NOCASE,a COLLATE BINARY DESC)",
+        "INSERT INTO t VALUES(522,'abc',1,1.5,'before'),(523,'abc',2,NULL,'zzafter'),(524,'abc',3,NULL,NULL),(525,'abc',4,NULL,'')",
+        "ANALYZE"
+      ],
+      "cases": [
+        {
+          "dimension": "unforced",
+          "sql": "SELECT id,a,n,v FROM t WHERE k='TENANT' AND a LIKE 'abc%' ORDER BY id",
+          "native": {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "blob",
+                  "hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "blob",
+                  "hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "a",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "a"
+              },
+              {
+                "name": "n",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "n"
+              },
+              {
+                "name": "v",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "v"
+              }
+            ],
+            "resetRows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "blob",
+                  "hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "blob",
+                  "hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "eqp": [
+              "SEARCH t USING INDEX i_nc_desc (k=? AND a>? AND a<?)",
+              "USE TEMP B-TREE FOR ORDER BY"
+            ],
+            "program": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e6974"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "33"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f727465724f70656e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6b28312c4229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "35"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6b28332c4e4f434153452c2d4e4f434153452c29"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e7465676572"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54454e414e54"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616264"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5365656b4754"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "414243"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4964784754"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "44656665727265645365656b"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46756e6374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6c696b65283229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "17"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496478526f776964"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4d616b655265636f7264"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f72746572496e73657274"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "34"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "446563724a756d705a65726f"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "23"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e50736575646f"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f72746572536f7274"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "25"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f7274657244617461"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "26"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "27"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "28"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "29"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526573756c74526f77"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f727465724e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "25"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "32"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "48616c74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "33"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5472616e73616374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "34"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61626325"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "35"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "476f746f"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "dimension": "scan",
+          "sql": "SELECT id,a,n,v FROM t NOT INDEXED WHERE k='TENANT' AND a LIKE 'abc%' ORDER BY id",
+          "native": {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "blob",
+                  "hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "blob",
+                  "hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "a",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "a"
+              },
+              {
+                "name": "n",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "n"
+              },
+              {
+                "name": "v",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "v"
+              }
+            ],
+            "resetRows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "blob",
+                  "hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "blob",
+                  "hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                }
+              ]
+            ],
+            "eqp": [
+              "SCAN t"
+            ],
+            "program": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e6974"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e6f6f70"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "35"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526577696e64"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74656e616e74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e65"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e4f434153452d38"
+                },
+                {
+                  "type": "integer",
+                  "value": "82"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46756e6374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6c696b65283229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526f776964"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526573756c74526f77"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "48616c74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5472616e73616374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "17"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54454e414e54"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61626325"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "476f746f"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16le",
+      "fixture": "test/conformance/fixtures/column-default-original-utf-16le.db",
+      "sha256": "377cdece5c5e9c4468bec8e22ddb48f2afde3b9adb621b94fa06cf1eac0fb9b4",
+      "setup": [
+        "PRAGMA encoding='UTF-16le'",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,n NUMERIC,v)",
+        "CREATE INDEX i_nc ON t(a COLLATE NOCASE)",
+        "CREATE INDEX i_bin ON t(a COLLATE BINARY)",
+        "CREATE INDEX i_num ON t(n)",
+        "INSERT INTO t VALUES(1,'abc',12,1),(2,'Abcd',13,1.5),(3,'abcz',14,NULL),(4,'ab_c',15,x'00ff'),(5,'ab%c',16,'text'),(6,'abd',17,NULL),(7,NULL,18,NULL),(8,x'616263',19,2),(9,x'41626364',20,3),(10,'\u00e9clair',21,4),(11,'12abc','12abc',5),(12,'-abc','-abc',6)",
+        "WITH RECURSIVE x(i) AS (VALUES(20) UNION ALL SELECT i+1 FROM x WHERE i<519) INSERT INTO t SELECT i,printf('zz%04d',i),i,NULL FROM x",
+        "CREATE INDEX i_nc_desc ON t(a COLLATE NOCASE DESC)",
+        "CREATE INDEX i_bin_desc ON t(a COLLATE BINARY DESC)",
+        "INSERT INTO t VALUES(520,'qrs',1,1.5),(521,x'78797a',2,NULL)",
+        "ALTER TABLE t ADD COLUMN k TEXT COLLATE NOCASE DEFAULT 'tenant'",
+        "DROP INDEX i_nc",
+        "DROP INDEX i_bin",
+        "DROP INDEX i_nc_desc",
+        "DROP INDEX i_bin_desc",
+        "CREATE INDEX i_nc ON t(k COLLATE NOCASE,a COLLATE NOCASE ASC)",
+        "CREATE INDEX i_bin ON t(k COLLATE NOCASE,a COLLATE BINARY ASC)",
+        "CREATE INDEX i_nc_desc ON t(k COLLATE NOCASE,a COLLATE NOCASE DESC)",
+        "CREATE INDEX i_bin_desc ON t(k COLLATE NOCASE,a COLLATE BINARY DESC)",
+        "INSERT INTO t VALUES(522,'abc',1,1.5,'before'),(523,'abc',2,NULL,'zzafter'),(524,'abc',3,NULL,NULL),(525,'abc',4,NULL,'')",
+        "ANALYZE"
+      ],
+      "cases": [
+        {
+          "dimension": "unforced",
+          "sql": "SELECT id,a,n,v FROM t WHERE k='TENANT' AND a LIKE 'abc%' ORDER BY id",
+          "native": {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "a",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "a"
+              },
+              {
+                "name": "n",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "n"
+              },
+              {
+                "name": "v",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "v"
+              }
+            ],
+            "resetRows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "eqp": [
+              "SEARCH t USING INDEX i_nc_desc (k=? AND a>? AND a<?)",
+              "USE TEMP B-TREE FOR ORDER BY"
+            ],
+            "program": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e6974"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f727465724f70656e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6b28312c4229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "35"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6b28332c4e4f434153452c2d4e4f434153452c29"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e7465676572"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54454e414e54"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616264"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5365656b4754"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "414243"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4964784754"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "44656665727265645365656b"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46756e6374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6c696b65283229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "17"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496478526f776964"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4d616b655265636f7264"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f72746572496e73657274"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "34"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "446563724a756d705a65726f"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e50736575646f"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "23"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f72746572536f7274"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "31"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f7274657244617461"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "25"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "26"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "27"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "28"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "29"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526573756c74526f77"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f727465724e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "48616c74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "32"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5472616e73616374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "33"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61626325"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "34"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "476f746f"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "dimension": "scan",
+          "sql": "SELECT id,a,n,v FROM t NOT INDEXED WHERE k='TENANT' AND a LIKE 'abc%' ORDER BY id",
+          "native": {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "a",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "a"
+              },
+              {
+                "name": "n",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "n"
+              },
+              {
+                "name": "v",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "v"
+              }
+            ],
+            "resetRows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "eqp": [
+              "SCAN t"
+            ],
+            "program": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e6974"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e6f6f70"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "35"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526577696e64"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e65"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e4f434153452d38"
+                },
+                {
+                  "type": "integer",
+                  "value": "82"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46756e6374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6c696b65283229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526f776964"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526573756c74526f77"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "48616c74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5472616e73616374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "17"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54454e414e54"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61626325"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "476f746f"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "encoding": "UTF-16be",
+      "fixture": "test/conformance/fixtures/column-default-original-utf-16be.db",
+      "sha256": "bb6704f23ee4f29367e6dc89b68371e17fee2f40c2bb8e03badf68247f62acbd",
+      "setup": [
+        "PRAGMA encoding='UTF-16be'",
+        "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,n NUMERIC,v)",
+        "CREATE INDEX i_nc ON t(a COLLATE NOCASE)",
+        "CREATE INDEX i_bin ON t(a COLLATE BINARY)",
+        "CREATE INDEX i_num ON t(n)",
+        "INSERT INTO t VALUES(1,'abc',12,1),(2,'Abcd',13,1.5),(3,'abcz',14,NULL),(4,'ab_c',15,x'00ff'),(5,'ab%c',16,'text'),(6,'abd',17,NULL),(7,NULL,18,NULL),(8,x'616263',19,2),(9,x'41626364',20,3),(10,'\u00e9clair',21,4),(11,'12abc','12abc',5),(12,'-abc','-abc',6)",
+        "WITH RECURSIVE x(i) AS (VALUES(20) UNION ALL SELECT i+1 FROM x WHERE i<519) INSERT INTO t SELECT i,printf('zz%04d',i),i,NULL FROM x",
+        "CREATE INDEX i_nc_desc ON t(a COLLATE NOCASE DESC)",
+        "CREATE INDEX i_bin_desc ON t(a COLLATE BINARY DESC)",
+        "INSERT INTO t VALUES(520,'qrs',1,1.5),(521,x'78797a',2,NULL)",
+        "ALTER TABLE t ADD COLUMN k TEXT COLLATE NOCASE DEFAULT 'tenant'",
+        "DROP INDEX i_nc",
+        "DROP INDEX i_bin",
+        "DROP INDEX i_nc_desc",
+        "DROP INDEX i_bin_desc",
+        "CREATE INDEX i_nc ON t(k COLLATE NOCASE,a COLLATE NOCASE ASC)",
+        "CREATE INDEX i_bin ON t(k COLLATE NOCASE,a COLLATE BINARY ASC)",
+        "CREATE INDEX i_nc_desc ON t(k COLLATE NOCASE,a COLLATE NOCASE DESC)",
+        "CREATE INDEX i_bin_desc ON t(k COLLATE NOCASE,a COLLATE BINARY DESC)",
+        "INSERT INTO t VALUES(522,'abc',1,1.5,'before'),(523,'abc',2,NULL,'zzafter'),(524,'abc',3,NULL,NULL),(525,'abc',4,NULL,'')",
+        "ANALYZE"
+      ],
+      "cases": [
+        {
+          "dimension": "unforced",
+          "sql": "SELECT id,a,n,v FROM t WHERE k='TENANT' AND a LIKE 'abc%' ORDER BY id",
+          "native": {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "a",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "a"
+              },
+              {
+                "name": "n",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "n"
+              },
+              {
+                "name": "v",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "v"
+              }
+            ],
+            "resetRows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "eqp": [
+              "SEARCH t USING INDEX i_nc_desc (k=? AND a>? AND a<?)",
+              "USE TEMP B-TREE FOR ORDER BY"
+            ],
+            "program": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e6974"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "33"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f727465724f70656e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6b28312c4229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "35"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6b28332c4e4f434153452c2d4e4f434153452c29"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e7465676572"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54454e414e54"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616264"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5365656b4754"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "414243"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4964784754"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "44656665727265645365656b"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46756e6374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6c696b65283229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "17"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496478526f776964"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4d616b655265636f7264"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "20"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f72746572496e73657274"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "34"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "21"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "22"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "446563724a756d705a65726f"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "23"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e50736575646f"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "24"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f72746572536f7274"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "32"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "25"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f7274657244617461"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "26"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "27"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "28"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "29"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "30"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526573756c74526f77"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "31"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "536f727465724e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "25"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "32"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "48616c74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "33"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5472616e73616374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "34"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61626325"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "35"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "476f746f"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ]
+          }
+        },
+        {
+          "dimension": "scan",
+          "sql": "SELECT id,a,n,v FROM t NOT INDEXED WHERE k='TENANT' AND a LIKE 'abc%' ORDER BY id",
+          "native": {
+            "bindings": [],
+            "rows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "metadata": [
+              {
+                "name": "id",
+                "declaredType": "INTEGER",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "id"
+              },
+              {
+                "name": "a",
+                "declaredType": "TEXT",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "a"
+              },
+              {
+                "name": "n",
+                "declaredType": "NUMERIC",
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "n"
+              },
+              {
+                "name": "v",
+                "declaredType": null,
+                "databaseName": "main",
+                "tableName": "t",
+                "originName": "v"
+              }
+            ],
+            "resetRows": [
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "616263"
+                },
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "41626364"
+                },
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "real",
+                  "ieee754be": "3ff8000000000000"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6162637a"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ],
+            "eqp": [
+              "SCAN t"
+            ],
+            "program": [
+              [
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "496e6974"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e6f6f70"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4f70656e52656164"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "35"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526577696e64"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": ""
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e65"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e4f434153452d38"
+                },
+                {
+                  "type": "integer",
+                  "value": "82"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "46756e6374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "6c696b65283229"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "49664e6f74"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "9"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526f776964"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "10"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "6"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "11"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "7"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "12"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "436f6c756d6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "8"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "13"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "526573756c74526f77"
+                },
+                {
+                  "type": "integer",
+                  "value": "5"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "14"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "4e657874"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "4"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "15"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "48616c74"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "5472616e73616374696f6e"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "16"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "30"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "17"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "2"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "54454e414e54"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "18"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "537472696e6738"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "3"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "61626325"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              [
+                {
+                  "type": "integer",
+                  "value": "19"
+                },
+                {
+                  "type": "text",
+                  "utf8Hex": "476f746f"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "integer",
+                  "value": "1"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "integer",
+                  "value": "0"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
