@@ -1504,7 +1504,12 @@ LIMIT/ORDER are separate owners. Views preserve explicit/inferred column names,
 collation and origin. No nested public Statement or native fallback is used.
 
 `CtePrepareContext` records With/Cte use, scope and materialization decisions;
-recursive ownership is not guessed from a table-name string. Ordinary WITH admits
+its legacy materialized fallback consumer rejects every outer WHERE atomically
+with a temporary unsupported error after linked resolution. That consumer only
+implements ON, not the native residual WHERE owner; this is CF01 wrong-result
+containment, **not** completed filter compatibility. Materialization/Once/OpenDup
+remain unchanged. [Controls and capture recipe](research/cf01-containment.md).
+Recursive ownership is not guessed from a table-name string. Ordinary WITH admits
 represented flatten/coroutine/materialized/repeated-source routes. Recursive
 `generateWithRecursiveQuery` lowering uses iterative Queue/Current state, setup,
 duplicate tracking, queue ORDER and body LIMIT/OFFSET distinct from outer consumer

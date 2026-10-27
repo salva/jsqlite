@@ -181,6 +181,18 @@ class Runner(unittest.TestCase):
    'select-review32-boundaries','select-window-payload-binding',
    'select-zero-source-binding')}
   self.assertEqual(set(files)&beta7,beta7)
+  # Preserve the frozen beta7 digest checks on their exact projection while
+  # admitting explicitly named beta8 public controls and schema discovery.
+  beta8={f'test/conformance/{name}.test.mjs' for name in (
+   'select-collate-scalar-width','function-descriptor-resolution',
+   'function-registration-boundaries','where-level-representation',
+   'where-level-coroutine-lifecycle','materialized-cte-filter-containment')}
+  beta8.update(f'test/schema/{name}.test.mjs' for name in (
+   'catalog-init','public-catalog-lifecycle','public-catalog','sqlite-utf',
+   'wr-declaration-identity'))
+  self.assertEqual(set(files)&beta8,beta8)
+  current_files=files
+  files=[file for file in files if file not in beta8]
   self.assertEqual(len(files),556)
   prefix_era=[file for file in files if file not in beta7]
   self.assertEqual(len(prefix_era),537)
@@ -203,7 +215,8 @@ class Runner(unittest.TestCase):
   for key in selected:
    self.assertEqual(plan.count(runner.select_fixture_command(key,library,root)),1,key)
   expected=sorted({str(p) for pattern in ('test/conformance/*.test.mjs','test/conformance/run-*-ts.mjs','test/storage/*.test.mjs','test/parser/*.test.mjs') for p in pathlib.Path('.').glob(pattern)})
-  self.assertEqual(files,expected)
+  self.assertEqual(sorted(current_files),sorted(files+list(beta8)))
+  self.assertEqual(files,[file for file in expected if file not in beta8])
 
  def test_inventory_rejects_equal_cardinality_substitution(self):
   from unittest.mock import patch

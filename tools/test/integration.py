@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Development-only bounded integration runner. A watchdog is failure, not credit."""
-import argparse, hashlib, json, os, pathlib, signal, subprocess, time
+import argparse, hashlib, json, os, pathlib, signal, subprocess, time, shutil
+
+EXPRESSION_PAIRS = ('select-collate-scalar-width', 'function-descriptor-resolution',
+                    'function-registration-boundaries')
+
+
+def expression_pairs_selected(files):
+    return any(f'test/conformance/{stem}.test.mjs' in files for stem in EXPRESSION_PAIRS)
 
 
 # Development-only positional fixture ownership, shared by planning and invocation.
@@ -82,6 +89,36 @@ def prefix_selected(directory, consumer, files):
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    if 'test/schema/wr-declaration-identity.test.mjs' in files:
+        # Authenticate before the original producer can create/delete fixtures.
+        commands.append(['python3', '-c',
+            "import ctypes,json,pathlib,sys; d=ctypes.CDLL(sys.argv[1]); "
+            "d.sqlite3_sourceid.restype=ctypes.c_char_p; d.sqlite3_libversion_number.restype=ctypes.c_int; "
+            "m=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text()); "
+            "assert d.sqlite3_sourceid().decode()==m['sqliteSourceId']; "
+            "v=list(map(int,m['version'].split('.'))); "
+            "assert d.sqlite3_libversion_number()==v[0]*1000000+v[1]*1000+v[2]", str(library)])
+        commands.append(['python3', 'test/schema/capture-wr-declaration.py'])
+    if 'test/conformance/run-index-planner-ts.mjs' in files:
+        commands.append(['python3', 'test/conformance/index-planner-typed-native.py',
+                         str(library), str(work_root/'index-planner-typed-native.json')])
+    # Source-owned paired recipe regenerates all three DBs and verifies identity
+    # with both sides' CURRENT inputs, then executes both suites and receipts them.
+    if expression_pairs_selected(files):
+        commands.append(['python3', '-c',
+            "import ctypes,json,pathlib,sys; d=ctypes.CDLL(sys.argv[1]); "
+            "d.sqlite3_sourceid.restype=ctypes.c_char_p; d.sqlite3_libversion.restype=ctypes.c_char_p; "
+            "m=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text()); "
+            "assert d.sqlite3_sourceid().decode()==m['sqliteSourceId']; "
+            "assert d.sqlite3_libversion().decode()==m['version']", str(library)])
+        commands.append(['python3', 'tools/oracle/capture-expression-boundaries.py',
+            '--library', str(library), '--fixture-helper', str(library.parent/'sqlite-fixture'),
+            '--node', shutil.which('node') or 'node',
+            '--output', str(work_root/'expression-boundaries')])
+        commands.append(['python3', 'tools/test/verify-expression-capture.py',
+                         str(work_root/'expression-boundaries'), str(library)])
+    if 'test/conformance/materialized-cte-filter-containment.test.mjs' in files:
+        commands.append(['python3', 'test/conformance/materialized-cte-filter-containment-native.py', str(library)])
     names = {pathlib.Path(f).name for f in files}
     for directory, (consumer, flags) in PREFIX_FIXTURES.items():
         if prefix_selected(directory, consumer, files):
@@ -191,10 +228,74 @@ def prerequisite_commands(files, library, work_root):
     return commands
 
 
+def source_inventory(files):
+    """Hash working source, including nonignored untracked dependencies.
+
+    Re-scan membership at completion. Bytecode caches are runtime state, not
+    source; preserve them without enrolling them as executable input bytes.
+    """
+    paths = subprocess.check_output([
+        'git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'
+    ]).decode().split('\0')
+    paths += list(files) + ['tools/test/integration.py',
+                           'tools/test/capture-prefix.py',
+                           'tools/test/capture-default.py',
+                           'test/conformance/close-test-server.mjs']
+    return {f: hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()
+            for f in sorted(set(paths))
+            if f and '__pycache__' not in pathlib.Path(f).parts
+            and pathlib.Path(f).suffix not in ('.pyc', '.pyo')
+            and pathlib.Path(f).is_file()}
+
+
+def generated_inventory(files, work_root, require_captures=False):
+    """Re-scan owned fixture roots, never unrelated work logs/tooling.
+
+    Single-file captures own only their named file. Initial mandatory captures
+    still fail if missing; final absence is represented as membership drift.
+    """
+    names = {pathlib.Path(f).name for f in files}
+    directories = ['wr-declaration-native', 'r1-native', 'r2-native', 'skipscan-native', 'date-native',
+                   'multi-output-native', 'wide-compound-native', 'covered-deferred-native']
+    if expression_pairs_selected(files):
+        directories.append('expression-boundaries')
+    directories += [SELECT_FIXTURES[key][0] for key in selected_fixture_keys(files)]
+    directories += [directory for directory, (consumer, _) in PREFIX_FIXTURES.items()
+                    if prefix_selected(directory, consumer, files)]
+    directories += [f'default{mode}-native' for mode in DEFAULT_MODES
+                    if f'column-default{mode}.test.mjs' in names]
+    paths = {path for directory in directories
+             for path in (work_root/directory).rglob('*') if path.is_file()}
+    for consumer, capture in (
+        ('joined-order-boundary', 'joined-order-boundary-native.json'),
+        ('beta6-aggregate-subquery-destination', 'beta6-destination-native.json'),
+        ('metadata-index-production', 'metadata-index-native.json'),
+    ):
+        if f'test/conformance/{consumer}.test.mjs' in files:
+            path = work_root/capture
+            if require_captures or path.is_file():
+                paths.add(path)
+    if expression_pairs_selected(files):
+        path = work_root/'expression-boundaries/receipt.json'
+        if require_captures or path.is_file():
+            paths.add(path)
+    if 'test/schema/wr-declaration-identity.test.mjs' in files:
+        path = work_root/'wr-declaration-native/native.json'
+        if require_captures or path.is_file():
+            paths.add(path)
+    if 'test/conformance/run-index-planner-ts.mjs' in files:
+        path = work_root/'index-planner-typed-native.json'
+        if require_captures or path.is_file():
+            paths.add(path)
+    return {str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(paths)}
+
+
 def discover_files(root):
     return sorted({str(f.relative_to(root)) for pattern in (
         'test/conformance/*.test.mjs', 'test/conformance/run-*-ts.mjs',
-        'test/storage/*.test.mjs', 'test/parser/*.test.mjs') for f in root.glob(pattern)})
+        'test/storage/*.test.mjs', 'test/parser/*.test.mjs',
+        'test/schema/*.test.mjs') for f in root.glob(pattern)})
 
 
 def test_command(file, work_root=None, file_seconds=100):
@@ -310,10 +411,7 @@ def main():
                JSQLITE_CHINOOK='examples/browser/chinook.sqlite')
     def git(*args):
         return subprocess.check_output(['git', *args])
-    tracked = git('ls-files', '-z').decode().split('\0')
-    hashes = {f: hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()
-              for f in set(tracked + files + ['tools/test/integration.py', 'tools/test/capture-prefix.py', 'tools/test/capture-default.py', 'test/conformance/close-test-server.mjs'])
-              if f and pathlib.Path(f).is_file()}
+    hashes = source_inventory(files)
     report = dict(head=git('rev-parse', 'HEAD').decode().strip(),
                   status=git('status', '--porcelain').decode(),
                   index_sha256=hashlib.sha256(git('ls-files', '--stage', '-z')).hexdigest(),
@@ -338,6 +436,15 @@ def main():
     env = {k:v for k,v in env.items() if k not in SELECT_FIXTURES}
     for key in selected_fixture_keys(files):
         env[key] = str(work_root/SELECT_FIXTURES[key][0])
+    # Fresh typed oracle must override an ambient retained/foreign capture.
+    env.pop('WR_ORACLE', None)
+    env.pop('WR_FIXTURES', None)
+    if 'test/schema/wr-declaration-identity.test.mjs' in files:
+        env['WR_ORACLE'] = str(library)
+        env['WR_FIXTURES'] = str(work_root/'wr-declaration-native')
+    env.pop('INDEX_PLANNER_TYPED_NATIVE', None)
+    if 'test/conformance/run-index-planner-ts.mjs' in files:
+        env['INDEX_PLANNER_TYPED_NATIVE'] = str(work_root/'index-planner-typed-native.json')
     if commands:
         if args.oracle_library:
             report['oracle_library'] = dict(path=str(library), sha256=hashlib.sha256(library.read_bytes()).hexdigest() if library.is_file() else None)
@@ -347,39 +454,13 @@ def main():
         # WR producer deliberately refuses to overwrite old fixtures.
         if any(pathlib.Path(f).name.startswith('skipscan-') for f in files):
             env['SKIPSCAN_NATIVE_ROOT'] = str(work_root/'skipscan-native')
-        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES','COVERED_DEFERRED_DIR', *SELECT_FIXTURES) if k in env}
+        report['fixture_environment'] = {k:env[k] for k in ('SAIVAGE_CARD_WORK_ROOT','SKIPSCAN_NATIVE_ROOT','CHINOOK_DB','JSQLITE_CHINOOK','MULTI_OUTPUT_FIXTURES','WIDE_COMPOUND_FIXTURES','COVERED_DEFERRED_DIR','WR_ORACLE','WR_FIXTURES','INDEX_PLANNER_TYPED_NATIVE', *SELECT_FIXTURES) if k in env}
         for i, command in enumerate(commands):
             result = component(command, work/f'prerequisite-{i}.log', 180, env)
             report['prerequisites'].append(result); save()
             if result['classification'] != 'completed':
                 report['not_run'] = files; save(); return 1
-        report['generated_inputs'] = {
-            str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-            for directory in ('r1-native', 'r2-native', 'skipscan-native', 'date-native', 'multi-output-native', 'wide-compound-native', 'covered-deferred-native', *(SELECT_FIXTURES[key][0] for key in selected_fixture_keys(files)))
-            for path in sorted((work_root/directory).rglob('*')) if path.is_file()
-        }
-        for directory, (consumer, _) in PREFIX_FIXTURES.items():
-            if prefix_selected(directory, consumer, files):
-                report['generated_inputs'].update({
-                    str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-                    for path in sorted((work_root/directory).rglob('*')) if path.is_file()
-                })
-        for mode in DEFAULT_MODES:
-            if f'column-default{mode}.test.mjs' in {pathlib.Path(f).name for f in files}:
-                report['generated_inputs'].update({
-                    str(path.relative_to(work_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-                    for path in sorted((work_root/f'default{mode}-native').rglob('*')) if path.is_file()
-                })
-        if 'test/conformance/joined-order-boundary.test.mjs' in files:
-            capture = work_root/'joined-order-boundary-native.json'
-            report['generated_inputs'][capture.name] = hashlib.sha256(capture.read_bytes()).hexdigest()
-        for consumer, capture_name in (
-            ('beta6-aggregate-subquery-destination', 'beta6-destination-native.json'),
-            ('metadata-index-production', 'metadata-index-native.json'),
-        ):
-            if f'test/conformance/{consumer}.test.mjs' in files:
-                capture = work_root/capture_name
-                report['generated_inputs'][capture.name] = hashlib.sha256(capture.read_bytes()).hexdigest()
+        report['generated_inputs'] = generated_inventory(files, work_root, require_captures=True)
         save()
     # Emit once sequentially before concurrent demo units launch a browser.
     # Direct units use the same owner; installed-demo roots are never rebuilt.
@@ -390,12 +471,17 @@ def main():
             report['not_run'] = files; save(); return 1
     run_batches(files, work, work_root, env, args.watchdog_seconds,
                 args.batch_size, args.batch_seconds, report, save)
-    report['input_drift'] = [f for f,h in hashes.items() if not pathlib.Path(f).is_file() or hashlib.sha256(pathlib.Path(f).read_bytes()).hexdigest()!=h]
+    final_hashes = source_inventory(files)
+    report['input_drift'] = sorted(f for f in hashes.keys() | final_hashes.keys()
+                                   if hashes.get(f) != final_hashes.get(f))
     # Generated paths are relative to the invocation work root, unlike source
     # inputs. Preserve actual component results; drift fails the aggregate.
-    report['input_drift'].extend(
-        str(work_root/f) for f,h in report.get('generated_inputs', {}).items()
-        if not (work_root/f).is_file() or hashlib.sha256((work_root/f).read_bytes()).hexdigest()!=h)
+    if 'generated_inputs' in report:
+        original = report['generated_inputs']
+        final = generated_inventory(files, work_root)
+        report['input_drift'].extend(
+            str(work_root/f) for f in sorted(original.keys() | final.keys())
+            if original.get(f) != final.get(f))
     save()
     return int(bool(report['input_drift']) or bool(report['not_run']) or any(r['classification']!='completed' for r in report['results']))
 

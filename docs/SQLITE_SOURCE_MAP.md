@@ -1,5 +1,15 @@
 # SQLite source map
 
+### Materialized CTE consumer containment (CF01)
+
+`select.c:8100–8140` materializes; `8292ff sqlite3WhereBegin` and
+`wherecode.c:2627–2688` own residual filtering, distinct from ON.
+`vdbe.ts:compileCteDerivedSourcesFallback` rejects outer WHERE after
+`resolveTransientArm`, before materialization/consumer emission. The manual
+ON/copy/destination loops do not implement residual WHERE. Paired
+`materialized-cte-filter-containment{.test.mjs,-native.py}` test this temporary
+boundary, not native row compatibility. [Rationale and recipe](research/cf01-containment.md).
+
 ### WR declaration ownership
 
 `prepare.c:corruptSchema/sqlite3InitCallback` and `build.c:sqlite3CreateIndex/convertToWithoutRowidTable`

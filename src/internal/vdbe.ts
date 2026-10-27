@@ -7201,6 +7201,10 @@ function compileCteDerivedSourcesFallback(select:SelectNode,schema:SchemaGraph,d
  // resolve.c owns source/column selection. This owner only adapts linked
  // logical columns to the materialized row registers allocated below.
  const plan=resolveTransientArm(select,schema);
+ // select.c materializes before the outer sqlite3WhereBegin. These legacy
+ // loops implement ON only, not wherecode.c residual WHERE. Preserve resolver
+ // diagnostics, then reject atomically rather than silently dropping filters.
+ if(select.where)throw new JSQLiteError('unsupported','outer WHERE on this materialized CTE consumer is not implemented',{unsupportedClassification:'temporary'});
  const direct=(reduction:NonNullable<SelectNode['result'][number]['reduction']>):{source:number;column:number}|null=>{
   if(reduction.kind!=='reduction')return null;
   const use=resolvedExpressionCarrier(plan,reduction).column;

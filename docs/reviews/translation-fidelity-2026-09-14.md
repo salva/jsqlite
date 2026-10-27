@@ -1,3 +1,13 @@
+## CF01 materialized fallback: wrong-result containment
+
+On the CF01 audit input (`vdbe.ts`3315876b…69cce), outer WHERE was resolved but
+never emitted by `compileCteDerivedSourcesFallback`. The current repair rejects
+all such filters atomically with typed temporary unsupported after resolution;
+no sample-specific predicate compiler or materialization pushdown was added.
+This closes silent filter loss, not structural SELECT composition or valid-SQL
+compatibility. Native materialization continues into the outer WHERE owner;
+that integration remains missing here. [Evidence and recipe](../research/cf01-containment.md).
+
 ## Joined WhereLevel representation — bounded approval; combined gates pending
 
 The representation below is independently approved on S60's explicit composed
