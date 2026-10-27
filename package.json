@@ -1,7 +1,8 @@
 {
   "name": "jsqlite2",
+  "license": "GPL-3.0-or-later",
   "private": true,
-  "version": "0.0.0-local-translated",
+  "version": "0.0.0-beta.6",
   "type": "module",
   "description": "Experimental browser-safe read-only SQLite translation with bounded progressive SQL admission; not full SQLite compatibility.",
   "scripts": {
@@ -63,6 +64,8 @@
   },
   "types": "./dist/index.d.ts",
   "files": [
+    "LICENSE",
+    "NOTICE.md",
     "dist/**/*.js",
     "dist/**/*.d.ts"
   ]
