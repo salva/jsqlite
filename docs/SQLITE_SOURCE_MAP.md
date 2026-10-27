@@ -1,5 +1,61 @@
 # SQLite source map
 
+### WR declaration ownership
+
+`prepare.c:corruptSchema/sqlite3InitCallback` and `build.c:sqlite3CreateIndex/convertToWithoutRowidTable`
+map to `schema.ts:schemaDeclarationError`, load-local WR `implicitIndexDefinitions`
+and `attachmentDefinitions`. Raw declaration terms retain actual column identity,
+ordinal and conflict/list order across physical PK compaction and root attachment.
+Ordinary rowid timing and existing STAT4 ownership remain unchanged. Affected
+PK-name and explicit-index link/root errors retain object context and ordering.
+[Source comparison and typed native/public controls](../test/schema/wr-declaration-README.md).
+
+### Joined implementation-level continuation ownership
+
+`whereInt.h:WhereLevel`53–113 maps to the local `WhereLevel` in
+`vdbe.ts:compileInnerTableSelect`: `iFrom` is FROM identity, nesting is array
+position, `pWLoop` is the selected algorithm, `iLeftJoin` is match state,
+`inRestart`/`prefixLoop` own IN and prefix continuation, and separate `pRJ`
+owns RIGHT match-set/subroutine state. Stage-specific `nextAt`/`advanceAt`
+retain address/end-control relationships rather than a common exit policy.
+`wherecode.c:filterPullDown`1391–1437 borrows the initiating exit only during
+ready later filters; `where.c:sqlite3WhereEnd`7534–7554 resolves/replaces RIGHT
+continuation before Return. Reverse normal unwind and forward RIGHT drain stay
+distinct. Full ops/targets/register allocation witnesses including strict prefix
+retry and two-filter borrowed/restored targets:
+`test/conformance/where-level-representation.test.mjs`. Evidence and remaining
+acceptance gates: [[card:card-s-b-a-a-b-a-a-a]] status.
+
+### Descriptor-owned resolver lookup
+
+Pinned `resolve.c:resolveExprStep`1160ff / `callback.c:matchQuality`299–325
+map to resolver lookup using existing `functions.ts` name/arity descriptors.
+Catalogued scalar/date/math/JSON spelling and arity lists are removed from
+resolver policy. `func.c`3312–3316 one-argument min/max aggregate overloads
+remain distinct from scalar variadic descriptors, including OVER eligibility.
+Paired `function-descriptor-resolution-native.py` / `.test.mjs` cover exact
+errors, metadata/storage and reset/rebind in three encodings. Noncatalogued
+aggregate/window branches remain specialized; evidence: [[card:card-t-c]] status.
+`function-registration-boundaries{,-native}` additionally compares the finite
+catalog with pinned registrations and tests date/JSON zero/one/edit boundaries.
+Descriptor minima reflect callback.c registration matching, not body shape rules.
+`json.c:jsonSetFunc/jsonReplaceFunc/jsonRemoveFunc` map to json.ts shared
+sync/async edit primitive: argc0 returns NULL, then edit oddness precedes NULL
+and parse checks. `date.c:strftimeFunc` and `jsonExtractFunc` short-arity NULL
+branches use existing date-time.ts/json.ts execution, not prepare-time rejection.
+
+### Resolver scalar-width callbacks
+
+`resolve.c:resolveExprStep`1392–1420 walks nested SELECTs in their NameContext;
+`expr.c:sqlite3SubselectError/sqlite3VectorErrorMsg`3495–3527 owns scalar width
+errors. `resolve.ts:resolveAgainstSources` keeps consumer width explicit: function
+and COLLATE child callbacks forward the node only, not the array index. Scalar,
+parenthesis, vector comparison and IN rules remain distinct. Paired
+`select-collate-scalar-width-native.py` / `.test.mjs` preserve the original
+`SELECT (SELECT 1) COLLATE binary` discriminator plus exact invalid-width errors,
+five metadata fields, INTEGER storage, DONE/reset/rebind across three encodings.
+Correction evidence and remaining scope: [[card:card-t-c]] current status.
+
 ### Window CASE terminal binding
 
 `window.c:selectWindowRewriteExprCb` (748–826) retains CASE structure while

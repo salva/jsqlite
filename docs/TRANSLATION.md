@@ -516,7 +516,14 @@ source-derived cache controls are in `test/storage/record-primitives.test.mjs`.
 Schema loading reads immutable `sqlite_schema` internally and parses definitions
 into table/column/index/view descriptors. Declared affinity, collation, INTEGER
 PRIMARY KEY identity, ordinary index fields, expression/partial predicates and
-WITHOUT ROWID primary layout are distinct facts. A generic PRIMARY KEY is not a
+WITHOUT ROWID primary layout are distinct facts. WR declaration construction retains
+its implicit-index definitions load-locally through root and linked-list attachment;
+raw declaration terms and compacted physical PK terms remain separate, sharing actual
+column identities. Affected PK-name and explicit-index link/root initialization
+failures preserve `prepare.c:corruptSchema` object context and primary error order.
+Ordinary rowid computation timing is unchanged. See
+[ownership/source comparison and reproducible controls](../test/schema/wr-declaration-README.md).
+A generic PRIMARY KEY is not a
 rowid proof. UTF-8, UTF-16le and UTF-16be remain required. Ordinary public SELECT from
 `main.sqlite_schema`/`sqlite_master` is supported through physical root-page1 and
 the same SELECT pipeline, with the bounded metadata/alias/composition rules in
@@ -1078,7 +1085,18 @@ skips later arms; an empty first arm still reaches required errors. Once and
 reset remain distinct invocation owners. [Source and finite lazy/error controls](research/join-retained-compound-contracts-evidence.md).
 [Frontier repair evidence and limits](record:///status.md?card=card-s-c-d-e).
 `WhereClause/WhereTerm`, `WhereLoop/WherePath/WhereLevel`, BigInt source masks and
-LogEst estimates retain dependency and join-barrier ownership. Output adjustment
+LogEst estimates retain dependency and join-barrier ownership. In the joined
+producer, native-shaped implementation levels keep FROM ordinal `iFrom` distinct
+from nesting position and retain the selected `pWLoop` identity. Match state,
+IN/prefix restarts and stage-specific continuation addresses live on that level;
+`pRJ` owns a separate RIGHT continuation object. Reverse termination still
+precedes forward RIGHT drain. `nextAt` includes synthetic-null/RIGHT handling;
+`advanceAt` names later physical movement, not a universal exit. Later Bloom
+filters temporarily use the initiating continuation without changing the later
+seek's exit (`wherecode.c:filterPullDown`). This is representation grouping, not
+new planning or algorithm substitution; full emitted-program witnesses and
+remaining acceptance limits are in [[card:card-s-b-a-a-b-a-a-a]] status.
+Output adjustment
 reads the current syntactic RHS directly from the parser carrier (the analogue
 of `Expr.pRight`), without allocating an operand inventory or memoizing borrowed
 mutable graphs; progress checking still precedes the read. This preserves live
@@ -1275,8 +1293,30 @@ Public limit/cancellation guarantees are unchanged.
 
 ## Aggregates and expression subqueries
 
+Resolver function-name and arity checks for catalogued scalars use `functions.ts`
+descriptors, including date/math/JSON registrations, rather than parallel spelling
+and arity lists. Descriptor minima encode FuncDef matching (-1 accepts zero,
+-3 requires one, -4 requires two), not invocation preconditions. JSON edit
+oddness is checked in the body before document parsing/NULL handling; zero-arg
+edit/remove and fewer-than-two-arg extract return NULL. The paired
+`function-registration-boundaries` controls audit the finite catalog against
+pinned registrations and exercise date/JSON admission and body-error phase.
+The one-argument min/max exact aggregate overload remains separate
+from the scalar variadic descriptor; only that aggregate form admits OVER.
+Deferred diagnostics retain original token spelling and child-error precedence.
+Noncatalogued aggregate/window and unsupported-function policy remains specialized;
+this is not whole-resolver consolidation. Paired `function-descriptor-resolution`
+controls cover diagnostics and metadata/storage/reset/rebind across three encodings;
+revision-bound evidence is in [[card:card-t-c]] status.
+
 Committed vectors preserve field width, typed comparison/NULL ownership and
-multi-column IN destinations; scalar consumers remain width one. Selected
+multi-column IN destinations; scalar consumers remain width one. Resolver
+child callbacks pass only the child node, never an array index as consumer width;
+COLLATE and function argument traversal retain scalar validation independently of
+child position. `select-collate-scalar-width{,-native}` covers scalar COLLATE,
+function/parenthesis/vector/IN controls, exact errors, metadata and reset/rebind
+across three encodings (revision-bound evidence: [[card:card-t-c]] status).
+Selected
 uncorrelated SELECT-IN now has identity-bearing field children and grouped RHS
 cursor iteration with selected-slot projection/reordering before RHS KeyInfo and
 construction (wherecode.c removeUnindexableInClauseTerms). Reduced ORDER result

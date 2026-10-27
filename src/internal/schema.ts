@@ -142,6 +142,9 @@ export type SchemaObject = TableNode | IndexNode | ViewNode | TriggerNode;
 
 interface SchemaRow { type: string; name: string; tableName: string; rootPage: number; sql: string | null; }
 
+function schemaDeclarationError(name:string, message?:string):never {
+  throw new SchemaFormatError(`malformed database schema (${name})${message ? ` - ${message}` : ""}`);
+}
 function malformed(message: string, cause?: unknown): never {
   throw new SchemaFormatError(`malformed database schema: ${message}`, cause === undefined ? {} : { cause });
 }
@@ -850,6 +853,12 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
   const indexes = new Map<string, IndexNode>();
   const views = new Map<string, ViewNode>();
   const triggers = new Map<string, TriggerNode>();
+  // Load-local declaration ownership, not SQL memoization. Ordinary rowid
+  // declarations retain their existing computation and error timing.
+  const withoutRowidDefinitions = new Map<TableNode, ReturnType<typeof implicitIndexDefinitions>>();
+  const attachmentDefinitions = (table:TableNode) => table.withoutRowid
+    ? withoutRowidDefinitions.get(table)!
+    : implicitIndexDefinitions(table,parseDdl(table.sql,"create-table",table.name));
   let triggerBytes=0;
   const names = new Set<string>();
   // prepare.c:sqlite3InitOne/build.c:sqlite3StartTable synthesize a Table at
@@ -874,7 +883,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       // EndTable STRICT validation; declaration errors must win over types.
       for (const name of declaredPrimary) {
         const column = ddl.columns.find(column => sqliteIdentifierEqual(column.name, name));
-        if (!column) malformed(`no such column: ${name}`);
+        if (!column) schemaDeclarationError(item.name,`no such column: ${name}`);
         if (column.generatedExpr) malformed('generated columns cannot be part of the PRIMARY KEY');
       }
       // build.c sqlite3EndTable STRICT pass: validate in declaration order,
@@ -894,8 +903,11 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       // build.c equivalent UNIQUE/PK constraints retain the first index's
       // direction. The WR physical primary must consume that retained owner
       // before duplicate-key compaction and storage layout are constructed.
-      const effectivePrimaryKeyTerms=ddl.withoutRowid
-        ? implicitIndexDefinitions({columns,name:item.name,integerPrimaryKey:null,withoutRowid:true},ddl).find(index=>index.primary)?.terms??declaredPrimaryKeyTerms
+      const definitions=ddl.withoutRowid
+        ? implicitIndexDefinitions({columns,name:item.name,integerPrimaryKey:null,withoutRowid:true},ddl)
+        : null;
+      const effectivePrimaryKeyTerms=definitions
+        ? definitions.find(index=>index.primary)?.terms??declaredPrimaryKeyTerms
         : declaredPrimaryKeyTerms;
       // build.c convertToWithoutRowidTable/isDupColumn: collapse only
       // identical column+collation pairs, keeping the first sort direction.
@@ -922,6 +934,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
       const self:ResolvedSource={table,cursorId:-1,tableName:table.name,databaseName:null,arguments:null,alias:null,indexedBy:null,notIndexed:false,on:null,using:null,leftOfRightJoin:false,joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}};
       try{for(let i=0;i<columns.length;i++)if(columns[i]!.generatedExpr)resolvedGeneratedExpressionCarrier(self,i);}
       catch(error){if(error instanceof NameResolutionError)throw new SchemaFormatError(`malformed database schema (${item.name}) - ${error.message}`,{cause:error});throw error;}
+      if(definitions)withoutRowidDefinitions.set(table,definitions);
       tables.set(folded, table);
     }
   }
@@ -932,7 +945,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
   for(const table of tables.values())if(table.withoutRowid){
     if(!table.primaryKey.length)malformed(`WITHOUT ROWID table ${table.name} has no PRIMARY KEY`);
     const terms=table.primaryKeyTerms;
-    const definitions=implicitIndexDefinitions(table,parseDdl(table.sql,"create-table",table.name));
+    const definitions=attachmentDefinitions(table);
     const ordinal=definitions.findIndex(definition=>definition.primary)+1;
     if(ordinal<1)malformed(`WITHOUT ROWID table ${table.name} has no primary index definition`);
     const name=`sqlite_autoindex_${table.name}_${ordinal}`;
@@ -949,7 +962,7 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
   for (const item of [...automaticRows,...rows.filter(item=>!(item.type==="index"&&item.sql===null))]) {
     if(!implicitPublished&&!(item.type==="index"&&item.sql===null)){
       for(const table of tables.values()){
-        const definitions=implicitIndexDefinitions(table,parseDdl(table.sql,"create-table",table.name));
+        const definitions=attachmentDefinitions(table);
         const byOrdinal=new Map(table.indexes.map(index=>[Number(index.name.slice(index.name.lastIndexOf("_")+1))-1,index]));
         const linked:IndexNode[]=[];
         definitions.forEach((definition,ordinal)=>{
@@ -963,16 +976,15 @@ export function loadSchemaGraph(connection: StorageOwnerCarrier, context: Schema
     if (item.type === "table") continue;
     if (item.type === "index") {
       const table = tables.get(sqliteAsciiFold(item.tableName));
-      if (!table) malformed(`index ${item.name} refers to unknown table ${item.tableName}`);
-      if (item.rootPage < 1 || item.rootPage > database.pageCount) malformed(`invalid root page for ${item.name}`);
+      if (!table) schemaDeclarationError(item.name);
+      if (item.rootPage < 1 || item.rootPage > database.pageCount) schemaDeclarationError(item.name,"invalid rootpage");
       if (item.sql === null) {
         // build.c:sqlite3CreateIndex constructs persistent automatic indexes
         // for PRIMARY KEY and UNIQUE constraints. These are existing on-disk
         // b-trees, not OP_OpenAutoindex/runtime index construction.
         const primary = table.primaryKey;
         const rowidAlias = table.integerPrimaryKey !== null;
-        const ddl=parseDdl(table.sql,"create-table",table.name);
-        const implicit=implicitIndexDefinitions(table,ddl);
+        const implicit=attachmentDefinitions(table);
         const prefix=`sqlite_autoindex_${table.name}_`,ordinal=item.name.startsWith(prefix)?Number(item.name.slice(prefix.length)):NaN,definition=implicit[ordinal-1],terms=definition?.terms;
         if(!Number.isSafeInteger(ordinal)||ordinal<1||!terms)throw new SchemaUnsupportedError(`automatic index construction is not implemented: ${item.name}`);
         const index = { kind: "index", name: item.name, tableName: item.tableName, rootPage: item.rootPage, sql: null, table, terms, unique: true, onError:definition!.onError,origin: definition!.primary ? "primary-key" : "unique", partialWhere:null, physical:null } as unknown as IndexNode;

@@ -1136,7 +1136,7 @@ test('selected LEFT miss clears pending uncovered payload from prior hit',async(
 test('selected LEFT null-row closes index and pending deferred table cursor',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const joined=source.slice(source.indexOf('function compileInnerTableSelect('),source.indexOf('interface FullScanPlan'));
- const unmatched=joined.slice(joined.indexOf('const match=leftMatches[level];if(match!==undefined){'),joined.indexOf('const normalScanEnd='));
+ const unmatched=joined.slice(joined.indexOf('const match=levels[level]!.iLeftJoin;if(match!==undefined){'),joined.indexOf('const normalScanEnd='));
  assert.match(unmatched,/code:'NullRow',p1:.*indexCursor/, 'selected LEFT miss must null its index cursor');
  const vm=source.slice(source.indexOf('case "NullRow":'),source.indexOf('case "Column":',source.indexOf('case "NullRow":')));
  assert.match(vm,/#deferredRowids\.delete\(op\.p1\)/,'NullRow must clear the table cursor pending seek');
@@ -1147,7 +1147,7 @@ test('selected LEFT null-row closes index and pending deferred table cursor',()=
 test('selected RIGHT unmatched pass nulls left selected index before continuation',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const joined=source.slice(source.indexOf('function compileInnerTableSelect('),source.indexOf('interface FullScanPlan'));
- const pass=joined.slice(joined.indexOf('for(const [rightLevel,right] of rightStates)'),joined.indexOf('const rewind=ops.length;ops.push({code:\'Rewind\'',joined.indexOf('for(const [rightLevel,right] of rightStates)')));
+ const pass=joined.slice(joined.indexOf('for(const [rightLevel,state] of levels.entries())'),joined.indexOf('const rewind=ops.length;ops.push({code:\'Rewind\'',joined.indexOf('for(const [rightLevel,state] of levels.entries())')));
  assert.match(pass,/for\(let level=0;level<rightLevel;level\+\+\)\{[\s\S]*?indexCursors\.get\(ordinal\)[\s\S]*?code:'NullRow',p1:indexCursor/, 'unmatched RIGHT continuation must null selected left index with table');
 });
 

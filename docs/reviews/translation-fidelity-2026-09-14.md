@@ -1,3 +1,55 @@
+## Joined WhereLevel representation — bounded approval; combined gates pending
+
+The representation below is independently approved on S60's explicit composed
+input (author69 / immediate-owner review7), not bare0931 or this later T/S/E
+integration. The combined schema adds E review32's retained WR declaration owner
+and affected corruptSchema diagnostics while preserving beta7 STAT4 branches;
+[WR source and reproducible controls](../../test/schema/wr-declaration-README.md).
+G's scoped composition checks are author integration evidence, not independent
+combined-tree or release approval. W/V final exact-input gates remain pending.
+
+The previously parallel continuation collections in `compileInnerTableSelect`
+are replaced by implementation-level objects retaining FROM/selected-loop
+identity, match state, IN/prefix addresses and separate RIGHT state references.
+This addresses representation ownership, not additional optimizer coverage.
+Full pre-change/candidate emitted-program comparisons now include strict prefix
+retry, reordered FROM identity and two-filter temporary borrowing/restored seek
+exits. RIGHT state is allocated through its owning level; reverse unwind and
+forward drain remain separate. Source mapping is in SQLITE_SOURCE_MAP's joined
+implementation-level section. Focused typed public/native ordinary69 and selected
+lifecycle witnesses are complete; broader/final combined W/V, integration and
+manifest/capture/generated/package/browser gates remain pending. No independent
+approval or whole-fidelity claim is implied.
+Revision-bound evidence: [[card:card-s-b-a-a-b-a-a-a]],
+[typed/native status58](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=58)
+and [selected lifecycle/status62](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=62).
+
+## Resolver descriptor-policy increment (author evidence)
+
+Resolver scalar/date/math/JSON name and arity policy now uses the existing
+functions.ts descriptors instead of duplicate lists. Registration minima now follow
+callback.c (-1/zero, -3/one, -4/two), distinct from invocation checks; R36.1's
+strftime/JSON false prepare errors are corrected at descriptor and JSON body
+owners. Paired function-registration-boundaries controls compare the finite
+catalog to pinned registrations and verify NULL/TEXT/BLOB and error phase in
+three encodings. One-argument min/max aggregate
+overloads remain specialized and distinct from scalar variadic calls for OVER.
+Mixed-case arity diagnostics and child-error precedence have paired public/native
+controls in function-descriptor-resolution; other aggregate/window policy remains
+specialized. This is bounded P1 progress, not complete walker/producer migration.
+Revision-bound commands and remaining gates: [[card:card-t-c]] current status.
+
+## Resolver COLLATE scalar-width correction (author evidence)
+
+The current C1 reproduction traced to array callback indices leaking into
+`resolveAgainstSources.walk`'s consumer-width argument, not unsupported scalar
+COLLATE. Function and COLLATE child callbacks now forward only nodes; scalar
+width remains one and vector/IN/parenthesis consumers retain their explicit
+rules. Native/public `select-collate-scalar-width{,-native}` controls cover exact
+prepare errors, storage, metadata, reset/rebind and three encodings. This is a
+bounded correctness correction, not P1 function-descriptor consolidation credit.
+Revision-bound evidence: [[card:card-t-c]] status; broader gates remain open.
+
 ## Retained-window semantic adapter disposition (author evidence)
 
 Review32's remaining projection/ORDER spelling owner is replaced in the bounded

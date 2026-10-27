@@ -6,6 +6,8 @@ export type BuiltinFunctionFlag =
   | "inline" | "unlikely" | "like" | "case" | "typeof" | "subtype"
   | "length" | "byte-length";
 
+// minimumArity is the registration minimum: -1 => 0, -3 => 1,
+// -4 => 2 (callback.c:matchQuality), never a function-body precondition.
 export interface BuiltinFunctionDefinition {
   readonly name: string;
   readonly exactArities: readonly number[];
@@ -35,8 +37,8 @@ const entries: readonly BuiltinFunctionDefinition[] = Object.freeze([
   definition("likelihood",[2],withFlags("inline","unlikely"),true),
   definition("likely",[1],withFlags("inline","unlikely"),true),
   definition("ltrim",[1,2],C,true), definition("rtrim",[1,2],C,true), definition("trim",[1,2],C,true),
-  definition("min",[],withFlags("need-collation"),true,2),
-  definition("max",[],withFlags("need-collation"),true,2),
+  definition("min",[],withFlags("need-collation"),true,1),
+  definition("max",[],withFlags("need-collation"),true,1),
   definition("typeof",[1],withFlags("typeof"),true),
   definition("subtype",[1],withFlags("typeof","subtype"),true),
   definition("length",[1],withFlags("length"),true),
@@ -63,7 +65,7 @@ const entries: readonly BuiltinFunctionDefinition[] = Object.freeze([
 if(entries.length!==50) throw new Error("ordinary scalar registry must contain 50 rows");
 // date.c keeps these registrations separate; lookup and OP_Function are shared.
 const dateEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
- definition("julianday",[],C,true,0),definition("unixepoch",[],C,true,0),definition("date",[],C,true,0),definition("time",[],C,true,0),definition("datetime",[],C,true,0),definition("strftime",[],C,true,1),definition("timediff",[2],C,true),definition("current_time",[0],S,true),definition("current_date",[0],S,true),definition("current_timestamp",[0],S,true),
+ definition("julianday",[],C,true,0),definition("unixepoch",[],C,true,0),definition("date",[],C,true,0),definition("time",[],C,true,0),definition("datetime",[],C,true,0),definition("strftime",[],C,true,0),definition("timediff",[2],C,true),definition("current_time",[0],S,true),definition("current_date",[0],S,true),definition("current_timestamp",[0],S,true),
 ]);
 // func.c's SQLITE_ENABLE_MATH_FUNCTIONS block. Multiple FuncDef rows for log
 // are represented by its exact arity set, just as the ordinary catalog does.
@@ -84,10 +86,10 @@ const jsonEntries:readonly BuiltinFunctionDefinition[]=Object.freeze([
  definition("json",[1],withFlags("subtype"),true),
  definition("jsonb",[1],C,true),
  definition("json_valid",[1,2],C,true),
- definition("json_extract",[],withFlags("subtype"),true,2),definition("jsonb_extract",[],withFlags("subtype"),true,2),
+ definition("json_extract",[],withFlags("subtype"),true,0),definition("jsonb_extract",[],withFlags("subtype"),true,0),
  definition("json_type",[1,2],C,true),definition("json_array_length",[1,2],C,true),definition("json_error_position",[1],C,true),
  definition("json_quote",[1],withFlags("subtype"),true),definition("json_array",[],withFlags("subtype"),true,0),definition("jsonb_array",[],C,true,0),definition("json_object",[],withFlags("subtype"),true,0),definition("jsonb_object",[],C,true,0),
- definition("json_insert",[],withFlags("subtype"),true,3),definition("jsonb_insert",[],C,true,3),definition("json_replace",[],withFlags("subtype"),true,3),definition("jsonb_replace",[],C,true,3),definition("json_set",[],withFlags("subtype"),true,3),definition("jsonb_set",[],C,true,3),definition("json_remove",[],withFlags("subtype"),true,1),definition("jsonb_remove",[],C,true,1),definition("json_patch",[2],withFlags("subtype"),true),definition("jsonb_patch",[2],C,true),definition("json_array_insert",[],withFlags("subtype"),true,3),definition("jsonb_array_insert",[],C,true,3),definition("json_pretty",[1,2],C,true),
+ definition("json_insert",[],withFlags("subtype"),true,0),definition("jsonb_insert",[],C,true,0),definition("json_replace",[],withFlags("subtype"),true,0),definition("jsonb_replace",[],C,true,0),definition("json_set",[],withFlags("subtype"),true,0),definition("jsonb_set",[],C,true,0),definition("json_remove",[],withFlags("subtype"),true,0),definition("jsonb_remove",[],C,true,0),definition("json_patch",[2],withFlags("subtype"),true),definition("jsonb_patch",[2],C,true),definition("json_array_insert",[],withFlags("subtype"),true,0),definition("jsonb_array_insert",[],C,true,0),definition("json_pretty",[1,2],C,true),
  definition("json_arrow",[2],withFlags("subtype"),true),definition("json_arrow_sql",[2],C,true),
 ]);
 const byName = new Map([...entries,...dateEntries,...mathEntries,...jsonEntries].map(entry=>[entry.name,entry] as const));

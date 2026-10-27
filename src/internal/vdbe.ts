@@ -4610,7 +4610,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // whereInt.h:WhereRightJoin belongs to a WhereLevel, never the SELECT.
   // Normal nested scans close in reverse order; unmatched scans run forward.
   // Bloom is omitted: exact typed Found remains the membership owner.
-  const rightStates=new Map(rightLevels.map((level,index)=>{
+  const createRightState=(level:number,index:number)=>{
     const source=expanded.sources[level]!;
     const primary=source.table.kind==='table'&&source.table.withoutRowid?primaryFor(source):null;
     const count=primary?.keyInfo.keyFieldCount??1;
@@ -4619,7 +4619,27 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       key,count,primary,record:allocate(),returnRegister:allocate(),body:{entry:-1,continue:-1,break:-1}};
     const info=primary?case5KeyInfo(primary):new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:'binary'}]});
     ops.push({code:'Null',p2:state.returnRegister},{code:'OpenEphemeral',p1:state.matchCursor,keyInfo:info,...(primary?{p4KeyInfo:info}:{})});
-    return [level,state] as const;
+    return state;
+  };
+  // whereInt.h:WhereLevel is the implementation owner, not a second plan.
+  // iFrom is a FROM ordinal; array position alone is the nesting level.
+  // nextAt includes synthetic-null/RIGHT handling; advanceAt is later movement.
+  // Keep WhereRightJoin separate, retaining its exact identity via pRJ.
+  type WhereRightJoin=ReturnType<typeof createRightState>;
+  interface WhereLevel {
+    iFrom:number;pWLoop:WhereLoop|undefined;pRJ:WhereRightJoin|undefined;
+    rewind:number;start:number;body:number;singleRow:boolean;iLeftJoin:number|undefined;
+    nextAt:number;advanceAt:number;rewindEmpty:number|undefined;
+    inRestart:{iterators:number[];advance:number}|undefined;
+    prefixLoop:PrefixLoop|undefined;nullPass:number|undefined;nullContinue:number|undefined;
+  }
+  const levels:WhereLevel[]=(rightLevel<0&&expanded.sources.every(source=>!source.joinFromLeft.left)
+    ?multiWhere.path!.loops.map(loop=>loop.sourceOrdinal)
+    :expanded.sources.map((_,ordinal)=>ordinal)).map(iFrom=>({
+    iFrom,pWLoop:selectedBySource.get(iFrom),pRJ:rightLevels.includes(iFrom)?createRightState(iFrom,rightLevels.indexOf(iFrom)):undefined,
+    rewind:0,start:0,body:0,singleRow:false,iLeftJoin:undefined,
+    nextAt:0,advanceAt:0,rewindEmpty:undefined,inRestart:undefined,
+    prefixLoop:undefined,nullPass:undefined,nullContinue:undefined,
   }));
   // expr.c:sqlite3CodeSubselect lowers into the caller's VDBE. The
   // bounded join route likewise emits a correlated aggregate in the joined-row
@@ -4700,7 +4720,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const codedWhere=new Set<number>();
   // disableTerm is invocation-owned; planner ids belong to another analysis.
   const codeSelectedTerms=(terms:readonly WhereTerm[],level:number,ready:bigint):void=>{
-    const source=loopSources[level]!;
+    const source=expanded.sources[levels[level]!.iFrom]!;
     if(source.leftOfRightJoin)return;
     for(const selected of terms){
       if(selected.virtual||(selected.prereqAll&~ready)!==0n)continue;
@@ -4726,13 +4746,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // term until the innermost row repeats scans and correlated RHS production.
   // Preserve the existing outer-join placement below and LTORJ deferral here.
   const codeReadyConstraints=(level:number,ready:bigint):void=>{
-    const source=loopSources[level]!;
+    const source=expanded.sources[levels[level]!.iFrom]!;
     if(source.leftOfRightJoin)return;
     // Ordinary wherecode.c loop: covered restrictions, then noncorrelated,
     // then TERM_VARSELECT. LEFT-hit/RIGHT-subroutine WHERE is a separate
     // single-pass phase after match publication, not this ordinary schedule.
     const outerPhase=source.joinFromLeft.left||source.joinFromLeft.right;
-    const selected=selectedBySource.get(loopOrdinals[level]!),physical=selected?.kind==='index'?selected.capability?.physicalIndex:undefined;
+    const selected=levels[level]!.pWLoop,physical=selected?.kind==='index'?selected.capability?.physicalIndex:undefined;
     const first=outerPhase?3:physical?1:2;
     for(let pass=first;pass<=3;pass++)for(const term of whereTerms){
       if(termIsCoded(term)||(term.prereqAll&~ready)!==0n)continue;
@@ -4753,17 +4773,13 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // where.c:wherePathSolver chooses both access and loop order. wherecode.c
   // evaluates each RHS only after its prereqRight cursors are positioned.
   // Keep the existing source-order NULL-row continuation for outer/right joins.
-  const loopOrdinals=rightLevel<0&&expanded.sources.every(source=>!source.joinFromLeft.left)
-    ?multiWhere.path!.loops.map(loop=>loop.sourceOrdinal)
-    :expanded.sources.map((_,ordinal)=>ordinal);
-  const loopSources=loopOrdinals.map(ordinal=>expanded.sources[ordinal]!);
 
   const rightPrimaryMisses:{at:number;level:number}[]=[];
-  const rewinds:number[]=[],starts:number[]=[],bodies:number[]=[],singleRows:boolean[]=[],leftMatches:(number|undefined)[]=[],loopEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[],inRestarts=new Map<number,{iterators:number[];advance:number}>(),prefixLoops=new Map<number,PrefixLoop>(),nullPasses=new Map<number,number>(),nullContinues=new Map<number,number>();
+  const loopEnds:{at:number;level:number}[]=[],startNullGuards:{at:number;level:number}[]=[],equalityNullGuards:{at:number;level:number}[]=[],jumps:{at:number;level:number}[]=[];
   // A forward RIGHT drain can enter a deeper body even when an empty outer
   // scan never initialized that level. Its LEFT continuation flags must be
   // valid integers before any body is callable (where.c/wherecode.c reset).
-  for(let level=0;level<loopSources.length;level++)if(level>0&&loopSources[level]!.joinFromLeft.left){leftMatches[level]=allocate();const nullPass=allocate();nullPasses.set(level,nullPass);ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!},{code:'Integer',p1:0n,p2:nullPass});}
+  for(let level=0;level<levels.length;level++)if(level>0&&expanded.sources[levels[level]!.iFrom]!.joinFromLeft.left){levels[level]!.iLeftJoin=allocate();const nullPass=allocate();levels[level]!.nullPass=nullPass;ops.push({code:'Integer',p1:0n,p2:levels[level]!.iLeftJoin!},{code:'Integer',p1:0n,p2:nullPass});}
   const orReturns=new Map<number,number>();
   const orCovering=new Map<number,{physical:PhysicalIndex;cursor:number;tableCursor:number;start:number}>();
   // Case5 owns a subroutine per selected level. Its body is the ordinary
@@ -4953,33 +4969,33 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     consumedBloom.add(ordinal);
     // filterPullDown borrows the initiating continuation only while emitting
     // each ready later filter. It does not change the later seek's break label.
-    for(const later of loopOrdinals.slice(level+1)){
+    for(const later of levels.slice(level+1).map(state=>state.iFrom)){
       const next=selectedBySource.get(later)!;
       if(!next.capability?.nSkip&&bloomPullDownEligible(later)&&builtBloom.has(later)&&(next.prereq&~readyMask)===0n)emitBloomProbe(later,level,readyMask);
     }
   };
-  for(let level=0;level<expanded.sources.length;level++){const source=loopSources[level]!,ordinal=loopOrdinals[level]!,isLeft=level>0&&source.joinFromLeft.left,selected=selectedBySource.get(ordinal),indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){const nullPass=nullPasses.get(level)!;ops.push({code:'Integer',p1:0n,p2:leftMatches[level]!},{code:'Integer',p1:0n,p2:nullPass});}const readyMask=loopOrdinals.slice(0,level).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;
+  for(let level=0;level<expanded.sources.length;level++){const source=expanded.sources[levels[level]!.iFrom]!,ordinal=levels[level]!.iFrom!,isLeft=level>0&&source.joinFromLeft.left,selected=levels[level]!.pWLoop,indexCursor=indexCursors.get(ordinal),scanCursor=indexCursor??cursorFor(source);if(isLeft){const nullPass=levels[level]!.nullPass!;ops.push({code:'Integer',p1:0n,p2:levels[level]!.iLeftJoin!},{code:'Integer',p1:0n,p2:nullPass});}const readyMask=levels.slice(0,level).map(state=>state.iFrom).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n),rowEqCandidate=selected?.capability?.rowidEquality,rowEq=rowEqCandidate&&(rowEqCandidate.term.prereqRight&~readyMask)===0n?rowEqCandidate:null;
   const producer=owner?.sourceProducers?.get(source);
   if(producer?.materialize)ops.push({code:'Gosub',p1:producer.materialize.register,p2:producer.materialize.entry});
   if(producer?.coroutine){
     ops.push({code:'InitCoroutine',p1:producer.coroutine.register,p2:0,p3:producer.coroutine.entry});
-    rewinds.push(ops.length);ops.push({code:'Yield',p1:producer.coroutine.register,p2:0});singleRows[level]=false;
+    levels[level]!.rewind=ops.length;ops.push({code:'Yield',p1:producer.coroutine.register,p2:0});levels[level]!.singleRow=false;
   }else if(selected?.kind==='metadata-module'){
     const row=moduleRows.get(source)!;
     const args=selected.arguments.map(term=>compileExpressionTree(bindResolvedExpression(expressionFromReduction(term.rhs.reduction),term.rhs,cursorFor,true,nestedBinding),ops,allocate,parameters,compileJoinSubquery));
-    rewinds.push(ops.length);
+    levels[level]!.rewind=ops.length;
     if(!expanded.metadataSchema)throw new JSQLiteError('unsupported','metadata producer requires its resident schema',{unsupportedClassification:'temporary'});
     ops.push({code:'MetadataFilter',p1:row.cursor,schema:expanded.metadataSchema,module:source.table.name,...(args[0]===undefined?{}:{input:args[0]}),...(args[1]===undefined?{}:{database:args[1]}),rowStart:row.first,rowIdentity:row.rowid,p2:0});
-    singleRows[level]=false;
+    levels[level]!.singleRow=false;
   }else if(selected?.kind==='json-module'){
     const row=moduleRows.get(source);if(!row)throw new JSQLiteError('internal','selected module lost row owner');
     const args=selected.arguments.map(term=>compileExpressionTree(bindResolvedExpression(expressionFromReduction(term.rhs.reduction),term.rhs,cursorFor,true,nestedBinding),ops,allocate,parameters,compileJoinSubquery));
-    const input=args[0],root=args[1];rewinds.push(ops.length);
+    const input=args[0],root=args[1];levels[level]!.rewind=ops.length;
     ops.push({code:'JsonTableRewind',p1:row.cursor,...(input===undefined?{}:{input}),...(root===undefined?{}:{root}),recursive:source.table.name.endsWith('tree'),binaryContainers:source.table.name.startsWith('jsonb_'),rowStart:row.first,columns:row.columns,rowIdentity:row.rowid,p2:0});
-    singleRows[level]=false;
+    levels[level]!.singleRow=false;
   }else if(selected?.kind==='multi-or'){
     const continuation=emitJoinedOr(selected,multiWhere.analysis.clause,cursorFor(source),readyMask);
-    rewinds.push(continuation.exit);orReturns.set(level,continuation.returnRegister);singleRows[level]=false;
+    levels[level]!.rewind=continuation.exit;orReturns.set(level,continuation.returnRegister);levels[level]!.singleRow=false;
     for(const call of continuation.calls)(ops[call] as {p2:number}).p2=ops.length;
     if(continuation.covering)orCovering.set(level,{physical:continuation.covering,cursor:continuation.indexCursor,tableCursor:cursorFor(source),start:ops.length});
   }else if(automaticLevels.has(ordinal)){
@@ -5014,25 +5030,25 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     });
     if(automatic.filter!==undefined){equalityNullGuards.push({at:ops.length,level});ops.push({code:'Filter',p1:automatic.filter,p2:0,p3:keys,p4:descriptor.keys.length,probeCursor:automatic.cursor});}
     const registers=descriptor.keys.map((_,i)=>keys+i);
-    rewinds.push(ops.length);ops.push({code:'IndexSeekPrefix',p1:automatic.cursor,keys:registers,affinities,keyInfo:descriptor.keyInfo,reverse:false,p2:0});
-    // starts[] must include the authoritative equality-prefix termination on
-    // every duplicate step, but bodies[] excludes it for LEFT null extension.
+    levels[level]!.rewind=ops.length;ops.push({code:'IndexSeekPrefix',p1:automatic.cursor,keys:registers,affinities,keyInfo:descriptor.keyInfo,reverse:false,p2:0});
+    // levels[]!.start must include the authoritative equality-prefix termination on
+    // every duplicate step, but levels[]!.body excludes it for LEFT null extension.
     loopEnds.push({at:ops.length,level});ops.push({code:'IndexPrefixEnd',p1:automatic.cursor,keys:registers,affinities,keyInfo:descriptor.keyInfo,p2:0});
-    singleRows[level]=false;
+    levels[level]!.singleRow=false;
   }else {
   const bloom=bloomLevels.get(ordinal);
   if(bloom&&!builtBloom.has(ordinal)){
     // sqlite3ConstructBloomFilter groups ready later filters under this Once.
     const once=ops.length;ops.push({code:'Once',p1:allocate(),p2:0});
     emitBloomBuild(ordinal);
-    for(const later of loopOrdinals.slice(level+1)){
+    for(const later of levels.slice(level+1).map(state=>state.iFrom)){
       const loop=selectedBySource.get(later)!;
       if(bloomPullDownEligible(later)&&bloomLevels.has(later)&&!builtBloom.has(later)&&(loop.prereq&~readyMask)===0n)emitBloomBuild(later);
     }
     (ops[once] as {p2:number}).p2=ops.length;
   }
-  rewinds.push(ops.length);
-  if(rowEq){const tree=resolveTree(expressionFromReduction(rowEq.term.expression.reduction!),rowEq.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery);emitBloomProbe(ordinal,level,readyMask,[key]);rewinds[level]=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});singleRows[level]=true; }else {
+  levels[level]!.rewind=ops.length;
+  if(rowEq){const tree=resolveTree(expressionFromReduction(rowEq.term.expression.reduction!),rowEq.term.expression.reduction as Reduction);if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid equality lost binary expression');const key=compileExpressionTree(rowEq.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery);emitBloomProbe(ordinal,level,readyMask,[key]);levels[level]!.rewind=ops.length;ops.push({code:'SeekRowid',p1:cursorFor(source),key,p2:0});levels[level]!.singleRow=true; }else {
     const capability=selected?.capability;
     const equalities=capability?.equalitySlots.filter((slot):slot is IndexConstraintAdmission=>slot!==null)??[];
     const usable=indexCursor!==undefined&&capability&&(capability.nEq||capability.lower||capability.upper);
@@ -5080,7 +5096,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
         iterators.push(iterator);
         inTargets.set(admission,target);
       }
-      if(iterators.length)inRestarts.set(level,{iterators,advance:iterators.at(-1)!});
+      if(iterators.length)levels[level]!.inRestart={iterators,advance:iterators.at(-1)!};
       const keys=admissions.map(admission=>inTargets.get(admission)??compileExpressionTree(bound(admission.term),ops,allocate,parameters,compileJoinSubquery));
       // codeAllEqualityTerms: '=' NULL exits this level, not the next IN
       // value. IS/IS NULL retain searchable NULL keys; IN skips NULL itself.
@@ -5090,18 +5106,18 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
       // codeAllEqualityTerms: SRT_Set already applied SELECT-IN affinity.
       // Seek and equality-prefix termination share this no-op slot vector.
       const affinities=admissions.map(admission=>admission.term.inSelectRhs?'blob' as const:admission.comparison.kind==='comparison'?admission.comparison.affinity:'blob' as const);
-      emitBloomProbe(loopOrdinals[level]!,level,readyMask,keys,affinities,skippedKeys);
+      emitBloomProbe(levels[level]!.iFrom!,level,readyMask,keys,affinities,skippedKeys);
       const prefixLoop=emitPrefixSeek(ops,prefixEntry,indexCursor!,[...skippedKeys,...keys],[...skippedAffinities,...affinities],capability.physicalIndex!.keyInfo,capability.reverse,!!start&&(start.bound==='lower-exclusive'||start.bound==='upper-exclusive'),{enabled:!!capability.inSeekScan,rowLogEst:capability.index!.rowLogEst[0]??99,hasRange:!!(capability.lower||capability.upper)});
-      rewinds[level]=prefixLoop.seek;prefixLoops.set(level,prefixLoop);
+      levels[level]!.rewind=prefixLoop.seek;levels[level]!.prefixLoop=prefixLoop;
     }else ops.push(indexCursor===undefined&&!(source.table.kind==='table'&&source.table.withoutRowid)?{code:capability?.reverse?'Last':'Rewind',p1:scanCursor,p2:0}:{code:capability?.reverse?'IndexLast':'IndexRewind',p1:scanCursor,p2:0});
-    singleRows[level]=false;
+    levels[level]!.singleRow=false;
   }
   }
-  starts.push(automaticLevels.has(ordinal)?ops.length-1:ops.length);
+  levels[level]!.start=automaticLevels.has(ordinal)?ops.length-1:ops.length;
   if(indexCursor!==undefined){
-    const capability=selected!.capability!,seek=ops[rewinds[level]!];
-    if(seek?.code==='IndexSeekPrefix'||seek?.code==='IndexRewind'||seek?.code==='IndexLast'||(seek?.code==='Goto'&&prefixLoops.has(level))){
-      if(capability.nEq&&prefixLoops.has(level)){const prefix=prefixLoops.get(level)!;ops.push({code:'IndexPrefixEnd',p1:indexCursor,keys:prefix.keys.slice(0,capability.nEq),affinities:prefix.affinities.slice(0,capability.nEq),keyInfo:capability.physicalIndex!.keyInfo,p2:0});loopEnds.push({at:ops.length-1,level});}
+    const capability=selected!.capability!,seek=ops[levels[level]!.rewind!];
+    if(seek?.code==='IndexSeekPrefix'||seek?.code==='IndexRewind'||seek?.code==='IndexLast'||(seek?.code==='Goto'&&(levels[level]!.prefixLoop!==undefined))){
+      if(capability.nEq&&(levels[level]!.prefixLoop!==undefined)){const prefix=levels[level]!.prefixLoop!;ops.push({code:'IndexPrefixEnd',p1:indexCursor,keys:prefix.keys.slice(0,capability.nEq),affinities:prefix.affinities.slice(0,capability.nEq),keyInfo:capability.physicalIndex!.keyInfo,p2:0});loopEnds.push({at:ops.length-1,level});}
       const rangeReverse=capability.reverse!==!!capability.physicalIndex?.fields[capability.nEq]?.descending;
       const end=rangeReverse?capability.lower:capability.upper;
       // wherecode.c Case 4 keeps pRangeStart and pRangeEnd separate. A
@@ -5131,7 +5147,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   // operand is already bound with its owning reduction; do not resolve it again.
   const rowEndCandidate=selected?.capability?.reverse?selected.capability.rowidLower:selected?.capability?.rowidUpper;
   const rowEnd=rowEndCandidate&&(rowEndCandidate.term.prereqRight&~readyMask)===0n?rowEndCandidate:null;
-  if(rowEnd&&!singleRows[level]){
+  if(rowEnd&&!levels[level]!.singleRow){
     const tree=resolveTree(expressionFromReduction(rowEnd.term.expression.reduction!),rowEnd.term.expression.reduction as Reduction);
     if(tree.kind!=="binary")throw new JSQLiteError('internal','rowid end bound lost binary expression');
     const key=compileExpressionTree(rowEnd.originalIndexedOperand==='left'?tree.right:tree.left,ops,allocate,parameters,compileJoinSubquery),at=ops.length;
@@ -5153,11 +5169,11 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     }
     // INNER keeps its existing lowering: where.c False-WHERE-Term-Bypass
     // may reject a table-independent NULL before entering any join loop.
-  }else if(onReady){const on=compilePredicate(source.on);if(on!==undefined)jumps.push({at:on,level});}if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:leftMatches[level]!});const right=rightStates.get(level);if(right){if(right.primary)emitPrimaryKeyRead(ops,right.primary,right.key,column=>{const physical=selected?.capability?.physicalIndex,reader=indexCursors.get(ordinal);if(physical&&reader!==undefined){const pk=right.primary!.fields.slice(0,right.count).findIndex(field=>field.column===column),field=physical.index.origin==='primary-key'?pk:physical.primaryKeyFields[pk];if(field===undefined||field<0)throw new JSQLiteError('internal','RIGHT selected WR identity is absent');return {cursor:reader,physicalColumnIndex:field};}return columnAccess(source,source.table.columns.indexOf(column));});else if(moduleRows.has(source))ops.push({code:'Copy',p1:moduleRows.get(source)!.rowid,p2:right.key});else if(indexCursors.has(ordinal)){const selected=selectedBySource.get(ordinal)!,physical=selected.capability!.physicalIndex!,tail=physical.fields.findIndex(field=>field.role==='rowid-tail');if(tail<0)throw new JSQLiteError('internal','RIGHT selected rowid identity is absent');ops.push({code:'Column',p1:tail,p2:right.key,p3:indexCursors.get(ordinal)!});}else ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:right.count,jump:0});if(right.primary)ops.push({code:'MakeRecord',p1:right.key,p2:right.count,p3:right.record},{code:'IdxInsert',p1:right.matchCursor,p2:right.record,keyStart:right.key,keyCount:right.count});else ops.push({code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}bodies[level]=ops.length;codeReadyConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
+  }else if(onReady){const on=compilePredicate(source.on);if(on!==undefined)jumps.push({at:on,level});}if(source.using)for(const name of source.using){const right=source.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),left=expanded.sources.slice(0,level).reverse().find(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name)))!,leftIndex=left.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name));const value=compileExpressionTree(resolveTree({kind:'binary',op:'=',left:expanded.sources.some(candidate=>candidate.joinFromLeft.right)?{kind:'call',name:'coalesce',args:expanded.sources.slice(0,level).filter(candidate=>candidate.table.columns.some(column=>sqliteIdentifierEqual(column.name,name))).map(candidate=>({kind:'column',index:candidate.table.columns.findIndex(column=>sqliteIdentifierEqual(column.name,name)),name:`${candidate.alias??candidate.table.name}.${name}`}))}:{kind:'column',index:leftIndex,name:`${left.alias??left.table.name}.${name}`},right:{kind:'column',index:right,name:`${source.alias??source.table.name}.${name}`}}),ops,allocate,parameters),at=ops.length;ops.push({code:'IfNot',p1:value,p2:0});jumps.push({at,level});}if(isLeft)ops.push({code:'Integer',p1:1n,p2:levels[level]!.iLeftJoin!});const right=levels[level]!.pRJ;if(right){if(right.primary)emitPrimaryKeyRead(ops,right.primary,right.key,column=>{const physical=selected?.capability?.physicalIndex,reader=indexCursors.get(ordinal);if(physical&&reader!==undefined){const pk=right.primary!.fields.slice(0,right.count).findIndex(field=>field.column===column),field=physical.index.origin==='primary-key'?pk:physical.primaryKeyFields[pk];if(field===undefined||field<0)throw new JSQLiteError('internal','RIGHT selected WR identity is absent');return {cursor:reader,physicalColumnIndex:field};}return columnAccess(source,source.table.columns.indexOf(column));});else if(moduleRows.has(source))ops.push({code:'Copy',p1:moduleRows.get(source)!.rowid,p2:right.key});else if(indexCursors.has(ordinal)){const selected=selectedBySource.get(ordinal)!,physical=selected.capability!.physicalIndex!,tail=physical.fields.findIndex(field=>field.role==='rowid-tail');if(tail<0)throw new JSQLiteError('internal','RIGHT selected rowid identity is absent');ops.push({code:'Column',p1:tail,p2:right.key,p3:indexCursors.get(ordinal)!});}else ops.push({code:'Rowid',p1:cursorFor(source),p2:right.key});const found=ops.length;ops.push({code:'Found',p1:right.matchCursor,keyStart:right.key,keyCount:right.count,jump:0});if(right.primary)ops.push({code:'MakeRecord',p1:right.key,p2:right.count,p3:right.record},{code:'IdxInsert',p1:right.matchCursor,p2:right.record,keyStart:right.key,keyCount:right.count});else ops.push({code:'IdxInsert',p1:right.matchCursor,keyStart:right.key,keyCount:1});(ops[found] as {jump:number}).jump=ops.length;ops.push({code:'BeginSubrtn',p2:right.returnRegister});right.body.entry=ops.length;}levels[level]!.body=ops.length;codeReadyConstraints(level,readyMask|(1n<<BigInt(ordinal)));}
   const joinedBodyStart=ops.length;
   // Delayed inner-join ON clauses can reference a source positioned later in
   // the chosen path. Their residual is evaluated only at the complete row.
-  for(const ordinal of loopOrdinals){const source=expanded.sources[ordinal]!;if(!source.on?.reduction||source.joinFromLeft.left)continue;const terms=multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual);const at=loopOrdinals.indexOf(ordinal),ready=loopOrdinals.slice(0,at+1).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n);if(terms.some(term=>(term.prereqAll&~ready)!==0n)){const predicate=compilePredicate(source.on);if(predicate!==undefined)jumps.push({at:predicate,level:expanded.sources.length-1});}}
+  for(const {iFrom:ordinal} of levels){const source=expanded.sources[ordinal]!;if(!source.on?.reduction||source.joinFromLeft.left)continue;const terms=multiWhere.analysis.clause.terms.filter(term=>term.origin.kind==='join-on'&&term.origin.rightSource===ordinal&&!term.virtual);const at=levels.findIndex(state=>state.iFrom===ordinal),ready=levels.slice(0,at+1).map(state=>state.iFrom).reduce((mask,source)=>mask|(1n<<BigInt(source)),0n);if(terms.some(term=>(term.prereqAll&~ready)!==0n)){const predicate=compilePredicate(source.on);if(predicate!==undefined)jumps.push({at:predicate,level:expanded.sources.length-1});}}
   // selectInnerLoop codes the result expression list before SRT_Mem. A
   // phase-aware caller may bind even a direct column to an outer payload
   // register, so its resolved result must not take the physical-column shortcut.
@@ -5199,12 +5215,12 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
   const producerStops=delivery.producerStops;
   delivery.innerLoop();
   const joinedBodyEnd=ops.length;
-  const nextAt:number[]=[],advanceAt:number[]=[],rewindEmpty:number[]=[];for(let level=expanded.sources.length-1;level>=0;level--){// where.c:sqlite3WhereEnd resolves RIGHT continue to the inline Return.
+  for(let level=expanded.sources.length-1;level>=0;level--){// where.c:sqlite3WhereEnd resolves RIGHT continue to the inline Return.
   // where.c sqlite3WhereEnd guards unopened inner IN cursors with
   // IfNotOpen after LEFT null-row execution. Our ordered-set iterator uses
   // registers instead of a cursor: a synthetic null pass must skip physical
   // advance and all RHS restarts, including slots never initialized.
-  nextAt[level]=ops.length;const nullPass=nullPasses.get(level);if(nullPass!==undefined){nullContinues.set(level,ops.length);ops.push({code:'IfPos',p1:nullPass,p2:0,p3:0});}const right=rightStates.get(level);if(right){right.body.continue=ops.length;ops.push({code:'Return',p1:right.returnRegister,fallthrough:true});}// Record the actual movement op: LEFT IfPos and RIGHT Return precede it.
+  levels[level]!.nextAt=ops.length;const nullPass=levels[level]!.nullPass;if(nullPass!==undefined){levels[level]!.nullContinue=ops.length;ops.push({code:'IfPos',p1:nullPass,p2:0,p3:0});}const right=levels[level]!.pRJ;if(right){right.body.continue=ops.length;ops.push({code:'Return',p1:right.returnRegister,fallthrough:true});}// Record the actual movement op: LEFT IfPos and RIGHT Return precede it.
   // Patching nextAt would overwrite the synthetic-null continuation guard.
   const cover=orCovering.get(level);
   if(cover){
@@ -5212,51 +5228,52 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     for(let pc=cover.start;pc<ops.length;pc++){
       const op=ops[pc]!;
       if(op.code==='Column'&&(op.p3??0)===cover.tableCursor){
-        const table=physicalTable(loopSources[level]!);
+        const table=physicalTable(expanded.sources[levels[level]!.iFrom]!);
         // where.c:sqlite3WhereEnd maps WR primary storage through aiColumn
         // before looking up the logical column in the agreed secondary.
-        const column=table.withoutRowid?primaryFor(loopSources[level]!).fields[op.p1]?.column:table.columns[op.p1];
+        const column=table.withoutRowid?primaryFor(expanded.sources[levels[level]!.iFrom]!).fields[op.p1]?.column:table.columns[op.p1];
         const field=cover.physical.fields.findIndex(field=>column!==undefined&&(field.column===column||
-          (field.role==='rowid-tail'&&isIntegerPrimaryKeyAlias(loopSources[level]!.table,op.p1))));
+          (field.role==='rowid-tail'&&isIntegerPrimaryKeyAlias(expanded.sources[levels[level]!.iFrom]!.table,op.p1))));
         if(field>=0)ops[pc]={...op,p1:field,p3:cover.cursor};
       }else if(op.code==='Rowid'&&(op.p1??0)===cover.tableCursor)ops[pc]={...op,p1:cover.cursor};
     }
   }
-  advanceAt[level]=ops.length;const automatic=automaticLevels.get(loopOrdinals[level]!);const coroutine=owner?.sourceProducers?.get(loopSources[level]!)?.coroutine;
-  if(automatic)ops.push({code:'IndexNext',p1:automatic.cursor,p2:starts[level]!});else if(coroutine)ops.push({code:'Goto',p2:rewinds[level]!});else if(moduleRows.has(loopSources[level]!)){
-    const row=moduleRows.get(loopSources[level]!)!;ops.push({code:loopSources[level]!.table.kind==='metadata-module'?'MetadataNext':'JsonTableNext',p1:row.cursor,rowStart:row.first,rowIdentity:row.rowid,p2:starts[level]!});
-  }else if(orReturns.has(level))ops.push({code:'Return',p1:orReturns.get(level)!});else if(singleRows[level])ops.push({code:'Goto',p2:0});else {const ordinal=loopOrdinals[level]!,indexCursor=indexCursors.get(ordinal),reverse=!!selectedBySource.get(ordinal)?.capability?.reverse;ops.push(indexCursor===undefined&&!(loopSources[level]!.table.kind==='table'&&physicalTable(loopSources[level]!).withoutRowid)?{code:reverse?'Prev':'Next',p1:cursorFor(loopSources[level]!),p2:starts[level]!}:{code:reverse?'IndexPrev':'IndexNext',p1:indexCursor??cursorFor(loopSources[level]!),p2:starts[level]!});}const restart=inRestarts.get(level);if(restart){
+  levels[level]!.advanceAt=ops.length;const automatic=automaticLevels.get(levels[level]!.iFrom!);const coroutine=owner?.sourceProducers?.get(expanded.sources[levels[level]!.iFrom]!)?.coroutine;
+  if(automatic)ops.push({code:'IndexNext',p1:automatic.cursor,p2:levels[level]!.start!});else if(coroutine)ops.push({code:'Goto',p2:levels[level]!.rewind!});else if(moduleRows.has(expanded.sources[levels[level]!.iFrom]!)){
+    const row=moduleRows.get(expanded.sources[levels[level]!.iFrom]!)!;ops.push({code:expanded.sources[levels[level]!.iFrom]!.table.kind==='metadata-module'?'MetadataNext':'JsonTableNext',p1:row.cursor,rowStart:row.first,rowIdentity:row.rowid,p2:levels[level]!.start!});
+  }else if(orReturns.has(level))ops.push({code:'Return',p1:orReturns.get(level)!});else if(levels[level]!.singleRow)ops.push({code:'Goto',p2:0});else {const ordinal=levels[level]!.iFrom!,indexCursor=indexCursors.get(ordinal),reverse=!!selectedBySource.get(ordinal)?.capability?.reverse;ops.push(indexCursor===undefined&&!(expanded.sources[levels[level]!.iFrom]!.table.kind==='table'&&physicalTable(expanded.sources[levels[level]!.iFrom]!).withoutRowid)?{code:reverse?'Prev':'Next',p1:cursorFor(expanded.sources[levels[level]!.iFrom]!),p2:levels[level]!.start!}:{code:reverse?'IndexPrev':'IndexNext',p1:indexCursor??cursorFor(expanded.sources[levels[level]!.iFrom]!),p2:levels[level]!.start!});}const restart=levels[level]!.inRestart;if(restart){
     // where.c:sqlite3WhereEnd unwinds each equality-slot IN from inner to outer.
     for(let i=restart.iterators.length-1;i>=0;i--){
       const iterator=restart.iterators[i]!;
       if(i===restart.iterators.length-1)restart.advance=ops.length;
       if(i<restart.iterators.length-1)(ops[restart.iterators[i+1]!] as {p2:number}).p2=ops.length;
-      emitInAdvance(ops,iterator,nullPasses.get(level));
+      emitInAdvance(ops,iterator,levels[level]!.nullPass);
     }
-  }const prefixLoop=prefixLoops.get(level);if(prefixLoop?.restart!==null&&prefixLoop?.restart!==undefined)ops.push({code:"Goto",p2:prefixLoop.restart});
-  const match=leftMatches[level];if(match!==undefined){
-    rewindEmpty[level]=ops.length;
+  }const prefixLoop=levels[level]!.prefixLoop;if(prefixLoop?.restart!==null&&prefixLoop?.restart!==undefined)ops.push({code:"Goto",p2:prefixLoop.restart});
+  const match=levels[level]!.iLeftJoin;if(match!==undefined){
+    levels[level]!.rewindEmpty=ops.length;
     const matched=ops.length;
     ops.push({code:'IfPos',p1:match,p2:0,p3:0},{code:'Integer',p1:1n,p2:match});
-    const moduleRow=moduleRows.get(loopSources[level]!);
-    if(moduleRow){for(let i=0;i<loopSources[level]!.table.columns.length;i++)ops.push({code:'Null',p2:moduleRow.first+i});ops.push({code:'Null',p2:moduleRow.rowid});}
+    const moduleRow=moduleRows.get(expanded.sources[levels[level]!.iFrom]!);
+    if(moduleRow){for(let i=0;i<expanded.sources[levels[level]!.iFrom]!.table.columns.length;i++)ops.push({code:'Null',p2:moduleRow.first+i});ops.push({code:'Null',p2:moduleRow.rowid});}
     else ops.push({code:'NullRow',p1:cursorFor(expanded.sources[level]!)});
     // where.c:sqlite3WhereEnd nulls both the table and its selected index
     // before re-entering the LEFT body. Neither may expose a previous hit.
     // where.c7694: MULTI_OR pCoveringIdx is a separate cursor owner.
     // Body Column/Rowid rewrites must observe NULL, not the final arm record.
-    const indexCursor=indexCursors.get(loopOrdinals[level]!)??automaticLevels.get(loopOrdinals[level]!)?.cursor??orCovering.get(level)?.cursor;
+    const indexCursor=indexCursors.get(levels[level]!.iFrom!)??automaticLevels.get(levels[level]!.iFrom!)?.cursor??orCovering.get(level)?.cursor;
     if(indexCursor!==undefined)ops.push({code:'NullRow',p1:indexCursor});
-    ops.push({code:'Integer',p1:1n,p2:nullPasses.get(level)!},{code:'Goto',p2:bodies[level]!});
-    const nullContinue=nullContinues.get(level);if(nullContinue!==undefined)(ops[nullContinue] as {p2:number}).p2=ops.length;
+    ops.push({code:'Integer',p1:1n,p2:levels[level]!.nullPass!},{code:'Goto',p2:levels[level]!.body!});
+    const nullContinue=levels[level]!.nullContinue;if(nullContinue!==undefined)(ops[nullContinue] as {p2:number}).p2=ops.length;
     (ops[matched] as {p2:number}).p2=ops.length;
-  }if(right){right.body.break=ops.length;rewindEmpty[level]??=right.body.break;ops.push({code:'Return',p1:right.returnRegister,fallthrough:true});}}const normalScanEnd=ops.length;
-  for(const [rightLevel,right] of rightStates){
+  }if(right){right.body.break=ops.length;levels[level]!.rewindEmpty??=right.body.break;ops.push({code:'Return',p1:right.returnRegister,fallthrough:true});}}const normalScanEnd=ops.length;
+  for(const [rightLevel,state] of levels.entries()){
+    const right=state.pRJ;if(!right)continue;
     // wherecode.c:sqlite3WhereRightJoinLoop scans the original RHS after the
     // source-order pass, NULLs every cursor left of the barrier, and invokes the
     // same interior continuation (including downstream joins and destinations).
     for(let level=0;level<rightLevel;level++){
-      const ordinal=loopOrdinals[level]!;
+      const ordinal=levels[level]!.iFrom!;
       const prefix=expanded.sources[ordinal]!,row=moduleRows.get(prefix);
       if(row){
         ops.push({code:'Null',p2:row.rowid});
@@ -5268,18 +5285,18 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     // wherecode.c:sqlite3WhereRightJoinLoop uses a fresh RHS scan after
     // NULLing the left cursors. That scan must supersede any selected seek
     // cursor still attached to the same table cursor from the matched pass.
-    const rightIndex=indexCursors.get(loopOrdinals[rightLevel]!);
+    const rightIndex=indexCursors.get(levels[rightLevel]!.iFrom!);
     if(rightIndex!==undefined)ops.push({code:'NullRow',p1:rightIndex});
     // wherecode.c:sqlite3WhereRightJoinLoop copies the RHS with jointype=0
     // and re-enters the existing WHERE owner. Null preceding sources remain
     // resolved outer references; no spelling/token reconstruction is involved.
-    const original=expanded.sources[loopOrdinals[rightLevel]!]!;
+    const original=expanded.sources[levels[rightLevel]!.iFrom!]!;
     const moduleRow=moduleRows.get(original);
     if(moduleRow&&original.table.kind==='json-module'){
       // wherecode.c copies the RHS with jointype=0 and scans it again. Filter
       // owns reset/parse lifetime; Rowid is the module traversal identity on
       // both scans. Reuse the original producer locations for the interior.
-      const selected=selectedBySource.get(loopOrdinals[rightLevel]!);
+      const selected=selectedBySource.get(levels[rightLevel]!.iFrom!);
       if(selected?.kind!=='json-module')throw new JSQLiteError('internal','RIGHT JSON loop lost selected arguments');
       const args=selected.arguments.map(term=>compileExpressionTree(bindResolvedExpression(expressionFromReduction(term.rhs.reduction),term.rhs,cursorFor,true,nestedBinding),ops,allocate,parameters,compileJoinSubquery));
       const rewind=ops.length;
@@ -5298,7 +5315,7 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
     if(materialize)ops.push({code:'Gosub',p1:materialize.register,p2:materialize.entry});
     const source:ResolvedSource={...original,on:null,using:null,leftOfRightJoin:false,
       joinFromLeft:{inner:true,cross:false,natural:false,left:false,right:false,outer:false,error:false}};
-    const residual=rightJoinResidual(expanded,loopOrdinals[rightLevel]!).reduce<SelectNode['where']>((where,term)=>andViewPredicates(where,term.expression),null);
+    const residual=rightJoinResidual(expanded,levels[rightLevel]!.iFrom!).reduce<SelectNode['where']>((where,term)=>andViewPredicates(where,term.expression),null);
     const input:SelectNode={...select,result:[],where:residual,groupBy:[],having:null,
       orderBy:[],limit:null,offset:null,hasDistinct:false,hasGroupBy:false,
       hasHaving:false,hasOrderBy:false,hasLimit:false,hasCompound:false,hasValues:false,arms:[],
@@ -5332,28 +5349,31 @@ function compileInnerTableSelect(select:SelectNode,expanded:ReturnType<typeof ex
 
   }
   const scanEnd=ops.length;
-  for(const {at,level} of rightPrimaryMisses)(ops[at] as {jump:number}).jump=nextAt[level]!;
-  delivery.continueAt(nextAt.at(-1)!);for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:nextAt[jump.level]!;
-  for(const {at,level} of loopEnds)(ops[at] as {p2:number}).p2=inRestarts.get(level)?.advance??prefixLoops.get(level)?.restart??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
-  for(const [level,restart] of inRestarts){
-    const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
-    (ops[restart.iterators[0]!] as {p2:number}).p2=prefixLoops.get(level)?.restart??exit;
+  for(const {at,level} of rightPrimaryMisses)(ops[at] as {jump:number}).jump=levels[level]!.nextAt!;
+  delivery.continueAt(levels.at(-1)!.nextAt);for(const jump of jumps)(ops[jump.at] as {p2:number}).p2=jump.level<0?normalScanEnd:levels[jump.level]!.nextAt!;
+  for(const {at,level} of loopEnds)(ops[at] as {p2:number}).p2=levels[level]!.inRestart?.advance??levels[level]!.prefixLoop?.restart??levels[level]!.rewindEmpty??(level===0?normalScanEnd:levels[level-1]!.nextAt!);
+  for(const [level,state] of levels.entries()){
+    const restart=state.inRestart;if(!restart)continue;
+    const exit=levels[level]!.rewindEmpty??(level===0?normalScanEnd:levels[level-1]!.nextAt!);
+    (ops[restart.iterators[0]!] as {p2:number}).p2=levels[level]!.prefixLoop?.restart??exit;
   }
-  for(const [level,prefix] of prefixLoops){
-    const exit=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);
+  for(const [level,state] of levels.entries()){
+    const prefix=state.prefixLoop;if(!prefix)continue;
+    const exit=levels[level]!.rewindEmpty??(level===0?normalScanEnd:levels[level-1]!.nextAt!);
     for(const at of [prefix.restart,prefix.empty])if(at!==null)(ops[at] as {p2:number}).p2=exit;
   }
   delivery.sortTail();
   const halt=delivery.finish();
   for(const [source,row] of moduleRows)ops.push({code:source.table.kind==='metadata-module'?'MetadataClose':'JsonTableClose',p1:row.cursor});
   if(!owner)ops.push({code:'Halt'});
-  for(let level=0;level<rewinds.length;level++){if(!(prefixLoops.get(level)?.seek===rewinds[level]&&ops[rewinds[level]!]!.code==="Goto"))(ops[rewinds[level]!] as {p2:number}).p2=inRestarts.get(level)?.advance??prefixLoops.get(level)?.restart??rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);if(singleRows[level])(ops[advanceAt[level]!] as {p2:number}).p2=rewindEmpty[level]??(level===0?normalScanEnd:nextAt[level-1]!);}for(const guard of equalityNullGuards)(ops[guard.at] as {p2:number}).p2=rewindEmpty[guard.level]??(guard.level===0?normalScanEnd:nextAt[guard.level-1]!);for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[rewinds[guard.level]!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
+  for(let level=0;level<levels.length;level++){if(!(levels[level]!.prefixLoop?.seek===levels[level]!.rewind&&ops[levels[level]!.rewind!]!.code==="Goto"))(ops[levels[level]!.rewind!] as {p2:number}).p2=levels[level]!.inRestart?.advance??levels[level]!.prefixLoop?.restart??levels[level]!.rewindEmpty??(level===0?normalScanEnd:levels[level-1]!.nextAt!);if(levels[level]!.singleRow)(ops[levels[level]!.advanceAt!] as {p2:number}).p2=levels[level]!.rewindEmpty??(level===0?normalScanEnd:levels[level-1]!.nextAt!);}for(const guard of equalityNullGuards)(ops[guard.at] as {p2:number}).p2=levels[guard.level]!.rewindEmpty??(guard.level===0?normalScanEnd:levels[guard.level-1]!.nextAt!);for(const guard of startNullGuards)(ops[guard.at] as {p2:number}).p2=(ops[levels[guard.level]!.rewind!] as {p2:number}).p2;if(limit&&!owner?.compoundLimit)(ops[limit.ifZero] as {p2:number}).p2=halt;
   // vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn: ordinary continuation
   // targets must stay inside the interior or reach its Return. Producer
   // Explicit producer stops may terminate early; ordinary escapes must reach
   // the owning Return (possibly through other Returns), as in the C verifier.
   const validateRightInterior=()=>{
-    for(const right of rightStates.values()){
+    for(const state of levels){
+    const right=state.pRJ;if(!right)continue;
     for(let at=right.body.entry;at<=right.body.continue;at++){
       const op=ops[at]!;
       if(op.code==='Gosub'||op.code==='Yield'||op.code==='EndCoroutine')continue;
@@ -9475,7 +9495,7 @@ function evaluateFunction(name:string,a:Mem[],encoding:DatabaseEncoding,coll:"bi
  if(name==="json_error_position")return jsonErrorPosition(a[0]!,units=>{charge(units);control?.check()});
  if(name==="json_quote")return jsonQuote(a[0]!);
  if(["json_array","json_object","jsonb_array","jsonb_object"].includes(name)){const result=jsonConstruct(name.endsWith("array")?"array":"object",a,name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
- if(/jsonb?_(?:insert|replace|set|remove|array_insert)$/.test(name)){const mode=name.endsWith("array_insert")?"array_insert":name.slice(name.indexOf("_")+1) as "insert"|"replace"|"set"|"remove";const result=jsonEdit(a[0]!,a.slice(1),mode,units=>{charge(units);control?.check()},name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
+ if(/jsonb?_(?:insert|replace|set|remove|array_insert)$/.test(name)){const mode=name.endsWith("array_insert")?"array_insert":name.slice(name.indexOf("_")+1) as "insert"|"replace"|"set"|"remove";const result=jsonEdit(a[0],a.slice(1),mode,units=>{charge(units);control?.check()},name.startsWith("jsonb_"));checkSize(valueBytes(result));return result}
  if(name==="json_patch"||name==="jsonb_patch"){const result=jsonPatch(a[0]!,a[1]!,units=>{charge(units);control?.check()},name==="jsonb_patch");checkSize(valueBytes(result));return result}
  if(name==="json_pretty")throw new JSQLiteError("internal","pretty requires asynchronous Function execution");
  if(name==="json_valid"){
@@ -10709,7 +10729,7 @@ export class VdbeStatement implements Statement {
  this.#registers[op.p2]!.moveFrom(publishFunctionResult(result,this.#program.encoding,this.#program.maxResultBytes));
  }else if(/^(json|jsonb)_(set|insert|replace|remove|array_insert)$/.test(op.name)){
  const mode=op.name.slice(op.name.indexOf("_")+1) as "set"|"insert"|"replace"|"remove"|"array_insert";
- const result=await runAsyncFunctionContext(()=>jsonEditAsync(args[0]!,args.slice(1),mode,control.charge,op.name.startsWith("jsonb_"),(units)=>this.#privateControl(options,limit,started).checkpoint(units)));
+ const result=await runAsyncFunctionContext(()=>jsonEditAsync(args[0],args.slice(1),mode,control.charge,op.name.startsWith("jsonb_"),(units)=>this.#privateControl(options,limit,started).checkpoint(units)));
  this.#registers[op.p2]!.moveFrom(publishFunctionResult(result,this.#program.encoding,this.#program.maxResultBytes));
  }else if(op.name==="json_extract"||op.name==="jsonb_extract"||op.name==="json_arrow"||op.name==="json_arrow_sql"){
  const mode=op.name==="json_extract"?"text":op.name==="jsonb_extract"?"blob":op.name==="json_arrow_sql"?"sql":"json";
