@@ -37,7 +37,7 @@ try {
   const page = await browser.newPage();
   const base = process.env.JSQLITE_SITE_URL || `http://127.0.0.1:${server.address().port}/jsqlite/`;
   await page.goto(base);
-  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-beta\.6/);
+  assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-beta\.7/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);
   const native = JSON.parse(await readFile(new URL('./public-examples-native.json', import.meta.url), 'utf8'));
   const pin = JSON.parse(await readFile(new URL('../../reference/sqlite/manifest.json', import.meta.url), 'utf8'));
@@ -110,7 +110,7 @@ try {
     assert.equal((await page.request.get(new URL(name, base).href)).status(), 200);
   }
   const installed = await browser.newPage();
-  await installed.goto(new URL('beta/0.0.0-beta.6/examples/browser/', base).href);
+  await installed.goto(new URL('beta/0.0.0-beta.7/examples/browser/', base).href);
   await installed.waitForFunction(() => !document.getElementById('run').disabled);
   await installed.locator('#run').click();
   await installed.waitForFunction(() => !document.getElementById('run').disabled);
@@ -122,7 +122,7 @@ try {
   await installed.waitForFunction(() => !document.getElementById('run').disabled);
   assert.match(await installed.locator('#status').innerText(), /^PASS:/);
   for (const name of ['LICENSE', 'NOTICE.md', 'RELEASE.json']) {
-    assert.equal((await installed.request.get(new URL(`beta/0.0.0-beta.6/${name}`, base).href)).status(), 200);
+    assert.equal((await installed.request.get(new URL(`beta/0.0.0-beta.7/${name}`, base).href)).status(), 200);
   }
   console.log('PASS: versioned beta installed-package demo, failed-open recovery and release/license links');
   console.log('PASS: public site queries, gzip fixture, /jsqlite/ path, types, errors, cancellation/reuse, mobile layout and GPL/source links');
