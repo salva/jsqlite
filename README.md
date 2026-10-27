@@ -123,7 +123,7 @@ and Web Crypto for SQL randomness. No runtime dependencies, Node APIs, native
 SQLite, WASM, dynamic code generation or telemetry are shipped.
 
 The package retains **private: true** to prevent accidental npm registry
-publication; beta.6 is distributed as a versioned GitHub tarball. This is not
+publication; beta.7 is distributed as a versioned GitHub tarball. This is not
 a claim of full SQLite compatibility. SQL admission remains bounded above.
 Packaging explicitly includes only emitted JS/declarations, plus npm's mandatory
 package metadata and this README; reference sources, fixtures, tools and research
