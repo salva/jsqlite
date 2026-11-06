@@ -8,6 +8,7 @@ import { resolve, extname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { examples } from '../../site/examples.js';
+import { testConsent } from './public-site-consent.mjs';
 
 const { chromium } = await import(process.env.JSQLITE_PLAYWRIGHT
   ? pathToFileURL(process.env.JSQLITE_PLAYWRIGHT).href : 'playwright');
@@ -36,6 +37,7 @@ try {
   browser = await chromium.launch({ headless: true, executablePath: process.env.JSQLITE_SITE_CHROMIUM });
   const page = await browser.newPage();
   const base = process.env.JSQLITE_SITE_URL || `http://127.0.0.1:${server.address().port}/jsqlite/`;
+  await testConsent(browser, base);
   await page.goto(base);
   assert.match(await page.locator('.attribution').innerText(), /v0\.0\.0-beta\.7/);
   assert.match(await page.locator('#demo-note').innerText(), /60 seconds per run/);

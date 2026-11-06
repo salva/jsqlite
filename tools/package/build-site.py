@@ -54,7 +54,10 @@ with tempfile.TemporaryDirectory(dir=scratch) as temporary:
     css = (OUT / 'style.css').read_bytes()
     css_name = 'style-' + hashlib.sha256(css).hexdigest()[:12] + '.css'
     (OUT / css_name).write_bytes(css)
-    html = (OUT / 'index.html').read_text().replace('src="app.js"', f'src="{app_name}"').replace('href="style.css"', f'href="{css_name}"')
+    analytics = (OUT / 'analytics.js').read_bytes()
+    analytics_name = 'analytics-' + hashlib.sha256(analytics).hexdigest()[:12] + '.js'
+    (OUT / analytics_name).write_bytes(analytics)
+    html = (OUT / 'index.html').read_text().replace('src="app.js"', f'src="{app_name}"').replace('href="style.css"', f'href="{css_name}"').replace('src="analytics.js"', f'src="{analytics_name}"')
     (OUT / 'index.html').write_text(html)
     assets = OUT / 'assets'
     assets.mkdir(exist_ok=True)
