@@ -1,3 +1,4 @@
+import {checkRetainedFillCancellation} from './retained-fill-cancellation.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -8,6 +9,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`enclosing CTE expressio
  const old=globalThis.fetch;let db;
  try{globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/cte-expression');}finally{globalThis.fetch=old;}
  try{
+  await checkRetainedFillCancellation(db,'WITH c AS MATERIALIZED (SELECT ?1 AS n FROM t1) SELECT (SELECT count(*) FROM c HAVING 1 UNION ALL SELECT count(*) FROM t1)',()=>4n);
   for(const sql of [
    'WITH c AS MATERIALIZED (SELECT a FROM t1) SELECT (SELECT a FROM c UNION ALL SELECT count(*) FROM t1)',
    "WITH c AS MATERIALIZED (SELECT a FROM t1) SELECT EXISTS(SELECT a FROM c UNION ALL SELECT json_extract('bad','$') FROM t1)",

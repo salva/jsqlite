@@ -2,6 +2,210 @@ import importlib.util, os, pathlib, sys, unittest, signal
 spec=importlib.util.spec_from_file_location('runner','tools/test/integration.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 class Runner(unittest.TestCase):
+ def test_cf01_original_pair_and_integrity(self):
+  import subprocess,tempfile,json,copy
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required')
+  with tempfile.TemporaryDirectory(prefix='cf01-pair-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp);files=['test/conformance/materialized-cte-linked-consumer.test.mjs']
+   command=runner.prerequisite_commands(files,pathlib.Path(library),root)[-1]
+   subprocess.run(command,check=True,capture_output=True,timeout=100)
+   spec=importlib.util.spec_from_file_location('cf01pair','tools/test/cf01-paired.py')
+   pair=importlib.util.module_from_spec(spec);spec.loader.exec_module(pair)
+   native=json.loads((root/'cf01-paired/native.json').read_text())
+   public=json.loads((root/'cf01-paired/public.json').read_text())
+   pair.compare(native,public)
+   for field in ('type','value','metadata','bindings','reset','error','code','missing','duplicate'):
+    changed=copy.deepcopy(public)
+    if field=='type':changed[0]['runs'][0]['rows'][0][0][0]='real'
+    elif field=='value':changed[0]['runs'][0]['rows'][0][0][1]='999'
+    elif field=='metadata':changed[0]['metadata'][0][0]='wrong'
+    elif field=='bindings':next(r for r in changed if '?' in r['sql'])['runs'][1]['bindings']['1']='4'
+    elif field=='reset':changed[0]['runs'][1]['reset']=1
+    elif field in ('error','code'):next(r for r in changed if r['runs'][0]['code']==1)['runs'][1][field]='wrong'
+    elif field=='missing':changed.pop()
+    else:changed[-1]=copy.deepcopy(changed[0])
+    with self.subTest(field=field),self.assertRaises(AssertionError):pair.compare(native,changed)
+   before=runner.generated_inventory(files,root,True)
+   self.assertEqual(len(before),2)
+   (root/'cf01-paired/public.json').unlink()
+   self.assertNotEqual(before,runner.generated_inventory(files,root))
+   with self.assertRaises(FileNotFoundError):runner.generated_inventory(files,root,True)
+
+ def test_cf03_actual_pair_rejects_typed_and_error_drift(self):
+  import subprocess,tempfile,json,copy,shutil
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required')
+  with tempfile.TemporaryDirectory(prefix='cf03-pair-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp)
+   files=['test/conformance/compound-aggregate-destinations.test.mjs','test/conformance/cte-expression-compound.test.mjs']
+   command=runner.prerequisite_commands(files,pathlib.Path(library),root)[-1]
+   subprocess.run(command,check=True,capture_output=True,timeout=100)
+   spec=importlib.util.spec_from_file_location('cf03pair','tools/test/cf03-paired.py')
+   pair=importlib.util.module_from_spec(spec);spec.loader.exec_module(pair)
+   native=[json.loads(s) for s in (root/'cf03-paired/native.json').read_text().splitlines()]
+   public=[json.loads(s) for s in (root/'cf03-paired/public.json').read_text().splitlines()]
+   pair.compare(native,public)
+   for field in ('type','value','metadata','error','code','missing','duplicate'):
+    changed=copy.deepcopy(public)
+    if field=='type':changed[0]['runs'][0]['rows'][0][0]='real'
+    elif field=='value':changed[0]['runs'][0]['rows'][0][1]='999'
+    elif field=='metadata':changed[0]['metadata'][0]='wrong'
+    elif field in ('error','code'):next(r for r in changed if r['label']=='error')['runs'][1][field]='wrong'
+    elif field=='missing':changed.pop()
+    else:changed[-1]=copy.deepcopy(changed[0])
+    with self.subTest(field=field),self.assertRaises(AssertionError):pair.compare(native,changed)
+   before=runner.generated_inventory(files,root,True)
+   self.assertEqual(len(before),2)
+   (root/'cf03-paired/public.json').unlink()
+   self.assertNotEqual(before,runner.generated_inventory(files,root))
+   with self.assertRaises(FileNotFoundError):runner.generated_inventory(files,root,True)
+
+ def test_beta9_identity_fields_stop_dependents(self):
+  import subprocess,tempfile,json
+  pin=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text())
+  file='test/conformance/materialized-cte-linked-consumer.test.mjs'
+  for field in ('version','sqliteSourceId'):
+   with self.subTest(field=field),tempfile.TemporaryDirectory(prefix='beta9-pin-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+    root=pathlib.Path(tmp);library=root/'oracle.so';library.write_bytes(b'identity-shim')
+    values=dict(pin);values[field]='wrong-'+field
+    (root/'ctypes.py').write_text(
+     'class Function:\n def __init__(self,value):self.value=value\n def __call__(self):return self.value\n'
+     +'c_char_p=object\nclass CDLL:\n def __init__(self,path):\n'
+     +'  self.sqlite3_sourceid=Function('+repr(values['sqliteSourceId'].encode())+')\n'
+     +'  self.sqlite3_libversion=Function('+repr(values['version'].encode())+')\n')
+    env=dict(os.environ,PYTHONPATH=str(root),PYTHONDONTWRITEBYTECODE='1',SAIVAGE_CARD_WORK_ROOT=str(root/'run'))
+    result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',str(library),file],env=env,capture_output=True,text=True,timeout=30)
+    self.assertEqual(result.returncode,1,result.stdout+result.stderr)
+    report=json.loads((root/'run/integration-run/manifest.json').read_text())
+    self.assertEqual(report['not_run'],[file]);self.assertEqual(report['results'],[])
+    self.assertEqual(len(report['prerequisites']),1)
+    self.assertNotEqual(report['prerequisites'][0]['exit'],0)
+
+ def test_cf01_drift_fails_actual_cli(self):
+  self.paired_drift_fails_actual_cli('cf01-paired','test/conformance/materialized-cte-linked-consumer.test.mjs')
+
+ def test_cf03_drift_fails_actual_cli(self):
+  self.paired_drift_fails_actual_cli('cf03-paired','test/conformance/cte-expression-compound.test.mjs')
+
+ def test_cf02_drift_fails_actual_cli(self):
+  self.paired_drift_fails_actual_cli('cf02-paired','test/conformance/recursive-cte-resolution.test.mjs')
+
+ def paired_drift_fails_actual_cli(self,directory,file):
+  import subprocess,tempfile,json,shutil
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required for original CF02 capture')
+  node=shutil.which('node');self.assertIsNotNone(node)
+  for action in ('mutate','delete'):
+   with self.subTest(action=action),tempfile.TemporaryDirectory(prefix='cf02-drift-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+    root=pathlib.Path(tmp);binary=root/'bin';binary.mkdir();shim=binary/'node'
+    # Original query/native/public producers run the real Node. Only the test
+    # consumer mutates the already compared capture and reports exit0.
+    shim.write_text('#!'+sys.executable+'\nimport os,pathlib,sys\n'
+     +'if "--test" not in sys.argv: os.execv('+repr(node)+',["node",*sys.argv[1:]])\n'
+     + 'p=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/'+repr(directory+'/native.json')+'\n'
+     +('p.write_text("{}")\n' if action=='mutate' else 'p.unlink()\n'))
+    shim.chmod(0o755)
+    env=dict(os.environ,PATH=str(binary)+os.pathsep+os.environ['PATH'],PYTHONDONTWRITEBYTECODE='1',SAIVAGE_CARD_WORK_ROOT=str(root/'run'))
+    result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,file],env=env,capture_output=True,text=True,timeout=100)
+    self.assertEqual(result.returncode,1,result.stdout+result.stderr)
+    report=json.loads((root/'run/integration-run/manifest.json').read_text())
+    self.assertTrue(all(p['exit']==0 for p in report['prerequisites']))
+    self.assertEqual([r['exit'] for r in report['results']],[0])
+    self.assertEqual(report['not_run'],[])
+    self.assertEqual(set(report['generated_inputs']),{directory+'/native.json',directory+'/public.json'})
+    self.assertIn(str(root/'run'/directory/'native.json'),report['input_drift'])
+
+ def test_cf02_original_pair_and_integrity(self):
+  import subprocess,tempfile,copy,shutil
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required for original CF02 pair')
+  file='test/conformance/recursive-cte-resolution.test.mjs'
+  with tempfile.TemporaryDirectory(prefix='cf02-pair-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory)
+   plan=runner.prerequisite_commands([file,file],pathlib.Path(library),root)
+   self.assertEqual(len(plan),1)
+   self.assertEqual(plan[0],['python3','tools/test/cf02/paired.py',str(pathlib.Path.cwd()),library,shutil.which('node') or 'node',str(root/'cf02-paired')])
+   result=subprocess.run(plan[0],capture_output=True,text=True,timeout=100)
+   self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+   spec=importlib.util.spec_from_file_location('cf02pair','tools/test/cf02/paired.py')
+   pair=importlib.util.module_from_spec(spec);spec.loader.exec_module(pair)
+   native=pair.records((root/'cf02-paired/native.json').read_text())
+   public=pair.records((root/'cf02-paired/public.json').read_text())
+   pair.compare(native,public)
+   for change in ('value','type','metadata','error','missing','duplicate'):
+    altered=copy.deepcopy(public)
+    if change=='value':altered[0]['runs'][0][0][0][1]='999'
+    elif change=='type':altered[0]['runs'][0][0][0][0]='real'
+    elif change=='metadata':altered[0]['metadata'][0]['name']='wrong'
+    elif change=='error':next(r for r in altered if 'error' in r)['code']=2
+    elif change=='missing':altered.pop()
+    else:altered[-1]=copy.deepcopy(altered[0])
+    with self.subTest(change=change),self.assertRaises(AssertionError):pair.compare(native,altered)
+   before=runner.generated_inventory([file],root,True)
+   self.assertEqual(len(before),2)
+   capture=root/'cf02-paired/native.json'
+   capture.write_text('{}')
+   self.assertNotEqual(before,runner.generated_inventory([file],root))
+   capture.unlink()
+   self.assertNotEqual(before,runner.generated_inventory([file],root))
+   with self.assertRaises(FileNotFoundError):runner.generated_inventory([file],root,True)
+
+ def test_beta9_original_producers_are_enrolled_once(self):
+  # Original CF01 and CF03 probes assert native behavior on CURRENT fixtures.
+  # Public-only discovery is insufficient: the selected consumer must schedule
+  # its source-owned native prerequisite, including repeated selections.
+  root=pathlib.Path('/purpose/beta9');library=root/'oracle.so'
+  cases=(
+   ('materialized-cte-linked-consumer',
+    ['python3','tools/test/cf01-paired.py',str(pathlib.Path.cwd()),str(library),__import__('shutil').which('node') or 'node',str(root/'cf01-paired')]),
+   ('compound-aggregate-destinations',
+    ['python3','tools/test/cf03-paired.py',str(pathlib.Path.cwd()),str(library),__import__('shutil').which('node') or 'node',str(root/'cf03-paired')]),
+   ('cte-expression-compound',
+    ['python3','tools/test/cf03-paired.py',str(pathlib.Path.cwd()),str(library),__import__('shutil').which('node') or 'node',str(root/'cf03-paired')]),
+  )
+  for consumer,command in cases:
+   file=f'test/conformance/{consumer}.test.mjs'
+   with self.subTest(consumer=consumer):
+    plan=runner.prerequisite_commands([file,file],library,root)
+    self.assertEqual(plan.count(command),1,
+     f'{consumer}: original native recipe absent or duplicated: {plan!r}')
+  combined=runner.prerequisite_commands(
+   [f'test/conformance/{consumer}.test.mjs' for consumer,_ in cases],library,root)
+  for command in {tuple(command) for _,command in cases}:
+   self.assertEqual(combined.count(list(command)),1)
+
+ def test_beta9_pin_guard_and_real_original_recipes(self):
+  import subprocess,tempfile
+  files=['test/conformance/materialized-cte-linked-consumer.test.mjs',
+         'test/conformance/cte-expression-compound.test.mjs']
+  with tempfile.TemporaryDirectory(prefix='beta9-guard-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as directory:
+   root=pathlib.Path(directory);wrong=root/'wrong.so';wrong.write_bytes(b'not SQLite')
+   plan=runner.prerequisite_commands(files,wrong,root)
+   self.assertEqual(len(plan),3)
+   for library in (wrong,root/'missing.so'):
+    command=runner.prerequisite_commands(files,library,root)[0]
+    rejected=subprocess.run(command,capture_output=True,timeout=10)
+    self.assertNotEqual(rejected.returncode,0)
+    self.assertEqual(set(root.iterdir()),{wrong})
+   # At the actual runner boundary a rejected prerequisite must leave every
+   # dependent unrun, not be hidden by a later successful consumer.
+   import json
+   env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(root/'cli'),PYTHONDONTWRITEBYTECODE='1')
+   rejected=subprocess.run([sys.executable,'tools/test/integration.py',
+    '--oracle-library',str(wrong),*files],env=env,capture_output=True,text=True,timeout=30)
+   self.assertEqual(rejected.returncode,1,rejected.stdout+rejected.stderr)
+   report=json.loads((root/'cli/integration-run/manifest.json').read_text())
+   self.assertEqual(report['not_run'],files)
+   self.assertEqual(report['results'],[])
+   self.assertEqual(len(report['prerequisites']),1)
+   library=os.environ.get('INTEGRATION_TEST_ORACLE')
+   if not library:
+    self.skipTest('INTEGRATION_TEST_ORACLE required for original CF01/CF03 execution')
+   for command in runner.prerequisite_commands(files,pathlib.Path(library),root):
+    result=subprocess.run(command,capture_output=True,text=True,timeout=100)
+    self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+
  def generated_capture_drift(self, action):
   import subprocess,tempfile,json,hashlib,shutil
   library=os.environ.get('INTEGRATION_TEST_ORACLE')
@@ -191,8 +395,14 @@ class Runner(unittest.TestCase):
    'catalog-init','public-catalog-lifecycle','public-catalog','sqlite-utf',
    'wr-declaration-identity'))
   self.assertEqual(set(files)&beta8,beta8)
+  # G14 consumers are a separate partition, not a revision of old digests.
+  beta9={f'test/conformance/{name}.test.mjs' for name in (
+   'recursive-cte-resolution','materialized-cte-linked-consumer',
+   'singleton-retained-demand','compound-aggregate-destinations',
+   'cte-expression-compound')}
+  self.assertEqual(set(files)&beta9,beta9)
   current_files=files
-  files=[file for file in files if file not in beta8]
+  files=[file for file in files if file not in beta8|beta9]
   self.assertEqual(len(files),556)
   prefix_era=[file for file in files if file not in beta7]
   self.assertEqual(len(prefix_era),537)
@@ -215,14 +425,16 @@ class Runner(unittest.TestCase):
   for key in selected:
    self.assertEqual(plan.count(runner.select_fixture_command(key,library,root)),1,key)
   expected=sorted({str(p) for pattern in ('test/conformance/*.test.mjs','test/conformance/run-*-ts.mjs','test/storage/*.test.mjs','test/parser/*.test.mjs') for p in pathlib.Path('.').glob(pattern)})
-  self.assertEqual(sorted(current_files),sorted(files+list(beta8)))
-  self.assertEqual(files,[file for file in expected if file not in beta8])
+  self.assertEqual(sorted(current_files),sorted(files+list(beta8|beta9)))
+  self.assertEqual(files,[file for file in expected if file not in beta8|beta9])
 
  def test_inventory_rejects_equal_cardinality_substitution(self):
   from unittest.mock import patch
   files=runner.discover_files(pathlib.Path.cwd())
   for removed in ('column-default','like-prefix-composite','select-review32-boundaries',
-                  'aggregate-context-opcodes'):
+                  'aggregate-context-opcodes','recursive-cte-resolution',
+                  'materialized-cte-linked-consumer','singleton-retained-demand',
+                  'compound-aggregate-destinations','cte-expression-compound'):
    original=f'test/conformance/{removed}.test.mjs'
    self.assertIn(original,files)
    substituted=sorted([file for file in files if file!=original]+

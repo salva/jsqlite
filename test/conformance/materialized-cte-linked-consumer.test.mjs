@@ -1,3 +1,4 @@
+import {checkRetainedFillCancellation} from './retained-fill-cancellation.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -15,6 +16,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`CF01 linked retained co
   }finally{s.finalize();}
  }
  try{
+  await checkRetainedFillCancellation(db,'WITH c AS MATERIALIZED (SELECT ?1 AS n FROM t1 LIMIT 2) SELECT length(n) FROM c WHERE length(n)>0',v=>BigInt(v.length));
   // select.c:5315: CTE SrcItems retain even unused result expressions.
   const failing=db.prepare("WITH c AS MATERIALIZED (SELECT a AS n,json_extract('bad','$') AS unused FROM t1 LIMIT 1) SELECT n FROM c").statement;
   try{for(let cycle=0;cycle<2;cycle++){

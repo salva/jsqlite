@@ -117,6 +117,29 @@ def prerequisite_commands(files, library, work_root):
             '--output', str(work_root/'expression-boundaries')])
         commands.append(['python3', 'tools/test/verify-expression-capture.py',
                          str(work_root/'expression-boundaries'), str(library)])
+    if 'test/conformance/recursive-cte-resolution.test.mjs' in files:
+        commands.append(['python3', 'tools/test/cf02/paired.py', str(pathlib.Path.cwd()),
+                         str(library), shutil.which('node') or 'node', str(work_root/'cf02-paired')])
+    # Original bounded CF01/CF03 witnesses. Authenticate both semantic pin
+    # fields before any recipe can open fixtures or emit results. Keep the
+    # CF03 recipe's stronger byte pin intact; that recipe is build-specific.
+    cf01 = any(f'test/conformance/{name}.test.mjs' in files for name in
+               ('materialized-cte-linked-consumer', 'singleton-retained-demand'))
+    cf03 = any(f'test/conformance/{name}.test.mjs' in files for name in
+               ('compound-aggregate-destinations', 'cte-expression-compound'))
+    if cf01 or cf03:
+        commands.append(['python3', '-c',
+            "import ctypes,json,pathlib,sys; d=ctypes.CDLL(sys.argv[1]); "
+            "d.sqlite3_sourceid.restype=ctypes.c_char_p; d.sqlite3_libversion.restype=ctypes.c_char_p; "
+            "m=json.loads(pathlib.Path('reference/sqlite/manifest.json').read_text()); "
+            "assert d.sqlite3_sourceid().decode()==m['sqliteSourceId']; "
+            "assert d.sqlite3_libversion().decode()==m['version']", str(library)])
+        if cf01:
+            commands.append(['python3', 'tools/test/cf01-paired.py', str(pathlib.Path.cwd()),
+                             str(library), shutil.which('node') or 'node', str(work_root/'cf01-paired')])
+        if cf03:
+            commands.append(['python3', 'tools/test/cf03-paired.py', str(pathlib.Path.cwd()),
+                             str(library), shutil.which('node') or 'node', str(work_root/'cf03-paired')])
     if 'test/conformance/materialized-cte-filter-containment.test.mjs' in files:
         commands.append(['python3', 'test/conformance/materialized-cte-filter-containment-native.py', str(library)])
     names = {pathlib.Path(f).name for f in files}
@@ -257,6 +280,27 @@ def generated_inventory(files, work_root, require_captures=False):
     names = {pathlib.Path(f).name for f in files}
     directories = ['wr-declaration-native', 'r1-native', 'r2-native', 'skipscan-native', 'date-native',
                    'multi-output-native', 'wide-compound-native', 'covered-deferred-native']
+    if any(f'test/conformance/{name}.test.mjs' in files for name in
+           ('materialized-cte-linked-consumer', 'singleton-retained-demand')):
+        directories.append('cf01-paired')
+        for name in ('native.json', 'public.json'):
+            path = work_root/'cf01-paired'/name
+            if require_captures or path.is_file():
+                path.read_bytes()
+    if any(f'test/conformance/{name}.test.mjs' in files for name in
+           ('compound-aggregate-destinations', 'cte-expression-compound')):
+        directories.append('cf03-paired')
+        for name in ('native.json', 'public.json'):
+            path = work_root/'cf03-paired'/name
+            if require_captures or path.is_file():
+                path.read_bytes()
+    if 'test/conformance/recursive-cte-resolution.test.mjs' in files:
+        directories.append('cf02-paired')
+        for name in ('native.json', 'public.json'):
+            path = work_root/'cf02-paired'/name
+            if require_captures or path.is_file():
+                # Mandatory before consumers, and included in final drift scan.
+                path.read_bytes()
     if expression_pairs_selected(files):
         directories.append('expression-boundaries')
     directories += [SELECT_FIXTURES[key][0] for key in selected_fixture_keys(files)]
