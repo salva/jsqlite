@@ -4,11 +4,22 @@
 
 `select.c:8100–8140` materializes; `8292ff sqlite3WhereBegin` and
 `wherecode.c:2627–2688` own residual filtering, distinct from ON.
-`vdbe.ts:compileCteDerivedSourcesFallback` rejects outer WHERE after
-`resolveTransientArm`, before materialization/consumer emission. The manual
-ON/copy/destination loops do not implement residual WHERE. Paired
-`materialized-cte-filter-containment{.test.mjs,-native.py}` test this temporary
-boundary, not native row compatibility. [Rationale and recipe](research/cf01-containment.md).
+`vdbe.ts:compileCteDerivedSources` enrolls an explicitly MATERIALIZED singleton
+physical/aggregate child in `compileResolvedTableProducer`: linked transient
+identity -> callable Once fill -> `compileInnerTableSelect` retained cursor,
+Gosub/WHERE positioning, residual predicates, expression projection and destination.
+This replaces the manual fallback consumer on that slice, not on window/set or
+repeated-source branches. Those still reject outer WHERE after resolution.
+`select.c:5315` CTE/correlation guards map to `disableUnusedRetainedResults`;
+actual retained CTE identity prevents NULLing unused child expressions.
+The singleton physical-derived coroutine in `compileDerivedProducer` also invokes
+that primitive after original validation and parameter retention, before its
+`compileInnerTableSelect` body. `singleton-retained-demand.test.mjs` covers the
+no-ORDER witness, demanded/star errors, missing-name validation and bind numbering.
+`materialized-cte-linked-consumer{.test.mjs,-native.py}` covers completed filtering
+and unused-child error phase/reset with ordinary-derived pruning controls;
+`materialized-cte-filter-containment{.test.mjs,-native.py}` retains remaining
+boundaries. [Rationale and evidence](research/cf01-containment.md).
 
 ### WR declaration ownership
 

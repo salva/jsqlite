@@ -2,26 +2,77 @@
 
 ## Current boundary
 
-The fallback materialized-CTE consumer is not a complete residual-WHERE
-consumer. Pinned select.c8100–8140 materializes; sqlite3WhereBegin8292ff and
-wherecode.c2627–2688 apply outer filtering, treating NULL as false and keeping
-ON separate. The fallback's manual nested ephemeral loops implement only ON,
-copy and delivery. Adding an independent comparison evaluator would preserve
-the wrong semantic owner; completing general retained WHERE integration is a
-larger slice. Immediate safe containment rejects **every** outer WHERE reaching
-this fallback after linked resolution, before its bytecode emission. This is
-not a browser limitation, algorithm substitution or product exclusion. Valid
-SQL remains temporarily unsupported. Existing other WHERE owners are unchanged.
+Beta9 routes one explicitly MATERIALIZED physical/aggregate producer through
+`compileResolvedTableProducer` and `compileInnerTableSelect`. Its transient table
+uses CTE naming rules; `fromClauseTermCanBeCoroutine` consumes actual CTE flags,
+so MATERIALIZED remains a fence. The shared callable fill retains Once inside
+Gosub/Return; WHERE positioning invokes it before reading. Existing linked
+residual predicates, projection and destination replace manual fallback consumer
+decisions on this slice. This is ordinary source translation, not an algorithm
+substitution. Repeated readers still use the old OpenDup branch; window/set and
+repeated-source outer WHERE remain atomically typed temporary after resolution.
+The fallback itself is not a complete residual-WHERE owner. Pinned select.c
+8100–8140,8292,8346 and wherecode.c2627–2688 remain the comparison points.
 
-Paired `test/conformance/materialized-cte-filter-containment-native.py` and
-`.test.mjs` cover aggregate/window/set producers; false/arithmetic false/NULL/
-true/error/parameter filters. Native executes the valid queries with reset and
-rebind. Public asserts atomic temporary rejection and repeated same-connection
-reuse, unfiltered INTEGER count/full metadata/two-cycle controls, independent
-OpenDup readers with ON, invalid-column precedence and separate rebind control.
-No claim of filtered-query runtime/error/parameter compatibility: those queries
-never publish public statements. Mixed REAL/TEXT/BLOB resource/cancellation and
-all diagnostic order permutations remain untested in this containment slice.
+`materialized-cte-linked-consumer{.test.mjs,-native.py}` covers M0/M1/M2/M3,
+false/arithmetic false/NULL/true/error, parameters/rebind, empty producer,
+consumer LIMIT/OFFSET, full five metadata fields, INTEGER storage and two cycles
+in all encodings. Existing containment tests preserve window/set rejection,
+repeated reader control and name-error precedence. Native's older aggregate
+matrix is retained, not erased.
+
+## Beta9 author evidence and next gates
+
+Input is approved CF02 badc9ec11eaee42d7598c0249b4a31a17d88357a/tree
+1b82e1767ee99c84eeac43f0e06aec556dbfd921, not mutable root. Candidate is a task
+copy at `/work/jsqlite2/cf01-candidate`; original CF02 input remains untouched.
+Before repair the new public test failed at prepare in all encodings
+(proc-85f5caadebd5). First repair passed value/filter/projection controls but
+exposed a test mistake: reset must rethrow saved malformed-JSON error. Corrected
+the assertion, not lifecycle implementation (proc-13f1980f523e).
+
+proc-147628367ac4 ran native 33 controls then serial public linked3/containment3/
+CF02-resolution3 successfully. Each file used timeout100s, Node test100000ms.
+Exact native command:
+`PYTHONDONTWRITEBYTECODE=1 timeout 100s python3 test/conformance/materialized-cte-linked-consumer-native.py /work/jsqlite2/.saivage/work/cards/card-w/current9c847-verification/native/oracle-build/build/libsqlite3-oracle.so`.
+It checks pinned SourceID, not a fresh oracle build/hash. Public command per file:
+`timeout 100s /opt/node-v24.18.0-linux-x64/bin/node --experimental-strip-types --test --test-concurrency=1 --test-timeout=100000 <file>`.
+proc-16d91c2c6fd3 also passed the linked3 and explicit isolated compiler:
+`timeout 100s /opt/node-v24.18.0-linux-x64/bin/node /work/jsqlite2/.saivage/work/cards/card-t-c/beta8-c1-tooling/node_modules/typescript/bin/tsc -p tsconfig.json`.
+Primary output is in those process stdout artifacts under this card; status
+links the exact returned locators. No ancestor dependency installation/use.
+
+Added controls pass INTEGER/REAL/TEXT/BLOB/NULL across all encodings, physical
+origin metadata, separate body/consumer LIMIT, pre-abort and live timer cancellation,
+retained reservation refunds and early-reset/rebind reuse. proc-f1b7c642fd5c is
+public3/3 after those additions; proc-6413b5f4d95a native passes all added storage
+and limit controls but public failed due to an accidentally malformed test edit,
+not runtime lowering. Corrected that edit; no production workaround. The native
+storage loop is additional to the printed eleven-case count.
+Further broader affected-path regressions, independent nonauthor caller/source
+review and combined root gates remain open. Cancellation test proves timer abort
+and zero retained budgets at failure/reset, not an instrumented peak reservation
+before cancellation. CF03–06 are separate.
+Filtered-query runtime/error/parameter compatibility is not claimed for the
+still-rejected window/set/repeated-source fallback: those filtered queries do not
+publish public statements. The migrated singleton has the finite mixed-storage,
+parameter and cancellation/reset controls above, not exhaustive allocation or
+diagnostic-order coverage. In particular the timer test does not establish a
+positive private peak before abort.
+
+R43 corrects the migrated physical child owner: pinned select.c:5315 excludes
+CTE SrcItems from unused-result pruning, even for a single reader. The retained
+producer passes actual CTE identity to that optimization, preserving runtime
+child-expression evaluation without disabling ordinary-derived demand pruning.
+Paired linked-consumer tests cover unused-child malformed JSON at step/reset,
+two cycles in all encodings, empty and nonfailing multi-column CTEs, and an
+ordinary retained ORDER/LIMIT control. The no-ORDER singleton physical-derived
+coroutine now also applies the same unused-result primitive before body lowering;
+`singleton-retained-demand.test.mjs` preserves the exact witness, demanded/star
+errors, prepare validation and parameter numbering. This does not widen outer
+WHERE admission. Revision-bound commands/results and patch identity are in
+[[card:card-t-d]] status210 and its repair successor; CTE correction provenance
+remains in [[card:card-t-c]] red494 and its repair successor.
 
 ## Q21 source-owned capture/caller closure
 

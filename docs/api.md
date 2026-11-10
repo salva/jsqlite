@@ -359,10 +359,11 @@ destructors, or object-keyed rows.
 
 ## Current SQL admission
 
-The legacy materialized-CTE fallback consumer rejects outer WHERE with a
-`temporary` unsupported error after name resolution, rather than silently
-omitting the filter. This valid-SQL compatibility gap does not affect other
-represented WHERE owners. [Boundary and controls](research/cf01-containment.md).
+An explicitly MATERIALIZED singleton physical/aggregate CTE supports the existing
+linked WHERE/expression-projection/destination consumer. Window/set and repeated
+fallback consumers still reject outer WHERE with `temporary` unsupported after
+name resolution, rather than omitting it. General retained-source composition is
+not yet complete. [Boundary and controls](research/cf01-containment.md).
 
 Admission follows parsed/resolved graph branches and is atomic at prepare unless a
 registered runtime boundary is explicitly stated. Feature names alone do not

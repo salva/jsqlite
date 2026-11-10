@@ -6426,8 +6426,9 @@ function emitScalarCompoundMerge(child:SelectNode,schema:SchemaGraph|undefined,d
 
 // select.c:5305/tag0440. Resolve and validate before replacing unused EList
 // slots, retaining width and selected ORDER-result dependencies.
-function disableUnusedRetainedResults(child:SelectNode,plan:ReturnType<typeof expandAndResolveSelect>,used:ReadonlySet<number>):SelectNode {
- if(plan.correlated||child.hasDistinct||child.hasGroupBy||child.hasHaving||child.hasCompound||selectHasAggregate(child)||selectHasWindow(child))return child;
+function disableUnusedRetainedResults(child:SelectNode,plan:ReturnType<typeof expandAndResolveSelect>,used:ReadonlySet<number>,isCte:boolean):SelectNode {
+ // select.c:5315: SrcItem CTE ownership forbids unused-result pruning.
+ if(plan.correlated||isCte||child.hasDistinct||child.hasGroupBy||child.hasHaving||child.hasCompound||selectHasAggregate(child)||selectHasWindow(child))return child;
  const demanded=new Set(used);
  for(const index of plan.orderResultColumns)if(index!==null)demanded.add(index);
  for(const term of child.orderBy){
@@ -6452,10 +6453,10 @@ function compileRetainedFilter(select:SelectNode,schema:SchemaGraph,database:Btr
  * Physical sources keep their resolved cursor identities; retained readers and
  * coroutine locations are mapped by ResolvedSource identity, not EList text. */
 function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;plan?:ReturnType<typeof expandAndResolveSelect>;projectedRow?:(first:number,count:number)=>void}):Program {
- const sources=select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
+ const sources=select.from.cteDerived?.length?select.from.cteDerived:select.from.derivedSources?.length?select.from.derivedSources:select.from.derived?[select.from.derived]:[];
  const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops,parameters:ParameterBuilder=owner?.parameters??{maximum:0,names:[],named:new Map()},destination:SelectDest=owner?.destination??{kind:'output'};
  const tables=new Map<number,TableNode>();
- for(const source of sources)tables.set(source.index,transientSourceTable(source.select,select.from.items[source.index]!.tableName,schema));
+ for(const source of sources)tables.set(source.index,transientSourceTable(source.select,select.from.items[source.index]!.tableName,schema,!!select.from.cteDerived?.length));
  let expanded:ReturnType<typeof expandAndResolveSelect>;
  try{expanded=owner?.plan??expandAndResolveSelect(select,schema,null,builder.cursors,tables);}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
  builder.reserveCursorsThrough(Math.max(...expanded.sources.map(source=>source.cursorId)));
@@ -6474,12 +6475,13 @@ function compileResolvedTableProducer(select:SelectNode,schema:SchemaGraph,datab
   // of this validation bytecode executes or enters the enclosing builder.
   compileChild(source.select);
   const childPlan=expandAndResolveSelect(source.select,schema);
-  const child=disableUnusedRetainedResults(source.select,childPlan,jsonColumnDemand(expanded,resolved));
+  const child=disableUnusedRetainedResults(source.select,childPlan,jsonColumnDemand(expanded,resolved),!!select.from.cteDerived?.some(candidate=>candidate.index===source.index));
   readers.set(resolved,cursor);
   // select.c tag-select-0482: single FROM term can yield directly. The
   // child sorter, if needed, remains a blocking owner before its first Yield.
   const item=select.from.items[source.index]!;
-  const coroutine=fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:!!select.from.items[source.index+1]?.joinFromLeft.cross,leftOfRightJoin:select.from.items.some(item=>item.joinFromLeft.right),updateFrom:false,coroutineOptimization:true,isCte:false,cteMaterialized:false,cteUseCount:1,cteNotMaterialized:false,earlierSubquery:precedingFromCoroutineBarrier(select,source.index,schema),selfJoinView:false});
+  const cte=select.from.cteDerived?.find(candidate=>candidate.index===source.index);
+  const coroutine=fromClauseTermCanBeCoroutine({sourceCount:select.from.items.length,index:source.index,joinFromLeft:item.joinFromLeft,nextCross:!!select.from.items[source.index+1]?.joinFromLeft.cross,leftOfRightJoin:select.from.items.some(item=>item.joinFromLeft.right),updateFrom:false,coroutineOptimization:true,isCte:!!cte,cteMaterialized:cte?.materialization==='materialized',cteUseCount:cte?.use.nUse??1,cteNotMaterialized:cte?.materialization==='not-materialized',earlierSubquery:precedingFromCoroutineBarrier(select,source.index,schema),selfJoinView:false});
   if(coroutine){
    const register=builder.register(),first=builder.range(width),skip=ops.length;
    ops.push({code:'InitCoroutine',p1:register,p2:0,p3:skip+1});
@@ -6806,7 +6808,14 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
     // compileInnerTableSelect owns the source scan, LIMIT and empty exits;
     // its iBreak falls through to EndCoroutine rather than OP_Halt.
     builder.reserveCursorsThrough(sorterCursor);
-    compileInnerTableSelect(derived.select,tablePlan!,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:returnRegister,first:producerOutput}});
+    // select.c tag0440 precedes tag0482 on this singleton route too. Preserve
+    // validation, metadata and parameter numbering before nulling unused slots.
+    compileTableSelect(derived.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits);
+    retainSelectParameters(select,parameters,[derived.select]);
+    const parentPlan=resolveTransientArm(select,schema);
+    const child=disableUnusedRetainedResults(derived.select,tablePlan!,jsonColumnDemand(parentPlan,parentPlan.sources[derived.index]!),!!select.from.cteDerived?.some(source=>source.index===derived.index));
+    const childPlan=expandAndResolveSelect(child,schema,null,tablePlan!.sources[0]?.cursorId??0);
+    compileInnerTableSelect(child,childPlan,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:returnRegister,first:producerOutput}});
     endJumps.push(ops.length);ops.push({code:'EndCoroutine',p1:returnRegister,p2:0});
   }else if(mixedPhysicalAllProducer){
     builder.reserveCursorsThrough(sorterCursor);
@@ -7088,6 +7097,13 @@ function compileRepeatedImmutableView(select:SelectNode,schema:SchemaGraph,datab
 // A MATERIALIZED CteUse pair keeps its declaration identity in `owners`;
 // sqlite3Select codes multiSelect arms into each SRT_EphemTab before the join.
 function compileCteDerivedSources(select:SelectNode,schema:SchemaGraph,database:BtreeDatabase,maxRows:number,maxWorkUnits:number,maxResultBytes:number,privateStateLimits:PrivateStateLimits,parent?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest}):Program|{columns:Program['columns']}|undefined {
+ // select.c tag-select-0488 then WhereBegin/selectInnerLoop: a retained
+ // singleton feeds the existing linked source/WHERE/destination owner.
+ const retained=select.from.cteDerived;
+ if(retained?.length===1&&select.from.items.length===1&&retained[0]!.materialization==='materialized'&&
+    !select.hasCompound&&!select.hasDistinct&&!select.hasGroupBy&&!select.hasHaving&&!selectHasAggregate(select)&&!selectHasWindow(select)&&
+    !retained[0]!.select.hasCompound&&!selectHasWindow(retained[0]!.select)&&retained[0]!.select.from.items.length===1&&!retained[0]!.select.from.derived&&!retained[0]!.select.from.cteDerived?.length)
+  return compileResolvedTableProducer(select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,parent);
  const derived=select.from.derivedSources?.length===2&&select.from.derivedSources.length===select.from.items.length?select.from.derivedSources:undefined;
  const sources=derived?derived.map(source=>({...source,alias:source.alias??'(subquery)',use:source,materialization:'materialized' as const})):select.from.cteDerived;
  // Compound CTEs are admitted only when materialization is explicit. Other

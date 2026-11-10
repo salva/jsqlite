@@ -307,13 +307,16 @@ FULL replay, including an initially empty left input. Child ORDER/top-N may bloc
 before its first Yield. Before either producer body is lowered, tag0440-style
 column demand keeps parent/nested uses and selected ORDER dependencies, replacing
 unused child result slots with NULL. Original child validation and transient
-metadata precede pruning; DISTINCT/aggregate/window/correlated cases retain their
+metadata precede pruning; CTE/DISTINCT/aggregate/window/correlated cases retain their
 source guards. Parameter preassignment consumes the complete original parser token
 carrier in byte order, including JOIN ON, source arguments and nested SELECTs,
 before result pruning or execution-order lowering. The unpublished validation lowering costs prepare work but adds no
 runtime evaluator or bytecode to the delivered program. This is translated demand control, not an eager-fill
 substitution. It admits noncompound single-table ORDER/LIMIT children, not
-arbitrary derived/CTE shapes. [Source comparison and finite evidence](research/retained-filter.md)
+arbitrary derived/CTE shapes. The admitted singleton physical-table coroutine
+route also applies this demand primitive before emitting its body, preserving
+original validation, transient descriptors and parameter numbering. This does not
+admit additional outer-WHERE shapes. [Source comparison and finite evidence](research/retained-filter.md)
 and [invocation correction](research/retained-filter-demand.md).
 Original t1 fixture contract and cross-owner merge-gate adjudication:
 [bounded native/public evidence](research/original-test-contract.md).
@@ -1510,11 +1513,14 @@ LIMIT/ORDER are separate owners. Views preserve explicit/inferred column names,
 collation and origin. No nested public Statement or native fallback is used.
 
 `CtePrepareContext` records With/Cte use, scope and materialization decisions;
-its legacy materialized fallback consumer rejects every outer WHERE atomically
-with a temporary unsupported error after linked resolution. That consumer only
-implements ON, not the native residual WHERE owner; this is CF01 wrong-result
-containment, **not** completed filter compatibility. Materialization/Once/OpenDup
-remain unchanged. [Controls and capture recipe](research/cf01-containment.md).
+its explicitly MATERIALIZED singleton physical/aggregate producer consumer now
+uses the existing linked retained-source WHERE/destination owner (including
+expression projection). Window/set and repeated-source fallback consumers still
+reject outer WHERE atomically after linked resolution; their manual ON/copy loops
+are not residual WHERE implementations. This is a bounded migration, not general
+retained composition compatibility. Once remains inside callable fill; repeated
+OpenDup readers remain on their existing branch.
+[Boundary and evidence](research/cf01-containment.md).
 Recursive ownership is not guessed from a table-name string. Ordinary WITH admits
 represented flatten/coroutine/materialized/repeated-source routes. Recursive
 `generateWithRecursiveQuery` lowering uses iterative Queue/Current state, setup,

@@ -13,12 +13,16 @@ CF04/setup-step translation or other composition findings.
 ## CF01 materialized fallback: wrong-result containment
 
 On the CF01 audit input (`vdbe.ts`3315876b…69cce), outer WHERE was resolved but
-never emitted by `compileCteDerivedSourcesFallback`. The current repair rejects
-all such filters atomically with typed temporary unsupported after resolution;
-no sample-specific predicate compiler or materialization pushdown was added.
-This closes silent filter loss, not structural SELECT composition or valid-SQL
-compatibility. Native materialization continues into the outer WHERE owner;
-that integration remains missing here. [Evidence and recipe](../research/cf01-containment.md).
+never emitted by `compileCteDerivedSourcesFallback`. Containment rejected all
+filters after resolution. The beta9 candidate now routes one explicitly
+MATERIALIZED physical/aggregate source through the existing resolved retained
+producer and shared WHERE/destination owner, displacing manual projection/loops
+on that slice. M0/M1/M2/M3, false/NULL/true/error and bind/reset controls pass in
+three encodings. R43's unused physical-child error suppression is corrected by
+passing CTE ownership to the select.c:5315 unused-result guard; paired tests retain
+runtime error/reset and ordinary-derived pruning controls. Window/set/repeated-source fallback still rejects outer WHERE;
+general composition and independent adjudication remain open.
+[Evidence and remaining gates](../research/cf01-containment.md).
 
 ## Joined WhereLevel representation — bounded approval; combined gates pending
 

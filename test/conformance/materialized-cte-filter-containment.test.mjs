@@ -27,7 +27,7 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`materialized fallback W
   }finally{s.finalize();}
  }
  try{
-  for(const producer of producers){
+  for(const producer of producers.slice(1)){
    const prefix=`WITH c AS MATERIALIZED (${producer}) SELECT n FROM c`;
    for(const filter of filters){
     // Repeat failed prepares on the same connection; nothing is published.
