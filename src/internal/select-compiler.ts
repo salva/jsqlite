@@ -72,7 +72,7 @@ function compileSelectInner(
       const builder = new SelectProgramBuilder<Program["ops"][number]>(progressCheck,reprepare);
       const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
       const destination: SelectDest = { kind: "output" };
-      const multipleProgram = compileMultipleRecursiveCtes(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, { builder, parameters, destination });
+      const multipleProgram = compileMultipleRecursiveCtes(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, { builder, parameters, destination, schema });
       if (multipleProgram) {
         builder.ops.push({ code: "Halt" });
         return Object.freeze({ ...multipleProgram, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
@@ -85,7 +85,7 @@ function compileSelectInner(
     builder.reserveCursorsThrough(0);
     const parameters = { maximum: 0, names: [] as (string | null)[], named: new Map<string, number>() };
     const destination: SelectDest = { kind: "output" };
-    const produced = compileRecursiveCteSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, false, { builder, parameters, destination });
+    const produced = compileRecursiveCteSelect(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, false, { builder, parameters, destination, schema });
     builder.ops.push({ code: "Halt" });
     return Object.freeze({ ...produced, ops: builder.finish(), registers: builder.registers, parameters: Object.freeze(parameters.names.map(name => Object.freeze({ name }))) });
   }

@@ -445,7 +445,10 @@ compatibility credit.
 - Ordinary WITH has represented flatten/coroutine/materialized and repeated-source
   routes. Recursive WITH has iterative Queue/Current, duplicate and queue-order
   behavior, body LIMIT/OFFSET separate from the outer consumer, and selected
-  aggregate/window consumers. One recursive declaration joined to physical tables
+  aggregate/window consumers. Direct consumers validate table qualifiers and
+  alias hiding before execution (including LIMIT 0); a schema-qualified name
+  cannot refer to the schema-less recursive Current declaration.
+  One recursive declaration joined to physical tables
   or repeated outer aliases supports inner/CROSS and LEFT joins in either source
   order, and ordinary aggregate/GROUP/HAVING consumers; retained input is bounded
   and materialized once before consumer output, with independent alias readers.

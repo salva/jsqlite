@@ -1,3 +1,15 @@
+## CF02 direct recursive qualifier resolution
+
+The eee2c783/tree b037b565 input reproduced CF02: `wrong.n` silently read
+Current. The scoped candidate now prepares direct consumers through the existing
+transient declaration/linked resolver, lowers resolved identities to Current
+registers and removes the outer spelling binder. Schema matching also excludes
+schema-less recursive Current tables. R0/R2 match the pinned oracle across three
+encodings; bounded controls and evidence are in
+[CF02 evidence](../research/recursive-join/cf02-evidence.md).
+This is author evidence, not independent acceptance, integration or closure of
+CF04/setup-step translation or other composition findings.
+
 ## CF01 materialized fallback: wrong-result containment
 
 On the CF01 audit input (`vdbe.ts`3315876b…69cce), outer WHERE was resolved but

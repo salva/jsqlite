@@ -1550,6 +1550,14 @@ parity. [Source comparison and evidence](research/recursive-join/README.md).
 
 ## Bounded recursive JOIN-arm compounds
 
+Direct recursive consumers resolve against the existing transient CTE declaration
+and linked NameContext before lowering resolved source/column identities to
+Current registers. `resolve.c:lookupName` owns qualifier, alias-hiding, schema and
+ambiguity diagnostics; the outer consumer has no spelling-only column binder.
+Recursive Current declarations have no schema and cannot match `main.c.n`.
+Queue/history/priority and body versus consumer LIMIT ownership are unchanged.
+See [CF02 bounded evidence](research/recursive-join/cf02-evidence.md).
+
 Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms and physical arms through the existing full-row compound merge. One lazy Once-guarded retained recursive producer supplies independent OpenDup readers; Queue/Current retains body controls while the compound owner retains outer ORDER/LIMIT, arity and full-row duplicate semantics. Leftmost setup-expression collation is independent of rightmost metadata provenance. Materialization charges the full requested producer before its first row; this is not streaming or native work/allocation parity. Mixed operators, grouped/window/derived arms and additional recursive declarations remain temporary gaps in this route; RIGHT/FULL and physical producer-term joins remain outside this slice.
 
 `test/conformance/recursive-cte-compound.test.mjs` and [source comparison and finite native/public evidence](research/recursive-join/compound-evidence.md) cover this boundary, without additional upstream assertion credit.

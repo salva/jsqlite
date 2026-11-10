@@ -1781,6 +1781,14 @@ Revision-bound verification and acceptance obligations: [[card:card-s-c-d-n]].
 
 ## Bounded recursive JOIN-arm compounds
 
+Direct consumer resolution: `resolve.c:lookupName` (schema/table/alias checks),
+`select.c:sqlite3SelectPrep` before `generateWithRecursiveQuery` →
+`prepareRecursiveSource` → linked `expandAndResolveSelect` →
+`bindResolvedExpression` with resolved Current register locations.
+`recursive-cte-resolution.test.mjs` covers qualifiers/alias hiding/schema,
+ambiguity, EXISTS diagnostics, LIMIT 0, reset/rebind and operation controls in all
+three encodings. [CF02 evidence](research/recursive-join/cf02-evidence.md).
+
 Same-operator UNION/UNION ALL consumers admit recursive INNER/CROSS/LEFT arms and physical arms through the existing full-row compound merge. One lazy Once-guarded retained recursive producer supplies independent OpenDup readers; Queue/Current retains body controls while the compound owner retains outer ORDER/LIMIT, arity and full-row duplicate semantics. Leftmost setup-expression collation is independent of rightmost metadata provenance. Materialization charges the full requested producer before its first row; this is not streaming or native work/allocation parity. Mixed operators, grouped/window/derived arms and additional recursive declarations remain temporary gaps in this route; RIGHT/FULL and physical producer-term joins remain outside this slice.
 
 Pinned `select.c:multiSelect/multiSelectByMerge`, CteUse tag-select-0484 and `selectAddColumnTypeAndCollation` map to `vdbe.ts:compileRecursiveCompoundSelect/compileSimpleTableCompound/prepareRecursiveSource` and `select-compiler.ts` dispatch. `test/conformance/recursive-cte-compound.test.mjs` and [source comparison and finite native/public evidence](research/recursive-join/compound-evidence.md) cover this boundary, without additional upstream assertion credit.
