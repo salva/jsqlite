@@ -3,6 +3,23 @@ import fs from 'node:fs';
 import test from 'node:test';
 import {open} from '../../src/index.ts';
 import {builtinFunctionRegistry} from '../../src/internal/functions.ts';
+import {parseSql,SqlParseError} from '../../src/internal/parse.ts';
+const args=n=>Array(n).fill('NULL').join(',');
+const overflowCases=[
+ ...['printf','NoSuchPolicyFn','abs','"MiXeD"'].map(name=>[`SELECT ${name}(${args(1001)})`,`too many arguments on function ${name}`]),
+ [`SELECT abs(missing,${args(1000)})`,'too many arguments on function abs'],
+ [`SELECT NoSuchPolicyFn(abs(${args(1001)}),${args(1000)})`,'too many arguments on function abs'],
+ [`SELECT printf(${args(1001)}) FROM nonexistent`,'too many arguments on function printf'],
+ [`SELECT printf(${args(1001)} ORDER BY missing)`,'too many arguments on function printf'],
+ [`SELECT printf(${args(1001)}) OVER ()`,'too many arguments on function printf'],
+ [`WITH c AS (SELECT printf(${args(1001)})) SELECT * FROM c`,'too many arguments on function printf'],
+ [`VALUES(printf(${args(1001)}))`,'too many arguments on function printf'],
+ [`CREATE VIEW v AS SELECT printf(${args(1001)})`,'too many arguments on function printf']
+];
+test('function construction limit owns generated production before resolution',()=>{
+ for(const [sql,message] of overflowCases)assert.throws(()=>parseSql(sql),e=>e instanceof SqlParseError&&e.message===message);
+ for(const suffix of ['', ' ORDER BY missing'])assert.doesNotThrow(()=>parseSql(`SELECT printf(${args(1000)}${suffix})`));
+});
 test('resolver does not duplicate ordinary descriptor names',()=>{
  const source=fs.readFileSync(new URL('../../src/internal/resolve.ts',import.meta.url),'utf8');
  const known=source.match(/known=\[([^\]]+)\]\.includes\(name\)/);
@@ -15,6 +32,8 @@ for(const enc of ['utf8','utf16le','utf16be'])test(`descriptor diagnostics and o
  const bytes=fs.readFileSync(new URL(`../fixtures/generations/${g}/generated/subquery-${enc}.db`,import.meta.url));
  const old=globalThis.fetch;let db;try{globalThis.fetch=async()=>new Response(bytes);db=await open('https://fixture.invalid/policy');}finally{globalThis.fetch=old;}
  try{
+  for(const suffix of ['']){const s=db.prepare(`SELECT printf(${args(1000)}${suffix})`).statement;try{assert.equal(await s.step(),'row');assert.equal(s.column(0),null);assert.equal(await s.step(),'done');}finally{s.finalize();}}
+  for(const [sql,message] of overflowCases)assert.throws(()=>db.prepare(sql),e=>e.kind==='sqlite'&&e.code===1&&e.message===message);
   for(const [sql,message] of [
    ['SELECT CoNcAt()','wrong number of arguments to function CoNcAt()'],
    ['SELECT CoNcAt_Ws(1)','wrong number of arguments to function CoNcAt_Ws()'],

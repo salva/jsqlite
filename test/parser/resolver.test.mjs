@@ -143,7 +143,9 @@ test('lookupName applies aliases, qualification, ambiguity, no-such-column, and 
  assert.throws(()=>resolve('SELECT timediff(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function timediff()');
  assert.doesNotThrow(()=>resolve('SELECT iif(x,1), iif(x,1,0), iif(x,1,x,2,0), if(x,1,0) FROM a'));
  assert.throws(()=>resolve('SELECT iif(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function iif()');
- assert.doesNotThrow(()=>resolve('SELECT subtype(x), round(x), round(x,x), concat(), concat(x,x), concat_ws(x), concat_ws(x,x), ifnull(x,x) FROM a'));
+ assert.doesNotThrow(()=>resolve('SELECT subtype(x), round(x), round(x,x), concat(x), concat(x,x), concat_ws(x,x), concat_ws(x,x,x), ifnull(x,x) FROM a'));
+ assert.throws(()=>resolve('SELECT concat() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function concat()');
+ assert.throws(()=>resolve('SELECT concat_ws(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function concat_ws()');
  assert.throws(()=>resolve('SELECT round() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function round()');
  assert.throws(()=>resolve('SELECT concat_ws() FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function concat_ws()');
  assert.throws(()=>resolve('SELECT ifnull(x) FROM a'),e=>e instanceof NameResolutionError&&e.message==='wrong number of arguments to function ifnull()');

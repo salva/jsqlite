@@ -385,6 +385,17 @@ function canonicalNumericReduction(node:Extract<LemonValue<SqlToken>,{kind:'redu
  return {...node,rule:production.id,signature};
 }
 function productionAction(signature:string,children:readonly LemonValue<SqlToken>[],sqlBytes:Uint8Array):unknown{
+ // parse.y -> expr.c sqlite3ExprFunction: construction precedes resolution.
+ // ORDER BY and FILTER/OVER are not ExprList arguments. No internal nested
+ // parse mode or mutable SQLite function-argument limit is exposed here.
+ if(signature.startsWith("expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist ")){
+  let count=0;const stack=[children[3]!];
+  while(stack.length){const item=stack.pop()!;if(item.kind!=="reduction")continue;
+   if(item.signature.startsWith("expr ::=")||item.signature.startsWith("term ::="))count++;
+   else if(item.signature.startsWith("exprlist ::=")||item.signature.startsWith("nexprlist ::="))stack.push(...item.children);
+  }
+  if(count>1000)throw new SqlParseError(`too many arguments on function ${leaves(children[0])[0]!.text}`);
+ }
  // parse.y term ::= QNUMBER / util.c sqlite3DequoteNumber. Replace the
  // popped semantic terminal, not the lexical token; byte spans remain raw.
  if(signature==="term ::= QNUMBER"){

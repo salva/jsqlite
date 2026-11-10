@@ -19,7 +19,9 @@ assert.equal(builtinFunction("nullif")?.flags.includes("need-collation"),true);
 assert.equal(builtinFunctionAccepts(builtinFunction("printf"),0),true);
 assert.equal(builtinFunctionAccepts(builtinFunction("printf"),1000),true);
 assert.equal(builtinFunctionAccepts(builtinFunction("printf"),1001),false);
-assert.equal(builtinFunctionAccepts(builtinFunction("min"),1),false);
+// FuncDef -3 admits one; resolution selects the exact aggregate overload.
+assert.equal(builtinFunctionAccepts(builtinFunction("min"),0),false);
+assert.equal(builtinFunctionAccepts(builtinFunction("min"),1),true);
 assert.equal(builtinFunctionAccepts(builtinFunction("min"),2),true);
 assert.equal(builtinFunctionIsPure(builtinFunction("abs")),true);
 assert.equal(builtinFunctionIsPure(builtinFunction("random")),false);

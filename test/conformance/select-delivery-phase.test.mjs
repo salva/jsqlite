@@ -51,7 +51,15 @@ test('empty sorter and projection errors preserve boundary and original failure'
 test('production caller delegates both SELECT phases without moving WHERE or cleanup ownership',()=>{
  const start=source.indexOf('):Program|NonNullable<Program["whereAccounting"]> {',source.indexOf('function compileInnerTableSelect('));
  const body=source.slice(start,source.indexOf('\nfunction sqlName(',start));
- assert.match(body,/createSelectDelivery\(builder,/);assert.match(body,/delivery.innerLoop\(\)/);assert.match(body,/delivery.sortTail\(\)/);assert.match(body,/delivery.continueAt\(nextAt.at\(-1\)!\)/);
+ assert.match(body,/createSelectDelivery\(builder,/);assert.match(body,/delivery.innerLoop\(\)/);assert.match(body,/delivery.sortTail\(\)/);
+ // select.c passes the innermost WHERE continuation, not its movement op.
+ // WhereEnd resolves it before synthetic-null handling and the RIGHT Return.
+ assert.match(body,/delivery.continueAt\(levels.at\(-1\)!\.nextAt\)/);
+ const unwind=body.slice(body.indexOf('const joinedBodyEnd=ops.length'),body.indexOf('delivery.continueAt('));
+ assert.match(unwind,/for\(let level=expanded.sources.length-1;level>=0;level--\)/);
+ assert.ok(unwind.indexOf('levels[level]!.nextAt=ops.length')>=0);
+ assert.ok(unwind.indexOf('levels[level]!.nextAt=ops.length')<unwind.indexOf("code:'Return',p1:right.returnRegister"));
+ assert.doesNotMatch(body,/delivery.continueAt\([^;]*advanceAt/);
  assert.doesNotMatch(body,/owner.compoundLimit.stops.push\(ops.length\)/);
  assert.ok(body.indexOf('delivery.innerLoop()')<body.indexOf('const joinedBodyEnd=ops.length'));
  assert.ok(body.indexOf('delivery.sortTail()')>body.indexOf('const joinedBodyEnd=ops.length'));

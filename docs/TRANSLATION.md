@@ -1304,6 +1304,12 @@ pinned registrations and exercise date/JSON admission and body-error phase.
 The one-argument min/max exact aggregate overload remains separate
 from the scalar variadic descriptor; only that aggregate form admits OVER.
 Deferred diagnostics retain original token spelling and child-error precedence.
+Function construction in generated `parse.ts` productions checks the pinned
+1000-argument limit before name/arity resolution, following expr.c
+`sqlite3ExprFunction`; nested construction errors precede parent resolution.
+ORDER BY and FILTER/OVER are separate from the argument list. Paired
+`function-descriptor-resolution` controls cover construction boundaries and
+competing diagnostics through direct parser and public entrypoints.
 Noncatalogued aggregate/window and unsupported-function policy remains specialized;
 this is not whole-resolver consolidation. Paired `function-descriptor-resolution`
 controls cover diagnostics and metadata/storage/reset/rebind across three encodings;

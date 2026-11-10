@@ -13,6 +13,17 @@ for name in ['name','decltype','database_name','table_name','origin_name']:
 assert lib.sqlite3_sourceid().decode()==json.loads((root/'reference/sqlite/manifest.json').read_text())['sqliteSourceId']
 g=json.loads((root/'test/fixtures/CURRENT.json').read_text())['generationId']
 errors=[('SELECT CoNcAt()','wrong number of arguments to function CoNcAt()'),('SELECT CoNcAt_Ws(1)','wrong number of arguments to function CoNcAt_Ws()'),('SELECT NoSuchPolicyFn(1)','no such function: NoSuchPolicyFn'),('SELECT NoSuchPolicyFn(missing)','no such column: missing'),('SELECT abs(missing,2)','no such column: missing'),('SELECT min(1,2) OVER ()','min() may not be used as a window function'),('SELECT max(1,2) OVER ()','max() may not be used as a window function'),('SELECT abs(1) FILTER (WHERE 1)','FILTER may not be used with non-aggregate abs()'),('SELECT abs(1) OVER ()','abs() may not be used as a window function')]
+def args(n): return ','.join(['NULL']*n)
+errors += [(f'SELECT {name}({args(1001)})',f'too many arguments on function {name}') for name in ['printf','NoSuchPolicyFn','abs','"MiXeD"']]
+errors += [
+ (f'SELECT abs(missing,{args(1000)})','too many arguments on function abs'),
+ (f'SELECT NoSuchPolicyFn(abs({args(1001)}),{args(1000)})','too many arguments on function abs'),
+ (f'SELECT printf({args(1001)}) FROM nonexistent','too many arguments on function printf'),
+ (f'SELECT printf({args(1001)} ORDER BY missing)','too many arguments on function printf'),
+ (f'SELECT printf({args(1001)}) OVER ()','too many arguments on function printf'),
+ (f'WITH c AS (SELECT printf({args(1001)})) SELECT * FROM c','too many arguments on function printf'),
+ (f'VALUES(printf({args(1001)}))','too many arguments on function printf'),
+ (f'CREATE VIEW v AS SELECT printf({args(1001)})','too many arguments on function printf')]
 for enc in ['utf8','utf16le','utf16be']:
  d=P();assert lib.sqlite3_open_v2(str(root/f'test/fixtures/generations/{g}/generated/subquery-{enc}.db').encode(),C.byref(d),1,None)==0
  try:
@@ -20,6 +31,9 @@ for enc in ['utf8','utf16le','utf16be']:
    s=P();assert lib.sqlite3_prepare_v2(d,sql.encode(),-1,C.byref(s),None)==1,sql
    assert lib.sqlite3_errmsg(d).decode()==message,sql
    assert not s.value
+  for suffix in ['']:
+   s=P();assert lib.sqlite3_prepare_v2(d,f'SELECT printf({args(1000)}{suffix})'.encode(),-1,C.byref(s),None)==0
+   assert lib.sqlite3_finalize(s)==0
   for expr in ['min(?1)','max(?1)','min(?1,9)','max(?1,0)','abs(?1)']:
    s=P();assert lib.sqlite3_prepare_v2(d,f'SELECT {expr} AS v'.encode(),-1,C.byref(s),None)==0
    try:
@@ -32,5 +46,5 @@ for enc in ['utf8','utf16le','utf16be']:
      assert lib.sqlite3_step(s)==101
      assert lib.sqlite3_reset(s)==0
    finally:assert lib.sqlite3_finalize(s)==0
-  print(enc,'PASS: 9 diagnostics, 5 metadata/storage/two-cycle rebind controls')
+  print(enc,f'PASS: {len(errors)} diagnostics, 1 at-limit prepare, 5 metadata/storage/two-cycle rebind controls')
  finally:assert lib.sqlite3_close(d)==0

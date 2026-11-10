@@ -54,6 +54,18 @@ sync/async edit primitive: argc0 returns NULL, then edit oddness precedes NULL
 and parse checks. `date.c:strftimeFunc` and `jsonExtractFunc` short-arity NULL
 branches use existing date-time.ts/json.ts execution, not prepare-time rejection.
 
+### Function-expression construction
+
+`parse.y` function reductions -> `expr.c:sqlite3ExprFunction` ->
+`parse.ts:productionAction`: count ExprList elements at reduction, reject more
+than 1000 before resolver/compile callers. Original name token spelling is kept;
+ORDER BY and FILTER/OVER do not contribute arguments. Generated bottom-up
+reduction preserves inner construction before outer resolution. Paired
+`function-descriptor-resolution-native.py` / `.test.mjs` cover boundaries,
+unknown/registered names, quoted tokens and competing errors across CTE/VALUES/
+view/public and direct parser entrypoints. Evidence: [[card:card-t-c]] status485
+and current status; internal SQLite nested-parse exemption is not a public mode.
+
 ### Resolver scalar-width callbacks
 
 `resolve.c:resolveExprStep`1392–1420 walks nested SELECTs in their NameContext;

@@ -34,6 +34,15 @@ Revision-bound evidence: [[card:card-s-b-a-a-b-a-a-a]],
 [typed/native status58](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=58)
 and [selected lifecycle/status62](record:///status.md?card=card-s-b-a-a-b-a-a-a&v=62).
 
+## Function construction limit (author correction)
+
+Generated function-expression productions now apply expr.c's pinned 1000-argument
+construction limit before resolution, rather than exposing descriptor wrong-arity
+errors for oversized calls. Paired descriptor tests exercise native/public token
+spelling, nested/competing errors and entrypoints in all three encodings. This
+bounded correction does not consolidate remaining SELECT/expression walkers;
+revision-bound evidence and failed intermediate checks: [[card:card-t-c]] status.
+
 ## Resolver descriptor-policy increment (author evidence)
 
 Resolver scalar/date/math/JSON name and arity policy now uses the existing
