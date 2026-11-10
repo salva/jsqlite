@@ -59,7 +59,8 @@ test('productionAction scopes DDL token extraction to DDL productions', async()=
   'guard DDL-only token extraction before traversing otherwise unhandled reductions including nexprlist');
 });
 test('long function lists retain generated reductions and ordered UTF-8 token spans',()=>{
- for(const count of [999,1000]){
+ // '%s' is an argument too: stress legal totals through the pinned maximum.
+ for(const count of [998,999]){
   const sql=`SELECT length(printf('%s',${Array(count).fill('NULL').join(',')}))`;
   const parsed=parseSql(sql);
   assert.equal(parsed.lemon.accepted,true);
@@ -70,6 +71,9 @@ test('long function lists retain generated reductions and ordered UTF-8 token sp
   for(const token of tokens)assert.equal(new TextDecoder().decode(bytes.slice(token.startByte,token.endByte)),token.text);
   assert.ok(parsed.lemon.value);
  }
+ // Preserve the former oversized positive as an explicit 1001-argument negative.
+ assert.throws(()=>parseSql(`SELECT length(printf('%s',${Array(1000).fill('NULL').join(',')}))`),
+  e=>e instanceof SqlParseError&&e.message==='too many arguments on function printf');
  assert.throws(()=>parseSql('SELECT f(1,2,3)',{maxWorkUnits:1}),RangeError);
  assert.equal(parseSql('SELECT f(1,2,3)').lemon.accepted,true,'fresh parse after limit failure');
 });
