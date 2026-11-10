@@ -55,7 +55,7 @@ test('implemented VALUES production identity remains structured and executable',
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });
 
-test('supported recursive WITH executes while expression-owned nested WITH rejects atomically',async()=>{
+test('supported recursive and expression-owned VALUES WITH execute',async()=>{
  const bridge=await startFixtureServer(fixtureRoot);let db;
  try{
   db=await openFixture(new Request(`http://127.0.0.1:${bridge.port}/fixture/${bridge.token}/empty`));
@@ -63,7 +63,28 @@ test('supported recursive WITH executes while expression-owned nested WITH rejec
   const recursiveStatement=db.prepare(recursive).statement,rows=[];
   try{while(await recursiveStatement.step()==='row')rows.push(recursiveStatement.columnInteger(0));assert.deepEqual(rows,[1n,2n,3n])}finally{recursiveStatement.finalize()}
   const nested='SELECT (WITH q(x) AS (VALUES(1)) SELECT x FROM q)';
-  assert.throws(()=>db.prepare(nested),temporaryMessage('common table expressions are not implemented'),nested);
+  const nestedStatement=db.prepare(nested).statement;
+  try{
+   assert.equal(nestedStatement.columnCount,1);
+   assert.equal(nestedStatement.columnMetadata(0).name,'(WITH q(x) AS (VALUES(1)) SELECT x FROM q)');
+   for(let run=0;run<2;run++){
+    assert.equal(await nestedStatement.step(),'row');
+    assert.equal(nestedStatement.columnType(0),'integer');assert.equal(nestedStatement.column(0),1n);
+    assert.equal(await nestedStatement.step(),'done');nestedStatement.reset();
+   }
+  }finally{nestedStatement.finalize()}
+  // Whole pinned queries: scalar FIRST replaces nonzero fractional LIMIT.
+  for(const [suffix,value,type] of [['',7n,'integer'],[' LIMIT 0',null,'null'],[' LIMIT 1.5',7n,'integer'],[' LIMIT 1 OFFSET 1',9n,'integer']]){
+   const sql='SELECT (WITH q(x) AS (VALUES(7),(9)) SELECT x FROM q'+suffix+')';
+   const child=db.prepare(sql).statement;
+   try{
+    assert.equal(child.columnCount,1);assert.equal(child.columnMetadata(0).name,sql.slice(7));
+    for(let run=0;run<2;run++){
+     assert.equal(await child.step(),'row');assert.equal(child.columnType(0),type);assert.equal(child.column(0),value);
+     assert.equal(await child.step(),'done');child.reset();
+    }
+   }finally{child.finalize()}
+  }
   const statement=db.prepare('SELECT 1').statement;assert.equal(await statement.step(),'row');assert.equal(statement.column(0),1n);statement.finalize();
  }finally{try{db?.closeDeferred()}catch{}await new Promise((resolve,reject)=>bridge.server.close(e=>e?reject(e):resolve()))}
 });

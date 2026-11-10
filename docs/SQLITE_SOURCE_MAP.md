@@ -1,6 +1,47 @@
 # SQLite source map
 
+### Retained input with enclosing aggregate/window rewrite
+
+`resolve.c:1356–1380` assigns aggregate depth by argument SrcList;
+`window.c:selectWindowRewriteExprCb/sqlite3WindowRewrite` moves grouped production
+below window execution. `vdbe.ts:compileWindowSelectLowering` preserves that owner
+for retained sources: source coroutine → positioned `compileAggregateSelect`
+input on the same builder → grouped payload → window buffer. Existing resolver
+`aggregateUses` is consumed, not recomputed from SQL text. Original complete
+CTE/window/outer-only SUM queries, LIMIT0/fractional and local-argument controls:
+`select-linked-scalar-preparation-owner.test.mjs`. Whole-query native adjudication
+and command qualifications: [card status](record:///status.md?card=card-t-c).
+
+### Retained VALUES scalar children
+
+`expr.c:sqlite3CodeSubselect` (3934–3963) normalizes scalar LIMIT then delegates
+through the same Parse to `select.c:sqlite3Select` / coroutine SrcItem production.
+`vdbe.ts:compileScalarSelect.compileSubquery` admits retained VALUES to existing
+`compileDerivedProducer`; its scalar consumer uses `computeScalarLimitRegisters`,
+while ordinary derived consumers keep ordinary LIMIT coercion. No physical scan
+of transient CTE descriptors. `compound-values-unsupported.test.mjs` checks exact
+nested WITH, multirow FIRST, LIMIT 0/fractional, names/types and reset;
+`cte-admission.test.mjs` covers original witnesses across encodings and atomic
+negatives. Evidence: [card status](record:///status.md?card=card-t-c).
+
 ### Ordinary ALL expression destinations (CF03)
+
+Scalar compound metadata in compileScalarSelect's compileSubquery consumes
+`linked.compoundArms[0].result[0].descriptor`, preserving the leftmost resolved
+expression rather than invoking the single-arm metadata resolver on a whole
+compound. Upstream: select.c columnType/generateColumnNames; expr.c
+sqlite3CodeSubselect; resolve.c sqlite3ResolveSelectNames. Existing scalar-child
+case290 covers distinct arm names/sources and NULL/Exists/reset. Filtered
+source-free ALL arms also route through compileWideSubquery/compileCteUnionAll's
+existing per-arm scalar WHERE producer and shared destination/limit. Case300
+covers scalar/EXISTS/IN over false-left/true-right arms. Native whole-query and
+full scalar-child regression evidence: [[card:card-t-c]] status513.
+
+`expr.c:3956–3963` passes the same Parse into sqlite3Select. Physical
+`compileTableSelectProducer` wide-child callers supply schema alongside the
+linked plan and positioned binding. `join-retained-compound-contracts.test.mjs`
+checks public vector/EXISTS compound paths, correlated replay, Once/reset,
+skipped/reached errors and resource refunds. G15 evidence: [[card:card-t-c]] status509.
 
 Expression SELECT children inherit the enclosing lexical WITH frame during CTE
 lowering. Each compound arm resolves its own derived transient Table; terminal

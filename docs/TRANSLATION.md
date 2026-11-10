@@ -392,6 +392,23 @@ does not imply general optimizer or STAT4 sample parity.
 
 ## Ordinary ALL expression destinations
 
+Scalar compound metadata callers consume the already-linked leftmost arm result
+descriptor; they must not re-resolve a whole compound against one arm's SrcList.
+This preserves arm-local identity and lexical context after child emission, as
+select.c columnType follows the leftmost resolved result expression. Category6
+case290 and source-free filtered ALL case300 evidence are tracked in
+[[card:card-t-c]] status513. Source-free arms with WHERE use the same complete
+ALL destination owner as table arms, retaining arm-local predicate execution
+and shared scalar/EXISTS limits or IN set consumption; the legacy unfiltered
+constant/set path remains unchanged. The full scalar-child destination-loop
+now passes, without implying closure of the remaining R47 categories.
+
+Physical SELECT expression callers forward the enclosing schema with the linked
+child plan and positioned binding on all wide-child routes, matching expr.c's
+same-Parse call to sqlite3Select. The compound schema guard remains intact.
+G15 caller repair evidence: [[card:card-t-c]] status509; this is not closure of
+the remaining W276 failures or independent combined acceptance.
+
 Table-containing unordered UNION ALL expression children use the linked `compileWideSubquery` Mem/Exists/Set initialization and normalized shared LIMIT/OFFSET, then `compileCteUnionAll`'s complete arm dispatch, including the real aggregate owner. The displaced expression-only physical-arm loops are removed. Empty groups and HAVING can advance to the next arm; an accepted scalar row stops before later runtime errors. Ordered/set merge, window expression arms and recursive queue production remain separate bounded routes, not newly generalized here. See [CF03 source/removal and author evidence](research/card-t-c-cf03.md).
 
 ## Authority and current use
@@ -566,7 +583,12 @@ syntax errors, semantic errors and temporary unsupported are not interchangeable
 `compileSelect` is the production entry. `SelectProgramBuilder` owns shared
 operation addresses, register ranges, cursor allocation and labels, corresponding
 to `Parse.nMem/nTab` and one Vdbe. Parameters and `SelectDest` flow into selected
-producers. A specialized branch may decline **before emission**; after selection
+producers. Recursive queue and multiple-recursive entry contexts also carry
+`schema` into linked consumer resolution; this supplements, rather than replaces,
+the shared builder, parameters and destination. The multiple-recursive composer
+passes that same allocation/parameter owner to each queue with a sorter destination
+before publishing to its enclosing destination (`select.c:generateWithRecursiveQuery`).
+A specialized branch may decline **before emission**; after selection
 its error propagates, not a catch-and-try fallback. Enclosing entry publishes
 operations and Halt. Retained window-derived materialization allocates enclosing
 setup, producer-entry and drain labels before child emission (`select.c`
@@ -1531,6 +1553,19 @@ semantics are preserved; otherwise an admitted producer feeds coroutine or priva
 materialization with independent reader positions. Child LIMIT/ORDER and parent
 LIMIT/ORDER are separate owners. Views preserve explicit/inferred column names,
 collation and origin. No nested public Statement or native fallback is used.
+Window rewriting preserves resolver-owned outer aggregate depth even for retained
+CTE/derived inputs: the retained SELECT feeds the existing grouped AggInfo producer
+through its positioned-input contract before window stepping. Grouped payload
+columns, not raw retained rows, supply the rewritten window buffer. Child LIMIT
+remains child-owned; outer-only aggregate arguments determine enclosing grouping.
+See [category5 evidence](record:///status.md?card=card-t-c).
+Scalar expression children with retained VALUES sources enter the existing
+`compileDerivedProducer` coroutine owner, not a physical transient-table scan.
+Its scalar consumer uses expr.c's FIRST/LIMIT normalization (nonzero becomes 1,
+including fractional values; zero suppresses the child); producer and consumer
+limits remain distinct. See the category1/2 evidence in
+[card status](record:///status.md?card=card-t-c)
+and `compound-values-unsupported.test.mjs` / `cte-admission.test.mjs`.
 
 `CtePrepareContext` records With/Cte use, scope and materialization decisions;
 its explicitly MATERIALIZED singleton physical/aggregate producer consumer now

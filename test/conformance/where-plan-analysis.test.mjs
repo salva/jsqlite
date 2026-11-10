@@ -599,7 +599,17 @@ test('derived substitution preflight retains resolved identity across caller ON 
   const qualifiedProducer=qualifyResolvedSource(producerPlan,producerPlan.sources[0],'fresh producer');
   const moved=substituteResolvedColumns(plan,owner,qualifiedProducer.result);
   const movedFrom=Object.freeze(Object.assign([...moved.from],{...moved.from,items:Object.freeze([{...producerPlan.source.from.items[0],alias:'fresh producer'},moved.from.items[1]])}));
-  const movedPlan=expandAndResolveSelect({...moved,from:movedFrom},s);
+  // Expression substitution does not splice SrcItems. The old descriptor
+  // still declares k, not the physical producer's id: retain this negative.
+  assert.throws(()=>expandAndResolveSelect({...moved,from:movedFrom},s),/no such column: fresh producer.id/);
+  // flattenSubquery's caller replaces both SrcItem and subquery ownership.
+  const {derived:oldDerived,derivedSources:oldDerivedSources,...movedPhysicalFrom}=movedFrom;
+  assert.equal(oldDerived.index,0);
+  assert.ok(!oldDerivedSources?.some(item=>item.index!==0));
+  const physical=Object.freeze(Object.assign([...movedFrom],movedPhysicalFrom));
+  const movedPlan=expandAndResolveSelect({...moved,from:physical},s);
+  assert.equal(movedPlan.sources[0].table,s.t);
+  assert.equal(movedPlan.result[0].source,movedPlan.sources[0]);
   for(const child of movedPlan.nested)assert.ok(child.columnUses.some(use=>use.source===movedPlan.sources[0]&&use.selectDepth===1));
   const qualifiedFrom=Object.freeze(Object.assign([...qualifiedProducer.from],{...qualifiedProducer.from,items:Object.freeze([{...qualifiedProducer.from.items[0],alias:'fresh producer'}])}));
   const qualifiedPlan=expandAndResolveSelect({...qualifiedProducer,from:qualifiedFrom},s);
@@ -614,7 +624,11 @@ test('derived substitution preflight retains resolved identity across caller ON 
   const substituted=substituteResolvedColumns(plan,owner,replacements);
   assert.deepEqual(substituted.result[0].tokens.map(token=>token.text),['t','.','id']);
   const physicalFrom=Object.freeze(Object.assign([...substituted.from],{...substituted.from,items:Object.freeze([parseSql('SELECT id FROM t').statement.from.items[0],substituted.from.items[1]])}));
-  const rebound=expandAndResolveSelect({...substituted,from:physicalFrom},s);
+  assert.throws(()=>expandAndResolveSelect({...substituted,from:physicalFrom},s),/no such column: t.id/);
+  const {derived:reboundDerived,derivedSources:reboundDerivedSources,...reboundFrom}=physicalFrom;
+  assert.equal(reboundDerived.index,0);
+  assert.ok(!reboundDerivedSources?.some(item=>item.index!==0));
+  const rebound=expandAndResolveSelect({...substituted,from:Object.freeze(Object.assign([...physicalFrom],reboundFrom))},s);
   assert.equal(rebound.result[0].source,rebound.sources[0]);
   for(const child of rebound.nested)assert.ok(child.columnUses.some(use=>use.source===rebound.sources[0]&&use.columnIndex===-1&&use.selectDepth===1),JSON.stringify(child.columnUses.map(use=>({name:use.source.alias??use.source.tableName,depth:use.selectDepth,col:use.columnIndex,tokens:use.expression.signature}))));
   assert.throws(()=>substituteResolvedColumns(plan,plan.sources[1],replacements),/transient rowid/);

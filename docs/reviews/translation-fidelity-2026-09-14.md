@@ -1,6 +1,26 @@
+The nested WITH VALUES witnesses are now author-green: the scalar caller enters
+the existing retained VALUES coroutine producer instead of scanning a transient
+Table as a persistent Btree. The consumer normalizes scalar LIMIT via expr.c's
+FIRST semantics and preserves ordinary OFFSET coercion. Exact positives across
+encodings, multirow/LIMIT controls and retained negative tests pass; this does not
+settle combined acceptance. The substitution-identity preflight is now author-green:
+its two manual physical source replacements retained stale derived descriptors.
+The fixture now replaces descriptor ownership as well as SrcItems, preserving
+original nested identity assertions and explicit stale-descriptor rejection controls
+across all three encodings. Expression substitution and resolver production are
+unchanged; all285 where-plan-analysis tests pass (current card evidence).
+The enclosing window/cardinality
+failure is now author-green: resolver aggregate depth already identified outer-only
+SUM, but retained window lowering bypassed the grouped producer. The retained
+coroutine now feeds shared AggInfo's positioned-input contract before window
+stepping; all170 scalar-owner tests and80 affected regressions/type pass. Whole-query
+pinned native one-row evidence includes original LIMIT0/fractional witnesses.
+Independent/combined adjudication remains open.
+Evidence: [card status](record:///status.md?card=card-t-c).
+
 ## CF03 bounded ordinary ALL destination correction
 
-The G13 baseline rejects aggregate UNION ALL Mem/Exists children although the top-level aggregate producer exists. The isolated candidate removes both restricted raw arm loops and consumes compileCteUnionAll through linked compileWideSubquery normalization. This corrects the reproduced admission/composition gap, not all compound architecture debt. [Exact source/removal map, author checks and uncredited gates](../research/card-t-c-cf03.md); independent assessment remains outstanding.
+The G13 baseline rejected aggregate UNION ALL Mem/Exists children although the top-level aggregate producer existed. The correction removes both restricted raw arm loops and consumes compileCteUnionAll through linked compileWideSubquery normalization. W276 records Q23 incorporation and G15 enrollment, including original paired/resource producers; missing-fixture and outstanding-G13-assessment predictions are not current G15 facts. G15 nevertheless reproduced a physical expression caller dropping schema before the wide compound owner. The scoped caller correction passes the actual13 linked-consumer tests, with fresh whole-query native case equality; independent repaired-G15 combined assessment and the other W276 failures remain open ([[card:card-t-c]] status509). Subsequent category6 author repair consumes linked leftmost scalar metadata and routes source-free filtered ALL arms to the existing complete-arm producer; the unchanged scalar-child file passes26/26, with whole-query pinned native case300 comparison (status513). Other W276 categories and independent combined acceptance remain open. This corrects the bounded caller/composition gap, not all compound architecture debt. [Exact source/removal map and bounded historical evidence](../research/card-t-c-cf03.md).
 
 ## CF02 direct recursive qualifier resolution
 

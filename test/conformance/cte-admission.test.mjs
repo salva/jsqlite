@@ -40,10 +40,18 @@ for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} exec
 });
 
 
-for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} keeps nested-WITH residual distinct while executing bounded recursive ownership`,async()=>{
+for(const encoding of ['utf8','utf16le','utf16be'])test(`public ${encoding} executes expression-owned VALUES WITH and bounded recursive ownership`,async()=>{
   const body=fs.readFileSync(path.join(generated,`subquery-${encoding}.db`));const {server,db}=await openBytes(body);
   try{
-    assert.throws(()=>db.prepare('SELECT (WITH c(x) AS (VALUES(1)) SELECT x FROM c)'),cteError);
+    const nested=db.prepare('SELECT (WITH c(x) AS (VALUES(1)) SELECT x FROM c)').statement;
+    try{
+      assert.equal(nested.columnCount,1);
+      assert.equal(nested.columnMetadata(0).name,'(WITH c(x) AS (VALUES(1)) SELECT x FROM c)');
+      for(let run=0;run<2;run++){
+        assert.equal(await nested.step(),'row');assert.equal(nested.columnType(0),'integer');
+        assert.equal(nested.column(0),1n);assert.equal(await nested.step(),'done');nested.reset();
+      }
+    }finally{nested.finalize()}
     const statement=db.prepare('WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<4) SELECT x FROM c').statement;
     const actual=[];try{while(await statement.step()==='row')actual.push(statement.columnInteger(0));assert.deepEqual(actual,[1n,2n,3n,4n]);assert.equal(statement.columnMetadata(0).name,'x');}finally{statement.finalize()}
     await reusable(db);db.close();

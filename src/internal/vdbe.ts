@@ -680,7 +680,7 @@ export function compileWindowSelectLowering(
   const ownsNestedAggregate=(plan:import('./resolve.ts').ResolvedSelect,depth:number):boolean=>
     [...(plan.aggregateUses?.values()??[])].some(owner=>owner===depth)||plan.nested.some(child=>ownsNestedAggregate(child,depth+1));
   const nestedAggregate=resolved.nested.some(child=>ownsNestedAggregate(child,1));
-  const groupedLayer=compileLayers[0]&&(resolved.source.hasGroupBy||([...resolved.aggregateUses?.values()??[]].some(depth=>depth===0)||nestedAggregate)&&!owner?.retainedSource)?compileLayers[0]:null;
+  const groupedLayer=compileLayers[0]&&(resolved.source.hasGroupBy||([...resolved.aggregateUses?.values()??[]].some(depth=>depth===0)||nestedAggregate))?compileLayers[0]:null;
   const groupedProducer=groupedLayer&&database&&schema?(()=>{
     const source=resolved.source,arm=source.arms[0]!,result=groupedLayer.bufferExpressions;
     // The rewritten buffer contains deferred window-result slots alongside the
@@ -727,7 +727,7 @@ export function compileWindowSelectLowering(
   const sourceStart=ops.length;(ops[sourceInit] as {p3:number}).p3=sourceStart;
   let groupedPayload:number|null=null;
   const moduleRows=new Map<ResolvedSource,{first:number;rowid:number}>();
-  if(owner?.retainedSource){
+  if(owner?.retainedSource&&!groupedProducer){
     // select.c tag-select-0482: retained SrcItem feeds this window rewrite
     // on the same Parse, with child LIMIT owned by the child SELECT.
     builder.registers=registers;
@@ -761,7 +761,13 @@ export function compileWindowSelectLowering(
     builder.reserveCursorsThrough(Math.max(nextApplicationCursor,...sorterCursors));
     groupedPayload=builder.range(groupedProducer.result.length);
     let input: {first:number;emit:(consume:()=>void)=>void}|undefined;
-    if(recursiveProducer){
+    if(owner?.retainedSource){
+      const retained=owner.retainedSource,first=builder.range(retained.result.length),coroutine=builder.register(),ready=builder.label();
+      builder.jump(ready,{code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1},(op,pc)=>({...op,p2:pc}));
+      compileTableSelectProducer(retained,schema!,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first}});
+      ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
+      input={first,emit:consume=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
+    }else if(recursiveProducer){
       const recursiveOwner=recursiveProducer.select.with!.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))))!;
       const first=builder.range(recursiveOwner.select.arms[0]!.result.length),coroutine=builder.register();
       const ready=builder.label();
@@ -780,8 +786,8 @@ export function compileWindowSelectLowering(
       for(const use of plan.columnUses)if(resolved.sources.includes(use.source)&&groupedProducer.result.some(item=>item.reduction===use.expression))movedColumns.push(Object.freeze({...use,selectDepth:0}));
       plan.nested.forEach(collectMovedColumns);
     };
-    if(recursiveProducer)resolved.nested.forEach(collectMovedColumns);
-    const linkedPlan=recursiveProducer?resolvedProducerProjection(Object.freeze({...resolved,columnUses:Object.freeze([...resolved.columnUses,...movedColumns])}),groupedProducer):undefined;
+    if(recursiveProducer||owner?.retainedSource)resolved.nested.forEach(collectMovedColumns);
+    const linkedPlan=recursiveProducer||owner?.retainedSource?resolvedProducerProjection(Object.freeze({...resolved,columnUses:Object.freeze([...resolved.columnUses,...movedColumns])}),groupedProducer):undefined;
     compileAggregateSelect(groupedProducer,schema!,database!,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:groupedPayload},...(input?{input,linkedPlan:linkedPlan!}:{})});
     registers=builder.registers;
     nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
@@ -834,8 +840,8 @@ export function compileWindowSelectLowering(
     // Never infer identity from copied token spelling: wrappers, aliases and
     // duplicate names make that unsound.
     const emitProducerBinding=(binding:typeof layer.bufferBindings[number],target:number,value?:typeof layer.bufferExpressions[number],producerColumn?:number,sourceValue?:typeof layer.bufferExpressions[number]):void=>{
-      if(index===0&&owner?.retainedSource&&binding){ops.push({code:"Copy",p1:groupedPayload!+binding.columnIndex,p2:target});return;}
-      if(index===0&&!owner?.retainedSource&&groupedPayload!==null&&(!recursiveProducer||groupedLayer||binding)){const column=recursiveProducer&&!groupedLayer?binding!.columnIndex:producerColumn??(binding?groupedLayer!.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):value?equivalentBufferExpression(groupedLayer!.bufferExpressions,value):-1);if(column<0){allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;}ops.push({code:"Copy",p1:groupedPayload+column,p2:target});return;}
+      if(index===0&&owner?.retainedSource&&!groupedProducer&&binding){ops.push({code:"Copy",p1:groupedPayload!+binding.columnIndex,p2:target});return;}
+      if(index===0&&(!owner?.retainedSource||groupedProducer)&&groupedPayload!==null&&(!recursiveProducer||groupedLayer||binding)){const column=recursiveProducer&&!groupedLayer?binding!.columnIndex:producerColumn??(binding?groupedLayer!.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):value?equivalentBufferExpression(groupedLayer!.bufferExpressions,value):-1);if(column<0){allProducerExpressionsRepresented=false;ops.push({code:"Null",p2:target});return;}ops.push({code:"Copy",p1:groupedPayload+column,p2:target});return;}
       if(index>0&&value?.reduction){const child=compileLayers[index-1]!,childState=setup[index-1]!;const win=child.windows.find(item=>item.window.owner.reduction===value.reduction);if(win){ops.push({code:"Copy",p1:win.regResult,p2:target});return;}const column=equivalentBufferExpression(child.bufferExpressions,value);if(column>=0){ops.push({code:"Copy",p1:childState.regNew+column,p2:target});return;}const bound=binding?child.bufferBindings.findIndex(candidate=>candidate?.source.cursorId===binding.source.cursorId&&candidate.columnIndex===binding.columnIndex):-1;if(bound>=0){ops.push({code:"Copy",p1:childState.regNew+bound,p2:target});return;}}
       if(!binding){
         // FILTER is a complete producer expression, not a direct column
@@ -3284,10 +3290,16 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     }
     if(!schema||!database)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     // expr.c sqlite3CodeSubselect uses the same complete-arm owner as output.
-    if(expression.select.hasCompound&&!expression.select.hasOrderBy&&!expression.select.hasValues&&expression.select.arms.some(arm=>arm.from.items.length>0)&&expression.select.arms.every((arm,index)=>index===0||arm.operatorFromPrior==='union-all')){
+    if(expression.select.hasCompound&&!expression.select.hasOrderBy&&!expression.select.hasValues&&expression.select.arms.some(arm=>arm.from.items.length>0||arm.where)&&expression.select.arms.every((arm,index)=>index===0||arm.operatorFromPrior==='union-all')){
       const linked=expression.resolved??expandAndResolveSelect(expression.select,schema,null,selectProgramBuilder.cursors);
       const destination=compileWideSubquery(expression,linked,selectProgramBuilder,resultOps,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},enclosingBinding);
-      if(expression.kind==='scalar-subquery'&&!expression.exists)subqueryColumns.set(expression.select,compoundArmColumns(expression.select,schema)[0]!);
+      if(expression.kind==='scalar-subquery'&&!expression.exists){
+        // select.c columnType follows the leftmost compound term's resolved
+        // expression. Do not resolve a compound result against one arm's SrcList.
+        const first=(linked.compoundArms?.[0]??linked).result[0]!;
+        const {declaredType,database,table,origin}=first.descriptor;
+        subqueryColumns.set(expression.select,Object.freeze({name:first.name,declaredType,database,table,origin}));
+      }
       return destination;
     }
     if(expression.select.hasCompound||expression.select.hasValues)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
@@ -3535,7 +3547,7 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
     // Retained compound and grouped/aggregate SrcItems are coroutine
     // producers, never persistent schema tables. Compose the scalar destination
     // on the enclosing builder; reject unrepresented consumer shapes atomically.
-    if(nested.from.derived?.select.hasCompound || (nested.from.derived && (nested.from.derived.select.hasGroupBy || selectHasAggregate(nested.from.derived.select)) && !selectHasAggregate(nested))){
+    if(nested.from.derived?.select.hasValues || nested.from.derived?.select.hasCompound || (nested.from.derived && (nested.from.derived.select.hasGroupBy || selectHasAggregate(nested.from.derived.select)) && !selectHasAggregate(nested))){
       // Resolve transient consumer before destination capability rejection.
       // LIMIT 0 and unsupported lowering do not waive lookupName errors.
       resolveTransientArm(nested,schema);
@@ -4071,7 +4083,7 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
  plan=linkedPlan;
  // Table compound producers require arm composition; a single table loop
  // would silently execute only the terminal arm. Do not publish that program.
- const tableCompound=expression.select.hasCompound&&expression.select.arms.some(arm=>arm.from.items.length);
+ const tableCompound=expression.select.hasCompound&&expression.select.arms.some(arm=>arm.from.items.length||arm.where);
  if(tableCompound&&(expression.select.hasOrderBy||!plan?.compoundArms||expression.select.arms.some((arm,i)=>i>0&&arm.operatorFromPrior!=='union-all')||plan.compoundArms.some(arm=>arm.result.length!==plan!.result.length)))throw new JSQLiteError('unsupported','wide compound table subquery composition is not implemented',{unsupportedClassification:'temporary'});
  const selected=plan?{...expression.select,result:plan.result.map(item=>item.expression)}:expression.select;
  if(tableCompound&&plan!.compoundArms!.some(arm=>selectHasWindow(arm.source)))throw new JSQLiteError('unsupported','window compound expression destination is not implemented',{unsupportedClassification:'temporary'});
@@ -6815,7 +6827,16 @@ function compileDerivedProducer(select:SelectNode,schema:SchemaGraph,database:Bt
     endJumps.push(ops.length);ops.push({code:'EndCoroutine',p1:returnRegister,p2:0});
   }
   const consumer=ops.length;(ops[init] as {p2:number}).p2=consumer;(ops[init] as {p3:number}).p3=producerBase;
-  let registers=builder.registers;const allocate=()=>++registers,limit=computeLimitRegisters(select,ops,allocate,parameters),output=allocate();registers+=indices.length-1;const key=allocate();
+  let registers=builder.registers;const allocate=()=>++registers;
+  // expr.c changes only LIMIT; OFFSET retains ordinary integer coercion.
+  let limit:{count:number;ifZero:number;offset?:number}|undefined;
+  if(owner?.scalarRetained){
+    const scalar=computeScalarLimitRegisters(select,ops,allocate,parameters);
+    let offset:number|undefined;
+    if(select.offset){offset=allocate();const value=compileExpressionTree(expressionFromReduction(select.offset.reduction!),ops,allocate,parameters);ops.push({code:'Copy',p1:value,p2:offset},{code:'MustBeInt',p1:offset});}
+    limit=scalar?{...scalar,...(offset===undefined?{}:{offset})}:undefined;
+  }else limit=computeLimitRegisters(select,ops,allocate,parameters);
+  const output=allocate();registers+=indices.length-1;const key=allocate();
   if(select.hasOrderBy)ops.push({code:'SorterOpen',p1:sorterCursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:'binary',desc:select.orderBy[0]!.descending}]})});const resume=ops.length;ops.push({code:'Yield',p1:returnRegister,p2:0});indices.forEach((index,result)=>ops.push({code:'Copy',p1:producerOutput+index,p2:output+result}));if(select.hasOrderBy){ops.push({code:'Copy',p1:producerOutput+orderIndex,p2:key},{code:'SorterInsert',p1:sorterCursor,keyStart:key,keyCount:1,payload:output,payloadCount:indices.length},{code:'Goto',p2:resume});const sort=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=sort;ops.push({code:'SorterSort',p1:sorterCursor,emptyJump:0},{code:'SorterData',p1:sorterCursor,p2:output,count:indices.length});const emit=ops.length;if(limit?.offset!==undefined)ops.push({code:'IfPos',p1:limit.offset,p2:emit+3,p3:1});if(owner?.emitRow)owner.emitRow(output,indices.length);else emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}ops.push({code:'SorterNext',p1:sorterCursor,p2:sort+1});const halt=ops.length;if(!owner)ops.push({code:'Halt'});(ops[sort] as {emptyJump:number}).emptyJump=halt;if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;(ops[limitBreak!] as {p2:number}).p2=halt;}}else{const emit=ops.length;const offsetSkip=limit?.offset!==undefined?ops.length:-1;if(offsetSkip>=0)ops.push({code:'IfPos',p1:limit!.offset!,p2:0,p3:1});if(owner?.emitRow)owner.emitRow(output,indices.length);else emitSelectDestination(ops,owner?.destination??{kind:'output'},output,indices.length);let limitBreak:number|undefined;if(limit){limitBreak=ops.length;ops.push({code:'DecrJumpZero',p1:limit.count,p2:0});}if(offsetSkip>=0)(ops[offsetSkip] as {p2:number}).p2=ops.length;ops.push({code:'Goto',p2:resume});const halt=ops.length;for(const at of endJumps)(ops[at] as {p2:number}).p2=halt;if(!owner)ops.push({code:'Halt'});if(limit){(ops[limit.ifZero] as {p2:number}).p2=halt;(ops[limitBreak!] as {p2:number}).p2=halt;}}
   builder.registers=Math.max(builder.registers,registers);
   builder.registers=Math.max(builder.registers,registers);const columns=indices.map((index,result)=>Object.freeze({...inner.columns[index]!,name:(bareStar?names[index]:select.result[result]!.alias)??names[index]!}));return Object.freeze({ops:owner?ops:builder.finish(),registers,encoding:database.encoding,columns:Object.freeze(columns),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits});
@@ -8183,10 +8204,10 @@ function compileTableSelectProducer(select: SelectNode, schema: SchemaGraph, dat
   })};
   const sharedPhysicalScalar=resolvedScalarSubqueryEmitter(expanded,builder,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,schema);
   const compileExpressionSubquery=(expression:SubqueryExpression):number=>{
-    if(expression.kind==='in-subquery'&&!expression.select.from.derived&&!expression.select.hasCompound&&!expression.select.hasValues&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select))return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
-    if(expression.select.hasValues||expression.kind==='in-subquery'&&!expression.select.from.items.length&&!expression.select.hasCompound&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select)&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!expression.select.hasOrderBy)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
-    if((expression.resolved??scalarPlans.get(expression.select))?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
-    if(expression.kind==='in-subquery'&&!expression.select.from.items.length&&expression.select.hasGroupBy&&!expression.select.hasCompound)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},physicalScalarBinding,compileExpressionSubquery);
+    if(expression.kind==='in-subquery'&&!expression.select.from.derived&&!expression.select.hasCompound&&!expression.select.hasValues&&!expression.select.hasOrderBy&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select))return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},physicalScalarBinding,compileExpressionSubquery);
+    if(expression.select.hasValues||expression.kind==='in-subquery'&&!expression.select.from.items.length&&!expression.select.hasCompound&&!selectHasAggregate(expression.select)&&!selectHasWindow(expression.select)&&!expression.select.hasDistinct&&!expression.select.hasGroupBy&&!expression.select.hasHaving&&!expression.select.hasOrderBy)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},physicalScalarBinding,compileExpressionSubquery);
+    if((expression.resolved??scalarPlans.get(expression.select))?.result.length!>1||expression.select.result.length>1||expression.kind==='in-subquery'&&expressionVectorWidth(expression.left)>1)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},physicalScalarBinding,compileExpressionSubquery);
+    if(expression.kind==='in-subquery'&&!expression.select.from.items.length&&expression.select.hasGroupBy&&!expression.select.hasCompound)return compileWideSubquery(expression,scalarPlans.get(expression.select),builder,ops,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},physicalScalarBinding,compileExpressionSubquery);
     const nested=scalarPlans.get(expression.select),source=nested?.sources[0],item=expression.select.result[0];
     if(!nested||!item?.reduction||((expression.kind!=='scalar-subquery')&&(nested.sources.length>1||expression.select.hasDistinct||expression.select.hasGroupBy||expression.select.hasHaving))||(expression.select.hasCompound&&expression.kind!=='scalar-subquery')||expression.select.hasValues||(expression.select.offset&&expression.kind!=='scalar-subquery'))throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
     const derived=expression.select.from.derived;
