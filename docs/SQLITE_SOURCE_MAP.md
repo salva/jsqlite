@@ -1,5 +1,23 @@
 # SQLite source map
 
+### Ordinary ALL expression destinations (CF03)
+
+Expression SELECT children inherit the enclosing lexical WITH frame during CTE
+lowering. Each compound arm resolves its own derived transient Table; terminal
+arm resolution must not reuse a different arm's binding. The ordinary-derived
+flatten adapter leaves CteUse sources to CTE dispatch (MATERIALIZED is upstream
+restriction 28; other CTE modes retain their existing specialized producer).
+Materialized arm readers consume the same compound LIMIT/OFFSET stop helper as
+ordinary arms, so Mem/Exists stop before later-arm evaluation. Single-field
+retained CTE aggregate consumers enroll their duplicate reader as the existing
+`compileAggregateSelect` positioned input, preserving linked transient identity,
+CteUse fill sharing and AggInfo WHERE/group/HAVING ownership. Shared arm limits
+are consumed by aggregate output, never by its input scan. Metadata expressions
+use resolver descriptors; direct payloads retain child origins. Regression:
+`cte-expression-compound.test.mjs`; [paired native/evidence](research/card-t-c-cf03.md).
+
+`select.c:2980–3065` TK_ALL recursive sqlite3Select arm calls map to `compileCteUnionAll` aggregate/table/scalar owners sharing SelectDest and compoundLimit. `expr.c:3885–3985` maps to `compileWideSubquery` Mem/Exists initialization, conditional Once and normalized scalar LIMIT/OFFSET. The scalar expression caller uses this linked path instead of independent restricted physical-arm dispatch. Tests: `compound-aggregate-destinations.test.mjs`; [bounded evidence/removal map](research/card-t-c-cf03.md). Ordered merge, window expression arms and recursive queue are not migrated by this slice.
+
 ### Materialized CTE consumer containment (CF01)
 
 `select.c:8100–8140` materializes; `8292ff sqlite3WhereBegin` and

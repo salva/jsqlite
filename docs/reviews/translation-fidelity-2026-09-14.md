@@ -1,3 +1,7 @@
+## CF03 bounded ordinary ALL destination correction
+
+The G13 baseline rejects aggregate UNION ALL Mem/Exists children although the top-level aggregate producer exists. The isolated candidate removes both restricted raw arm loops and consumes compileCteUnionAll through linked compileWideSubquery normalization. This corrects the reproduced admission/composition gap, not all compound architecture debt. [Exact source/removal map, author checks and uncredited gates](../research/card-t-c-cf03.md); independent assessment remains outstanding.
+
 ## CF02 direct recursive qualifier resolution
 
 The eee2c783/tree b037b565 input reproduced CF02: `wrong.n` silently read

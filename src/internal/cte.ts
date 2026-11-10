@@ -1,6 +1,8 @@
 import type { CteNode, ExprNode, SelectNode, SourceList } from "./parse.ts";
 import { SqlParseError } from "./parse.ts";
 import { sqliteIdentifierEqual } from "./sqlite-case.ts";
+import type { LemonValue } from "./lemon-runtime.ts";
+import type { SqlToken } from "./tokenize.ts";
 
 /** Prepare-owned mutable identity corresponding to sqliteInt.h:CteUse. */
 export type CteUse = {
@@ -72,6 +74,34 @@ export function lowerOrdinaryCtes(root:SelectNode,context=new CtePrepareContext(
   const walk=(select:SelectNode,outer:Scope|null):SelectNode|null=>{
     const scope:Scope=select.with?{declarations:select.with.ctes,outer}:outer??{declarations:[],outer:null};
     let current=select;
+    // selectExpander visits expression SELECTs with the enclosing WITH frame
+    // installed, just as it does FROM subqueries. Keep their semantic owners.
+    let unavailable=false;
+    const children=new Map<SelectNode,SelectNode>();
+    const reduction=(value:LemonValue<SqlToken>):LemonValue<SqlToken>=>{
+      if(value.kind==='terminal')return value;
+      const semantic=value.semantic;
+      if(value.signature.startsWith('select ::=')&&semantic&&typeof semantic==='object'&&'kind' in semantic&&semantic.kind==='select'){
+        const original=semantic as SelectNode;
+        const child=children.get(original)??walk(original,scope);
+        if(!child){unavailable=true;return value;}
+        children.set(original,child);
+        return Object.freeze({...value,semantic:child});
+      }
+      return Object.freeze({...value,children:Object.freeze(value.children.map(reduction))});
+    };
+    const expression=(expr:ExprNode):ExprNode=>expr.reduction?Object.freeze({...expr,reduction:reduction(expr.reduction) as NonNullable<ExprNode['reduction']>}):expr;
+    current=Object.freeze({...current,
+      result:Object.freeze(current.result.map(expression)),where:current.where?expression(current.where):null,
+      groupBy:Object.freeze(current.groupBy.map(expression)),having:current.having?expression(current.having):null,
+      orderBy:Object.freeze(current.orderBy.map(term=>Object.freeze({...term,expr:expression(term.expr)}))),
+      limit:current.limit?expression(current.limit):null,offset:current.offset?expression(current.offset):null,
+      arms:Object.freeze(current.arms.map((arm,index)=>index===0?Object.freeze({...arm,
+        result:Object.freeze(arm.result.map(expression)),where:arm.where?expression(arm.where):null,
+        groupBy:Object.freeze((arm.groupBy??[]).map(expression)),having:arm.having?expression(arm.having):null,
+        valuesRows:arm.valuesRows?Object.freeze(arm.valuesRows.map(row=>Object.freeze(row.map(expression)))):null
+      }):arm))});
+    if(unavailable)return null;
     // Derived SELECTs are separate owners but inherit the lexical WITH frame.
     if(current.from.derived){
       const child=walk(current.from.derived.select,scope);if(!child)return null;

@@ -577,6 +577,17 @@ export function resolvedViewTable(view:ViewNode,schema:ResolutionSchema):TableNo
 }
 export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema,outer:NameContext|null=null,cursorBase=0,transientTables:ReadonlyMap<number,TableNode>=new Map()):ResolvedSelect{
  schema.check?.();
+ // selectExpander installs transient columns before each arm's NameContext.
+ const derived=select.from.derived;
+ if(derived&&!transientTables.has(derived.index)){
+  const producer=expandAndResolveSelect(derived.select,schema,null,cursorBase);
+  const names=transientColumnNames(producer.result.map(item=>item.name));
+  const columns=producer.result.map((item,index)=>({szEst:0,name:names[index]!,declaredType:transientDeclaredType(item.descriptor.declaredType,item.descriptor.affinity??'blob'),affinity:item.descriptor.affinity??'blob',collation:item.descriptor.collation,primaryKeyPosition:null} as ColumnNode));
+  const name=select.from.items[derived.index]!.tableName;
+  const table={integerPrimaryKey:null,szTabRow:1,nRowLogEst:200,hasStat1:false,kind:'table',name,tableName:name,rootPage:0,columns,indexes:[],withoutRowid:false,noVisibleRowid:true,primaryKey:[],primaryKeyTerms:[],storageKey:[],checks:[],foreignKeys:[],referencedBy:[],sql:''} as TableNode;
+  bindTransientProducer(table,producer);
+  transientTables=new Map([...transientTables,[derived.index,table]]);
+ }
  const limitContext:NameContext={sources:[],pNext:null,columnUses:[],nRef:0};
  // resolve.c resolveSelectStep resolves LIMIT/OFFSET with an empty context:
  // neither this SELECT's sources nor an outer correlated frame is visible.
@@ -620,7 +631,7 @@ export function expandAndResolveSelect(select:SelectNode,schema:ResolutionSchema
  // both upstream routes validate their widths before consumer admission.
  for(const arm of child.arms)if(arm.valuesRows?.some(row=>row.length!==arm.result.length))throw new NameResolutionError('all VALUES must have the same number of terms');
  const resolutionSource=finalArm?{...child,result:finalArm.result,from:finalArm.from,where:finalArm.where}:child;
- let resolved=expandAndResolveSelect(resolutionSource,schema,outerContext,nextCursor,childBindings);
+ let resolved=expandAndResolveSelect(resolutionSource,schema,outerContext,nextCursor,finalArm?new Map():childBindings);
  // Nonconstant VALUES rows fall back to independently resolved SF_Values
  // ELists upstream. Retain every row's column/nested identity in the packed
  // carrier even when EXISTS or scalar LIMIT1 will not evaluate that row.

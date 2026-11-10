@@ -1,5 +1,7 @@
 # Public API contract
 
+Ordinary table-containing unordered UNION ALL scalar/EXISTS children can compose represented aggregate arms through the shared SELECT destination owner, including empty groups/HAVING and normalized child LIMIT/OFFSET. Preparation validates later arms even if execution stops at the first accepted row. This does not imply arbitrary compound/window/recursive composition; unsupported shapes remain atomic typed temporary errors. [Bounded CF03 evidence](research/card-t-c-cf03.md).
+
 Physical/JSON Window inputs now enter the shared Window rewrite before scalar
 module projection, retaining positioned sourceRow payload and independent rowid.
 Finite typed/full-metadata and lifecycle author evidence, source comparison and

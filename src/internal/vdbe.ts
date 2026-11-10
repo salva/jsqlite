@@ -3283,65 +3283,11 @@ export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncodi
       if(linked)return compileWideSubquery(expression,linked,selectProgramBuilder,resultOps,parameters,{database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,schema},enclosingBinding);
     }
     if(!schema||!database)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
-    // select.c:multiSelect TK_ALL calls sqlite3Select per arm with the same
-    // SRT destination. Unordered, unlimited table-backed arms share this builder.
-    if(expression.select.hasCompound&&
-       !expression.select.hasValues&&!expression.select.hasOrderBy&&
-       !expression.select.limit&&!expression.select.offset&&
-       expression.select.arms.length>1&&(expression.select.arms.some(arm=>arm.from.items.length>0)||expression.select.arms.some(arm=>!!arm.where))&&
-       expression.select.arms.every((arm,index)=>
-         (index===0||arm.operatorFromPrior==='union-all')&&
-         (arm.from.items.length>0||(arm.result.length===1&&!!arm.result[0]?.reduction&&(!arm.where||!!arm.where.reduction)))&&
-         !arm.hasGroupBy&&!arm.hasHaving&&!arm.hasDistinct)){
-      const nested=expression.select,destination=allocate(),isIn=expression.kind==='in-subquery';
-      const cursor=isIn?selectProgramBuilder.cursor():-1;
-      if(isIn)resultOps.push({code:'OpenEphemeral',p1:cursor,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:1,keyFieldCount:1,terms:[{collation:collation(expression.left)}]})});
-      else resultOps.push(expression.exists?{code:'Integer',p1:0n,p2:destination}:{code:'Null',p2:destination});
-      const found=!isIn&&!expression.exists?allocate():-1;
-      if(found>=0)resultOps.push({code:'Integer',p1:0n,p2:found});
-      const once=allocate(),onceAt=resultOps.length;resultOps.push({code:'Once',p1:once,p2:0});
-      const exits:number[]=[];
-      for(const arm of nested.arms){
-        // select.c:selectInnerLoop SRT_Mem/Exists returns after the first
-        // accepted row; skip subsequent UNION ALL arms once it is filled.
-        if(!isIn){exits.push(resultOps.length);resultOps.push({code:'IfPos',p1:expression.exists?destination:found,p2:0,p3:0});}
-        const part:SelectNode={...nested,result:arm.result,from:arm.from,where:arm.where,
-          hasDistinct:arm.hasDistinct,hasGroupBy:false,hasHaving:false,
-          hasCompound:false,hasOrderBy:false,hasLimit:false,orderBy:Object.freeze([]),
-          limit:null,offset:null,arms:Object.freeze([arm])};
-        if(selectHasAggregate(part)||selectHasWindow(part))throw new JSQLiteError('unsupported','aggregate or window compound arm is not implemented',{unsupportedClassification:'temporary'});
-        if(!arm.from.items.length){
-          // multiSelect sends the no-FROM arm's single selectInnerLoop row to
-          // the same destination, without a separate cursor or child Program.
-          const item=arm.result[0]!;
-          // where.c tests the no-FROM candidate before selectInnerLoop codes
-          // the result and sends it to the compound's shared destination.
-          let whereSkip=-1;
-          if(arm.where?.reduction){
-            const predicate=compileExpressionTree(bindCorrelated(part,expressionFromReduction(arm.where.reduction),arm.where.reduction as Reduction),resultOps,allocate,parameters,compileSubquery,true);
-            whereSkip=resultOps.length;resultOps.push({code:'IfNot',p1:predicate,p2:0});
-          }
-          const value=compileExpressionTree(bindCorrelated(part,expressionFromReduction(item.reduction!),item.reduction as Reduction),resultOps,allocate,parameters,compileSubquery);
-          emitSelectDestination(resultOps,isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found},value,1);
-          if(whereSkip>=0)(resultOps[whereSkip] as {p2:number}).p2=resultOps.length;
-        }else{
-          let expanded:ReturnType<typeof expandAndResolveSelect>;
-          try{expanded=expandAndResolveSelect(part,schema,null,selectProgramBuilder.cursors)}
-          catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
-          compileInnerTableSelect(part,expanded,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,
-            {builder:selectProgramBuilder,ops:resultOps,parameters,destination:isIn?{kind:"set",cursor,packedRegister:allocate()}:expression.exists?{kind:'exists',register:destination}:{kind:'mem',register:destination,found}});
-        }
-      }
-      const end=resultOps.length;
-      for(const at of exits)(resultOps[at] as {p2:number}).p2=end;
-      (resultOps[onceAt] as {p2:number}).p2=end;
-      if(!isIn&&!expression.exists){let expanded:ReturnType<typeof expandAndResolveSelect>;
-        const arm=nested.arms[0]!,part:SelectNode={...nested,result:arm.result,from:arm.from,where:arm.where,hasCompound:false,hasOrderBy:false,hasLimit:false,orderBy:Object.freeze([]),limit:null,offset:null,arms:Object.freeze([arm])};
-        try{expanded=expandAndResolveSelect(part,schema,null,selectProgramBuilder.cursors)}catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
-        const column=expanded.result[0]!;subqueryColumns.set(nested,{name:column.name,declaredType:column.descriptor.declaredType,database:column.descriptor.database,table:column.descriptor.table,origin:column.descriptor.origin});
-      }
-      if(isIn){const left=compileExpressionTree(expression.left,resultOps,allocate,parameters,compileSubquery);
-        resultOps.push({code:'InSet',p1:cursor,key:left,output:destination,affinity:inComparisonAffinity(expression.left,expressionFromReduction(nested.result[0]!.reduction!)),negated:expression.negated});}
+    // expr.c sqlite3CodeSubselect uses the same complete-arm owner as output.
+    if(expression.select.hasCompound&&!expression.select.hasOrderBy&&!expression.select.hasValues&&expression.select.arms.some(arm=>arm.from.items.length>0)&&expression.select.arms.every((arm,index)=>index===0||arm.operatorFromPrior==='union-all')){
+      const linked=expression.resolved??expandAndResolveSelect(expression.select,schema,null,selectProgramBuilder.cursors);
+      const destination=compileWideSubquery(expression,linked,selectProgramBuilder,resultOps,parameters,{schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits},enclosingBinding);
+      if(expression.kind==='scalar-subquery'&&!expression.exists)subqueryColumns.set(expression.select,compoundArmColumns(expression.select,schema)[0]!);
       return destination;
     }
     if(expression.select.hasCompound||expression.select.hasValues)throw new JSQLiteError("unsupported","this expression subquery shape is not implemented",{unsupportedClassification:"temporary"});
@@ -4126,8 +4072,9 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
  // Table compound producers require arm composition; a single table loop
  // would silently execute only the terminal arm. Do not publish that program.
  const tableCompound=expression.select.hasCompound&&expression.select.arms.some(arm=>arm.from.items.length);
- if(tableCompound&&(expression.select.hasOrderBy||!plan?.compoundArms||expression.select.arms.some((arm,i)=>i>0&&arm.operatorFromPrior!=='union-all')||plan.compoundArms.some(arm=>!arm.sources.length||arm.source.hasDistinct||arm.source.hasGroupBy||arm.source.hasHaving||selectHasAggregate(arm.source)||arm.result.length!==plan!.result.length)))throw new JSQLiteError('unsupported','wide compound table subquery composition is not implemented',{unsupportedClassification:'temporary'});
+ if(tableCompound&&(expression.select.hasOrderBy||!plan?.compoundArms||expression.select.arms.some((arm,i)=>i>0&&arm.operatorFromPrior!=='union-all')||plan.compoundArms.some(arm=>arm.result.length!==plan!.result.length)))throw new JSQLiteError('unsupported','wide compound table subquery composition is not implemented',{unsupportedClassification:'temporary'});
  const selected=plan?{...expression.select,result:plan.result.map(item=>item.expression)}:expression.select;
+ if(tableCompound&&plan!.compoundArms!.some(arm=>selectHasWindow(arm.source)))throw new JSQLiteError('unsupported','window compound expression destination is not implemented',{unsupportedClassification:'temporary'});
  const isIn=expression.kind==='in-subquery',isExists=expression.kind==='scalar-subquery'&&expression.exists,width=isIn?expressionVectorWidth(expression.left):selected.result.length;
  if(!isExists&&selected.result.length!==width)throw new JSQLiteError('sqlite',`sub-select returns ${selected.result.length} columns - expected ${width}`,{code:1});
  if(!plan&&!expression.select.hasValues&&expression.select.from.items.length)throw new JSQLiteError('internal','wide SELECT lost linked plan');
@@ -4155,20 +4102,11 @@ function compileWideSubquery(expression:SubqueryExpression,plan:ReturnType<typeo
   const combined=builder.register(),capacity=builder.register();ops.push(offset===undefined?{code:'Copy',p1:count,p2:combined}:{code:'OffsetLimit',p1:count,p2:combined,p3:offset},{code:'Copy',p1:combined,p2:capacity});preparedLimit={count,ifZero,combined,capacity,...(offset===undefined?{}:{offset})};
  }
  if(isIn)preparedLimit=computeLimitRegisters(child,ops,()=>builder.register(),parameters,false,compileClause);
- const compoundStops:number[]=[];
  const preparedOwner={...owner,...(preparedLimit?{scalarPrepared:true,sharedLimit:preparedLimit}:{})};
  if(tableCompound){
-  // multiSelect TK_ALL passes the same destination and limit to pPrior and
-  // skips the right arm when the left exhausted the scalar row budget.
-  for(const armPlan of plan!.compoundArms!){
-   const arm={...armPlan.source,limit:null,offset:null,hasLimit:false};
-   const armLocal=new Map(armPlan.sources.map(ref=>[ref,builder.cursor()]));
-   const armCursor=(ref:ResolvedSource)=>armLocal.get(ref)??ref.cursorId;
-   const armBinding:ResolvedExpressionBinding|undefined=binding?{policy:binding.policy,location:ref=>armLocal.has(ref.source)?{kind:'cursor',cursor:armCursor(ref.source)}:binding.location(ref,0)}:undefined;
-   compileInnerTableSelect(arm,armPlan,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{...preparedOwner,cursorFor:armCursor,...(armBinding?{expressionBinding:armBinding}:{})});
-   if(preparedLimit){const stop=ops.length;ops.push({code:'IfNot',p1:preparedLimit.count,p2:0});compoundStops.push(stop);}
-  }
-  for(const stop of compoundStops)(ops[stop] as {p2:number}).p2=ops.length;
+  if(!environment.schema)throw new JSQLiteError('unsupported','compound SELECT requires schema ownership',{unsupportedClassification:'temporary'});
+  const compiled=compileCteUnionAll(child,environment.schema,environment.database,environment.maxRows,environment.maxWorkUnits,environment.maxResultBytes,environment.privateStateLimits,{builder,parameters,destination:dest,linkedPlan:plan!,...(binding?{expressionBinding:binding}:{}),...(preparedLimit?{sharedLimit:preparedLimit}:{}),scalarPrepared:true});
+  if(!compiled)throw new JSQLiteError('unsupported','compound SELECT destination is not represented',{unsupportedClassification:'temporary'});
  }
  else if(!child.from.items.length){
   const stops:number[]=[];
@@ -5667,7 +5605,7 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
     arms:Object.freeze([{...arm,operatorFromPrior:null,prior:null,next:null}])} as SelectNode)).map(arm=>flattenOrdinaryDerived(arm,schema));
   // Limited producers need the ordinary scan's shared iLimit/iOffset contract.
   // Other specialized destinations must carry that contract before admission.
-  if((select.limit||select.offset)&&arms.some(arm=>arm.from.cteDerived?.length||selectHasWindow(arm)))return undefined;
+  if((select.limit||select.offset)&&arms.some(arm=>selectHasWindow(arm)))return undefined;
   const width=arms[0]!.result.length;
   if(arms.some(arm=>arm.result.length!==width))throw new JSQLiteError('sqlite','SELECTs to the left and right of UNION ALL do not have the same number of result columns',{code:1});
   const builder=owner?.builder??new SelectProgramBuilder<Op>(),ops=builder.ops;
@@ -5712,16 +5650,17 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
         columns??=produced.columns;continue;
       }
       const unsupported=()=>new JSQLiteError('unsupported','this compound CTE arm is not implemented',{unsupportedClassification:'temporary'});
-      if(sources.length!==1||arm.from.items.length!==1||arm.from.derived?.index!==0||arm.where||arm.hasDistinct||arm.hasGroupBy||arm.hasHaving||arm.result.length!==1)throw unsupported();
+      const aggregate=selectHasAggregate(arm)||arm.hasGroupBy||arm.hasHaving;
+      if(sources.length!==1||arm.from.items.length!==1||arm.from.derived?.index!==0||(!aggregate&&(arm.where||arm.hasDistinct||arm.result.length!==1)))throw unsupported();
       const source=sources[0]!,producer=source.select;
       const physical=producer.from.items.length===1&&!producer.from.derived&&!producer.from.cteDerived?.length;
       if(producer.hasCompound||producer.hasOrderBy||producer.hasDistinct||producer.hasGroupBy||producer.hasHaving||producer.from.derived||selectHasAggregate(producer)||selectHasWindow(producer)||producer.result.length!==1||producer.arms.length!==1||!(["select","values"] as string[]).includes(producer.arms[0]!.origin)||producer.arms[0]!.valuesRows?.some(row=>row.length!==1)||(!physical&&(producer.from.items.length||producer.hasLimit||producer.where)))throw unsupported();
       // resolve.c owns the lexical binding before materialization. The result
       // range is the complete producer payload, not a spelling-based projection.
-      const parentPlan=resolveTransientArm(arm,schema),result=parentPlan.result[0]!;
-      if(result.resolution!=='direct'||result.columnIndex!==0)throw unsupported();
+      const parentPlan=linkedArm??resolveTransientArm(arm,schema),result=parentPlan.result[0]!;
+      if(!aggregate&&(result.resolution!=='direct'||result.columnIndex!==0))throw unsupported();
       const producerColumns=compoundArmColumns(producer,schema);
-      columns??=Object.freeze([{...producerColumns[0]!,name:result.name}]);
+      if(!aggregate)columns??=Object.freeze([{...producerColumns[0]!,name:result.name}]);
       let cursor=cteCursors.get(source.use);
       if(cursor===undefined){
         cursor=builder.cursor();cteCursors.set(source.use,cursor);
@@ -5737,10 +5676,21 @@ export function compileCteUnionAll(select:SelectNode,schema:SchemaGraph,database
         ops.push({code:'Return',p1:ret});(ops[call+1] as {p2:number}).p2=ops.length;ops.push({code:'EphemeralSort',p1:cursor});
       }
       const reader=builder.cursor();ops.push({code:'OpenDup',p1:reader,p2:cursor});
-      const rewind=ops.length,value=builder.register();ops.push({code:'EphemeralRewind',p1:reader,p2:0});
-      const loop=ops.length;ops.push({code:'EphemeralData',p1:reader,p2:value,count:1});
-      emitSelectDestination(ops,destination,value,1);ops.push({code:'EphemeralNext',p1:reader,p2:loop});
-      (ops[rewind] as {p2:number}).p2=ops.length;
+      const value=builder.register();
+      // select.c materializes the SrcItem before its consumer's AggInfo scan.
+      // Reuse the existing positioned-input seam; never open rootPage 0 or
+      // flatten away the MATERIALIZED fence. Aggregate output owns HAVING and
+      // the enclosing compound's shared LIMIT/OFFSET/stop transitions.
+      const scan=(consume:()=>void)=>{
+        const rewind=ops.length;ops.push({code:'EphemeralRewind',p1:reader,p2:0});
+        const loop=ops.length;ops.push({code:'EphemeralData',p1:reader,p2:value,count:1});
+        consume();ops.push({code:'EphemeralNext',p1:reader,p2:loop});
+        (ops[rewind] as {p2:number}).p2=ops.length;
+      };
+      if(aggregate){
+        const compiled=compileAggregateSelect(arm,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,destination,linkedPlan:parentPlan,scalarPrepared:true,compoundLimit:{registers:limit,stops},...(owner?.expressionBinding?{expressionBinding:owner.expressionBinding}:{}),input:{first:value,emit:scan}});
+        columns??=compiled.columns;
+      }else scan(()=>emitRow(value,1));
       continue;
     }
     if(selectHasAggregate(arm)||arm.hasGroupBy||arm.hasHaving){
@@ -6112,6 +6062,11 @@ export function fromClauseTermCanBeCoroutine(f:FromSubqueryRouteFacts):boolean{i
 // Called on isolated compound arms as well as standalone sqlite3Select.
 function flattenOrdinaryDerived(select:SelectNode,schema:SchemaGraph):SelectNode {
   const derived=select.from.derived;
+  // select.c flattenSubquery restriction (28) fences MATERIALIZED CTEs.
+  // This ordinary-derived adapter does not transfer CteUse/linked-plan
+  // ownership for other CTEs either: leave them to the existing CTE dispatch
+  // (including its NOT MATERIALIZED producer), never erase their identity.
+  if(select.from.cteDerived?.length)return select;
   // select.c flattenSubquery/substSelect: preserve later SrcItems and resolve
   // against the transient producer before moving its physical source.
   if(derived&&derived.index===0&&select.from.items.length>1){
@@ -6182,7 +6137,10 @@ function compoundArmColumns(arm:SelectNode,schema:SchemaGraph):Program['columns'
   if(sources?.length===1&&arm.from.items.length===1){
     const plan=resolveTransientArm(arm,schema);
     return Object.freeze(plan.result.map(result=>{
-      if(result.resolution!=='direct')throw new JSQLiteError('unsupported','this compound CTE arm is not implemented',{unsupportedClassification:'temporary'});
+      if(result.resolution!=='direct'){
+        const {declaredType,database,table,origin}=result.descriptor;
+        return Object.freeze({name:result.name,declaredType,database,table,origin});
+      }
       const producerColumns=compoundArmColumns(sources[0]!.select,schema);
       const descriptor=result.columnIndex===null?undefined:producerColumns[result.columnIndex];
       if(!descriptor)throw new JSQLiteError('unsupported','this compound CTE arm is not implemented',{unsupportedClassification:'temporary'});

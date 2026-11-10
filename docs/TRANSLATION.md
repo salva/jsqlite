@@ -295,6 +295,22 @@ allocating the materialized owner and duplicate reader, mirroring Parse.nTab's
 advancing frontier. No cursor invariant is suppressed.
 [Bounded repair evidence](research/limited-cte-cursor-ownership.md).
 
+Expression SELECT CTE lowering inherits the enclosing WITH frame and preserves
+shared declaration identity across duplicate AST carriers. Compound arms resolve
+their own transient source bindings. The ordinary derived flatten adapter does
+not erase CteUse ownership: existing CTE dispatch retains its materialization or
+NOT MATERIALIZED producer. Materialized compound readers apply shared
+LIMIT/OFFSET and stop transitions before advancing or reaching later arms, just
+like ordinary arm destinations. Single-field materialized CTE readers also feed
+the existing aggregate positioned-input seam: AggInfo owns WHERE/group/HAVING
+and output, while the retained CteUse owns fill/duplicate cursors. Complete
+aggregate arms share compound LIMIT/OFFSET/stop; child LIMIT remains local.
+No transient rootPage is opened. Wider retained producers remain bounded by
+the existing dispatcher.
+Mapping and regression: `cte-expression-compound.test.mjs`,
+[ordinary ALL destinations](SQLITE_SOURCE_MAP.md#ordinary-all-expression-destinations-cf03);
+revision-bound repair evidence: [[card:card-t-d]] status.
+
 Retained table-backed ORDER/LIMIT FROM sources with an outer WHERE use
 `compileRetainedFilter`: transient producer descriptors feed the existing WHERE
 consumer through retained private cursors, including FULL join match/null-extension
@@ -373,6 +389,10 @@ Current source/control mappings and bounded caller exclusions are in
 preserves historical disabled-caller checkpoints separately from current paths;
 [bounded integration evidence](research/card-w-current-integration-outcome.md)
 does not imply general optimizer or STAT4 sample parity.
+
+## Ordinary ALL expression destinations
+
+Table-containing unordered UNION ALL expression children use the linked `compileWideSubquery` Mem/Exists/Set initialization and normalized shared LIMIT/OFFSET, then `compileCteUnionAll`'s complete arm dispatch, including the real aggregate owner. The displaced expression-only physical-arm loops are removed. Empty groups and HAVING can advance to the next arm; an accepted scalar row stops before later runtime errors. Ordered/set merge, window expression arms and recursive queue production remain separate bounded routes, not newly generalized here. See [CF03 source/removal and author evidence](research/card-t-c-cf03.md).
 
 ## Authority and current use
 
