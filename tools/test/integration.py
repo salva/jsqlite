@@ -260,6 +260,7 @@ def source_inventory(files):
     Re-scan membership at completion. Bytecode caches are runtime state, not
     source; preserve them without enrolling them as executable input bytes.
     """
+    require_source_root()
     paths = subprocess.check_output([
         'git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'
     ]).decode().split('\0')
@@ -272,6 +273,15 @@ def source_inventory(files):
             if f and '__pycache__' not in pathlib.Path(f).parts
             and pathlib.Path(f).suffix not in ('.pyc', '.pyo')
             and pathlib.Path(f).is_file()}
+
+
+def require_source_root():
+    """Reject exports discovering an ancestor repository as source identity."""
+    root = pathlib.Path.cwd().resolve()
+    top = pathlib.Path(subprocess.check_output(
+        ['git', 'rev-parse', '--show-toplevel'], text=True).strip()).resolve()
+    if top != root or pathlib.Path(__file__).resolve() != root/'tools/test/integration.py':
+        raise SystemExit('integration requires its own Git source root (no ancestor discovery)')
 
 
 def generated_inventory(files, work_root, require_captures=False):
@@ -293,7 +303,7 @@ def generated_inventory(files, work_root, require_captures=False):
     if any(f'test/conformance/{name}.test.mjs' in files for name in
            ('compound-aggregate-destinations', 'cte-expression-compound')):
         directories.append('cf03-paired')
-        for name in ('native.json', 'public.json'):
+        for name in ('native.json', 'public.json', 'receipt.json'):
             path = work_root/'cf03-paired'/name
             if require_captures or path.is_file():
                 path.read_bytes()
@@ -454,6 +464,7 @@ def main():
         p.error('--batch-size must be between 1 and 80')
     if args.batch_seconds < 1:
         p.error('--batch-seconds must be positive')
+    require_source_root()
     work = pathlib.Path(os.environ['SAIVAGE_CARD_WORK_ROOT']) / 'integration-run'
     work.mkdir(parents=True, exist_ok=True)
     root = pathlib.Path.cwd()

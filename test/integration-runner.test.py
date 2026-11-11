@@ -2,6 +2,29 @@ import importlib.util, os, pathlib, sys, unittest, signal
 spec=importlib.util.spec_from_file_location('runner','tools/test/integration.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 class Runner(unittest.TestCase):
+ def test_source_root_identity_actual_cli(self):
+  import subprocess,tempfile,shutil,json
+  with tempfile.TemporaryDirectory(prefix='root-control-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   parent=pathlib.Path(tmp);export=parent/'export';(export/'tools/test').mkdir(parents=True)
+   shutil.copyfile('tools/test/integration.py',export/'tools/test/integration.py')
+   (export/'a.test.mjs').write_text('import {test} from "node:test";test("root",()=>{});')
+   subprocess.run(['git','init','-q',str(parent)],check=True)
+   command=[sys.executable,'tools/test/integration.py','a.test.mjs']
+   env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(parent/'rejected'),PYTHONDONTWRITEBYTECODE='1')
+   rejected=subprocess.run(command,cwd=export,env=env,capture_output=True,text=True,timeout=20)
+   self.assertNotEqual(rejected.returncode,0)
+   self.assertIn('no ancestor discovery',rejected.stderr)
+   self.assertFalse((parent/'rejected/integration-run').exists())
+   subprocess.run(['git','init','-q',str(export)],check=True)
+   subprocess.run(['git','-c','user.name=Harness','-c','user.email=harness@example.invalid','commit','--allow-empty','-qm','root control'],cwd=export,check=True)
+   env['SAIVAGE_CARD_WORK_ROOT']=str(parent/'accepted')
+   accepted=subprocess.run(command,cwd=export,env=env,capture_output=True,text=True,timeout=30)
+   self.assertEqual(accepted.returncode,0,accepted.stderr)
+   report=json.loads((parent/'accepted/integration-run/manifest.json').read_text())
+   self.assertEqual(report['head'],subprocess.check_output(['git','rev-parse','HEAD'],cwd=export,text=True).strip())
+   self.assertEqual(set(report['inputs']),{'a.test.mjs','tools/test/integration.py'})
+   self.assertEqual([r['exit'] for r in report['results']],[0])
+
  def test_cf01_original_pair_and_integrity(self):
   import subprocess,tempfile,json,copy
   library=os.environ.get('INTEGRATION_TEST_ORACLE')
@@ -56,7 +79,12 @@ class Runner(unittest.TestCase):
     else:changed[-1]=copy.deepcopy(changed[0])
     with self.subTest(field=field),self.assertRaises(AssertionError):pair.compare(native,changed)
    before=runner.generated_inventory(files,root,True)
-   self.assertEqual(len(before),2)
+   self.assertEqual(set(before), {'cf03-paired/'+n for n in ('native.json','public.json','receipt.json')})
+   receipt=root/'cf03-paired/receipt.json';original=receipt.read_bytes()
+   receipt.unlink()
+   with self.assertRaises(FileNotFoundError):runner.generated_inventory(files,root,True)
+   self.assertNotEqual(before,runner.generated_inventory(files,root))
+   receipt.write_bytes(original)
    (root/'cf03-paired/public.json').unlink()
    self.assertNotEqual(before,runner.generated_inventory(files,root))
    with self.assertRaises(FileNotFoundError):runner.generated_inventory(files,root,True)
@@ -87,11 +115,12 @@ class Runner(unittest.TestCase):
 
  def test_cf03_drift_fails_actual_cli(self):
   self.paired_drift_fails_actual_cli('cf03-paired','test/conformance/cte-expression-compound.test.mjs')
+  self.paired_drift_fails_actual_cli('cf03-paired','test/conformance/cte-expression-compound.test.mjs','receipt.json')
 
  def test_cf02_drift_fails_actual_cli(self):
   self.paired_drift_fails_actual_cli('cf02-paired','test/conformance/recursive-cte-resolution.test.mjs')
 
- def paired_drift_fails_actual_cli(self,directory,file):
+ def paired_drift_fails_actual_cli(self,directory,file,capture='native.json'):
   import subprocess,tempfile,json,shutil
   library=os.environ.get('INTEGRATION_TEST_ORACLE')
   if not library:self.skipTest('INTEGRATION_TEST_ORACLE required for original CF02 capture')
@@ -103,7 +132,7 @@ class Runner(unittest.TestCase):
     # consumer mutates the already compared capture and reports exit0.
     shim.write_text('#!'+sys.executable+'\nimport os,pathlib,sys\n'
      +'if "--test" not in sys.argv: os.execv('+repr(node)+',["node",*sys.argv[1:]])\n'
-     + 'p=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/'+repr(directory+'/native.json')+'\n'
+     + 'p=pathlib.Path(os.environ["SAIVAGE_CARD_WORK_ROOT"])/'+repr(directory+'/'+capture)+'\n'
      +('p.write_text("{}")\n' if action=='mutate' else 'p.unlink()\n'))
     shim.chmod(0o755)
     env=dict(os.environ,PATH=str(binary)+os.pathsep+os.environ['PATH'],PYTHONDONTWRITEBYTECODE='1',SAIVAGE_CARD_WORK_ROOT=str(root/'run'))
@@ -113,8 +142,9 @@ class Runner(unittest.TestCase):
     self.assertTrue(all(p['exit']==0 for p in report['prerequisites']))
     self.assertEqual([r['exit'] for r in report['results']],[0])
     self.assertEqual(report['not_run'],[])
-    self.assertEqual(set(report['generated_inputs']),{directory+'/native.json',directory+'/public.json'})
-    self.assertIn(str(root/'run'/directory/'native.json'),report['input_drift'])
+    names=('native.json','public.json','receipt.json') if directory=='cf03-paired' else ('native.json','public.json')
+    self.assertEqual(set(report['generated_inputs']),{directory+'/'+n for n in names})
+    self.assertEqual(report['input_drift'],[str(root/'run'/directory/capture)])
 
  def test_cf02_original_pair_and_integrity(self):
   import subprocess,tempfile,copy,shutil
