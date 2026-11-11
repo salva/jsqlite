@@ -1,5 +1,14 @@
 # SQLite-to-TypeScript translation guide
 
+SELECT LIMIT/OFFSET expression roles come from the exact generated `limit_opt`
+production (`parse.y:967-973`), not punctuation in expression descendants. Only
+`LIMIT expr COMMA expr` reverses the two direct expression roles. Nested function
+and subquery commas retain their expression ownership; existing downstream zero
+LIMIT guards still skip OFFSET evaluation. Controls: `test/parser/limit-production.test.mjs`
+and shared public/native `test/conformance/limit-offset-adjudication*` (all encodings,
+reset/finalize, malformed-OFFSET positive and skipped controls). Repair evidence:
+[[card:card-e-b]].
+
 Resource fixtures distinguish aggregate live ownership (Mem, packed record,
 page and scratch) from logical sorter reservations. A retained automatic index
 may own more input entries than the final merge emits; register admission may
@@ -1580,7 +1589,15 @@ Recursive ownership is not guessed from a table-name string. Ordinary WITH admit
 represented flatten/coroutine/materialized/repeated-source routes. Recursive
 `generateWithRecursiveQuery` lowering uses iterative Queue/Current state, setup,
 duplicate tracking, queue ORDER and body LIMIT/OFFSET distinct from outer consumer
-limits. Recursive aggregates and windows are consumers, not permission for
+limits. Bounded physical setup SELECTs now use the ordinary resolved table producer
+and shared queue destination; source-free setup reuses the scalar producer rather
+than a separate seed-expression loop. Its owner carries the queue destination
+through ordinary GROUP/HAVING delegation as well as scalar row emission; setup
+output never becomes a consumer ResultRow. The destination owns FIFO/priority delivery
+and optional all-history suppression for both setup and recursive rows. Recursive
+STEP admission is unchanged; this does not establish general setup/step composition.
+[CF04 source comparison and evidence](research/recursive-join/cf04-evidence.md).
+Recursive aggregates and windows are consumers, not permission for
 aggregates/windows in the recursive term. A recursive declaration (including repeated outer aliases) joined to
 physical tables or its other aliases uses a retained insertion-order ephemeral destination feeding the
 shared WHERE loops and AggInfo (including GROUP/HAVING); producer queue order,

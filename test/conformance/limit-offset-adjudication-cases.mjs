@@ -1,5 +1,19 @@
 // Shared cases consumed by the public lifecycle check and pinned ctypes oracle.
 export const limitCases = [
+  // parse.y: only the direct COMMA separator swaps LIMIT/OFFSET roles.
+  {sql:'SELECT 1 LIMIT max(0,0)',rows:[]},
+  {sql:'SELECT 1 LIMIT min(1,2) OFFSET 0',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT 0,min(1,2)',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT min(1,2) OFFSET max(0,0)',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT max(0,0),min(1,2)',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT (SELECT max(1,2)) OFFSET (SELECT min(0,1))',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT (SELECT min(0,1)),(SELECT max(1,2))',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT min(-1,-2) OFFSET max(-2,-1)',rows:[[1]]},
+  {sql:'SELECT 1 LIMIT max(-2,-1),min(-1,-2)',rows:[[1]]},
+  ...['SELECT 1','SELECT (SELECT 1','SELECT EXISTS(SELECT 1','SELECT 1 IN (SELECT 1'].flatMap((prefix,i)=>[0,1].map(limit=>({
+   sql:prefix+" LIMIT "+limit+" OFFSET json_extract('bad',char(36))"+(i?")":""),
+   ...(limit?{error:1}:{rows:i===0?[]:[[i===1?null:0]]}),
+  }))),
   {sql:"SELECT 1 LIMIT 0 OFFSET 'x'",rows:[]},
   {sql:'SELECT 1 LIMIT 0 OFFSET NULL',rows:[]},
   {sql:"SELECT 1 LIMIT 0.0 OFFSET 'x'",rows:[]},

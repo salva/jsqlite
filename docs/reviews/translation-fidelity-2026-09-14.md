@@ -22,6 +22,24 @@ Evidence: [card status](record:///status.md?card=card-t-c).
 
 The G13 baseline rejected aggregate UNION ALL Mem/Exists children although the top-level aggregate producer existed. The correction removes both restricted raw arm loops and consumes compileCteUnionAll through linked compileWideSubquery normalization. W276 records Q23 incorporation and G15 enrollment, including original paired/resource producers; missing-fixture and outstanding-G13-assessment predictions are not current G15 facts. G15 nevertheless reproduced a physical expression caller dropping schema before the wide compound owner. The scoped caller correction passes the actual13 linked-consumer tests, with fresh whole-query native case equality; independent repaired-G15 combined assessment and the other W276 failures remain open ([[card:card-t-c]] status509). Subsequent category6 author repair consumes linked leftmost scalar metadata and routes source-free filtered ALL arms to the existing complete-arm producer; the unchanged scalar-child file passes26/26, with whole-query pinned native case300 comparison (status513). Other W276 categories and independent combined acceptance remain open. This corrects the bounded caller/composition gap, not all compound architecture debt. [Exact source/removal map and bounded historical evidence](../research/card-t-c-cf03.md).
 
+## CF04 bounded physical setup destination
+
+A4 reconciliation on candidate29240bf0 confirms false-HAVING now yields empty,
+but positive-HAVING bypassed Queue and returned only its seed. The source-free
+caller now forwards the queue destination through ordinary aggregate delegation;
+no grouped evaluator or recursive STEP widening was added. Positive/false HAVING,
+DISTINCT, empty and seed-error controls are bounded companion evidence, not
+additional upstream credit. [A4 evidence](../research/recursive-join/a4-evidence.md).
+
+G20 e35961af reproduces physical setup R1 rejection while source-free R0 works.
+The scoped author repair adds shared queue delivery and calls the existing table
+producer for physical setup, scalar producer for source-free setup. History,
+priority stability and Queue/Current lifecycle remain with their existing owners;
+recursive STEP guards remain unchanged. This repairs the tested setup edge, not
+all recursive SELECT composition or outer-consumer architecture debt.
+[Revision-bound comparison and tests](../research/recursive-join/cf04-evidence.md).
+Independent and combined acceptance remain open.
+
 ## CF02 direct recursive qualifier resolution
 
 The eee2c783/tree b037b565 input reproduced CF02: `wrong.n` silently read

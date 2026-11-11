@@ -5,7 +5,7 @@ import type { BuiltinCollation } from "./comparison.ts";
 // select.c:sqlite3SelectDestInit and selectInnerLoop SRT_Output/SRT_Mem/
 // SRT_Exists. Program construction keeps addresses and register ranges within
 // one prepare; a destination is consumed while emitting, not after publication.
-export type SelectDest = Readonly<{kind:"coroutine";register:number;first:number}>|Readonly<{kind:"ephemeral";cursor:number}>|Readonly<{kind:"output"}>|Readonly<{kind:"sorter";cursor:number; keyCount?:number}>|Readonly<{kind:"mem"|"exists"; register:number; found?:number; width?:number}>|Readonly<{kind:"set"; cursor:number; packedRegister?:number; width?:number; affinities?:readonly MemAffinity[]}>|Readonly<{kind:"aggregate-expression"; register:number; name:"count"|"sum"|"avg"|"total"|"min"|"max"|"group_concat"|"string_agg"; collation:BuiltinCollation; emitArgument?:(first:number,count:number)=>readonly number[]; emitWhere?:(first:number,count:number)=>number; emitFilter?:(first:number,count:number)=>number; distinctCursor?:number; order?:Readonly<{cursor:number; emitKeys:(first:number,count:number)=>readonly number[]; keyStart:number; payload:number}>}>;
+export type SelectDest = Readonly<{kind:"queue";cursor:number;history?:number;priority?:Readonly<{indexes:readonly number[];first:number}>}>|Readonly<{kind:"coroutine";register:number;first:number}>|Readonly<{kind:"ephemeral";cursor:number}>|Readonly<{kind:"output"}>|Readonly<{kind:"sorter";cursor:number; keyCount?:number}>|Readonly<{kind:"mem"|"exists"; register:number; found?:number; width?:number}>|Readonly<{kind:"set"; cursor:number; packedRegister?:number; width?:number; affinities?:readonly MemAffinity[]}>|Readonly<{kind:"aggregate-expression"; register:number; name:"count"|"sum"|"avg"|"total"|"min"|"max"|"group_concat"|"string_agg"; collation:BuiltinCollation; emitArgument?:(first:number,count:number)=>readonly number[]; emitWhere?:(first:number,count:number)=>number; emitFilter?:(first:number,count:number)=>number; distinctCursor?:number; order?:Readonly<{cursor:number; emitKeys:(first:number,count:number)=>readonly number[]; keyStart:number; payload:number}>}>;
 // vdbeaux.c:sqlite3VdbeNoJumpsOutsideSubrtn permits an escaped target
 // only when its consecutive Return chain reaches the owning return register.
 // TS has no Noop/Explain opcodes. This is verification, not target rewriting.
@@ -62,7 +62,18 @@ export function emitSelectDestination<Op extends {readonly code:string}>(ops:Op[
     if(dest.kind==="set"&&dest.packedRegister!==undefined&&(!Number.isSafeInteger(dest.packedRegister)||dest.packedRegister<1||(dest.packedRegister>=first&&dest.packedRegister<first+count)))invalid("invalid SELECT packed record register");
     if(dest.kind==="set"&&dest.affinities&&(dest.affinities.length!==width||dest.affinities.some(affinity=>!['blob','text','numeric','integer','real','flexnum'].includes(affinity))))invalid("invalid SELECT destination affinity vector");
   }
-  if(dest.kind==="coroutine"){
+  if(dest.kind==="queue"){
+    // select.c:selectInnerLoop SRT_[Dist]Fifo / SRT_[Dist]Queue.
+    // History owns all admitted rows, not merely pending queue entries.
+    const duplicate=dest.history===undefined?-1:ops.push({code:"Found",p1:dest.history,keyStart:first,keyCount:count,jump:0} as unknown as Op)-1;
+    if(dest.history!==undefined)ops.push({code:"IdxInsert",p1:dest.history,keyStart:first,keyCount:count} as unknown as Op);
+    if(dest.priority){
+      dest.priority.indexes.forEach((index,i)=>ops.push({code:"Copy",p1:first+index,p2:dest.priority!.first+i} as unknown as Op));
+      ops.push({code:"PriorityInsert",p1:dest.cursor,keyStart:dest.priority.first,keyCount:dest.priority.indexes.length,payloadStart:first,payloadCount:count} as unknown as Op);
+    }else ops.push({code:"FifoInsert",p1:dest.cursor,keyStart:first,keyCount:count} as unknown as Op);
+    if(duplicate>=0)(ops[duplicate] as unknown as {jump:number}).jump=ops.length;
+  }
+  else if(dest.kind==="coroutine"){
     for(let i=0;i<count;i++)ops.push({code:"Copy",p1:first+i,p2:dest.first+i} as unknown as Op);
     ops.push({code:"Yield",p1:dest.register,p2:0} as unknown as Op);
   }

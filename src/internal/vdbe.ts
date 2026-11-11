@@ -772,7 +772,7 @@ export function compileWindowSelectLowering(
       const first=builder.range(recursiveOwner.select.arms[0]!.result.length),coroutine=builder.register();
       const ready=builder.label();
       builder.jump(ready,{code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1},(op,pc)=>({...op,p2:pc}));
-      compileRecursiveCteSelect(recursiveProducer.select,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,recursiveProducer.maxRows,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first}});
+      compileRecursiveCteSelect(recursiveProducer.select,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,recursiveProducer.maxRows,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first},...(schema?{schema}:{}),...(database?{database}:{})});
       ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
       input={first,emit:consume=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
     }
@@ -799,7 +799,7 @@ export function compileWindowSelectLowering(
     builder.reserveCursorsThrough(Math.max(nextApplicationCursor,...sorterCursors));
     const recursiveOwner=recursiveProducer.select.with!.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))))!;
     groupedPayload=builder.range(recursiveOwner.select.arms[0]!.result.length);
-    compileRecursiveCteSelect(recursiveProducer.select,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,recursiveProducer.maxRows,true,{builder,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:groupedPayload}});
+    compileRecursiveCteSelect(recursiveProducer.select,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,recursiveProducer.maxRows,true,{builder,parameters,destination:{kind:'coroutine',register:sourceCoroutine,first:groupedPayload},...(schema?{schema}:{}),...(database?{database}:{})});
     registers=builder.registers;
     nextApplicationCursor=Math.max(nextApplicationCursor,builder.cursors);
     ops.push({code:'EndCoroutine',p1:sourceCoroutine,p2:0});
@@ -2666,7 +2666,7 @@ function computeLimitRegisters(select:SelectNode,ops:Op[],allocate:()=>number,pa
  return {count,...(offset===undefined?{}:{offset}),combined,capacity,ifZero};
 }
 
-export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER,producerOnly=false, shared?:{builder:SelectProgramBuilder<Op>; destination:SelectDest;parameters?:ParameterBuilder;schema?:SchemaGraph}):Program{
+export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER,producerOnly=false, shared?:{builder:SelectProgramBuilder<Op>; destination:SelectDest;parameters?:ParameterBuilder;schema?:SchemaGraph;database?:BtreeDatabase}):Program{
  const owner=select.with?.ctes.find(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
  if(!owner)throw new JSQLiteError("unsupported","recursive common table expressions are not implemented",{unsupportedClassification:"temporary"});
  const body=owner.select,arms=body.arms,width=arms[0]?.result.length??0;
@@ -2700,18 +2700,27 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  // Outer SELECT limits its destination, independently of queue-body LIMIT.
  const consumerLimit=producerOnly?undefined:computeLimitRegisters(select,ops,allocate,parameters);
  const limit=computeLimitRegisters(body,ops,allocate,parameters);
- const order=body.orderBy.map(term=>{if(!term.expr.reduction)throw new JSQLiteError("internal","recursive ORDER BY lost expression");const tree=expressionFromReduction(term.expr.reduction);let index=-1;if(tree.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(width))index=Number(tree.value)-1;else if(tree.kind==="column")index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite","1st ORDER BY term does not match any column in the result set",{code:1});return{index,collation:collation(expressionFromReduction(arms[0]!.result[index]!.reduction!)),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};});
+ const seedCollation=(index:number):BuiltinCollation=>{
+  const expression=arms[0]!.result[index]!;
+  if(shared?.schema){
+   const anchor=arms[0]!;
+   try{const plan=expandAndResolveSelect({...body,...anchor,hasCompound:false,arms:[{...anchor,operatorFromPrior:null,prior:null,next:null}],hasOrderBy:false,orderBy:[],limit:null,offset:null},shared.schema);return (resolvedExpressionCollation(expression.reduction!,plan)??'binary') as BuiltinCollation;}
+   catch(error){if(error instanceof NameResolutionError)throw new JSQLiteError('sqlite',error.message,{code:1,extendedCode:error.extendedCode});throw error;}
+  }
+  return collation(expressionFromReduction(expression.reduction!));
+ };
+ const order=body.orderBy.map(term=>{if(!term.expr.reduction)throw new JSQLiteError("internal","recursive ORDER BY lost expression");const tree=expressionFromReduction(term.expr.reduction);let index=-1;if(tree.kind==="literal"&&typeof tree.value==="bigint"&&tree.value>=1n&&tree.value<=BigInt(width))index=Number(tree.value)-1;else if(tree.kind==="column")index=lookup(tree.name);if(index<0)throw new JSQLiteError("sqlite","1st ORDER BY term does not match any column in the result set",{code:1});return{index,collation:seedCollation(index),desc:term.descending,nullsLarge:term.nulls==="last"?!term.descending:term.nulls==="first"?term.descending:false};});
  if(order.length)ops.push({code:"OpenPriorityQueue",p1:queue,keyInfo:new KeyInfo({encoding,totalFieldCount:order.length,keyFieldCount:order.length,terms:order})});else ops.push({code:"OpenFifo",p1:queue});
- if(history!==undefined)ops.push({code:"OpenEphemeral",p1:history,keyInfo:new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:width,terms:arms[0]!.result.map(expression=>({collation:collation(expressionFromReduction(expression.reduction!))}))})});
- const enqueue=(start:number)=>{let found:number|undefined;if(history!==undefined){found=ops.length;ops.push({code:"Found",p1:history,keyStart:start,keyCount:width,jump:0},{code:"IdxInsert",p1:history,keyStart:start,keyCount:width});}if(order.length){const key=selectProgramBuilder.range(order.length);order.forEach((term,index)=>ops.push({code:"Copy",p1:start+term.index,p2:key+index}));ops.push({code:"PriorityInsert",p1:queue,keyStart:key,keyCount:order.length,payloadStart:start,payloadCount:width});}else ops.push({code:"FifoInsert",p1:queue,keyStart:start,keyCount:width});if(found!==undefined)(ops[found] as {jump:number}).jump=ops.length;};
+ if(history!==undefined)ops.push({code:"OpenEphemeral",p1:history,keyInfo:new KeyInfo({encoding,totalFieldCount:width,keyFieldCount:width,terms:arms[0]!.result.map((_,index)=>({collation:seedCollation(index)}))})});
+ const queueDestination:SelectDest={kind:"queue",cursor:queue,...(history===undefined?{}:{history}),...(order.length?{priority:{indexes:order.map(term=>term.index),first:selectProgramBuilder.range(order.length)}}:{})};
+ const enqueue=(start:number)=>emitSelectDestination(ops,queueDestination,start,width);
  for(const arm of arms.slice(0,firstRecursive)){
-  if(arm.from.items.length)throw new JSQLiteError("unsupported","this recursive common table expression setup is not implemented",{unsupportedClassification:"temporary"});
-  // sqlite3Select setup SRT_Queue still owns its WHERE predicate. Evaluate
-  // it before result expressions/queue insertion, including an empty seed.
-  let seedReject:number|undefined;
-  if(arm.where){const test=compileExpression(arm.where,ops,allocate,parameters);seedReject=ops.length;ops.push({code:'IfNot',p1:test.register,p2:0});}
-  const seedRows=arm.origin==="values"?arm.valuesRows!:[arm.result];for(const row of seedRows){const values=row.map(expression=>compileExpression(expression,ops,allocate,parameters)),start=selectProgramBuilder.range(width);values.forEach((value,index)=>ops.push({code:"Copy",p1:value.register,p2:start+index}));enqueue(start);}
-  if(seedReject!==undefined)(ops[seedReject] as {p2:number}).p2=ops.length;
+  // generateWithRecursiveQuery calls the ordinary SELECT producer with destQueue.
+  const setup={...body,result:arm.result,from:arm.from,where:arm.where,hasDistinct:arm.hasDistinct,hasGroupBy:arm.hasGroupBy,groupBy:arm.groupBy??Object.freeze([]),hasHaving:arm.hasHaving,having:arm.having??null,arms:Object.freeze([arm]),hasCompound:false,hasValues:arm.origin==='values',hasOrderBy:false,orderBy:Object.freeze([]),hasLimit:false,limit:null,offset:null,with:null} as SelectNode;
+  if(arm.from.items.length){
+   if(!shared?.schema||!shared.database)throw new JSQLiteError("unsupported","this recursive common table expression setup is not implemented",{unsupportedClassification:"temporary"});
+   compileTableSelectProducer(setup,shared.schema,shared.database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder:selectProgramBuilder,parameters,destination:queueDestination});
+  }else compileScalarSelect(setup,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,shared?.schema,shared?.database,maxRows,{builder:selectProgramBuilder,parameters,destination:queueDestination,emitRow:enqueue});
  }
  let joinedStart:number|undefined,joinedNames:readonly string[]=[];
  if(joinedDerived){const derived=select.from.derived!.select;joinedNames=derived.result.map(expression=>expression.alias??expressionName(expression));joinedStart=selectProgramBuilder.range(derived.result.length);derived.result.forEach((expression,index)=>{const value=compileExpression(expression,ops,allocate,parameters);ops.push({code:"Copy",p1:value.register,p2:joinedStart!+index});});}
@@ -2742,7 +2751,7 @@ export function compileRecursiveCteSelect(select:SelectNode,encoding:DatabaseEnc
  }
  ops.push({code:"Goto",p2:loop});selectProgramBuilder.mark(breakLabel);const done=ops.length;if(!shared)ops.push({code:"Halt"});if(limit){(ops[limit.ifZero] as {p2:number}).p2=done;if(limitBreak!==undefined)(ops[limitBreak] as {p2:number}).p2=done;}
  if(consumerLimit){(ops[consumerLimit.ifZero] as {p2:number}).p2=done;if(consumerBreak!==undefined)(ops[consumerBreak] as {p2:number}).p2=done;}
- return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(producerOnly?names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})):select.result.map((expression,index)=>{const descriptor=consumerPlan?.result[index]?.descriptor;return Object.freeze({name:descriptor?.name??expression.alias??names[index]??expressionName(expression),declaredType:descriptor?.declaredType??null,database:descriptor?.database??null,table:descriptor?.table??null,origin:descriptor?.origin??null});})),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+ return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(producerOnly?names.map(name=>Object.freeze({name,declaredType:null,database:null,table:null,origin:null})):select.result.map((expression,index)=>{const descriptor=consumerPlan?.result[index]?.descriptor;return Object.freeze({name:descriptor?.name??expression.alias??names[index]??expressionName(expression),declaredType:descriptor?.declaredType??null,database:descriptor?.database??null,table:descriptor?.table??null,origin:descriptor?.origin??null});})),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,...(shared?.database?{database:shared.database}:{})});
 }
 
 
@@ -2796,7 +2805,7 @@ export function compileRecursiveJoinedSelect(select:SelectNode,schema:SchemaGrap
  builder.reserveCursorsThrough(Math.max(...expanded.sources.map(source=>source.cursorId)));
  const cursor=builder.cursor(),width=recursiveSource.table.columns.length;
  ops.push({code:'OpenEphemeral',p1:cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:width,keyFieldCount:width,terms:recursiveSource.table.columns.map(()=>({collation:'binary' as const}))})});
- compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true,{builder,parameters,destination:{kind:'ephemeral',cursor}});
+ compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true,{builder,parameters,destination:{kind:'ephemeral',cursor},schema,database});
  // select.c tag-select-0484: materialize this CteUse once, then OpenDup
  // for each later SrcItem. Records/lifetime are shared; reader positions and
  // nullRow are handle-local. Do not rerun the recursive queue per alias.
@@ -2824,7 +2833,7 @@ export function compileRecursiveAggregateSelect(select:SelectNode,schema:SchemaG
  builder.jump(ready,{code:'InitCoroutine',p1:coroutine,p2:0,p3:ops.length+1},(op,pc)=>({...op,p2:pc}));
  // Only the CTE body LIMIT belongs to queue production. Consumer LIMIT/WHERE
  // belong to the aggregate, after queue exhaustion/finalization respectively.
- compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,Number.MAX_SAFE_INTEGER,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first}});
+ compileRecursiveCteSelect(select,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,Number.MAX_SAFE_INTEGER,true,{builder,parameters,destination:{kind:'coroutine',register:coroutine,first},schema,database});
  ops.push({code:'EndCoroutine',p1:coroutine,p2:0});builder.mark(ready);
  const input={first,emit:(consume:()=>void)=>{const top=builder.label(),done=builder.label();builder.mark(top);builder.jump(done,{code:'Yield',p1:coroutine,p2:0},(op,pc)=>({...op,p2:pc}));consume();builder.jump(top,{code:'Goto',p2:0},(op,pc)=>({...op,p2:pc}));builder.mark(done);}};
  const program=compileAggregateSelect(select,transient,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,ops,parameters,linkedPlan,input,destination:shared?.destination??{kind:'output'}});
@@ -2843,7 +2852,7 @@ export function compileRecursiveWindowSelect(select:SelectNode,schema:SchemaGrap
 /** Compose multiple bounded recursive producers by redirecting each iterative
  * queue's output into a VDBE sorter, then draining the materializations with an
  * ordinary nested loop. No recursive host-language evaluation is introduced. */
-export function compileMultipleRecursiveCtes(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER,shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;schema?:SchemaGraph}):Program|undefined {
+export function compileMultipleRecursiveCtes(select:SelectNode,encoding:DatabaseEncoding,maxWorkUnits=10_000_000,maxResultBytes=1_000_000_000,privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS,maxRows=Number.MAX_SAFE_INTEGER,shared?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;destination:SelectDest;schema?:SchemaGraph;database?:BtreeDatabase}):Program|undefined {
  const owners=(select.with?.ctes??[]).filter(cte=>cte.select.arms.some(arm=>arm.from.items.some(item=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,cte.name))));
  if(owners.length<2||select.from.items.length!==owners.length||select.where||select.hasCompound||select.hasGroupBy||select.hasHaving||select.hasDistinct||select.limit||select.offset)return undefined;
  const sourceOwners=select.from.items.map(item=>owners.find(owner=>item.databaseName===null&&sqliteIdentifierEqual(item.tableName,owner.name)));
@@ -2869,7 +2878,7 @@ export function compileMultipleRecursiveCtes(select:SelectNode,encoding:Database
   const child=Object.freeze({...select,result,from,where:null,groupBy:Object.freeze([]),having:null,orderBy:Object.freeze([]),limit:null,offset:null,hasDistinct:false,hasGroupBy:false,hasHaving:false,hasOrderBy:false,hasLimit:false,hasCompound:false,with:Object.freeze({recursive:true,ctes:Object.freeze([owner])}),arms:Object.freeze([arm])});
   const sorter=selectProgramBuilder.cursor();sorters.push(sorter);
   ops.push({code:'SorterOpen',p1:sorter,keyInfo:new KeyInfo({encoding,totalFieldCount:0,keyFieldCount:0,terms:[]})});
-  const producer=compileRecursiveCteSelect(child,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,false,{builder:selectProgramBuilder,parameters,...(shared?.schema?{schema:shared.schema}:{}),destination:{kind:'sorter',cursor:sorter,keyCount:0}});
+  const producer=compileRecursiveCteSelect(child,encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,false,{builder:selectProgramBuilder,parameters,...(shared?.schema?{schema:shared.schema}:{}),...(shared?.database?{database:shared.database}:{}),destination:{kind:'sorter',cursor:sorter,keyCount:0}});
   children.push(producer);
  }
  const rowBases=children.map(child=>selectProgramBuilder.range(child.columns.length)),rewinds:number[]=[],starts:number[]=[];
@@ -2883,7 +2892,7 @@ export function compileMultipleRecursiveCtes(select:SelectNode,encoding:Database
  if(finalSorter!==undefined){const key=selectProgramBuilder.range(orderIndexes.length);orderIndexes.forEach((resultIndex,index)=>ops.push({code:'Copy',p1:output+resultIndex,p2:key+index}));ops.push({code:'SorterInsert',p1:finalSorter,keyStart:key,keyCount:orderIndexes.length,payload:output,payloadCount:select.result.length});}else emitSelectDestination(ops,shared?.destination??{kind:'output'},output,select.result.length);
  const next:number[]=[];for(let source=children.length-1;source>=0;source--){next[source]=ops.length;ops.push({code:'SorterNext',p1:sorters[source]!,p2:starts[source]!});(ops[rewinds[source]!] as {emptyJump:number}).emptyJump=source===0?ops.length:next[source-1]!;}
  if(finalSorter!==undefined){const sort=ops.length;ops.push({code:'SorterSort',p1:finalSorter,emptyJump:0},{code:'SorterData',p1:finalSorter,p2:output,count:select.result.length});emitSelectDestination(ops,shared?.destination??{kind:'output'},output,select.result.length);ops.push({code:'SorterNext',p1:finalSorter,p2:sort+1});(ops[sort] as {emptyJump:number}).emptyJump=ops.length;}
- if(!shared)ops.push({code:'Halt'});return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(select.result.map(expression=>Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding});
+ if(!shared)ops.push({code:'Halt'});return Object.freeze({ops:shared?ops:selectProgramBuilder.finish(),registers:selectProgramBuilder.registers,columns:Object.freeze(select.result.map(expression=>Object.freeze({name:expression.alias??expressionName(expression),declaredType:null,database:null,table:null,origin:null}))),parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name}))),maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,encoding,...(shared?.database?{database:shared.database}:{})});
 }
 
 export function compileScalarSelect(select: SelectNode, encoding: DatabaseEncoding, maxWorkUnits = 10_000_000, maxResultBytes = 1_000_000_000, privateStateLimits:PrivateStateLimits=DEFAULT_PRIVATE_STATE_LIMITS, schema?:SchemaGraph, database?:BtreeDatabase, maxRows=Number.MAX_SAFE_INTEGER, owner?:{builder:SelectProgramBuilder<Op>;parameters:ParameterBuilder;emitRow:(first:number,count:number)=>void;destination?:SelectDest;sharedLimit?:LimitRegisters;scalarPrepared?:boolean;linkedPlan?:ReturnType<typeof expandAndResolveSelect>;expressionBinding?:ResolvedExpressionBinding}): Program {
@@ -5907,7 +5916,7 @@ function compileSimpleTableCompound(select:SelectNode,schema:SchemaGraph,databas
         const once=ops.length;ops.push({code:'Once',p1:recursiveInput.once,p2:0});
         const columns=refs[0]!.table.columns;
         ops.push({code:'OpenEphemeral',p1:recursiveInput.cursor,insertionOrder:true,keyInfo:new KeyInfo({encoding:database.encoding,totalFieldCount:columns.length,keyFieldCount:columns.length,terms:columns.map(()=>({collation:'binary' as const}))})});
-        compileRecursiveCteSelect(item.standalone,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true,{builder,parameters,destination:{kind:'ephemeral',cursor:recursiveInput.cursor}});
+        compileRecursiveCteSelect(item.standalone,database.encoding,maxWorkUnits,maxResultBytes,privateStateLimits,maxRows,true,{builder,parameters,destination:{kind:'ephemeral',cursor:recursiveInput.cursor},schema,database});
         (ops[once] as {p2:number}).p2=ops.length;
         for(const source of refs){const cursor=builder.cursor();readers.set(source,cursor);ops.push({code:'OpenDup',p1:cursor,p2:recursiveInput.cursor});}
       }

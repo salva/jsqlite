@@ -448,7 +448,11 @@ compatibility credit.
 - Ordinary WITH has represented flatten/coroutine/materialized and repeated-source
   routes. Recursive WITH has iterative Queue/Current, duplicate and queue-order
   behavior, body LIMIT/OFFSET separate from the outer consumer, and selected
-  aggregate/window consumers. Direct consumers validate table qualifiers and
+  aggregate/window consumers. Bounded physical setup SELECTs feed the existing
+  queue through the ordinary table producer; source-free GROUP/HAVING setup
+  uses the ordinary aggregate producer with that same queue destination.
+  Recursive-step shape restrictions remain unchanged. [Setup boundary/evidence](research/recursive-join/cf04-evidence.md).
+  Direct consumers validate table qualifiers and
   alias hiding before execution (including LIMIT 0); a schema-qualified name
   cannot refer to the schema-less recursive Current declaration.
   One recursive declaration joined to physical tables

@@ -1,5 +1,12 @@
 # SQLite source map
 
+- `parse.y:967-973` LIMIT production actions → `parse.ts:selectFromReduction`
+  direct expression roles, swapping only for exact `limit_opt ::= LIMIT expr COMMA expr`.
+  `select.c:2517-2565` and `expr.c:3890-3985` downstream zero-guard/scalar normalization
+  remain unchanged. Tests: `test/parser/limit-production.test.mjs`,
+  `test/conformance/limit-offset-adjudication{,-cases,-native}.{mjs,py}`;
+  source-owned A8/SQL-01 repair evidence: [[card:card-e-b]].
+
 ### Retained input with enclosing aggregate/window rewrite
 
 `resolve.c:1356–1380` assigns aggregate depth by argument SrcList;
@@ -1457,7 +1464,15 @@ these branches, not general storage/complexity parity.
 - `select.c:generateWithRecursiveQuery` Queue/Current/setup/recursive/destination
   control → `recursiveCteOwner`, `CtePrepareContext`, recursive generators in
   [vdbe.ts](../src/internal/vdbe.ts). Body versus consumer LIMIT ownership and
-  duplicate/queue order remain separate. `select.c:sqlite3Select` retained
+  duplicate/queue order remain separate. Setup `sqlite3Select(pSetup,&destQueue)`
+  (select.c2788ff) → `compileTableSelectProducer` / `compileScalarSelect` with
+  `SelectDest.queue` → `emitSelectDestination` FIFO/priority/history delivery
+  (selectInnerLoop1307ff/1464ff). Setup expressions no longer have a parallel
+  manual evaluation loop. Source-free GROUP/HAVING delegates through
+  `compileAggregateSelect` with the same queue destination (not output).
+  Tests: `recursive-cte-setup.test.mjs`;
+  [bounded CF04 evidence](research/recursive-join/cf04-evidence.md).
+  `select.c:sqlite3Select` retained
   materialization → `compileRecursiveJoinedSelect` → ephemeral destination →
   shared `compileInnerTableSelect`/`compileAggregateSelect`, with retained cursor
   handles skipped by physical OpenRead. VDBE Rewind/Next/Column/Rowid dispatch
