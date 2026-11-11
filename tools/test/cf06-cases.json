@@ -1,0 +1,6 @@
+[
+ ["J0", "SELECT count(*) FROM t1 t JOIN json_each('[1,2]') j"],
+ ["J1", "SELECT t.a, count(*), row_number() OVER (ORDER BY t.a) FROM t1 t JOIN json_each('[1,2]') j GROUP BY t.a"],
+ ["J2", "SELECT t.a, count(*), row_number() OVER (ORDER BY t.a) FROM t1 t JOIN json_each('[1,2]') j JOIN json_each('[3]') k GROUP BY t.a"],
+ ["J3", "SELECT count(*) FROM json_each('[1,2]') j JOIN t1 t"]
+]

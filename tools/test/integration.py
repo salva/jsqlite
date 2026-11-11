@@ -89,6 +89,9 @@ def prefix_selected(directory, consumer, files):
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    if 'test/conformance/aggregate-module-position.test.mjs' in files:
+        commands.append(['python3', 'tools/test/cf06-paired.py', str(pathlib.Path.cwd()),
+                         str(library), shutil.which('node') or 'node', str(work_root/'cf06-paired')])
     if 'test/schema/wr-declaration-identity.test.mjs' in files:
         # Authenticate before the original producer can create/delete fixtures.
         commands.append(['python3', '-c',
@@ -300,6 +303,12 @@ def generated_inventory(files, work_root, require_captures=False):
             path = work_root/'cf02-paired'/name
             if require_captures or path.is_file():
                 # Mandatory before consumers, and included in final drift scan.
+                path.read_bytes()
+    if 'test/conformance/aggregate-module-position.test.mjs' in files:
+        directories.append('cf06-paired')
+        for name in ('native.json', 'public.json', 'receipt.json'):
+            path = work_root/'cf06-paired'/name
+            if require_captures or path.is_file():
                 path.read_bytes()
     if expression_pairs_selected(files):
         directories.append('expression-boundaries')
