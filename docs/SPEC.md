@@ -4,6 +4,35 @@ Status: owner-directed, API-first TypeScript translation specification.
 
 Version: 0.3.0-draft.
 
+## Adopted JSQLite 1.0 release boundary
+
+The owner adopted the independently approved r2 release contract and required
+correction of **all outstanding applicable previously submitted issues** before
+1.0, including algorithm and semantic/caller ownership alignment. The
+[release ledger](RELEASE-1.0.md) records the finite inventory, mandatory workloads,
+support combinations and R1–R7 obligations, with controlling root brief v11 and
+external policy provenance. [Handoff verification](research/card-u-release-direction.md)
+records this documentation candidate's checks and integration boundary. Historical proposal/prerelease headers are superseded:
+the objective is JSQLite **1.0**, not indefinite beta. Policy approval is not
+candidate qualification.
+
+Mandatory useful core comprises catalog browsing, application reporting **with
+ordinary CTEs**, and inspection/interchange, each with small and larger bounded
+workloads. All encodings, legal page sizes, API/control guarantees and the broad
+translation-first goal remain. Stable/experimental/temporary unsupported are
+separate from implementation/evidence status. Known reachable wrong results must
+be repaired or rejected before affected output, even experimentally. Guards are
+interim containment, **not closure of applicable submitted corrections**.
+Already-fixed, duplicate or obsolete findings require candidate-bound evidence
+and source rationale, not invented defects.
+
+Unknown bugs and unrelated unsubmitted nonblocking debt do not impose perfection,
+a global rewrite or an exhaustive new audit before 1.0. Continuing scope remains
+broad. Ordinary technical decisions stay with existing owners; changing mandatory
+workloads/guarantees needs explicit owner authorization. Readiness is separate
+from publication permission: no tag, site or package publication is authorized.
+
+
 ## Product Goal
 
 `jsqlite2` is primarily a translation of SQLite's read-only C implementation into TypeScript, distributed as browser-safe JavaScript for browser and Fetch-compatible runtimes. It opens immutable SQLite main database files from URLs and answers read-only SQL with SQLite-compatible results, metadata, typing, collation, error behavior, and file-format handling.

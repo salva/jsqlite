@@ -1,5 +1,29 @@
 # SQLite-to-TypeScript translation guide
 
+## Current release and engineering direction
+
+[SPEC](SPEC.md#adopted-jsqlite-10-release-boundary) governs owner-adopted JSQLite
+**1.0**. The [release ledger/support matrix](RELEASE-1.0.md) separates implementation
+from proposed release treatment and enumerates finite submitted corrections and
+R1–R7 evidence. Historical beta/package milestones are revision-bound evidence,
+not a direction to stay prerelease or a release pass.
+
+All outstanding applicable submitted issues, including algorithm and semantic/
+caller ownership alignment, require correction before 1.0. Sample answers, C names
+or guards alone do not close them. Bounded adaptations need concrete TS/browser/
+read-only rationale, upstream comparison and source-based tests; missing machinery
+alone is not a rationale. Unknown unrelated debt does not create a perfection gate.
+The source map remains an upstream→TS/test navigator, not a run ledger.
+
+Support rows describe source kind, destination, clauses and restrictions, not SQL
+whitelists. Experimental paths cannot publish known wrong results: reject the
+implicated semantic/input class before affected output while repair proceeds.
+Ordinary CTE reporting is mandatory core. Lifecycle, typing, encodings/legal pages,
+ownership and control/error order remain binding. G23 and pending A1/A6 evidence
+do not approve the separate author window candidate or complete SELECT migration.
+Compound materialization work/error-order concerns remain tracked, not waived as
+architecture debt.
+
 SELECT LIMIT/OFFSET expression roles come from the exact generated `limit_opt`
 production (`parse.y:967-973`), not punctuation in expression descendants. Only
 `LIMIT expr COMMA expr` reverses the two direct expression roles. Nested function

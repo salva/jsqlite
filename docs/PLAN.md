@@ -36,7 +36,29 @@ all correctness/resource assertions. Preserve UTF-8/UTF-16le/UTF-16be coverage.
 This is test orchestration, not an API timeout, performance promise or permission
 to weaken actual cancellation/deadline/resource guarantees. No SPEC change.
 
-## Functional-first beta view
+## Current finite JSQLite 1.0 delivery
+
+Deliver the owner-adopted boundary in [SPEC](SPEC.md#adopted-jsqlite-10-release-boundary)
+and the [release ledger/support matrix](RELEASE-1.0.md). Do not restart accepted
+bounded work or turn historical beta sequencing into another terminal gate.
+
+1. Existing semantic owners reconcile/correct the finite submitted A1–A21,
+   CF01–CF06 and algorithm/ownership inventory. Preserve qualifications, failures
+   and candidate identities. Guards are interim, not closure of applicable issues.
+   Independently reviewed finite repairs integrate through G.
+2. Freeze structural support rows, small/larger catalog/report/inspection cases,
+   typed expectations, app budgets and source/artifact identities. W/V and subsystem
+   owners supply R1–R7 evidence with explicit reuse/applicability accounting.
+3. Validate the combined candidate and actual installed artifact, including real
+   Chromium/Fetch, lifecycle/control and native semantic seams. Independent
+   acceptance and root readiness identify exact scope/residuals; publication remains
+   separately controlled. Broad read-only translation continues after 1.0.
+
+G23 is accepted bounded integration, **not** a 1.0 pass. The A1/A6 Review51 candidate
+awaits integration; the separate author window candidate is not adopted. Exact
+identities and outstanding obligations are in the ledger.
+
+## Continuing functional prioritization
 
 This is a development prioritization view, **not publication or a compatibility
 certificate**. The owner's four categories separate functional priority from
@@ -69,9 +91,9 @@ Exact historical candidate identities and peer proposals are preserved in
 [reconciliation evidence](research/card-u-reconciliation/README.md), not promoted
 from dirty working bytes. Root owns subsequent roadmap and delivery decisions.
 
-## Current local package delivery
+## Historical local package delivery
 
-The bounded browser ESM/declaration distributable is local **alpha.6**, tested
+The earlier bounded browser ESM/declaration distributable was local **alpha.6**, tested
 source `a572862f74876f8c29a7ab4697cfb5e9fc842840`, not current HEAD or an
 evidence-only successor. [Package identity, acquisition and finite acceptance](research/card-v-a-alpha-six.md)
 and the [current quickstart](../README.md#private-local-alpha) distinguish the
