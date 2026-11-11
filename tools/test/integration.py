@@ -86,9 +86,18 @@ def prefix_selected(directory, consumer, files):
                                 'like-prefix-composite-red.test.mjs' in names)
 
 
+def setup_limit_selected(files):
+    return bool(set(files) & {'test/conformance/recursive-cte-setup.test.mjs',
+                              'test/parser/limit-production.test.mjs',
+                              'test/conformance/limit-offset-adjudication.test.mjs'})
+
+
 def prerequisite_commands(files, library, work_root):
     """Fixture producers run in dependency order, outside the source tree."""
     commands = []
+    if setup_limit_selected(files):
+        commands.append(['python3', 'tools/test/setup-limit-paired.py', str(pathlib.Path.cwd()),
+                         str(library), shutil.which('node') or 'node', str(work_root/'setup-limit-paired')])
     if 'test/conformance/aggregate-module-position.test.mjs' in files:
         commands.append(['python3', 'tools/test/cf06-paired.py', str(pathlib.Path.cwd()),
                          str(library), shutil.which('node') or 'node', str(work_root/'cf06-paired')])
@@ -305,6 +314,12 @@ def generated_inventory(files, work_root, require_captures=False):
         directories.append('cf03-paired')
         for name in ('native.json', 'public.json', 'receipt.json'):
             path = work_root/'cf03-paired'/name
+            if require_captures or path.is_file():
+                path.read_bytes()
+    if setup_limit_selected(files):
+        directories.append('setup-limit-paired')
+        for name in ('native.json', 'public.json', 'receipt.json'):
+            path = work_root/'setup-limit-paired'/name
             if require_captures or path.is_file():
                 path.read_bytes()
     if 'test/conformance/recursive-cte-resolution.test.mjs' in files:

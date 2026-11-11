@@ -2,6 +2,67 @@ import importlib.util, os, pathlib, sys, unittest, signal
 spec=importlib.util.spec_from_file_location('runner','tools/test/integration.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
 class Runner(unittest.TestCase):
+ def test_setup_limit_original_pair_cli_controls(self):
+  import subprocess,tempfile,json,shutil,copy
+  library=os.environ.get('INTEGRATION_TEST_ORACLE')
+  if not library:self.skipTest('INTEGRATION_TEST_ORACLE required')
+  files=['test/conformance/recursive-cte-setup.test.mjs','test/parser/limit-production.test.mjs','test/conformance/limit-offset-adjudication.test.mjs']
+  node=shutil.which('node')
+  for file in files:
+   plan=runner.prerequisite_commands([file,file],pathlib.Path(library),pathlib.Path('/purpose'))
+   self.assertEqual(sum('tools/test/setup-limit-paired.py' in c for c in plan),1)
+  with tempfile.TemporaryDirectory(prefix='setup-limit-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp)
+   command=next(c for c in runner.prerequisite_commands(files,pathlib.Path(library),root) if 'tools/test/setup-limit-paired.py' in c)
+   subprocess.run(command,check=True,capture_output=True,timeout=80)
+   spec=importlib.util.spec_from_file_location('setup_pair','tools/test/setup-limit-paired.py')
+   pair=importlib.util.module_from_spec(spec);spec.loader.exec_module(pair)
+   native=[json.loads(s) for s in (root/'setup-limit-paired/native.json').read_text().splitlines()][1:]
+   public=[json.loads(s) for s in (root/'setup-limit-paired/public.json').read_text().splitlines()]
+   cases=[{'id':r['id']} for r in native if r['enc']=='utf8']
+   pair.compare(native,public,cases)
+   self.assertEqual(len(native),147)
+   for field in ('type','value','metadata','reset','code','error','missing','duplicate'):
+    changed=copy.deepcopy(public)
+    if field=='type':changed[0]['runs'][0]['rows'][0][0][0]='real'
+    elif field=='value':changed[0]['runs'][0]['rows'][0][0][1]='999'
+    elif field=='metadata':changed[0]['metadata'][0]['name']='wrong'
+    elif field in ('reset','code','error'):next(r for r in changed if r['id']=='error')['runs'][0][field]='wrong'
+    elif field=='missing':changed.pop()
+    else:changed[-1]=copy.deepcopy(changed[0])
+    with self.subTest(field=field),self.assertRaises(AssertionError):pair.compare(native,changed,cases)
+   before=runner.generated_inventory(files,root,True)
+   self.assertEqual(set(before),{'setup-limit-paired/'+n for n in ('native.json','public.json','receipt.json')})
+   (root/'setup-limit-paired/receipt.json').unlink()
+   with self.assertRaises(FileNotFoundError):runner.generated_inventory(files,root,True)
+  self.paired_drift_fails_actual_cli('setup-limit-paired',files[0])
+  self.paired_drift_fails_actual_cli('setup-limit-paired',files[1],'receipt.json')
+  # Remove a real completed producer receipt before the runner consumes it.
+  with tempfile.TemporaryDirectory(prefix='setup-receipt-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp);binary=root/'bin';binary.mkdir();shim=binary/'python3'
+   real=shutil.which('python3')
+   shim.write_text('#!'+sys.executable+'\nimport os,sys,subprocess,pathlib\n'
+    +'if "tools/test/setup-limit-paired.py" not in sys.argv: os.execv('+repr(real)+',["python3",*sys.argv[1:]])\n'
+    +'r=subprocess.run(['+repr(real)+',*sys.argv[1:]])\n'
+    +'if r.returncode==0:(pathlib.Path(sys.argv[-1])/"receipt.json").unlink()\n'
+    +'sys.exit(r.returncode)\n');shim.chmod(0o755)
+   env=dict(os.environ,PATH=str(binary)+os.pathsep+os.environ['PATH'],SAIVAGE_CARD_WORK_ROOT=str(root/'run'))
+   result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',library,*files],env=env,capture_output=True,text=True,timeout=80)
+   self.assertNotEqual(result.returncode,0,result.stdout+result.stderr)
+   self.assertIn('receipt.json',result.stderr)
+   report=json.loads((root/'run/integration-run/manifest.json').read_text())
+   self.assertTrue(all(p['exit']==0 for p in report['prerequisites']))
+   self.assertEqual(report['results'],[])
+  # Wrong actual library identity must stop all dependents at the CLI.
+  with tempfile.TemporaryDirectory(prefix='setup-pin-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
+   root=pathlib.Path(tmp);wrong=root/'wrong.so';wrong.write_bytes(b'not SQLite')
+   env=dict(os.environ,SAIVAGE_CARD_WORK_ROOT=str(root/'run'))
+   result=subprocess.run([sys.executable,'tools/test/integration.py','--oracle-library',str(wrong),*files],env=env,capture_output=True,text=True,timeout=30)
+   self.assertEqual(result.returncode,1,result.stderr)
+   report=json.loads((root/'run/integration-run/manifest.json').read_text())
+   self.assertEqual(report['not_run'],files);self.assertEqual(report['results'],[])
+   self.assertFalse((root/'run/setup-limit-paired').exists())
+
  def test_source_root_identity_actual_cli(self):
   import subprocess,tempfile,shutil,json
   with tempfile.TemporaryDirectory(prefix='root-control-',dir=os.environ['SAIVAGE_CARD_WORK_ROOT']) as tmp:
@@ -142,7 +203,7 @@ class Runner(unittest.TestCase):
     self.assertTrue(all(p['exit']==0 for p in report['prerequisites']))
     self.assertEqual([r['exit'] for r in report['results']],[0])
     self.assertEqual(report['not_run'],[])
-    names=('native.json','public.json','receipt.json') if directory=='cf03-paired' else ('native.json','public.json')
+    names=('native.json','public.json','receipt.json') if directory in ('cf03-paired','setup-limit-paired') else ('native.json','public.json')
     self.assertEqual(set(report['generated_inputs']),{directory+'/'+n for n in names})
     self.assertEqual(report['input_drift'],[str(root/'run'/directory/capture)])
 
@@ -433,8 +494,11 @@ class Runner(unittest.TestCase):
   self.assertEqual(set(files)&beta9,beta9)
   cf06={'test/conformance/aggregate-module-position.test.mjs'}
   self.assertEqual(set(files)&cf06,cf06)
+  setup_a8={'test/conformance/recursive-cte-setup.test.mjs',
+            'test/parser/limit-production.test.mjs'}
+  self.assertEqual(set(files)&setup_a8,setup_a8)
   current_files=files
-  files=[file for file in files if file not in beta8|beta9|cf06]
+  files=[file for file in files if file not in beta8|beta9|cf06|setup_a8]
   self.assertEqual(len(files),556)
   prefix_era=[file for file in files if file not in beta7]
   self.assertEqual(len(prefix_era),537)
@@ -457,8 +521,8 @@ class Runner(unittest.TestCase):
   for key in selected:
    self.assertEqual(plan.count(runner.select_fixture_command(key,library,root)),1,key)
   expected=sorted({str(p) for pattern in ('test/conformance/*.test.mjs','test/conformance/run-*-ts.mjs','test/storage/*.test.mjs','test/parser/*.test.mjs') for p in pathlib.Path('.').glob(pattern)})
-  self.assertEqual(sorted(current_files),sorted(files+list(beta8|beta9|cf06)))
-  self.assertEqual(files,[file for file in expected if file not in beta8|beta9|cf06])
+  self.assertEqual(sorted(current_files),sorted(files+list(beta8|beta9|cf06|setup_a8)))
+  self.assertEqual(files,[file for file in expected if file not in beta8|beta9|cf06|setup_a8])
 
  def test_inventory_rejects_equal_cardinality_substitution(self):
   from unittest.mock import patch
@@ -466,7 +530,8 @@ class Runner(unittest.TestCase):
   for removed in ('column-default','like-prefix-composite','select-review32-boundaries',
                   'aggregate-context-opcodes','recursive-cte-resolution',
                   'materialized-cte-linked-consumer','singleton-retained-demand',
-                  'compound-aggregate-destinations','cte-expression-compound','aggregate-module-position'):
+                  'compound-aggregate-destinations','cte-expression-compound','aggregate-module-position',
+                  'recursive-cte-setup'):
    original=f'test/conformance/{removed}.test.mjs'
    self.assertIn(original,files)
    substituted=sorted([file for file in files if file!=original]+

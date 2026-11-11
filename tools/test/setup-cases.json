@@ -1,0 +1,82 @@
+[
+  {
+    "id": "R0",
+    "sql": "WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<3) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S0",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 ) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S1",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 WHERE a<0 UNION ALL SELECT n+1 FROM c WHERE n<3 ) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S2",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION SELECT n+1 FROM c WHERE n<3 ) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S3",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 ORDER BY 1 DESC) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S4",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 LIMIT 3 OFFSET 1) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S5",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 ) SELECT sum(n) FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S6",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 ) SELECT c.n FROM c JOIN t1 ON c.n=t1.a",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S7",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT wrong.a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 ) SELECT n FROM c LIMIT 0",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S8",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT a FROM t1 UNION ALL SELECT n+1 FROM c WHERE n<3 ) SELECT wrong.n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "S9",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT CASE WHEN a=1 THEN 'a' ELSE 'A' END COLLATE nocase FROM t1 UNION SELECT n FROM c WHERE 0 ) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "false",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT 1 GROUP BY 1 HAVING 0 UNION ALL SELECT n+1 FROM c WHERE n<2) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "true",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT 1 GROUP BY 1 HAVING 1 UNION ALL SELECT n+1 FROM c WHERE n<2) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "distinct",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT DISTINCT 1 UNION ALL SELECT n+1 FROM c WHERE n<2) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "empty",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT 1 WHERE 0 UNION ALL SELECT n+1 FROM c WHERE n<2) SELECT n FROM c",
+    "fixture": "subquery"
+  },
+  {
+    "id": "error",
+    "sql": "WITH RECURSIVE c(n) AS (SELECT abs(-9223372036854775808) UNION ALL SELECT n+1 FROM c WHERE n<2) SELECT n FROM c",
+    "fixture": "subquery"
+  }
+]
