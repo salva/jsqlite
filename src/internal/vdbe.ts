@@ -8839,26 +8839,23 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   return Object.freeze({...compiled,ops:builder.finish(),registers:builder.registers,parameters:Object.freeze(parameters.names.map(name=>Object.freeze({name})))});
  }
 
- // Internal JSON modules supply the existing AggInfo input-register seam.
- // Their resolution-only schema is private to this SELECT, never a host module
- // or an OpenRead table. The mixed producer retains argument/ON SrcItems.
+ // Enroll every positioned source into the existing AggInfo register seam.
+ // wherecode.c owns JSON Filter/Next and readiness at its selected loop level;
+ // source ordinal and query arity do not change the resolved declaration.
  // Each source payload ends in a dedicated identity slot. It is not a
  // declared column (nor JSON id) and survives sorter/saved-row phases.
  const jsonModules=new Set(["json_each","json_tree","jsonb_each","jsonb_tree"]);
- if(!parent?.input&&schema&&select.from.items.length===2&&!jsonModules.has(select.from.items[0]!.tableName.toLowerCase())&&jsonModules.has(select.from.items[1]!.tableName.toLowerCase())){
+ if(!parent?.input&&schema&&select.from.items.some(item=>jsonModules.has(item.tableName.toLowerCase()))){
   const retained=select.from.cteDerived?.find(source=>source.index===0);
   // A retained derived SrcItem must not fall through to schema lookup.
   // Its producer is not enrolled in this mixed-module destination yet.
   if(!retained&&(select.from.derived?.index===0||select.from.derivedSources?.some(source=>source.index===0)))throw new JSQLiteError("unsupported","this derived mixed-module source is not implemented",{unsupportedClassification:"temporary"});
-  const physical=retained?transientSourceTable(retained.select,select.from.items[0]!.tableName,schema,true):schema.findTable(select.from.items[0]!.tableName),item=select.from.items[1]!;
-  if(!physical)throw new JSQLiteError("sqlite",`no such table: ${select.from.items[0]!.tableName}`,{code:1});
+  const physical=retained?transientSourceTable(retained.select,select.from.items[0]!.tableName,schema,true):undefined;
   // select.c enrolls a real virtual declaration, not a transient B-tree.
   // Retained physical producers still own a genuine transient table schema.
-  const transient=retained?schema.withTransientTable(physical):schema;
+  const transient=physical?schema.withTransientTable(physical):schema;
   const linkedPlan=parent?.linkedPlan??(retained?resolveTransientArm(select,transient):expandAndResolveSelect(select,transient));
-  const module=linkedPlan.sources[1]!.table;
-  if(module.kind!=='json-module')throw new JSQLiteError('internal','mixed aggregate lost module declaration');
-  const columns=module.columns,builder=parent?.builder??new SelectProgramBuilder<Op>(),parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},first=builder.range(physical.columns.length+columns.length+2);
+  const builder=parent?.builder??new SelectProgramBuilder<Op>(),parameters:ParameterBuilder=parent?.parameters??{maximum:0,names:[],named:new Map()},first=builder.range(linkedPlan.sources.reduce((width,source)=>width+source.table.columns.length+1,0));
   builder.reserveCursorsThrough(1);
   // Feed AggInfo from the selected, positioned WHERE row. No SQL payload
   // reparse or child NameContext reconstruction: each source retains identity.
@@ -8868,7 +8865,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   // after its producer has filled the enclosing ephemeral cursor. Never open
   // the resolution-only rootPage=0 descriptor against the database pager.
   const retainedCursor=retained?builder.cursor():undefined;
-  if(retained&&retainedCursor!==undefined){
+  if(retained&&physical&&retainedCursor!==undefined){
    const keyInfo=new KeyInfo({encoding:database.encoding,totalFieldCount:physical.columns.length,keyFieldCount:physical.columns.length,terms:transientResultCollations(retained.select,schema).map(collation=>({collation}))});
    builder.ops.push({code:'OpenEphemeral',p1:retainedCursor,keyInfo,insertionOrder:true});
    compileTableSelectProducer(retained.select,schema,database,maxRows,maxWorkUnits,maxResultBytes,privateStateLimits,{builder,parameters,destination:{kind:'ephemeral',cursor:retainedCursor}});
@@ -9011,7 +9008,7 @@ export function compileAggregateSelect(select:SelectNode,schema:SchemaGraph|unde
   }
   throw error;
  }
- const aggregateSources=select.from.items.map((item,cursor)=>{const name=sqlName(item.tableName),found=parent?.linkedPlan?aggregatePlan.sources[cursor]!.table:groupedStream?aggregatePlan.sources[cursor]!.table:schema?.findTable(name);if(!found)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(found.kind==='table'&&found.withoutRowid)throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});return{item,table:found,cursor:parent?.cursorFor?parent.cursorFor(aggregatePlan.sources[cursor]!):parent?parent.builder.cursor():select.from.items.length===1?0:cursor+3,base:0}});let sourceWidth=0;for(const source of aggregateSources){source.base=sourceWidth;sourceWidth+=source.table.columns.length+(parent?.input?.rowIdentities?1:0);}if(aggregateSources.length===1)table=aggregateSources[0]!.table;
+ const aggregateSources=select.from.items.map((item,cursor)=>{const name=sqlName(item.tableName),found=aggregatePlan.sources[cursor]!.table;if(!found)throw new JSQLiteError("sqlite",`no such table: ${name}`,{code:1});if(found.kind==='table'&&found.withoutRowid)throw new JSQLiteError("unsupported","this table storage shape is not implemented",{unsupportedClassification:"temporary"});return{item,table:found,cursor:parent?.cursorFor?parent.cursorFor(aggregatePlan.sources[cursor]!):parent?parent.builder.cursor():select.from.items.length===1?0:cursor+3,base:0}});let sourceWidth=0;for(const source of aggregateSources){source.base=sourceWidth;sourceWidth+=source.table.columns.length+(parent?.input?.rowIdentities?1:0);}if(aggregateSources.length===1)table=aggregateSources[0]!.table;
  const rawTrees=select.result.map(x=>expressionFromReduction(x.reduction!));
  // resolve.c resolves aggregate arguments under NC_InAggFunc and rejects a
  // second aggregate before select.c/AggInfo lowering. Keep that diagnostic at

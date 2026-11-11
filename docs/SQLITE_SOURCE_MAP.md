@@ -1738,6 +1738,17 @@ These are bounded delivered consumers, not independent histograms or arbitrary n
 
 Ordered filtered/projected full-row ordinary table arms use resolved scan destinations into the same-VM A/B merge; separate order/permutation and full-output duplicate keys, initial-empty A scheduling, balanced UNION/ALL and independent ALL capacities map to `select.c:multiSelectByMerge` and `resolve.c:resolveCompoundOrderBy`. [Current bounded source/test evidence](research/card-j-d-b-a-c-filtered/MERGE.md). Unordered ordinary table UNION ALL scans sequentially; unordered non-ALL uses the same full-row merge via `select.c:multiSelect`'s invented ORDER route. Local DISTINCT remains scan-owned typed ephemeral production. [Wide native/source evidence](research/compound-wide-repair.md).
 
+### CF06 aggregate source enrollment
+
+`select.c:sqlite3Select/updateAccumulator` and window rewrite's inner grouped
+SELECT consume WHERE-positioned rows; `wherecode.c` coroutine/virtual loop
+branches retain Filter/Next ownership. `vdbe.ts:compileAggregateSelect` now uses
+resolved `aggregatePlan.sources` identity and the shared sourceRow/consumeRow
+register seam for JSON-containing inputs regardless of ordinal/count, with one
+identity slot per source. `aggregate-module-position.test.mjs` covers reversed
+and third-source grouped/window input, typed metadata, reset/rebind and error
+ordering across encodings. [Evidence/boundaries](research/card-l-c/cf06-positioned-input.md).
+
 ### Ordered mixed metadata consumers
 
 `select.c:selectInnerLoop/pushOntoSorter/generateSortTail`, `resolve.c:resolveOrderGroupBy` and `wherecode.c` ready-term/LEFT completion map to the shared mixed-source `compileSelect` binder, candidate subroutine, SorterInsert and drain/destination in `vdbe.ts`. Metadata retains `MetadataFilter/Next` and the shared catalog producer, not JSON identity. Bounded admission, comparison and native-backed tests: [TVF-ORDER](research/card-e-n-pragma-red/TVF-ORDER.md). DISTINCT/LIMIT joins, metadata identity and database_list joins remain deferred.

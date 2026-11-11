@@ -1891,6 +1891,15 @@ operator/configuration changes or all-project cleanup gate is authorized here.
 
 ### Review27 mixed row identity and delivery state
 
+Mixed physical/JSON AggInfo input enrolls resolved source identities independently
+of source order/count. Shared WHERE positions every physical/module row before
+capture through the existing sourceRow/consumeRow contract; JSON Filter/Next and
+readiness stay at their selected loop levels. Payload width is the sum of each
+resolved source's declared columns plus its identity slot, not a two-source
+physical-first layout. Hidden arguments remain outside result-star metadata.
+The focused composition regression is aggregate-module-position.test.mjs;
+[CF06 correction evidence](research/card-l-c/cf06-positioned-input.md).
+
 Mixed physical/JSON AggInfo input now retains separate physical OP_Rowid and
 JSON per-scan identity slots, including grouped sorter/saved rows. JSON identity
 resets to zero on rewind and increments on successful Next; unmatched LEFT
