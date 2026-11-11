@@ -203,7 +203,7 @@ test('recursive aggregate and zero-source count consume source destinations befo
  assert.match(count,/aggregate-expression/);
  assert.doesNotMatch(recursive,/aggregate-expression|OpenRead/);
  assert.match(recursive,/prepareRecursiveSource\(select,owner,schema\)/);
- assert.match(recursive,/compileRecursiveCteSelect\([\s\S]*true,\{builder,parameters,destination:\{kind:'coroutine',register:coroutine,first\}\}/);
+ assert.match(recursive,/compileRecursiveCteSelect\([\s\S]*true,\{builder,parameters,destination:\{kind:'coroutine',register:coroutine,first\},schema,database\}\)/);
  assert.match(recursive,/EndCoroutine[\s\S]*Yield[\s\S]*consume\(\)/);
  assert.match(recursive,/compileAggregateSelect\([\s\S]*\{builder,ops,parameters,linkedPlan,input,destination:shared\?\.destination/);
  assert.match(recursive,/parameters:Object\.freeze\(parameters\.names/);

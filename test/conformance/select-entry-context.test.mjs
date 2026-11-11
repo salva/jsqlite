@@ -80,9 +80,9 @@ test('ordered entry preserves native cross-arm types, names and atomic errors',a
 test('recursive public queue branch consumes enclosing output context',()=>{
  const entry=fs.readFileSync(new URL('../../src/internal/select-compiler.ts',import.meta.url),'utf8');
  const recursive=entry.slice(entry.indexOf('if (recursive)'),entry.indexOf('// select.c:sqlite3Select dispatches a compound'));
- // The linked resolver needs schema as well as the Parse-like allocation owner.
- // Requiring an exact three-property literal rejected that additional context.
- assert.match(recursive,/compileRecursiveCteSelect\(select,[\s\S]*\{\s*builder, parameters, destination, schema\s*\}/);
+ // The same Parse-like context carries linked schema and seed database.
+ // Require both forwarding and the producer consumption below.
+ assert.match(recursive,/compileRecursiveCteSelect\(select,[\s\S]*\{\s*builder, parameters, destination, schema, database\s*\}/);
  assert.match(recursive,/builder\.finish\(\)/);
  const producer=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const queue=producer.slice(producer.indexOf('export function compileRecursiveCteSelect('),producer.indexOf('export function compileMultipleRecursiveCtes('));
@@ -90,6 +90,12 @@ test('recursive public queue branch consumes enclosing output context',()=>{
  assert.match(queue,/shared\?\.parameters/);
  assert.match(queue,/shared\?\.destination/);
  assert.match(queue,/shared\?\.schema/);
+ // select.c re-enters sqlite3Select(pParse,pSetup,&destQueue): the seed
+ // must consume the same ops/allocation and database, not publish a child VM.
+ assert.match(queue,/const ops=selectProgramBuilder\.ops,parameters:ParameterBuilder=shared\?\.parameters/);
+ assert.match(queue,/compileTableSelectProducer\(setup,shared\.schema,shared\.database,[^\n]*\{builder:selectProgramBuilder,parameters,destination:queueDestination\}\)/);
+ assert.match(queue,/compileScalarSelect\(setup,[^\n]*shared\?\.schema,shared\?\.database,[^\n]*\{builder:selectProgramBuilder,parameters,destination:queueDestination,emitRow:enqueue\}\)/);
+ assert.match(queue,/shared\?\.database\?\{database:shared\.database\}/);
  assert.doesNotMatch(recursive,/catch\s*\(/);
 });
 
@@ -158,13 +164,13 @@ test('recursive aggregate entry supplies enclosing allocation and output to sele
 
 test('multiple recursive CTE entry supplies enclosing allocation and output to composer',()=>{
  const text=fs.readFileSync(new URL('../../src/internal/select-compiler.ts',import.meta.url),'utf8');
- assert.match(text,/compileMultipleRecursiveCtes\(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, \{ builder, parameters, destination, schema \}\)/);
+ assert.match(text,/compileMultipleRecursiveCtes\(select, encoding, maxWorkUnits, maxResultBytes, privateStateLimits, maxRows, \{ builder, parameters, destination, schema, database \}\)/);
  const producer=fs.readFileSync(new URL('../../src/internal/vdbe.ts',import.meta.url),'utf8');
  const start=producer.indexOf('export function compileMultipleRecursiveCtes(');
  const composer=producer.slice(start,producer.indexOf('\nexport function ',start+1));
  assert.match(composer,/shared\?\.builder\?\?new SelectProgramBuilder/);
  assert.match(composer,/parameters:ParameterBuilder=shared\?\.parameters/);
- assert.match(composer,/builder:selectProgramBuilder,parameters,[^\n]*schema:shared\.schema[^\n]*destination:\{kind:'sorter'/);
+ assert.match(composer,/builder:selectProgramBuilder,parameters,[^\n]*schema:shared\.schema[^\n]*database:shared\.database[^\n]*destination:\{kind:'sorter'/);
  assert.match(composer,/emitSelectDestination\(ops,shared\?\.destination/);
 });
 

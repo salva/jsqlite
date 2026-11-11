@@ -593,9 +593,11 @@ syntax errors, semantic errors and temporary unsupported are not interchangeable
 operation addresses, register ranges, cursor allocation and labels, corresponding
 to `Parse.nMem/nTab` and one Vdbe. Parameters and `SelectDest` flow into selected
 producers. Recursive queue and multiple-recursive entry contexts also carry
-`schema` into linked consumer resolution; this supplements, rather than replaces,
-the shared builder, parameters and destination. The multiple-recursive composer
-passes that same allocation/parameter owner to each queue with a sorter destination
+`schema` into linked consumer resolution and `database` into ordinary seed
+producers; these supplement, rather than replace, the shared builder, parameters
+and destination. Scalar and table seeds emit into the queue using that same
+builder/parameter owner. The multiple-recursive composer forwards both contexts
+and passes that same allocation/parameter owner to each queue with a sorter destination
 before publishing to its enclosing destination (`select.c:generateWithRecursiveQuery`).
 A specialized branch may decline **before emission**; after selection
 its error propagates, not a catch-and-try fallback. Enclosing entry publishes
