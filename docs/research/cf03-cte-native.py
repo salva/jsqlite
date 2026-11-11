@@ -1,6 +1,11 @@
-import ctypes as C,json,pathlib,sys,hashlib
-r=pathlib.Path(sys.argv[1]);lib=pathlib.Path(sys.argv[2]);assert hashlib.sha256(lib.read_bytes()).hexdigest()=='979c43433a9a9cdfbaaf6bae7dc0fe53eff80b05112aa40d9febfa381c00d020'
-l=C.CDLL(str(lib));P=C.c_void_p
+import ctypes as C,json,pathlib,sys,hashlib,importlib.util
+r=pathlib.Path(sys.argv[1]);lib=pathlib.Path(sys.argv[2])
+spec=importlib.util.spec_from_file_location('cf03_provenance',r/'docs/research/cf03-native-provenance.py')
+provenance=importlib.util.module_from_spec(spec);spec.loader.exec_module(provenance)
+l,qualification=provenance.qualify(r,lib);P=C.c_void_p
+# Qualification is emitted separately from the original JSON-line witness.
+qualification['producerSha256']=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest()
+print(json.dumps({'cf03Qualification':qualification},sort_keys=True),file=sys.stderr)
 for n,a,t in [('sourceid',[],C.c_char_p),('open_v2',[C.c_char_p,C.POINTER(P),C.c_int,P],C.c_int),('prepare_v2',[P,C.c_char_p,C.c_int,C.POINTER(P),P],C.c_int),('step',[P],C.c_int),('column_type',[P,C.c_int],C.c_int),('column_int64',[P,C.c_int],C.c_longlong),('reset',[P],C.c_int),('finalize',[P],C.c_int),('close',[P],C.c_int)]:
  f=getattr(l,'sqlite3_'+n);f.argtypes=a;f.restype=t
 for name in ['name','decltype','database_name','table_name','origin_name']:

@@ -51,7 +51,11 @@ test('mixed ordinary ALL owns compound LIMIT in enclosing destination producer',
 test('supported grouped window source emits on enclosing builder instead of sourceProgram copying',()=>{
  const windowOwner=source.slice(source.indexOf('function compileWindowSelectLowering('),source.indexOf('export function compileRecursiveCteSelect('));
  assert.doesNotMatch(windowOwner,/return compileAggregateSelect\(producer,schema,database,Number.MAX_SAFE_INTEGER,maxWorkUnits,maxResultBytes,privateStateLimits\);/,'grouped window builds completed AggInfo Program before source coroutine');
- const grouped=windowOwner.slice(windowOwner.indexOf('  }else if(groupedProducer){'),windowOwner.indexOf('  }else if(recursiveProducer){'));
+ // Anchor enclosing branches: groupedProducer also has a nested recursive input.
+ const groupedStart=windowOwner.indexOf('\n  }else if(groupedProducer){');
+ const groupedEnd=windowOwner.indexOf('\n  }else if(recursiveProducer){',groupedStart);
+ assert.ok(groupedStart>=0&&groupedEnd>groupedStart,'enclosing grouped window branch boundaries');
+ const grouped=windowOwner.slice(groupedStart,groupedEnd);
  assert.match(grouped,/destination:\{kind:'coroutine',register:sourceCoroutine,first:groupedPayload\}/);
  assert.match(grouped,/builder.registers=registers/);
  assert.match(grouped,/registers=builder.registers/);
@@ -156,7 +160,10 @@ test('retained derived compound arms call existing shared destination before sch
 
 test('retained physical source feeds window payload without a finished child splice',()=>{
  const window=source.slice(source.indexOf('export function compileWindowSelectLowering('),source.indexOf('export function programOpcodeNames('));
- const branch=window.slice(window.indexOf('if(owner?.retainedSource){'),window.indexOf('}else if(groupedProducer){'));
+ const retainedStart=window.indexOf('\n  if(owner?.retainedSource&&!groupedProducer){');
+ const retainedEnd=window.indexOf('\n  }else if(groupedProducer){',retainedStart);
+ assert.ok(retainedStart>=0&&retainedEnd>retainedStart,'enclosing retained non-grouped window branch boundaries');
+ const branch=window.slice(retainedStart,retainedEnd);
  assert.match(branch,/const destination:SelectDest=\{kind:'coroutine'/);
  assert.match(branch,/compileInnerTableSelect\([\s\S]*\{builder,ops,parameters,destination\}/);
  assert.match(branch,/compileTableCompoundProducer\([\s\S]*\{builder,parameters,destination\}/);

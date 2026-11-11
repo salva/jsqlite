@@ -49,6 +49,19 @@ def main():
     target.mkdir(parents=True, exist_ok=True)
     (target/'native.json').write_text(native.stdout)
     (target/'public.json').write_text(public.stdout)
+    qualification = json.loads(native.stderr)['cf03Qualification']
+    import hashlib
+    digest = lambda data: hashlib.sha256(data).hexdigest()
+    qualification.update({
+        'fixtureSha256': digest(json.dumps(cases(root), separators=(',', ':')).encode()),
+        'nativeSha256': digest(native.stdout.encode()),
+        'publicSha256': digest(public.stdout.encode()),
+        'pairedProducerSha256': digest(pathlib.Path(__file__).read_bytes()),
+        'publicProducerSha256': digest(pathlib.Path(__file__).with_suffix('.mjs').read_bytes()),
+        'qualificationProducerSha256': digest((root/'docs/research/cf03-native-provenance.py').read_bytes()),
+        'pairs': 24, 'cycles': 2,
+    })
+    (target/'receipt.json').write_text(json.dumps(qualification, sort_keys=True, indent=2)+'\n')
     print('CF03 original witness: 24 metadata/typed/two-reset/error pairs match')
 
 

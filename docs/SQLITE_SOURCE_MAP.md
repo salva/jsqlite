@@ -26,6 +26,8 @@ negatives. Evidence: [card status](record:///status.md?card=card-t-c).
 
 ### Ordinary ALL expression destinations (CF03)
 
+Native producer `cf03-cte-native.py` keeps its SQL/metadata/two-reset/error witness; `cf03-native-provenance.py` qualifies the consumed library before SQL. `tools/test/cf03-paired.py` binds compared native/public behavior to exact library/source/fixture/producer hashes; `cf03-provenance-test.py` rejects actual wrong-source and wrong-profile libraries. Historical exact979c provenance is retained; fresh Linux ELF qualification is intentionally fail-closed and compiler-bounded. [Boundary/build/regression evidence](research/cf03-native-qualification.md).
+
 Scalar compound metadata in compileScalarSelect's compileSubquery consumes
 `linked.compoundArms[0].result[0].descriptor`, preserving the leftmost resolved
 expression rather than invoking the single-arm metadata resolver on a whole

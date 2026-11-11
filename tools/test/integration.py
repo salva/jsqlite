@@ -120,9 +120,9 @@ def prerequisite_commands(files, library, work_root):
     if 'test/conformance/recursive-cte-resolution.test.mjs' in files:
         commands.append(['python3', 'tools/test/cf02/paired.py', str(pathlib.Path.cwd()),
                          str(library), shutil.which('node') or 'node', str(work_root/'cf02-paired')])
-    # Original bounded CF01/CF03 witnesses. Authenticate both semantic pin
-    # fields before any recipe can open fixtures or emit results. Keep the
-    # CF03 recipe's stronger byte pin intact; that recipe is build-specific.
+    # Original bounded CF01/CF03 witnesses. Authenticate semantic pin fields
+    # before fixtures; CF03 additionally qualifies the consumed library's
+    # executable/data identity and actual profile, retaining historical byte provenance.
     cf01 = any(f'test/conformance/{name}.test.mjs' in files for name in
                ('materialized-cte-linked-consumer', 'singleton-retained-demand'))
     cf03 = any(f'test/conformance/{name}.test.mjs' in files for name in
